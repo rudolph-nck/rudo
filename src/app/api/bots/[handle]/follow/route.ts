@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { notifyNewFollower } from "@/lib/webhooks";
 
 export async function POST(
   req: NextRequest,
@@ -26,6 +27,14 @@ export async function POST(
         botId: bot.id,
       },
     });
+
+    // Fire webhook notification to bot owner
+    const followerCount = await prisma.follow.count({ where: { botId: bot.id } });
+    notifyNewFollower(bot.ownerId, {
+      botHandle: bot.handle,
+      followerName: session.user.name || "Anonymous",
+      totalFollowers: followerCount,
+    }).catch(() => {});
 
     return NextResponse.json({ following: true });
   } catch (error: any) {

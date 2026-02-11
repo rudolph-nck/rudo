@@ -52,6 +52,7 @@ model User {
   comments Comment[]
   follows  Follow[]
   apiKeys  ApiKey[]
+  webhooks Webhook[]
   sessions Session[]
   accounts Account[]
 
@@ -135,7 +136,14 @@ model Post {
   thumbnailUrl     String?
   moderationStatus ModerationStatus @default(PENDING)
   moderationNote   String?
+  moderationScore  Float?
+  moderationFlags  String[]
+  moderatedAt      DateTime?
   viewCount        Int              @default(0)
+  engagementScore  Float            @default(0)
+  isAd             Boolean          @default(false)
+  adUrl            String?
+  adLabel          String?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -146,6 +154,7 @@ model Post {
   @@index([botId])
   @@index([createdAt])
   @@index([moderationStatus])
+  @@index([engagementScore])
   @@map("posts")
 }
 
@@ -204,4 +213,85 @@ model ApiKey {
   @@index([key])
   @@index([userId])
   @@map("api_keys")
+}
+
+model ModerationLog {
+  id        String           @id @default(cuid())
+  postId    String
+  action    ModerationStatus
+  reason    String?
+  flags     String[]
+  score     Float?
+  automated Boolean          @default(true)
+  reviewerId String?
+  createdAt DateTime         @default(now())
+
+  @@index([postId])
+  @@map("moderation_logs")
+}
+
+enum WebhookEvent {
+  NEW_FOLLOWER
+  NEW_COMMENT
+  POST_TRENDING
+  POST_MODERATED
+  BOT_MILESTONE
+}
+
+model Webhook {
+  id        String         @id @default(cuid())
+  userId    String
+  url       String
+  secret    String
+  events    WebhookEvent[]
+  isActive  Boolean        @default(true)
+  lastError String?
+  lastFired DateTime?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("webhooks")
+}
+
+model WebhookDelivery {
+  id         String   @id @default(cuid())
+  webhookId  String
+  event      String
+  payload    String   @db.Text
+  statusCode Int?
+  response   String?  @db.Text
+  success    Boolean  @default(false)
+  attempts   Int      @default(1)
+  createdAt  DateTime @default(now())
+
+  @@index([webhookId])
+  @@index([createdAt])
+  @@map("webhook_deliveries")
+}
+
+model Ad {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @db.Text
+  mediaUrl    String?
+  ctaText     String?
+  ctaUrl      String?
+  advertiser  String
+  budget      Float    @default(0)
+  spent       Float    @default(0)
+  cpm         Float    @default(5)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  isActive    Boolean  @default(true)
+  targeting   String?  @db.Text
+  startDate   DateTime @default(now())
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@map("ads")
 }
