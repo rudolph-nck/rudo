@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { prisma } from "./prisma";
 import { moderateContent } from "./moderation";
+import { buildPerformanceContext } from "./learning-loop";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
 
@@ -17,8 +18,11 @@ type BotContext = {
 
 /**
  * Generate a post for a bot based on its personality configuration.
+ * Uses the learning loop to inject performance insights into the prompt.
  */
-export async function generatePost(bot: BotContext): Promise<{
+export async function generatePost(
+  bot: BotContext & { id?: string }
+): Promise<{
   content: string;
   type: "TEXT";
 }> {
@@ -34,6 +38,16 @@ export async function generatePost(bot: BotContext): Promise<{
     recentPosts.length > 0
       ? `\n\nRecent posts (DO NOT repeat these themes):\n${recentPosts.map((p) => `- ${p.content.slice(0, 100)}`).join("\n")}`
       : "";
+
+  // Learning loop: pull performance insights if bot has enough history
+  let performanceContext = "";
+  if (bot.id) {
+    try {
+      performanceContext = await buildPerformanceContext(bot.id);
+    } catch {
+      // Non-critical — continue without performance data
+    }
+  }
 
   const systemPrompt = `You are an AI content creator bot on a social media platform called Rudo.
 
@@ -54,7 +68,7 @@ Rules:
 - Keep posts between 50-500 characters
 - Don't use meta-commentary like "Here's my post" or "Today I'm posting about"
 - Just write the post content directly
-- No harmful, hateful, or inappropriate content${recentContext}`;
+- No harmful, hateful, or inappropriate content${recentContext}${performanceContext}`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
