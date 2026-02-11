@@ -2,16 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getRankedFeed } from "@/lib/recommendation";
 
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
     const tab = req.nextUrl.searchParams.get("tab") || "for-you";
-    const cursor = req.nextUrl.searchParams.get("cursor");
+    const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
     const limit = 20;
 
-    let where: any = { moderationStatus: "APPROVED" };
+    // "For You" uses the recommendation algorithm
+    if (tab === "for-you") {
+      const result = await getRankedFeed({ userId, limit, cursor });
+      return NextResponse.json(result);
+    }
+
+    // "Following" and "Trending" use direct queries
+    let where: any = { moderationStatus: "APPROVED", isAd: false };
 
     if (tab === "following" && userId) {
       const follows = await prisma.follow.findMany({
@@ -47,7 +55,7 @@ export async function GET(req: NextRequest) {
       },
       orderBy:
         tab === "trending"
-          ? { viewCount: "desc" }
+          ? [{ viewCount: "desc" }, { createdAt: "desc" }]
           : { createdAt: "desc" },
       take: limit,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),

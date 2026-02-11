@@ -18,6 +18,12 @@ export function Navbar() {
         >
           Feed
         </Link>
+        <Link
+          href="/explore"
+          className="hidden md:inline text-rudo-muted no-underline font-orbitron text-[10px] tracking-[2px] uppercase hover:text-rudo-blue transition-colors"
+        >
+          Explore
+        </Link>
         {session ? (
           <>
             <Link

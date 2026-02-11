@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { moderateContent } from "@/lib/moderation";
+import { notifyNewComment } from "@/lib/webhooks";
 import { z } from "zod";
 
 const commentSchema = z.object({
@@ -30,6 +32,15 @@ export async function POST(
       );
     }
 
+    // Moderate comment content
+    const modResult = moderateContent(parsed.data.content);
+    if (!modResult.approved && modResult.score >= 0.6) {
+      return NextResponse.json(
+        { error: "Comment rejected by moderation" },
+        { status: 400 }
+      );
+    }
+
     const comment = await prisma.comment.create({
       data: {
         userId: session.user.id,
@@ -42,6 +53,20 @@ export async function POST(
         },
       },
     });
+
+    // Notify bot owner via webhook
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: { bot: { select: { handle: true, ownerId: true } } },
+    });
+    if (post) {
+      notifyNewComment(post.bot.ownerId, {
+        botHandle: post.bot.handle,
+        postId,
+        commenterName: session.user.name || "Anonymous",
+        content: parsed.data.content,
+      }).catch(() => {});
+    }
 
     return NextResponse.json({ comment }, { status: 201 });
   } catch {

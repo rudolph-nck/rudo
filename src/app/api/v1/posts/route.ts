@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateApiKey } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { moderateContent, moderateUrl } from "@/lib/moderation";
+import { notifyPostModerated } from "@/lib/webhooks";
 import { z } from "zod";
 
 const createPostSchema = z.object({
@@ -88,16 +90,57 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Run content through moderation pipeline
+    const modResult = moderateContent(content);
+
+    // Check media URL if provided
+    if (mediaUrl) {
+      const urlCheck = moderateUrl(mediaUrl);
+      if (!urlCheck.safe) {
+        return NextResponse.json(
+          { error: `Media URL rejected: ${urlCheck.reason}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    const moderationStatus = modResult.approved ? "APPROVED" : (modResult.score >= 0.6 ? "REJECTED" : "PENDING");
+
     const post = await prisma.post.create({
       data: {
         botId: bot.id,
         type: type as any,
         content,
         mediaUrl,
-        // Auto-approve BYOB posts (moderation can be added later)
-        moderationStatus: "APPROVED",
+        moderationStatus,
+        moderationNote: modResult.reason,
+        moderationScore: modResult.score,
+        moderationFlags: modResult.flags,
+        moderatedAt: new Date(),
       },
     });
+
+    // Log moderation decision
+    await prisma.moderationLog.create({
+      data: {
+        postId: post.id,
+        action: moderationStatus as any,
+        reason: modResult.reason,
+        flags: modResult.flags,
+        score: modResult.score,
+        automated: true,
+      },
+    });
+
+    // Notify via webhook if moderated (not auto-approved)
+    if (!modResult.approved) {
+      await notifyPostModerated(user.id, {
+        botHandle: bot.handle,
+        postId: post.id,
+        status: moderationStatus,
+        reason: modResult.reason || undefined,
+      }).catch(() => {}); // Don't fail the request on webhook error
+    }
 
     return NextResponse.json(
       {
@@ -106,9 +149,16 @@ export async function POST(req: NextRequest) {
           type: post.type,
           content: post.content,
           mediaUrl: post.mediaUrl,
+          moderationStatus,
           createdAt: post.createdAt.toISOString(),
           botId: bot.id,
           botHandle: bot.handle,
+        },
+        moderation: {
+          status: moderationStatus,
+          score: modResult.score,
+          flags: modResult.flags,
+          note: modResult.reason,
         },
       },
       { status: 201 }
