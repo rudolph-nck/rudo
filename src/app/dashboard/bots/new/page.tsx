@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +22,8 @@ const aesthetics = [
   "Cottagecore", "Glitch Art", "Brutalist", "Retro-Futurism",
 ];
 
+type HandleStatus = "idle" | "checking" | "available" | "taken" | "invalid";
+
 export default function NewBotPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -38,19 +40,81 @@ export default function NewBotPage() {
     contentStyle: "",
   });
 
+  // Handle availability state
+  const [handleStatus, setHandleStatus] = useState<HandleStatus>("idle");
+  const [handleMessage, setHandleMessage] = useState("");
+
+  // Debounced handle check
+  const checkHandle = useCallback(async (handle: string) => {
+    if (!handle || handle.length < 2) {
+      setHandleStatus("idle");
+      setHandleMessage("");
+      return;
+    }
+
+    if (!/^[a-z0-9_]+$/.test(handle)) {
+      setHandleStatus("invalid");
+      setHandleMessage("Lowercase letters, numbers, and underscores only");
+      return;
+    }
+
+    setHandleStatus("checking");
+    setHandleMessage("");
+
+    try {
+      const res = await fetch(
+        `/api/bots/check-handle?handle=${encodeURIComponent(handle)}`
+      );
+      const data = await res.json();
+
+      if (data.available) {
+        setHandleStatus("available");
+        setHandleMessage("Handle is available");
+      } else {
+        setHandleStatus("taken");
+        setHandleMessage(data.reason || "Handle is not available");
+      }
+    } catch {
+      setHandleStatus("idle");
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (form.handle) {
+        checkHandle(form.handle);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [form.handle, checkHandle]);
+
   function update(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
     if (field === "name" && !form.handle) {
+      const autoHandle = value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_|_$/g, "");
       setForm((f) => ({
         ...f,
         [field]: value,
-        handle: value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, ""),
+        handle: autoHandle,
       }));
+    }
+    if (field === "handle") {
+      setHandleStatus("idle");
+      setHandleMessage("");
     }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (handleStatus === "taken" || handleStatus === "invalid") {
+      setError("Please choose a different handle");
+      return;
+    }
+
     setError("");
     setLoading(true);
 
@@ -105,13 +169,50 @@ export default function NewBotPage() {
               onChange={(e) => update("name", e.target.value)}
               required
             />
-            <Input
-              label="Handle"
-              placeholder="e.g., neon_witch"
-              value={form.handle}
-              onChange={(e) => update("handle", e.target.value)}
-              required
-            />
+            <div>
+              <Input
+                label="Handle"
+                placeholder="e.g., neon_witch"
+                value={form.handle}
+                onChange={(e) =>
+                  update(
+                    "handle",
+                    e.target.value
+                      .toLowerCase()
+                      .replace(/[^a-z0-9_]/g, "")
+                  )
+                }
+                required
+              />
+              {/* Real-time handle availability indicator */}
+              {handleStatus === "checking" && (
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="w-3 h-3 border-2 border-rudo-blue border-t-transparent rounded-full animate-spin" />
+                  <span className="text-[11px] text-rudo-muted">Checking availability...</span>
+                </div>
+              )}
+              {handleStatus === "available" && (
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full" />
+                  <span className="text-[11px] text-green-400">{handleMessage}</span>
+                </div>
+              )}
+              {handleStatus === "taken" && (
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="w-3 h-3 bg-rudo-rose rounded-full" />
+                  <span className="text-[11px] text-rudo-rose">{handleMessage}</span>
+                </div>
+              )}
+              {handleStatus === "invalid" && (
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full" />
+                  <span className="text-[11px] text-yellow-400">{handleMessage}</span>
+                </div>
+              )}
+              <p className="text-[10px] text-rudo-muted mt-1">
+                @{form.handle || "handle"} — this is how users will find your bot
+              </p>
+            </div>
             <Textarea
               label="Bio"
               placeholder="A short description of your bot..."
@@ -220,7 +321,11 @@ export default function NewBotPage() {
 
         {/* Submit */}
         <div className="flex gap-4">
-          <Button type="submit" variant="warm" disabled={loading}>
+          <Button
+            type="submit"
+            variant="warm"
+            disabled={loading || handleStatus === "taken" || handleStatus === "invalid"}
+          >
             {loading ? "Deploying..." : "Deploy Bot"}
           </Button>
           <Button
