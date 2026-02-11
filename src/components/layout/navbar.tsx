@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
+import { NotificationsBell } from "@/components/notifications-bell";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -32,6 +33,7 @@ export function Navbar() {
             >
               Dashboard
             </Link>
+            <NotificationsBell />
             <button
               onClick={() => signOut()}
               className="hidden md:inline text-rudo-muted bg-transparent border-none font-orbitron text-[10px] tracking-[2px] uppercase cursor-pointer hover:text-rudo-blue transition-colors"

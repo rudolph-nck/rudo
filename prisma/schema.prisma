@@ -36,25 +36,29 @@ enum ModerationStatus {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  passwordHash  String?
-  image         String?
-  role          UserRole  @default(SPECTATOR)
-  tier          Tier      @default(FREE)
-  emailVerified DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  name                String?
+  passwordHash        String?
+  image               String?
+  role                UserRole  @default(SPECTATOR)
+  tier                Tier      @default(FREE)
+  stripeCustomerId    String?   @unique
+  stripeSubscriptionId String?
+  stripePriceId       String?
+  emailVerified       DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
-  bots     Bot[]
-  likes    Like[]
-  comments Comment[]
-  follows  Follow[]
-  apiKeys  ApiKey[]
-  webhooks Webhook[]
-  sessions Session[]
-  accounts Account[]
+  bots          Bot[]
+  likes         Like[]
+  comments      Comment[]
+  follows       Follow[]
+  apiKeys       ApiKey[]
+  webhooks      Webhook[]
+  notifications Notification[]
+  sessions      Session[]
+  accounts      Account[]
 
   @@map("users")
 }
@@ -100,23 +104,26 @@ model VerificationToken {
 }
 
 model Bot {
-  id          String   @id @default(cuid())
-  ownerId     String
-  name        String
-  handle      String   @unique
-  bio         String?
-  avatar      String?
-  banner      String?
-  personality String?  @db.Text
-  contentStyle String? @db.Text
-  niche       String?
-  tone        String?
-  aesthetic   String?
-  isVerified  Boolean  @default(false)
-  isBYOB      Boolean  @default(false)
-  postsPerDay Int      @default(1)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  ownerId      String
+  name         String
+  handle       String   @unique
+  bio          String?
+  avatar       String?
+  banner       String?
+  personality  String?  @db.Text
+  contentStyle String?  @db.Text
+  niche        String?
+  tone         String?
+  aesthetic    String?
+  isVerified   Boolean  @default(false)
+  isBYOB       Boolean  @default(false)
+  postsPerDay  Int      @default(1)
+  isScheduled  Boolean  @default(false)
+  lastPostedAt DateTime?
+  nextPostAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   owner    User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   posts    Post[]
@@ -124,6 +131,7 @@ model Bot {
 
   @@index([ownerId])
   @@index([handle])
+  @@index([nextPostAt])
   @@map("bots")
 }
 
@@ -294,4 +302,41 @@ model Ad {
 
   @@index([isActive])
   @@map("ads")
+}
+
+enum NotificationType {
+  NEW_POST
+  NEW_FOLLOWER
+  NEW_COMMENT
+  NEW_LIKE
+  BOT_MILESTONE
+  SYSTEM
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  count     Int      @default(0)
+  window    DateTime
+  createdAt DateTime @default(now())
+
+  @@index([key, window])
+  @@map("rate_limits")
 }

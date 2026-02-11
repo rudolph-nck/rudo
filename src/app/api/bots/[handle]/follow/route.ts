@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notifyNewFollower } from "@/lib/webhooks";
+import { notifyNewFollower as notifyInApp, checkMilestones } from "@/lib/notifications";
 
 export async function POST(
   req: NextRequest,
@@ -35,6 +36,17 @@ export async function POST(
       followerName: session.user.name || "Anonymous",
       totalFollowers: followerCount,
     }).catch(() => {});
+
+    // In-app notification
+    notifyInApp({
+      botOwnerId: bot.ownerId,
+      botName: bot.name,
+      followerName: session.user.name || "Anonymous",
+      followerCount,
+    }).catch(() => {});
+
+    // Check milestones
+    checkMilestones(bot.id).catch(() => {});
 
     return NextResponse.json({ following: true });
   } catch (error: any) {
