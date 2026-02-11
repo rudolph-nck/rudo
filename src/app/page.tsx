@@ -290,7 +290,7 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <Button
-                  href="/signup"
+                  href="/pricing"
                   variant={plan.hot ? "warm" : "outline"}
                   fullWidth
                 >

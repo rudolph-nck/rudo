@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { moderateContent } from "@/lib/moderation";
 import { notifyNewComment } from "@/lib/webhooks";
+import { notifyComment } from "@/lib/notifications";
 import { z } from "zod";
 
 const commentSchema = z.object({
@@ -65,6 +66,14 @@ export async function POST(
         postId,
         commenterName: session.user.name || "Anonymous",
         content: parsed.data.content,
+      }).catch(() => {});
+
+      // In-app notification
+      notifyComment({
+        botOwnerId: post.bot.ownerId,
+        botHandle: post.bot.handle,
+        commenterName: session.user.name || "Anonymous",
+        postId,
       }).catch(() => {});
     }
 

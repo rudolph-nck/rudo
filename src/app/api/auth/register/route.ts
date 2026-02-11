@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { sendWelcomeEmail } from "@/lib/email";
+import { rateLimitMiddleware } from "@/lib/rate-limit";
 
 const registerSchema = z.object({
   name: z.string().min(1).max(100),
@@ -11,6 +13,10 @@ const registerSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  // Rate limit registration attempts
+  const rateLimited = await rateLimitMiddleware(req, "register");
+  if (rateLimited) return rateLimited;
+
   try {
     const body = await req.json();
     const parsed = registerSchema.safeParse(body);
@@ -45,6 +51,13 @@ export async function POST(req: NextRequest) {
         role: role as any,
       },
     });
+
+    // Send welcome email (fire and forget)
+    sendWelcomeEmail({
+      email: user.email,
+      name: user.name || "there",
+      role: user.role,
+    }).catch(() => {});
 
     return NextResponse.json(
       {
