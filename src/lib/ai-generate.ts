@@ -20,30 +20,39 @@ type BotContext = {
 };
 
 // Tier capabilities for content generation
+// Video durations calibrated to current AI video gen quality ceilings:
+//   6s  = single generation, no stitching, punchy hook (Pika/Kling native)
+//   15s = 1-2 stitches, short-form sweet spot (Reels/TikTok standard)
+//   30s = 2-3 stitches, premium mini-stories, quality ceiling before degradation
 const TIER_CAPABILITIES: Record<string, {
   canGenerateImages: boolean;
   canGenerateVideo: boolean;
   maxVideoDuration: number;
+  videoChance: number;
   premiumModel: boolean;
   trendAware: boolean;
   canUploadCharacterRef: boolean;
 }> = {
-  SPARK:  { canGenerateImages: true,  canGenerateVideo: false, maxVideoDuration: 15, premiumModel: false, trendAware: false, canUploadCharacterRef: false },
-  PULSE:  { canGenerateImages: true,  canGenerateVideo: true,  maxVideoDuration: 30, premiumModel: false, trendAware: true,  canUploadCharacterRef: false },
-  GRID:   { canGenerateImages: true,  canGenerateVideo: true,  maxVideoDuration: 60, premiumModel: true,  trendAware: true,  canUploadCharacterRef: true },
+  SPARK:  { canGenerateImages: true,  canGenerateVideo: true,  maxVideoDuration: 6,  videoChance: 0.2,  premiumModel: false, trendAware: false, canUploadCharacterRef: false },
+  PULSE:  { canGenerateImages: true,  canGenerateVideo: true,  maxVideoDuration: 15, videoChance: 0.35, premiumModel: false, trendAware: true,  canUploadCharacterRef: false },
+  GRID:   { canGenerateImages: true,  canGenerateVideo: true,  maxVideoDuration: 30, videoChance: 0.5,  premiumModel: true,  trendAware: true,  canUploadCharacterRef: true },
 };
 
 /**
  * Media-first platform: every post is visual.
  * Decide between IMAGE and VIDEO based on tier.
- * VIDEO is the aspirational format (TikTok/Reels style) — gated to Pulse+.
+ * Higher tiers get more video and longer durations.
+ *
+ * Video mix by tier:
+ *   SPARK — 20% video (6s clips, punchy hooks)
+ *   PULSE — 35% video (15s clips, short-form standard)
+ *   GRID  — 50% video (30s clips, mini-stories)
  */
 function decidePostType(tier: string): "IMAGE" | "VIDEO" {
   const caps = TIER_CAPABILITIES[tier];
   if (!caps?.canGenerateVideo) return "IMAGE";
 
-  // Pulse+: 70% image, 30% video (video gen is expensive / aspirational)
-  return Math.random() < 0.3 ? "VIDEO" : "IMAGE";
+  return Math.random() < caps.videoChance ? "VIDEO" : "IMAGE";
 }
 
 /**
@@ -101,21 +110,47 @@ Requirements:
 }
 
 /**
- * Generate a video concept description.
- * Actual video generation would integrate with Runway/Pika/Sora APIs.
- * For now, generates a compelling thumbnail image + video metadata.
+ * Video duration labels for prompt engineering.
+ * Each duration tier has a different creative approach.
+ */
+const VIDEO_STYLE_BY_DURATION: Record<number, { label: string; direction: string }> = {
+  6:  { label: "6-second hook", direction: "A single punchy moment — one striking visual transition, one dramatic reveal, or one mesmerizing loop. Think \"stop-scroll\" energy. No narrative arc needed, just pure visual impact." },
+  15: { label: "15-second short", direction: "A mini-sequence with a beginning and payoff — establish a mood, build tension, deliver a moment. Think Instagram Reels / TikTok standard. Quick cuts or one fluid camera move." },
+  30: { label: "30-second story", direction: "A micro-narrative with setup, development, and resolution. Think cinematic short — atmospheric establishing shot, character/subject action, and a memorable closing frame. Allow the visual to breathe." },
+};
+
+/**
+ * Generate a video concept with duration-aware creative direction.
+ * Produces a thumbnail (first frame) + storyboard prompt for video API.
+ * Actual video generation integrates with Runway/Kling/Sora APIs.
  */
 async function generateVideoContent(
   bot: BotContext,
-  caption: string
-): Promise<{ thumbnailUrl: string | null; videoConcept: string }> {
-  // Generate a thumbnail frame for the video
+  caption: string,
+  durationSec: number
+): Promise<{ thumbnailUrl: string | null; videoConcept: string; duration: number }> {
+  const style = VIDEO_STYLE_BY_DURATION[durationSec] || VIDEO_STYLE_BY_DURATION[6];
+
+  // Generate a thumbnail / first frame for the video
   const thumbnailUrl = await generateImage(bot, caption);
 
-  // Generate video concept/storyboard (for future video API integration)
-  const videoConcept = `[Video concept for @${bot.handle}]: ${caption}`;
+  // Build a video generation prompt (for future API integration)
+  const characterContext = bot.characterRefDescription
+    ? `\nCharacter/Entity: ${bot.characterRefDescription}`
+    : "";
 
-  return { thumbnailUrl, videoConcept };
+  const videoConcept = `[${style.label} for @${bot.handle}]
+Duration: ${durationSec} seconds
+Style: ${bot.aesthetic || "modern digital"}
+Niche: ${bot.niche || "general"}${characterContext}
+
+Creative direction: ${style.direction}
+
+Caption context: ${caption}
+
+Generate a ${durationSec}-second video that matches the creator's aesthetic and brings this caption to life visually.`;
+
+  return { thumbnailUrl, videoConcept, duration: durationSec };
 }
 
 /**
@@ -303,8 +338,10 @@ React to trending topics through your unique lens. Don't just comment on them �
 
   const postType = decidePostType(ownerTier);
 
+  const videoStyle = VIDEO_STYLE_BY_DURATION[caps.maxVideoDuration] || VIDEO_STYLE_BY_DURATION[6];
+
   const captionInstruction = postType === "VIDEO"
-    ? "\n- This post is a SHORT VIDEO (TikTok/Reels style). Write a compelling caption (50-200 chars) that hooks viewers and complements the visual. Think viral, shareable, stop-scrolling energy."
+    ? `\n- This post is a ${videoStyle.label} VIDEO. Write a compelling caption (50-200 chars) that hooks viewers. ${caps.maxVideoDuration <= 6 ? "Ultra-short — punchy, one idea, stop-scroll energy." : caps.maxVideoDuration <= 15 ? "Short-form — hook + payoff, Reels/TikTok energy." : "Mini-story — cinematic, atmospheric, worth watching."}`
     : "\n- This post is an IMAGE post (Instagram style). Write a caption (50-300 chars) that works WITH a visual, not as standalone text. Be evocative, descriptive, and feed-stopping.";
 
   const model = caps.premiumModel ? "gpt-4o" : "gpt-4o-mini";
@@ -346,10 +383,10 @@ Rules:
   let thumbnailUrl: string | undefined;
 
   if (postType === "VIDEO") {
-    const video = await generateVideoContent(bot, content);
+    const video = await generateVideoContent(bot, content, caps.maxVideoDuration);
     thumbnailUrl = video.thumbnailUrl || undefined;
-    // Video URL would come from a video generation API (Runway/Pika/Sora)
-    // For now, the thumbnail serves as the preview
+    // Video URL would come from a video generation API (Runway/Kling/Sora)
+    // For now, the thumbnail serves as the preview frame
     mediaUrl = video.thumbnailUrl || undefined;
   } else {
     const imageUrl = await generateImage(bot, content);
