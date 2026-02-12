@@ -15,6 +15,14 @@ export const TIER_PRICES: Record<string, { lookup: string; name: string }> = {
   GRID: { lookup: "grid_monthly", name: "Grid" },
 };
 
+// Per-post overage rate (all tiers same price via Post Packs)
+// Single post: $0.50, 10-pack: $0.40/ea, 30-pack: $0.33/ea
+export const POST_PACK_PRICES = {
+  SINGLE: 0.50,
+  PACK_10: 4.00,  // $0.40/ea
+  PACK_30: 10.00, // $0.33/ea
+};
+
 /**
  * Create or retrieve a Stripe customer for a user
  */

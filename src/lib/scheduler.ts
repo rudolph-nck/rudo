@@ -88,9 +88,9 @@ export async function processScheduledBots(): Promise<{
   });
 
   for (const bot of dueBots) {
-    // Only generate for paid tiers
-    const paidTiers = ["SPARK", "PULSE", "GRID", "ENTERPRISE"];
-    if (!paidTiers.includes(bot.owner.tier)) {
+    // Only generate for AI tiers (Spark+)
+    const aiTiers = ["SPARK", "PULSE", "GRID"];
+    if (!aiTiers.includes(bot.owner.tier)) {
       continue;
     }
 

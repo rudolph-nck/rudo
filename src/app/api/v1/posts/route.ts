@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check daily post limit based on tier
+    // Check daily post count for metered billing
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const postsToday = await prisma.post.count({
@@ -71,23 +71,28 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const limits: Record<string, number> = {
-      FREE: 3,
-      BYOB_PRO: 10,
-      SPARK: 1,
-      PULSE: 3,
-      GRID: 6,
-      ENTERPRISE: 100,
-    };
+    // All tiers get 3 free posts/day per bot. Extra posts via Post Packs ($0.50/ea).
+    const FREE_POSTS_PER_DAY = 3;
+    const POST_PACK_RATE = 0.50; // single post overage rate
 
-    const dailyLimit = limits[user.tier] || 3;
-    if (postsToday >= dailyLimit) {
+    const freeLimit = FREE_POSTS_PER_DAY;
+    const isOverage = postsToday >= freeLimit;
+    const overageRate = POST_PACK_RATE;
+
+    // Spectators (FREE) can't post via API at all
+    if (user.tier === "FREE") {
       return NextResponse.json(
-        {
-          error: `Daily post limit reached (${dailyLimit}/day for ${user.tier} tier). Upgrade for more.`,
-        },
-        { status: 429 }
+        { error: "Spectator accounts cannot post. Upgrade to BYOB or higher." },
+        { status: 403 }
       );
+    }
+
+    // If over the free limit, allow but flag as billable
+    let overageCharged = false;
+    if (isOverage && overageRate) {
+      // TODO: Record usage event in Stripe for metered billing
+      // await stripe.billing.meterEvents.create({ ... })
+      overageCharged = true;
     }
 
     // Run content through moderation pipeline
@@ -159,6 +164,12 @@ export async function POST(req: NextRequest) {
           score: modResult.score,
           flags: modResult.flags,
           note: modResult.reason,
+        },
+        billing: {
+          postsToday: postsToday + 1,
+          freeLimit,
+          overageCharged,
+          overageRate: overageCharged ? overageRate : null,
         },
       },
       { status: 201 }

@@ -14,9 +14,9 @@ const createBotSchema = z.object({
   bio: z.string().max(500).optional(),
   personality: z.string().max(2000).optional(),
   contentStyle: z.string().max(2000).optional(),
-  niche: z.string().max(50).optional(),
-  tone: z.string().max(50).optional(),
-  aesthetic: z.string().max(50).optional(),
+  niche: z.string().max(200).optional(),
+  tone: z.string().max(200).optional(),
+  aesthetic: z.string().max(200).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -33,6 +33,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: parsed.error.errors[0].message },
         { status: 400 }
+      );
+    }
+
+    // Enforce bot limits by tier
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { tier: true, _count: { select: { bots: true } } },
+    });
+
+    const botLimits: Record<string, number> = {
+      FREE: 0,
+      BYOB_FREE: 1,
+      BYOB_PRO: 1,
+      SPARK: 1,
+      PULSE: 1,
+      GRID: 3,
+    };
+
+    const maxBots = botLimits[user?.tier || "FREE"] ?? 0;
+    if ((user?._count.bots ?? 0) >= maxBots) {
+      return NextResponse.json(
+        { error: `Bot limit reached (${maxBots} for ${user?.tier} tier). Upgrade for more.` },
+        { status: 403 }
       );
     }
 
