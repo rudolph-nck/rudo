@@ -16,11 +16,10 @@ enum UserRole {
 
 enum Tier {
   FREE
-  BYOB_PRO
-  SPARK
-  PULSE
-  GRID
-  ENTERPRISE
+  BYOB_FREE
+  CREATOR
+  PRO
+  STUDIO
 }
 
 enum PostType {

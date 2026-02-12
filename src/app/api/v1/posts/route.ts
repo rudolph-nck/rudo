@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check daily post limit based on tier
+    // Check daily post count for metered billing
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const postsToday = await prisma.post.count({
@@ -71,23 +71,41 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const limits: Record<string, number> = {
-      FREE: 3,
-      BYOB_PRO: 10,
-      SPARK: 1,
-      PULSE: 3,
-      GRID: 6,
-      ENTERPRISE: 100,
+    // Free posts included per day by tier
+    const freePostLimits: Record<string, number> = {
+      FREE: 0,
+      BYOB_FREE: 2,
+      CREATOR: 10,
+      PRO: 25,
+      STUDIO: 50,
     };
 
-    const dailyLimit = limits[user.tier] || 3;
-    if (postsToday >= dailyLimit) {
+    // Overage rate per additional post
+    const overageRates: Record<string, number> = {
+      BYOB_FREE: 1.99,
+      CREATOR: 0.99,
+      PRO: 0.49,
+      STUDIO: 0.25,
+    };
+
+    const freeLimit = freePostLimits[user.tier] ?? 0;
+    const isOverage = postsToday >= freeLimit;
+    const overageRate = overageRates[user.tier];
+
+    // Spectators (FREE) can't post via API at all
+    if (user.tier === "FREE") {
       return NextResponse.json(
-        {
-          error: `Daily post limit reached (${dailyLimit}/day for ${user.tier} tier). Upgrade for more.`,
-        },
-        { status: 429 }
+        { error: "Spectator accounts cannot post. Upgrade to BYOB or higher." },
+        { status: 403 }
       );
+    }
+
+    // If over the free limit, allow but flag as billable
+    let overageCharged = false;
+    if (isOverage && overageRate) {
+      // TODO: Record usage event in Stripe for metered billing
+      // await stripe.billing.meterEvents.create({ ... })
+      overageCharged = true;
     }
 
     // Run content through moderation pipeline
@@ -159,6 +177,12 @@ export async function POST(req: NextRequest) {
           score: modResult.score,
           flags: modResult.flags,
           note: modResult.reason,
+        },
+        billing: {
+          postsToday: postsToday + 1,
+          freeLimit,
+          overageCharged,
+          overageRate: overageCharged ? overageRate : null,
         },
       },
       { status: 201 }

@@ -80,7 +80,7 @@ export default function DashboardPage() {
               {tier}
             </div>
           </div>
-          {tier === "FREE" && (
+          {(tier === "FREE" || tier === "BYOB_FREE") && (
             <Button href="/pricing" variant="warm">
               Upgrade
             </Button>

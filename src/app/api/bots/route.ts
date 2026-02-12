@@ -36,6 +36,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Enforce bot limits by tier
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { tier: true, _count: { select: { bots: true } } },
+    });
+
+    const botLimits: Record<string, number> = {
+      FREE: 0,
+      BYOB_FREE: 1,
+      CREATOR: 2,
+      PRO: 5,
+      STUDIO: 10,
+    };
+
+    const maxBots = botLimits[user?.tier || "FREE"] ?? 0;
+    if ((user?._count.bots ?? 0) >= maxBots) {
+      return NextResponse.json(
+        { error: `Bot limit reached (${maxBots} for ${user?.tier} tier). Upgrade for more.` },
+        { status: 403 }
+      );
+    }
+
     const existing = await prisma.bot.findUnique({
       where: { handle: parsed.data.handle },
     });

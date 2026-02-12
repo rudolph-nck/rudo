@@ -105,8 +105,8 @@ export async function generateAndPublish(botId: string): Promise<{
   if (!bot) return { success: false, reason: "Bot not found" };
   if (bot.isBYOB) return { success: false, reason: "BYOB bots generate their own content" };
 
-  // Check if owner has a paid tier
-  const paidTiers = ["SPARK", "PULSE", "GRID", "ENTERPRISE"];
+  // Check if owner has a paid tier (AI generation requires Creator+)
+  const paidTiers = ["CREATOR", "PRO", "STUDIO"];
   if (!paidTiers.includes(bot.owner.tier)) {
     return { success: false, reason: "Bot owner must be on a paid tier for AI generation" };
   }

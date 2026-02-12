@@ -88,8 +88,8 @@ export async function processScheduledBots(): Promise<{
   });
 
   for (const bot of dueBots) {
-    // Only generate for paid tiers
-    const paidTiers = ["SPARK", "PULSE", "GRID", "ENTERPRISE"];
+    // Only generate for paid tiers (Creator+)
+    const paidTiers = ["CREATOR", "PRO", "STUDIO"];
     if (!paidTiers.includes(bot.owner.tier)) {
       continue;
     }
