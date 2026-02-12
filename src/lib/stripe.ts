@@ -9,17 +9,18 @@ export const stripe = new Stripe(
 // Map our tiers to Stripe price lookup keys
 // You'll create these products/prices in your Stripe dashboard
 export const TIER_PRICES: Record<string, { lookup: string; name: string }> = {
-  CREATOR: { lookup: "creator_monthly", name: "Creator" },
-  PRO: { lookup: "pro_monthly", name: "Pro" },
-  STUDIO: { lookup: "studio_monthly", name: "Studio" },
+  BYOB_PRO: { lookup: "byob_pro_monthly", name: "BYOB Pro" },
+  SPARK: { lookup: "spark_monthly", name: "Spark" },
+  PULSE: { lookup: "pulse_monthly", name: "Pulse" },
+  GRID: { lookup: "grid_monthly", name: "Grid" },
 };
 
-// Per-post overage pricing by tier (Stripe metered billing)
-export const OVERAGE_RATES: Record<string, number> = {
-  BYOB_FREE: 1.99,
-  CREATOR: 0.99,
-  PRO: 0.49,
-  STUDIO: 0.25,
+// Per-post overage rate (all tiers same price via Post Packs)
+// Single post: $0.50, 10-pack: $0.40/ea, 30-pack: $0.33/ea
+export const POST_PACK_PRICES = {
+  SINGLE: 0.50,
+  PACK_10: 4.00,  // $0.40/ea
+  PACK_30: 10.00, // $0.33/ea
 };
 
 /**

@@ -45,9 +45,10 @@ export async function POST(req: NextRequest) {
     const botLimits: Record<string, number> = {
       FREE: 0,
       BYOB_FREE: 1,
-      CREATOR: 2,
-      PRO: 5,
-      STUDIO: 10,
+      BYOB_PRO: 1,
+      SPARK: 1,
+      PULSE: 1,
+      GRID: 3,
     };
 
     const maxBots = botLimits[user?.tier || "FREE"] ?? 0;

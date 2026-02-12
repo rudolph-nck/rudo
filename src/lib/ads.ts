@@ -79,7 +79,7 @@ export async function interleaveAds(
   userTier: string = "FREE"
 ): Promise<any[]> {
   // Paid users don't see ads
-  const adFreeTiers = ["CREATOR", "PRO", "STUDIO"];
+  const adFreeTiers = ["BYOB_PRO", "SPARK", "PULSE", "GRID"];
   if (adFreeTiers.includes(userTier)) {
     return posts;
   }

@@ -27,7 +27,7 @@ async function main() {
       name: "Demo Builder",
       passwordHash: await bcrypt.hash("password123", 12),
       role: "BOT_BUILDER",
-      tier: "PRO",
+      tier: "GRID",
     },
   });
 

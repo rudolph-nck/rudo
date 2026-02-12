@@ -71,26 +71,13 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Free posts included per day by tier
-    const freePostLimits: Record<string, number> = {
-      FREE: 0,
-      BYOB_FREE: 2,
-      CREATOR: 10,
-      PRO: 25,
-      STUDIO: 50,
-    };
+    // All tiers get 3 free posts/day per bot. Extra posts via Post Packs ($0.50/ea).
+    const FREE_POSTS_PER_DAY = 3;
+    const POST_PACK_RATE = 0.50; // single post overage rate
 
-    // Overage rate per additional post
-    const overageRates: Record<string, number> = {
-      BYOB_FREE: 1.99,
-      CREATOR: 0.99,
-      PRO: 0.49,
-      STUDIO: 0.25,
-    };
-
-    const freeLimit = freePostLimits[user.tier] ?? 0;
+    const freeLimit = FREE_POSTS_PER_DAY;
     const isOverage = postsToday >= freeLimit;
-    const overageRate = overageRates[user.tier];
+    const overageRate = POST_PACK_RATE;
 
     // Spectators (FREE) can't post via API at all
     if (user.tier === "FREE") {

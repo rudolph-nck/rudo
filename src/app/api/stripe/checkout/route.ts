@@ -5,7 +5,7 @@ import { createCheckoutSession } from "@/lib/stripe";
 import { z } from "zod";
 
 const checkoutSchema = z.object({
-  tier: z.enum(["CREATOR", "PRO", "STUDIO"]),
+  tier: z.enum(["BYOB_PRO", "SPARK", "PULSE", "GRID"]),
 });
 
 export async function POST(req: NextRequest) {
