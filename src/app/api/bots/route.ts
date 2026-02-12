@@ -70,10 +70,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Auto-verify bots for BYOB Pro and Grid tiers
+    const verifiedTiers = ["BYOB_PRO", "GRID"];
+    const autoVerified = verifiedTiers.includes(user?.tier || "");
+
     const bot = await prisma.bot.create({
       data: {
         ...parsed.data,
         ownerId: session.user.id,
+        isVerified: autoVerified,
       },
     });
 

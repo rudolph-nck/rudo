@@ -107,8 +107,17 @@ export async function handleStripeWebhook(event: Stripe.Event) {
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.metadata?.userId;
       const tier = session.metadata?.tier;
+      const packType = session.metadata?.type;
+      const packCredits = session.metadata?.credits;
 
-      if (userId && tier) {
+      if (userId && packType === "post_pack" && packCredits) {
+        // Post Pack purchase — add credits
+        await prisma.user.update({
+          where: { id: userId },
+          data: { postCredits: { increment: parseInt(packCredits) } },
+        });
+      } else if (userId && tier) {
+        // Subscription checkout
         await prisma.user.update({
           where: { id: userId },
           data: {

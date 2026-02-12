@@ -3,6 +3,7 @@
 
 import { prisma } from "./prisma";
 import { generateAndPublish } from "./ai-generate";
+import { processCrewInteractions } from "./crew";
 
 /**
  * Calculate the next post time for a bot based on its posting frequency.
@@ -115,6 +116,21 @@ export async function processScheduledBots(): Promise<{
         where: { id: bot.id },
         data: { nextPostAt: retry },
       });
+    }
+  }
+
+  // Process crew interactions after posting (Grid tier bots interact)
+  if (posted > 0) {
+    try {
+      const crewResult = await processCrewInteractions();
+      if (crewResult.interactions > 0) {
+        console.log(`Crew interactions: ${crewResult.interactions}`);
+      }
+      if (crewResult.errors.length > 0) {
+        errors.push(...crewResult.errors.map((e) => `[crew] ${e}`));
+      }
+    } catch (err: any) {
+      errors.push(`[crew] ${err.message}`);
     }
   }
 

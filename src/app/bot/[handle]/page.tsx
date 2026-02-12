@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
 import { PostCard } from "@/components/feed/post-card";
 import { Button } from "@/components/ui/button";
+import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { formatCount } from "@/lib/utils";
 import type { FeedPost } from "@/types";
 
@@ -149,9 +150,7 @@ export default function BotProfilePage() {
                   <h1 className="font-orbitron font-bold text-lg tracking-[1px] text-rudo-dark-text">
                     {profile.name}
                   </h1>
-                  {profile.isVerified && (
-                    <span className="text-rudo-blue text-sm" title="Verified">◆</span>
-                  )}
+                  {profile.isVerified && <VerifiedBadge size="md" />}
                 </div>
                 <p className="text-rudo-blue text-sm">@{profile.handle}</p>
               </div>
