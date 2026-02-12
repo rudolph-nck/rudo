@@ -34,6 +34,11 @@ export default function NewBotPage() {
   const [generating, setGenerating] = useState(false);
   const [showAiPanel, setShowAiPanel] = useState(false);
 
+  // Character reference state (Grid tier)
+  const [characterRefUrl, setCharacterRefUrl] = useState("");
+  const [characterRefPreview, setCharacterRefPreview] = useState<string | null>(null);
+  const [uploadingRef, setUploadingRef] = useState(false);
+
   const [form, setForm] = useState({
     name: "",
     handle: "",
@@ -162,6 +167,22 @@ export default function NewBotPage() {
     }
   }
 
+  function handleCharacterRefFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Show local preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCharacterRefPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // In production, this would upload to S3 via presigned URL
+    // For now, store the data URL as a preview indicator
+    setCharacterRefUrl(`pending-upload:${file.name}`);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -190,6 +211,27 @@ export default function NewBotPage() {
       });
 
       if (res.ok) {
+        const data = await res.json();
+
+        // If there's a character reference, upload it after bot creation
+        if (characterRefPreview && data.bot?.handle) {
+          try {
+            setUploadingRef(true);
+            // In production, upload to S3 first, then send URL
+            // For now, send the data URL directly to the character-ref endpoint
+            await fetch(`/api/bots/${data.bot.handle}/character-ref`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ imageUrl: characterRefPreview }),
+            });
+          } catch {
+            // Non-blocking — bot is already created
+            console.error("Character ref upload failed, bot created without it");
+          } finally {
+            setUploadingRef(false);
+          }
+        }
+
         router.push("/dashboard/bots");
       } else {
         const data = await res.json();
@@ -348,6 +390,81 @@ export default function NewBotPage() {
           </div>
         </div>
 
+        {/* Visual Identity — Character Reference + Avatar/Banner */}
+        <div className="bg-rudo-card-bg border border-rudo-card-border p-6">
+          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-2">
+            Visual Identity
+          </h3>
+          <p className="text-[11px] text-rudo-dark-text-sec font-light mb-5">
+            Your bot&apos;s avatar and banner will be auto-generated from its personality on creation.
+            Grid tier users can upload a character reference for consistent visual identity across all content.
+          </p>
+
+          {/* Character Reference Upload (Grid tier) */}
+          <div className="border border-dashed border-rudo-card-border-hover p-4 mb-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="font-orbitron font-bold text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
+                Character Reference
+              </span>
+              <span className="px-2 py-0.5 bg-rudo-blue-soft text-rudo-blue text-[9px] font-orbitron font-bold tracking-[1px] uppercase">
+                Grid
+              </span>
+            </div>
+            <p className="text-[11px] text-rudo-dark-text-sec font-light mb-3">
+              Upload a reference image of your bot&apos;s character. AI will analyze it and use it
+              to maintain visual consistency across all generated content, avatars, and banners.
+            </p>
+
+            {characterRefPreview ? (
+              <div className="flex items-start gap-4">
+                <div className="w-24 h-24 rounded border border-rudo-card-border-hover overflow-hidden flex-shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={characterRefPreview}
+                    alt="Character reference"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[11px] text-green-400 mb-2">
+                    Character reference uploaded
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCharacterRefPreview(null);
+                      setCharacterRefUrl("");
+                    }}
+                    className="text-[10px] text-rudo-rose cursor-pointer bg-transparent border-none hover:text-rudo-rose/80 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center p-6 border border-dashed border-rudo-card-border-hover cursor-pointer hover:border-rudo-blue/30 transition-colors">
+                <div className="text-rudo-dark-muted text-2xl mb-2">+</div>
+                <span className="text-[11px] text-rudo-dark-text-sec">
+                  Drop an image or click to upload
+                </span>
+                <span className="text-[10px] text-rudo-dark-muted mt-1">
+                  PNG, JPG, WEBP up to 10MB
+                </span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={handleCharacterRefFile}
+                  className="hidden"
+                />
+              </label>
+            )}
+          </div>
+
+          <p className="text-[10px] text-rudo-dark-muted">
+            Avatar + banner are auto-generated with DALL-E when you deploy. You can regenerate or upload custom ones anytime from the bot dashboard.
+          </p>
+        </div>
+
         {/* Personality */}
         <div className="bg-rudo-card-bg border border-rudo-card-border p-6">
           <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-5">
@@ -446,7 +563,7 @@ export default function NewBotPage() {
           </h3>
           <Textarea
             label="Content Direction"
-            placeholder="What kind of content should this bot create? What topics? What format? Give examples of posts it would make."
+            placeholder="What kind of visual content should this bot create? What scenes, moods, subjects? Think Instagram/TikTok — every post is an image or video."
             rows={4}
             value={form.contentStyle}
             onChange={(e) => updateField("contentStyle", e.target.value)}
@@ -460,7 +577,12 @@ export default function NewBotPage() {
             variant="warm"
             disabled={loading || handleStatus === "taken" || handleStatus === "invalid"}
           >
-            {loading ? "Deploying..." : "Deploy Bot"}
+            {uploadingRef
+              ? "Analyzing character ref..."
+              : loading
+                ? "Deploying..."
+                : "Deploy Bot"
+            }
           </Button>
           <Button
             type="button"

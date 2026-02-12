@@ -104,61 +104,79 @@ export async function getHotFeed(limit: number = 20): Promise<TrendingPost[]> {
 
 /**
  * Extract trending topics from recent high-velocity posts.
- * Used by Pulse+ bots to generate trend-aware content.
+ * Uses a hybrid approach: platform tags (primary) + caption analysis (fallback).
+ * Tags are the primary discovery mechanism — structured metadata on every post.
  */
 export async function getTrendingTopics(): Promise<TrendingTopic[]> {
-  const hotPosts = await getHotFeed(50);
+  const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
 
-  if (hotPosts.length === 0) return [];
+  // Fetch hot posts with their tags
+  const posts = await prisma.post.findMany({
+    where: {
+      moderationStatus: "APPROVED",
+      isAd: false,
+      createdAt: { gte: cutoff },
+    },
+    include: {
+      bot: {
+        select: {
+          owner: { select: { tier: true } },
+        },
+      },
+      _count: { select: { likes: true, comments: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 200,
+  });
 
-  // Extract topic keywords from hot posts using simple frequency analysis
-  const wordFrequency: Record<string, { count: number; engagement: number }> = {};
-  const stopWords = new Set([
-    "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
-    "have", "has", "had", "do", "does", "did", "will", "would", "could",
-    "should", "may", "might", "shall", "can", "to", "of", "in", "for",
-    "on", "with", "at", "by", "from", "as", "into", "through", "during",
-    "before", "after", "above", "below", "between", "out", "off", "over",
-    "under", "again", "further", "then", "once", "here", "there", "when",
-    "where", "why", "how", "all", "both", "each", "few", "more", "most",
-    "other", "some", "such", "no", "nor", "not", "only", "own", "same",
-    "so", "than", "too", "very", "just", "because", "but", "and", "or",
-    "if", "about", "it", "its", "i", "my", "me", "we", "our", "you",
-    "your", "they", "their", "them", "this", "that", "these", "those",
-    "what", "which", "who", "whom", "his", "her", "him", "she", "he",
-  ]);
+  if (posts.length === 0) return [];
 
-  for (const post of hotPosts) {
-    const words = post.content
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, "")
-      .split(/\s+/)
-      .filter((w) => w.length > 3 && !stopWords.has(w));
+  // Aggregate engagement by tag
+  const tagStats: Record<string, { count: number; engagement: number }> = {};
 
-    // Use bigrams (2-word phrases) for better topic detection
-    for (let i = 0; i < words.length - 1; i++) {
-      const bigram = `${words[i]} ${words[i + 1]}`;
-      if (!wordFrequency[bigram]) {
-        wordFrequency[bigram] = { count: 0, engagement: 0 };
+  for (const post of posts) {
+    const velocity = engagementVelocity(
+      post._count.likes,
+      post._count.comments,
+      post.viewCount,
+      post.createdAt
+    );
+
+    const priorityTiers = ["PULSE", "GRID"];
+    const tierBoost = priorityTiers.includes(post.bot.owner.tier) ? 1.3 : 1;
+    const boostedVelocity = velocity * tierBoost;
+
+    // Primary: use platform tags (structured, high-quality)
+    if (post.tags && post.tags.length > 0) {
+      for (const tag of post.tags) {
+        if (!tagStats[tag]) {
+          tagStats[tag] = { count: 0, engagement: 0 };
+        }
+        tagStats[tag].count++;
+        tagStats[tag].engagement += boostedVelocity;
       }
-      wordFrequency[bigram].count++;
-      wordFrequency[bigram].engagement += post.engagementVelocity;
     }
 
-    // Also track single notable words
-    for (const word of words) {
-      if (word.length > 5) {
-        if (!wordFrequency[word]) {
-          wordFrequency[word] = { count: 0, engagement: 0 };
+    // Fallback: extract keywords from caption for posts without tags
+    if (!post.tags || post.tags.length === 0) {
+      const words = post.content
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, "")
+        .split(/\s+/)
+        .filter((w) => w.length > 4 && !STOP_WORDS.has(w));
+
+      for (const word of words) {
+        if (!tagStats[word]) {
+          tagStats[word] = { count: 0, engagement: 0 };
         }
-        wordFrequency[word].count++;
-        wordFrequency[word].engagement += post.engagementVelocity;
+        tagStats[word].count++;
+        tagStats[word].engagement += boostedVelocity;
       }
     }
   }
 
-  // Rank topics by frequency * engagement
-  const topics = Object.entries(wordFrequency)
+  // Rank by engagement, filter noise
+  const topics = Object.entries(tagStats)
     .filter(([, data]) => data.count >= 2)
     .map(([topic, data]) => ({
       topic,
@@ -171,6 +189,21 @@ export async function getTrendingTopics(): Promise<TrendingTopic[]> {
 
   return topics;
 }
+
+const STOP_WORDS = new Set([
+  "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
+  "have", "has", "had", "do", "does", "did", "will", "would", "could",
+  "should", "may", "might", "shall", "can", "to", "of", "in", "for",
+  "on", "with", "at", "by", "from", "as", "into", "through", "during",
+  "before", "after", "above", "below", "between", "out", "off", "over",
+  "under", "again", "further", "then", "once", "here", "there", "when",
+  "where", "why", "how", "all", "both", "each", "few", "more", "most",
+  "other", "some", "such", "nor", "not", "only", "own", "same",
+  "than", "too", "very", "just", "because", "but", "and",
+  "about", "its", "my", "me", "our", "you",
+  "your", "they", "their", "them", "this", "that", "these", "those",
+  "what", "which", "who", "whom", "his", "her", "him", "she",
+]);
 
 /**
  * Check if a specific post is currently "hot" (high engagement velocity).
