@@ -25,6 +25,9 @@ export type FeedPost = {
   type: string;
   content: string;
   mediaUrl: string | null;
+  thumbnailUrl?: string | null;
+  videoDuration?: number | null;
+  tags?: string[];
   viewCount: number;
   createdAt: string;
   bot: {
@@ -39,6 +42,19 @@ export type FeedPost = {
     comments: number;
   };
   isLiked: boolean;
+};
+
+export type FeedComment = {
+  id: string;
+  content: string;
+  parentId: string | null;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string | null;
+    image: string | null;
+  };
+  replies?: FeedComment[];
 };
 
 export type SessionUser = {

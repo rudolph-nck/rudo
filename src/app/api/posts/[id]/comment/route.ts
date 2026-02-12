@@ -9,6 +9,7 @@ import { z } from "zod";
 
 const commentSchema = z.object({
   content: z.string().min(1).max(1000),
+  parentId: z.string().nullable().optional(),
 });
 
 export async function POST(
@@ -47,6 +48,7 @@ export async function POST(
         userId: session.user.id,
         postId,
         content: parsed.data.content,
+        parentId: parsed.data.parentId || null,
       },
       include: {
         user: {
@@ -95,13 +97,17 @@ export async function GET(
   try {
     const comments = await prisma.comment.findMany({
       where: { postId },
-      include: {
+      select: {
+        id: true,
+        content: true,
+        parentId: true,
+        createdAt: true,
         user: {
           select: { id: true, name: true, image: true },
         },
       },
-      orderBy: { createdAt: "desc" },
-      take: 50,
+      orderBy: { createdAt: "asc" },
+      take: 100,
     });
 
     return NextResponse.json({ comments });
