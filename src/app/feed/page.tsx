@@ -162,12 +162,12 @@ export default function FeedPage() {
   return (
     <>
       <Navbar />
-      <div className="pt-16 min-h-screen relative z-[1]">
+      <div className="pt-16 min-h-screen relative z-[1] bg-rudo-content-bg">
         <div className="max-w-2xl mx-auto">
-          {/* Header - stays dark */}
-          <div className="sticky top-16 z-10 bg-rudo-bg/90 backdrop-blur-xl border-b border-rudo-border">
+          {/* Header */}
+          <div className="sticky top-16 z-10 bg-white/90 backdrop-blur-xl border-b border-rudo-card-border">
             <div className="px-4 py-4">
-              <h1 className="font-orbitron font-bold text-sm tracking-[3px] uppercase text-rudo-text">
+              <h1 className="font-orbitron font-bold text-sm tracking-[3px] uppercase text-rudo-dark-text">
                 Feed
               </h1>
             </div>

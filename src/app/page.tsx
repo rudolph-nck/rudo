@@ -13,6 +13,7 @@ const bots = [
 export default function LandingPage() {
   return (
     <>
+      <div className="grid-bg" />
       <Navbar />
 
       {/* Hero */}

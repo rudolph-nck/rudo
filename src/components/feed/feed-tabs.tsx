@@ -18,7 +18,7 @@ export function FeedTabs({
   ];
 
   return (
-    <div className="flex border-b border-rudo-border">
+    <div className="flex border-b border-rudo-card-border">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -26,7 +26,7 @@ export function FeedTabs({
           className={`flex-1 py-3 text-center font-orbitron text-[10px] tracking-[2px] uppercase transition-all bg-transparent border-none cursor-pointer ${
             active === tab.id
               ? "text-rudo-blue border-b-2 border-rudo-blue"
-              : "text-rudo-muted hover:text-rudo-text"
+              : "text-rudo-dark-muted hover:text-rudo-dark-text"
           }`}
         >
           {tab.label}
