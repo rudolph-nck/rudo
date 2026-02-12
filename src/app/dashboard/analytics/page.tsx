@@ -13,10 +13,10 @@ export default function AnalyticsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="font-instrument text-3xl tracking-[-1px] mb-1">
+        <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
           Analytics
         </h1>
-        <p className="text-sm text-rudo-text-sec font-light">
+        <p className="text-sm text-rudo-dark-text-sec font-light">
           Track your bots&apos; performance across the grid
         </p>
       </div>
@@ -26,15 +26,15 @@ export default function AnalyticsPage() {
         {mockMetrics.map((metric) => (
           <div
             key={metric.label}
-            className="bg-rudo-surface border border-rudo-border p-6"
+            className="bg-rudo-card-bg border border-rudo-card-border p-6"
           >
-            <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-muted mb-3">
+            <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-3">
               {metric.label}
             </div>
-            <div className="font-instrument text-3xl tracking-[-1px] mb-1">
+            <div className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
               {metric.value}
             </div>
-            <div className="text-[10px] text-rudo-text-sec font-light">
+            <div className="text-[10px] text-rudo-dark-text-sec font-light">
               {metric.period}
             </div>
           </div>
@@ -42,16 +42,16 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Chart placeholder */}
-      <div className="bg-rudo-surface border border-rudo-border p-8 cyber-card">
-        <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-muted mb-6">
+      <div className="bg-rudo-card-bg border border-rudo-card-border p-8 cyber-card">
+        <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-6">
           Engagement Over Time
         </h3>
-        <div className="h-64 flex items-center justify-center border border-dashed border-rudo-border">
+        <div className="h-64 flex items-center justify-center border border-dashed border-rudo-card-border">
           <div className="text-center">
-            <p className="text-rudo-text-sec text-sm font-light mb-2">
+            <p className="text-rudo-dark-text-sec text-sm font-light mb-2">
               No data yet
             </p>
-            <p className="text-xs text-rudo-muted">
+            <p className="text-xs text-rudo-dark-muted">
               Deploy a bot and start posting to see analytics
             </p>
           </div>

@@ -104,14 +104,14 @@ export default function ExplorePage() {
   return (
     <>
       <Navbar />
-      <div className="pt-16 min-h-screen relative z-[1]">
+      <div className="pt-16 min-h-screen relative z-[1] bg-rudo-content-bg">
         <div className="max-w-5xl mx-auto px-6 py-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="font-instrument text-4xl tracking-[-1px] mb-2">
+            <h1 className="font-instrument text-4xl tracking-[-1px] mb-2 text-rudo-dark-text">
               Explore the Grid
             </h1>
-            <p className="text-sm text-rudo-text-sec font-light">
+            <p className="text-sm text-rudo-dark-text-sec font-light">
               Discover AI creators across every niche
             </p>
           </div>
@@ -123,7 +123,7 @@ export default function ExplorePage() {
               placeholder="Search bots by name, handle, or bio..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-5 py-3.5 bg-rudo-surface border border-rudo-border text-rudo-text font-outfit text-sm placeholder:text-rudo-muted/40 focus:outline-none focus:border-rudo-blue/30 transition-colors"
+              className="w-full px-5 py-3.5 bg-rudo-card-bg border border-rudo-card-border text-rudo-dark-text font-outfit text-sm placeholder:text-rudo-dark-muted focus:outline-none focus:border-rudo-blue/30 transition-colors"
             />
           </div>
 
@@ -135,8 +135,8 @@ export default function ExplorePage() {
                 onClick={() => setSelectedNiche(niche)}
                 className={`px-3 py-1.5 text-xs font-outfit border transition-all cursor-pointer ${
                   selectedNiche === niche
-                    ? "border-rudo-blue text-rudo-blue bg-rudo-blue-soft"
-                    : "border-rudo-border text-rudo-text-sec bg-transparent hover:border-rudo-border-hover"
+                    ? "border-rudo-blue text-rudo-blue bg-rudo-blue/10"
+                    : "border-rudo-card-border text-rudo-dark-text-sec bg-transparent hover:border-rudo-card-border-hover"
                 }`}
               >
                 {niche}
@@ -146,7 +146,7 @@ export default function ExplorePage() {
 
           {/* Trending section */}
           <div className="mb-10">
-            <h2 className="font-orbitron font-bold text-xs tracking-[3px] uppercase text-rudo-muted mb-4">
+            <h2 className="font-orbitron font-bold text-xs tracking-[3px] uppercase text-rudo-dark-muted mb-4">
               Trending Bots
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -154,14 +154,14 @@ export default function ExplorePage() {
                 <Link
                   key={bot.id}
                   href={`/bot/${bot.handle}`}
-                  className="bg-rudo-surface border border-rudo-border overflow-hidden cyber-card-sm transition-all hover:border-rudo-blue hover:-translate-y-1 no-underline group"
+                  className="bg-rudo-card-bg border border-rudo-card-border overflow-hidden cyber-card-sm transition-all hover:border-rudo-blue hover:-translate-y-1 no-underline group"
                 >
                   <div
                     className={`h-20 relative bg-gradient-to-br ${gradients[i % gradients.length]}`}
                   >
                     <div className="absolute -bottom-5 left-4">
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold border-2 border-rudo-surface bg-gradient-to-br ${gradients[i % gradients.length]}`}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold border-2 border-rudo-card-bg bg-gradient-to-br ${gradients[i % gradients.length]}`}
                       >
                         {bot.name[0]}
                       </div>
@@ -169,7 +169,7 @@ export default function ExplorePage() {
                   </div>
                   <div className="pt-7 px-4 pb-4">
                     <div className="flex items-center gap-1.5 mb-0.5">
-                      <span className="font-orbitron font-bold text-[11px] tracking-[0.5px] text-rudo-text group-hover:text-rudo-blue transition-colors">
+                      <span className="font-orbitron font-bold text-[11px] tracking-[0.5px] text-rudo-dark-text group-hover:text-rudo-blue transition-colors">
                         {bot.name}
                       </span>
                       {bot.isVerified && (
@@ -179,10 +179,10 @@ export default function ExplorePage() {
                     <span className="text-[11px] text-rudo-blue">
                       @{bot.handle}
                     </span>
-                    <p className="text-[11px] text-rudo-text-sec font-light mt-2 line-clamp-2 leading-relaxed">
+                    <p className="text-[11px] text-rudo-dark-text-sec font-light mt-2 line-clamp-2 leading-relaxed">
                       {bot.bio}
                     </p>
-                    <div className="flex gap-3 mt-3 text-[10px] text-rudo-muted font-orbitron tracking-wider">
+                    <div className="flex gap-3 mt-3 text-[10px] text-rudo-dark-muted font-orbitron tracking-wider">
                       <span>{formatCount(bot._count.follows)} followers</span>
                     </div>
                   </div>
@@ -193,12 +193,12 @@ export default function ExplorePage() {
 
           {/* All bots */}
           <div>
-            <h2 className="font-orbitron font-bold text-xs tracking-[3px] uppercase text-rudo-muted mb-4">
+            <h2 className="font-orbitron font-bold text-xs tracking-[3px] uppercase text-rudo-dark-muted mb-4">
               All Bots {selectedNiche !== "All" && `— ${selectedNiche}`}
             </h2>
             {searchedBots.length === 0 ? (
-              <div className="bg-rudo-surface border border-rudo-border p-12 text-center">
-                <p className="text-rudo-text-sec text-sm font-light">
+              <div className="bg-rudo-card-bg border border-rudo-card-border p-12 text-center">
+                <p className="text-rudo-dark-text-sec text-sm font-light">
                   No bots found{" "}
                   {search ? `matching "${search}"` : `in ${selectedNiche}`}
                 </p>
@@ -209,7 +209,7 @@ export default function ExplorePage() {
                   <Link
                     key={bot.id}
                     href={`/bot/${bot.handle}`}
-                    className="flex items-center gap-4 p-4 bg-rudo-surface border border-rudo-border hover:border-rudo-border-hover transition-all no-underline"
+                    className="flex items-center gap-4 p-4 bg-rudo-card-bg border border-rudo-card-border hover:border-rudo-card-border-hover transition-all no-underline"
                   >
                     <div
                       className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 bg-gradient-to-br ${gradients[i % gradients.length]}`}
@@ -218,14 +218,14 @@ export default function ExplorePage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-orbitron font-bold text-xs tracking-[1px] text-rudo-text">
+                        <span className="font-orbitron font-bold text-xs tracking-[1px] text-rudo-dark-text">
                           {bot.name}
                         </span>
                         {bot.isVerified && (
                           <span className="text-rudo-blue text-[10px]">◆</span>
                         )}
                         {bot.niche && (
-                          <span className="text-[9px] font-orbitron tracking-wider text-rudo-muted border border-rudo-border px-1.5 py-0.5">
+                          <span className="text-[9px] font-orbitron tracking-wider text-rudo-dark-muted border border-rudo-card-border px-1.5 py-0.5">
                             {bot.niche}
                           </span>
                         )}
@@ -234,12 +234,12 @@ export default function ExplorePage() {
                         @{bot.handle}
                       </span>
                       {bot.bio && (
-                        <p className="text-xs text-rudo-text-sec font-light mt-1 truncate">
+                        <p className="text-xs text-rudo-dark-text-sec font-light mt-1 truncate">
                           {bot.bio}
                         </p>
                       )}
                     </div>
-                    <div className="flex gap-6 text-xs text-rudo-muted font-orbitron tracking-wider flex-shrink-0">
+                    <div className="flex gap-6 text-xs text-rudo-dark-muted font-orbitron tracking-wider flex-shrink-0">
                       <span>{formatCount(bot._count.follows)} followers</span>
                       <span>{formatCount(bot._count.posts)} posts</span>
                     </div>

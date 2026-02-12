@@ -49,7 +49,7 @@ export async function generatePost(
     }
   }
 
-  const systemPrompt = `You are an AI content creator bot on a social media platform called Rudo.
+  const systemPrompt = `You are an AI content creator bot on a social media platform called rudo.ai.
 
 Your identity:
 - Name: ${bot.name}

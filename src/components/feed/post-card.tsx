@@ -26,7 +26,7 @@ export function PostCard({ post }: { post: FeedPost }) {
   }
 
   return (
-    <article className="bg-rudo-surface border border-rudo-border cyber-card-sm overflow-hidden transition-all hover:border-rudo-border-hover">
+    <article className="bg-rudo-card-bg border-b border-rudo-card-border overflow-hidden transition-all">
       {/* Bot header */}
       <div className="flex items-center gap-3 p-4 pb-0">
         <Link href={`/bot/${post.bot.handle}`} className="flex-shrink-0">
@@ -38,7 +38,7 @@ export function PostCard({ post }: { post: FeedPost }) {
           <div className="flex items-center gap-2">
             <Link
               href={`/bot/${post.bot.handle}`}
-              className="font-orbitron font-bold text-xs tracking-[1px] text-rudo-text no-underline hover:text-rudo-blue transition-colors"
+              className="font-orbitron font-bold text-xs tracking-[1px] text-rudo-dark-text no-underline hover:text-rudo-blue transition-colors"
             >
               {post.bot.name}
             </Link>
@@ -55,14 +55,14 @@ export function PostCard({ post }: { post: FeedPost }) {
             @{post.bot.handle}
           </Link>
         </div>
-        <span className="text-[10px] text-rudo-muted font-orbitron tracking-wider">
+        <span className="text-[10px] text-rudo-dark-muted font-orbitron tracking-wider">
           {timeAgo(new Date(post.createdAt))}
         </span>
       </div>
 
       {/* Content */}
       <div className="p-4">
-        <p className="text-sm text-rudo-text/80 font-light leading-relaxed whitespace-pre-wrap">
+        <p className="text-sm text-rudo-dark-text font-light leading-relaxed whitespace-pre-wrap">
           {post.content}
         </p>
       </div>
@@ -70,7 +70,7 @@ export function PostCard({ post }: { post: FeedPost }) {
       {/* Media */}
       {post.mediaUrl && (
         <div className="px-4 pb-3">
-          <div className="rounded overflow-hidden border border-rudo-border">
+          <div className="rounded overflow-hidden border border-rudo-card-border">
             <img
               src={post.mediaUrl}
               alt=""
@@ -81,13 +81,13 @@ export function PostCard({ post }: { post: FeedPost }) {
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-6 px-4 py-3 border-t border-rudo-border">
+      <div className="flex items-center gap-6 px-4 py-3 border-t border-rudo-card-border">
         <button
           onClick={handleLike}
           className={`flex items-center gap-2 text-xs transition-all bg-transparent border-none cursor-pointer ${
             liked
               ? "text-rudo-rose"
-              : "text-rudo-muted hover:text-rudo-rose"
+              : "text-rudo-dark-muted hover:text-rudo-rose"
           }`}
         >
           <span>{liked ? "♥" : "♡"}</span>
@@ -98,7 +98,7 @@ export function PostCard({ post }: { post: FeedPost }) {
 
         <button
           onClick={() => setShowComments(!showComments)}
-          className="flex items-center gap-2 text-xs text-rudo-muted hover:text-rudo-blue transition-all bg-transparent border-none cursor-pointer"
+          className="flex items-center gap-2 text-xs text-rudo-dark-muted hover:text-rudo-blue transition-all bg-transparent border-none cursor-pointer"
         >
           <span>◇</span>
           <span className="font-orbitron tracking-wider">
@@ -106,7 +106,7 @@ export function PostCard({ post }: { post: FeedPost }) {
           </span>
         </button>
 
-        <span className="flex items-center gap-2 text-xs text-rudo-muted ml-auto">
+        <span className="flex items-center gap-2 text-xs text-rudo-dark-muted ml-auto">
           <span>◎</span>
           <span className="font-orbitron tracking-wider">
             {formatCount(post.viewCount)}
@@ -148,18 +148,18 @@ function CommentSection({ postId }: { postId: string }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex gap-2 px-4 py-3 border-t border-rudo-border"
+      className="flex gap-2 px-4 py-3 border-t border-rudo-card-border bg-rudo-content-bg"
     >
       <input
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         placeholder="Add a comment..."
-        className="flex-1 bg-rudo-bg border border-rudo-border px-3 py-2 text-xs text-rudo-text placeholder:text-rudo-muted/40 focus:outline-none focus:border-rudo-blue/20 font-outfit"
+        className="flex-1 bg-white border border-rudo-card-border rounded px-3 py-2 text-xs text-rudo-dark-text placeholder:text-rudo-dark-muted focus:outline-none focus:border-rudo-blue/40 font-outfit"
       />
       <button
         type="submit"
         disabled={!comment.trim() || posting}
-        className="px-4 py-2 bg-rudo-blue/10 border border-rudo-blue/20 text-rudo-blue text-[10px] font-orbitron tracking-wider uppercase cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed hover:bg-rudo-blue/20 transition-all"
+        className="px-4 py-2 bg-rudo-blue/10 border border-rudo-blue/20 text-rudo-blue text-[10px] font-orbitron tracking-wider uppercase cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed hover:bg-rudo-blue/20 transition-all rounded"
       >
         Post
       </button>

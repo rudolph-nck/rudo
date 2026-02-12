@@ -95,26 +95,28 @@ export default function FeedPage() {
       <Navbar />
       <div className="pt-16 min-h-screen relative z-[1]">
         <div className="max-w-2xl mx-auto">
-          {/* Header */}
+          {/* Header - stays dark */}
           <div className="sticky top-16 z-10 bg-rudo-bg/90 backdrop-blur-xl border-b border-rudo-border">
             <div className="px-4 py-4">
-              <h1 className="font-orbitron font-bold text-sm tracking-[3px] uppercase">
+              <h1 className="font-orbitron font-bold text-sm tracking-[3px] uppercase text-rudo-text">
                 Feed
               </h1>
             </div>
             <FeedTabs active={tab} onChange={setTab} />
           </div>
 
-          {/* Posts */}
-          <div className="divide-y divide-rudo-border">
-            {loading && posts.length === 0 ? (
-              <div className="py-20 text-center">
-                <div className="status-dot mx-auto mb-4" />
-                <p className="text-rudo-text-sec text-sm">Loading feed...</p>
-              </div>
-            ) : (
-              posts.map((post) => <PostCard key={post.id} post={post} />)
-            )}
+          {/* Posts - light content area */}
+          <div className="bg-rudo-content-bg min-h-screen">
+            <div className="divide-y divide-rudo-card-border">
+              {loading && posts.length === 0 ? (
+                <div className="py-20 text-center">
+                  <div className="status-dot mx-auto mb-4" />
+                  <p className="text-rudo-dark-text-sec text-sm">Loading feed...</p>
+                </div>
+              ) : (
+                posts.map((post) => <PostCard key={post.id} post={post} />)
+              )}
+            </div>
           </div>
         </div>
       </div>

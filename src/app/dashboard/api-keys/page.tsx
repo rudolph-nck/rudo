@@ -74,17 +74,17 @@ export default function ApiKeysPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="font-instrument text-3xl tracking-[-1px] mb-1">
+        <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
           API Keys
         </h1>
-        <p className="text-sm text-rudo-text-sec font-light">
+        <p className="text-sm text-rudo-dark-text-sec font-light">
           Manage API keys for BYOB access
         </p>
       </div>
 
       {/* Create new key */}
-      <div className="bg-rudo-surface border border-rudo-border p-6 mb-6">
-        <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-muted mb-4">
+      <div className="bg-rudo-card-bg border border-rudo-card-border p-6 mb-6">
+        <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-4">
           Create New Key
         </h3>
         <form onSubmit={createKey} className="flex gap-3">
@@ -108,11 +108,11 @@ export default function ApiKeysPage() {
           <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-blue mb-3">
             New API Key Created
           </h3>
-          <p className="text-xs text-rudo-text-sec mb-3">
+          <p className="text-xs text-rudo-dark-text-sec mb-3">
             Copy this key now. You won&apos;t be able to see it again.
           </p>
           <div className="flex items-center gap-2">
-            <code className="flex-1 bg-rudo-bg border border-rudo-border px-4 py-3 font-mono text-sm text-rudo-blue break-all">
+            <code className="flex-1 bg-rudo-content-bg border border-rudo-card-border px-4 py-3 font-mono text-sm text-rudo-blue break-all">
               {newKey}
             </code>
             <Button
@@ -128,9 +128,9 @@ export default function ApiKeysPage() {
       )}
 
       {/* Keys list */}
-      <div className="bg-rudo-surface border border-rudo-border">
-        <div className="px-6 py-4 border-b border-rudo-border">
-          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-muted">
+      <div className="bg-rudo-card-bg border border-rudo-card-border">
+        <div className="px-6 py-4 border-b border-rudo-card-border">
+          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted">
             Active Keys
           </h3>
         </div>
@@ -138,31 +138,31 @@ export default function ApiKeysPage() {
         {loading ? (
           <div className="py-12 text-center">
             <div className="status-dot mx-auto mb-4" />
-            <p className="text-rudo-text-sec text-sm">Loading...</p>
+            <p className="text-rudo-dark-text-sec text-sm">Loading...</p>
           </div>
         ) : keys.length === 0 ? (
           <div className="py-12 text-center">
-            <p className="text-rudo-text-sec text-sm font-light">
+            <p className="text-rudo-dark-text-sec text-sm font-light">
               No API keys yet
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-rudo-border">
+          <div className="divide-y divide-rudo-card-border">
             {keys.map((key) => (
               <div
                 key={key.id}
                 className="flex items-center justify-between px-6 py-4"
               >
                 <div>
-                  <div className="text-sm font-medium text-rudo-text">
+                  <div className="text-sm font-medium text-rudo-dark-text">
                     {key.name}
                   </div>
-                  <code className="text-xs text-rudo-muted font-mono">
+                  <code className="text-xs text-rudo-dark-muted font-mono">
                     {key.key.slice(0, 12)}••••••••
                   </code>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-[10px] text-rudo-muted font-orbitron tracking-wider">
+                  <span className="text-[10px] text-rudo-dark-muted font-orbitron tracking-wider">
                     {key.lastUsed
                       ? `Last used ${new Date(key.lastUsed).toLocaleDateString()}`
                       : "Never used"}
@@ -181,38 +181,38 @@ export default function ApiKeysPage() {
       </div>
 
       {/* API Docs Quick Reference */}
-      <div className="mt-8 bg-rudo-surface border border-rudo-border p-6 cyber-card-sm">
-        <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-muted mb-4">
+      <div className="mt-8 bg-rudo-card-bg border border-rudo-card-border p-6 cyber-card-sm">
+        <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-4">
           Quick Reference
         </h3>
-        <div className="font-mono text-xs leading-7 text-rudo-text-sec">
+        <div className="font-mono text-xs leading-7 text-rudo-dark-text-sec">
           <div>
-            <span className="text-rudo-muted/30"># Post content</span>
+            <span className="text-rudo-dark-muted/30"># Post content</span>
           </div>
           <div>
             <span className="text-rudo-blue">POST</span>{" "}
-            <span className="text-rudo-text">/api/v1/posts</span>
+            <span className="text-rudo-dark-text">/api/v1/posts</span>
           </div>
           <div>
-            <span className="text-rudo-muted/30">
+            <span className="text-rudo-dark-muted/30">
               Authorization: Bearer rudo_sk_•••
             </span>
           </div>
           <br />
           <div>
-            <span className="text-rudo-muted/30"># Get analytics</span>
+            <span className="text-rudo-dark-muted/30"># Get analytics</span>
           </div>
           <div>
             <span className="text-rudo-blue">GET</span>{" "}
-            <span className="text-rudo-text">/api/v1/analytics</span>
+            <span className="text-rudo-dark-text">/api/v1/analytics</span>
           </div>
           <br />
           <div>
-            <span className="text-rudo-muted/30"># List followers</span>
+            <span className="text-rudo-dark-muted/30"># List followers</span>
           </div>
           <div>
             <span className="text-rudo-blue">GET</span>{" "}
-            <span className="text-rudo-text">/api/v1/followers</span>
+            <span className="text-rudo-dark-text">/api/v1/followers</span>
           </div>
         </div>
       </div>

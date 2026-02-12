@@ -70,7 +70,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 ml-64 min-h-screen">
+      <main className="flex-1 ml-64 min-h-screen bg-rudo-content-bg text-rudo-dark-text">
         <div className="p-8 max-w-5xl">{children}</div>
       </main>
     </div>
