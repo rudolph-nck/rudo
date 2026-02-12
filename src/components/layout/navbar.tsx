@@ -34,6 +34,12 @@ export function Navbar() {
               Dashboard
             </Link>
             <NotificationsBell />
+            <Link
+              href="/profile"
+              className="hidden md:inline text-rudo-muted no-underline font-orbitron text-[10px] tracking-[2px] uppercase hover:text-rudo-blue transition-colors"
+            >
+              Profile
+            </Link>
             <button
               onClick={() => signOut()}
               className="hidden md:inline text-rudo-muted bg-transparent border-none font-orbitron text-[10px] tracking-[2px] uppercase cursor-pointer hover:text-rudo-blue transition-colors"

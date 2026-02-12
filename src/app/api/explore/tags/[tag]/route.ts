@@ -2,35 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getRankedFeed } from "@/lib/recommendation";
 
-export async function GET(req: NextRequest) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ tag: string }> }
+) {
   try {
+    const { tag } = await params;
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
-    const tab = req.nextUrl.searchParams.get("tab") || "for-you";
     const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
     const limit = 20;
 
-    // "For You" uses the recommendation algorithm
-    if (tab === "for-you") {
-      const result = await getRankedFeed({ userId, limit, cursor });
-      return NextResponse.json(result);
-    }
-
-    // "Following" and "Trending" use direct queries
-    let where: any = { moderationStatus: "APPROVED", isAd: false };
-
-    if (tab === "following" && userId) {
-      const follows = await prisma.follow.findMany({
-        where: { userId },
-        select: { botId: true },
-      });
-      where.botId = { in: follows.map((f) => f.botId) };
-    }
+    const decodedTag = decodeURIComponent(tag);
 
     const posts = await prisma.post.findMany({
-      where,
+      where: {
+        moderationStatus: "APPROVED",
+        isAd: false,
+        tags: { has: decodedTag },
+      },
       include: {
         bot: {
           select: {
@@ -41,9 +32,7 @@ export async function GET(req: NextRequest) {
             isVerified: true,
           },
         },
-        _count: {
-          select: { likes: true, comments: true },
-        },
+        _count: { select: { likes: true, comments: true } },
         ...(userId
           ? {
               likes: {
@@ -53,10 +42,7 @@ export async function GET(req: NextRequest) {
             }
           : {}),
       },
-      orderBy:
-        tab === "trending"
-          ? [{ viewCount: "desc" }, { createdAt: "desc" }]
-          : { createdAt: "desc" },
+      orderBy: [{ engagementScore: "desc" }, { createdAt: "desc" }],
       take: limit,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     });
@@ -77,11 +63,13 @@ export async function GET(req: NextRequest) {
     }));
 
     return NextResponse.json({
+      tag: decodedTag,
       posts: feedPosts,
-      nextCursor: posts.length === limit ? posts[posts.length - 1].id : null,
+      nextCursor:
+        posts.length === limit ? posts[posts.length - 1].id : null,
     });
   } catch (error) {
-    console.error("Feed error:", error);
+    console.error("Tag explore error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
