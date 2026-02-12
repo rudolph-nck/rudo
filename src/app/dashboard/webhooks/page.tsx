@@ -86,10 +86,10 @@ export default function WebhooksPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="font-instrument text-3xl tracking-[-1px] mb-1">
+          <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
             Webhooks
           </h1>
-          <p className="text-sm text-rudo-text-sec font-light">
+          <p className="text-sm text-rudo-dark-text-sec font-light">
             Get notified when events happen on your bots
           </p>
         </div>
@@ -104,15 +104,15 @@ export default function WebhooksPage() {
           <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-blue mb-3">
             Webhook Secret
           </h3>
-          <p className="text-xs text-rudo-text-sec mb-3">
+          <p className="text-xs text-rudo-dark-text-sec mb-3">
             Save this secret. Use it to verify webhook signatures. You won&apos;t see it again.
           </p>
-          <code className="block bg-rudo-bg border border-rudo-border px-4 py-3 font-mono text-sm text-rudo-blue break-all">
+          <code className="block bg-rudo-content-bg border border-rudo-card-border px-4 py-3 font-mono text-sm text-rudo-blue break-all">
             {newSecret}
           </code>
           <button
             onClick={() => setNewSecret(null)}
-            className="mt-3 text-xs text-rudo-muted hover:text-rudo-text cursor-pointer bg-transparent border-none font-outfit"
+            className="mt-3 text-xs text-rudo-dark-muted hover:text-rudo-dark-text cursor-pointer bg-transparent border-none font-outfit"
           >
             Dismiss
           </button>
@@ -123,7 +123,7 @@ export default function WebhooksPage() {
       {showForm && (
         <form
           onSubmit={createWebhook}
-          className="bg-rudo-surface border border-rudo-border p-6 mb-6 space-y-4"
+          className="bg-rudo-card-bg border border-rudo-card-border p-6 mb-6 space-y-4"
         >
           <Input
             label="Endpoint URL"
@@ -134,7 +134,7 @@ export default function WebhooksPage() {
             required
           />
           <div>
-            <label className="block mb-3 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-muted">
+            <label className="block mb-3 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
               Events
             </label>
             <div className="space-y-2">
@@ -144,7 +144,7 @@ export default function WebhooksPage() {
                   className={`flex items-start gap-3 p-3 border cursor-pointer transition-all ${
                     selectedEvents.includes(evt.value)
                       ? "border-rudo-blue bg-rudo-blue-soft"
-                      : "border-rudo-border hover:border-rudo-border-hover"
+                      : "border-rudo-card-border hover:border-rudo-card-border-hover"
                   }`}
                 >
                   <input
@@ -154,10 +154,10 @@ export default function WebhooksPage() {
                     className="mt-0.5 accent-[#38bdf8]"
                   />
                   <div>
-                    <div className="text-sm font-medium text-rudo-text">
+                    <div className="text-sm font-medium text-rudo-dark-text">
                       {evt.label}
                     </div>
-                    <div className="text-xs text-rudo-text-sec font-light">
+                    <div className="text-xs text-rudo-dark-text-sec font-light">
                       {evt.desc}
                     </div>
                   </div>
@@ -177,9 +177,9 @@ export default function WebhooksPage() {
           <div className="status-dot mx-auto mb-4" />
         </div>
       ) : webhooks.length === 0 ? (
-        <div className="bg-rudo-surface border border-rudo-border p-12 text-center">
-          <h3 className="font-instrument text-xl mb-2">No webhooks</h3>
-          <p className="text-sm text-rudo-text-sec font-light">
+        <div className="bg-rudo-card-bg border border-rudo-card-border p-12 text-center">
+          <h3 className="font-instrument text-xl mb-2 text-rudo-dark-text">No webhooks</h3>
+          <p className="text-sm text-rudo-dark-text-sec font-light">
             Add a webhook to get real-time notifications
           </p>
         </div>
@@ -188,7 +188,7 @@ export default function WebhooksPage() {
           {webhooks.map((wh) => (
             <div
               key={wh.id}
-              className="bg-rudo-surface border border-rudo-border p-5"
+              className="bg-rudo-card-bg border border-rudo-card-border p-5"
             >
               <div className="flex items-start justify-between mb-3">
                 <div>
@@ -200,7 +200,7 @@ export default function WebhooksPage() {
                       className={`text-[9px] font-orbitron tracking-wider px-2 py-0.5 border ${
                         wh.isActive
                           ? "text-green-400 border-green-400/20"
-                          : "text-rudo-muted border-rudo-border"
+                          : "text-rudo-dark-muted border-rudo-card-border"
                       }`}
                     >
                       {wh.isActive ? "ACTIVE" : "INACTIVE"}
@@ -230,7 +230,7 @@ export default function WebhooksPage() {
                 ))}
               </div>
               {wh.lastFired && (
-                <div className="mt-2 text-[10px] text-rudo-muted font-orbitron tracking-wider">
+                <div className="mt-2 text-[10px] text-rudo-dark-muted font-orbitron tracking-wider">
                   Last fired: {new Date(wh.lastFired).toLocaleString()}
                 </div>
               )}
@@ -240,12 +240,12 @@ export default function WebhooksPage() {
       )}
 
       {/* Verification docs */}
-      <div className="mt-8 bg-rudo-surface border border-rudo-border p-6 cyber-card-sm">
-        <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-muted mb-4">
+      <div className="mt-8 bg-rudo-card-bg border border-rudo-card-border p-6 cyber-card-sm">
+        <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-4">
           Verifying Webhooks
         </h3>
-        <div className="font-mono text-xs leading-7 text-rudo-text-sec">
-          <span className="text-rudo-muted/30">// Verify the signature</span>
+        <div className="font-mono text-xs leading-7 text-rudo-dark-text-sec">
+          <span className="text-rudo-dark-muted/30">// Verify the signature</span>
           <br />
           <span className="text-rudo-blue">const</span> signature = req.headers[
           <span className="text-[#34d399]">&apos;x-rudo-signature&apos;</span>];
@@ -261,7 +261,7 @@ export default function WebhooksPage() {
           <br />
           <span className="text-rudo-blue">if</span> (signature === expected) {"{"}
           <br />
-          {"  "}<span className="text-rudo-muted/30">// Valid webhook</span>
+          {"  "}<span className="text-rudo-dark-muted/30">// Valid webhook</span>
           <br />
           {"}"}
         </div>

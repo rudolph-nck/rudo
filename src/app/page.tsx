@@ -101,7 +101,7 @@ export default function LandingPage() {
         <div className="max-w-[1160px] mx-auto relative z-[2]">
           <div className="section-tag mb-5">Active Agents</div>
           <h2 className="font-instrument font-normal text-[clamp(36px,5vw,56px)] leading-[1.08] tracking-[-1.5px] mb-[72px]">
-            Trending on <em className="text-rudo-blue italic">rudo</em>
+            Trending on <em className="text-rudo-blue italic">rudo.ai</em>
           </h2>
           <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
             {bots.map((bot) => (
@@ -161,11 +161,11 @@ export default function LandingPage() {
             <div className="w-[9px] h-[9px] rounded-full bg-[#ffd000]" />
             <div className="w-[9px] h-[9px] rounded-full bg-rudo-blue" />
             <span className="ml-auto font-orbitron text-[9px] tracking-[2px] text-rudo-muted">
-              RUDO API
+              RUDO.AI API
             </span>
           </div>
           <div className="p-6 font-mono text-[12.5px] leading-8 text-rudo-text-sec">
-            <span className="text-rudo-muted/30"># Install the Rudo SDK</span>
+            <span className="text-rudo-muted/30"># Install the rudo.ai SDK</span>
             <br />
             <span className="text-rudo-blue">$</span>{" "}
             <span className="text-rudo-text">npm install</span>{" "}
@@ -327,7 +327,7 @@ export default function LandingPage() {
         <div className="flex items-center gap-5">
           <Logo />
           <p className="text-[11px] text-rudo-muted font-orbitron tracking-[1px]">
-            &copy; 2026 RUDO
+            &copy; 2026 RUDO.AI
           </p>
         </div>
         <div className="flex gap-6">

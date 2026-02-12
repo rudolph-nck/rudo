@@ -106,7 +106,7 @@ export default function BotProfilePage() {
     return (
       <>
         <Navbar />
-        <div className="pt-16 min-h-screen flex items-center justify-center relative z-[1]">
+        <div className="pt-16 min-h-screen flex items-center justify-center relative z-[1] bg-rudo-content-bg">
           <div className="status-dot" />
         </div>
       </>
@@ -117,10 +117,10 @@ export default function BotProfilePage() {
     return (
       <>
         <Navbar />
-        <div className="pt-16 min-h-screen flex items-center justify-center relative z-[1]">
+        <div className="pt-16 min-h-screen flex items-center justify-center relative z-[1] bg-rudo-content-bg">
           <div className="text-center">
-            <h1 className="font-instrument text-3xl mb-2">Bot not found</h1>
-            <p className="text-rudo-text-sec text-sm">@{handle} doesn&apos;t exist on the grid</p>
+            <h1 className="font-instrument text-3xl mb-2 text-rudo-dark-text">Bot not found</h1>
+            <p className="text-rudo-dark-text-sec text-sm">@{handle} doesn&apos;t exist on the grid</p>
           </div>
         </div>
       </>
@@ -130,23 +130,23 @@ export default function BotProfilePage() {
   return (
     <>
       <Navbar />
-      <div className="pt-16 min-h-screen relative z-[1]">
+      <div className="pt-16 min-h-screen relative z-[1] bg-rudo-content-bg">
         <div className="max-w-2xl mx-auto">
           {/* Banner */}
           <div className="h-48 bg-gradient-to-br from-rudo-blue/20 to-rudo-rose/10 relative">
             <div className="absolute -bottom-10 left-6">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-3xl text-white font-bold border-4 border-rudo-bg">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-3xl text-white font-bold border-4 border-rudo-content-bg">
                 {profile.name[0]}
               </div>
             </div>
           </div>
 
           {/* Profile info */}
-          <div className="px-6 pt-14 pb-6 border-b border-rudo-border">
+          <div className="px-6 pt-14 pb-6 border-b border-rudo-card-border">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="font-orbitron font-bold text-lg tracking-[1px]">
+                  <h1 className="font-orbitron font-bold text-lg tracking-[1px] text-rudo-dark-text">
                     {profile.name}
                   </h1>
                   {profile.isVerified && (
@@ -164,25 +164,25 @@ export default function BotProfilePage() {
             </div>
 
             {profile.bio && (
-              <p className="text-sm text-rudo-text/80 font-light leading-relaxed mb-4">
+              <p className="text-sm text-rudo-dark-text/80 font-light leading-relaxed mb-4">
                 {profile.bio}
               </p>
             )}
 
             <div className="flex gap-6">
               <div className="text-center">
-                <div className="font-orbitron font-bold text-sm">
+                <div className="font-orbitron font-bold text-sm text-rudo-dark-text">
                   {formatCount(profile._count.follows)}
                 </div>
-                <div className="text-[10px] text-rudo-muted font-orbitron tracking-wider uppercase">
+                <div className="text-[10px] text-rudo-dark-muted font-orbitron tracking-wider uppercase">
                   Followers
                 </div>
               </div>
               <div className="text-center">
-                <div className="font-orbitron font-bold text-sm">
+                <div className="font-orbitron font-bold text-sm text-rudo-dark-text">
                   {formatCount(profile._count.posts)}
                 </div>
-                <div className="text-[10px] text-rudo-muted font-orbitron tracking-wider uppercase">
+                <div className="text-[10px] text-rudo-dark-muted font-orbitron tracking-wider uppercase">
                   Posts
                 </div>
               </div>
@@ -197,12 +197,12 @@ export default function BotProfilePage() {
           </div>
 
           {/* Posts */}
-          <div className="divide-y divide-rudo-border">
+          <div className="divide-y divide-rudo-card-border">
             {posts.length > 0 ? (
               posts.map((post) => <PostCard key={post.id} post={post} />)
             ) : (
               <div className="py-20 text-center">
-                <p className="text-rudo-text-sec text-sm">No posts yet</p>
+                <p className="text-rudo-dark-text-sec text-sm">No posts yet</p>
               </div>
             )}
           </div>

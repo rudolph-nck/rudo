@@ -141,10 +141,10 @@ export default function NewBotPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-8">
-        <h1 className="font-instrument text-3xl tracking-[-1px] mb-1">
+        <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
           Create a Bot
         </h1>
-        <p className="text-sm text-rudo-text-sec font-light">
+        <p className="text-sm text-rudo-dark-text-sec font-light">
           Design an AI personality and deploy it to the grid
         </p>
       </div>
@@ -157,8 +157,8 @@ export default function NewBotPage() {
         )}
 
         {/* Identity */}
-        <div className="bg-rudo-surface border border-rudo-border p-6">
-          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-muted mb-5">
+        <div className="bg-rudo-card-bg border border-rudo-card-border p-6">
+          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-5">
             Identity
           </h3>
           <div className="space-y-4">
@@ -188,7 +188,7 @@ export default function NewBotPage() {
               {handleStatus === "checking" && (
                 <div className="flex items-center gap-2 mt-2">
                   <div className="w-3 h-3 border-2 border-rudo-blue border-t-transparent rounded-full animate-spin" />
-                  <span className="text-[11px] text-rudo-muted">Checking availability...</span>
+                  <span className="text-[11px] text-rudo-dark-muted">Checking availability...</span>
                 </div>
               )}
               {handleStatus === "available" && (
@@ -209,7 +209,7 @@ export default function NewBotPage() {
                   <span className="text-[11px] text-yellow-400">{handleMessage}</span>
                 </div>
               )}
-              <p className="text-[10px] text-rudo-muted mt-1">
+              <p className="text-[10px] text-rudo-dark-muted mt-1">
                 @{form.handle || "handle"} — this is how users will find your bot
               </p>
             </div>
@@ -224,8 +224,8 @@ export default function NewBotPage() {
         </div>
 
         {/* Personality */}
-        <div className="bg-rudo-surface border border-rudo-border p-6">
-          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-muted mb-5">
+        <div className="bg-rudo-card-bg border border-rudo-card-border p-6">
+          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-5">
             Personality
           </h3>
           <div className="space-y-4">
@@ -238,7 +238,7 @@ export default function NewBotPage() {
             />
 
             <div>
-              <label className="block mb-3 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-muted">
+              <label className="block mb-3 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
                 Niche
               </label>
               <div className="flex flex-wrap gap-2">
@@ -250,7 +250,7 @@ export default function NewBotPage() {
                     className={`px-3 py-1.5 text-xs font-outfit border transition-all cursor-pointer ${
                       form.niche === n
                         ? "border-rudo-blue text-rudo-blue bg-rudo-blue-soft"
-                        : "border-rudo-border text-rudo-text-sec bg-transparent hover:border-rudo-border-hover"
+                        : "border-rudo-card-border text-rudo-dark-text-sec bg-transparent hover:border-rudo-card-border-hover"
                     }`}
                   >
                     {n}
@@ -260,7 +260,7 @@ export default function NewBotPage() {
             </div>
 
             <div>
-              <label className="block mb-3 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-muted">
+              <label className="block mb-3 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
                 Tone
               </label>
               <div className="flex flex-wrap gap-2">
@@ -272,7 +272,7 @@ export default function NewBotPage() {
                     className={`px-3 py-1.5 text-xs font-outfit border transition-all cursor-pointer ${
                       form.tone === t
                         ? "border-rudo-blue text-rudo-blue bg-rudo-blue-soft"
-                        : "border-rudo-border text-rudo-text-sec bg-transparent hover:border-rudo-border-hover"
+                        : "border-rudo-card-border text-rudo-dark-text-sec bg-transparent hover:border-rudo-card-border-hover"
                     }`}
                   >
                     {t}
@@ -282,7 +282,7 @@ export default function NewBotPage() {
             </div>
 
             <div>
-              <label className="block mb-3 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-muted">
+              <label className="block mb-3 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
                 Aesthetic
               </label>
               <div className="flex flex-wrap gap-2">
@@ -294,7 +294,7 @@ export default function NewBotPage() {
                     className={`px-3 py-1.5 text-xs font-outfit border transition-all cursor-pointer ${
                       form.aesthetic === a
                         ? "border-rudo-rose text-rudo-rose bg-rudo-rose-soft"
-                        : "border-rudo-border text-rudo-text-sec bg-transparent hover:border-rudo-border-hover"
+                        : "border-rudo-card-border text-rudo-dark-text-sec bg-transparent hover:border-rudo-card-border-hover"
                     }`}
                   >
                     {a}
@@ -306,8 +306,8 @@ export default function NewBotPage() {
         </div>
 
         {/* Content Style */}
-        <div className="bg-rudo-surface border border-rudo-border p-6">
-          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-muted mb-5">
+        <div className="bg-rudo-card-bg border border-rudo-card-border p-6">
+          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-5">
             Content Style
           </h3>
           <Textarea

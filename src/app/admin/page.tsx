@@ -59,10 +59,10 @@ export default function ModerationQueuePage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="font-instrument text-3xl tracking-[-1px] mb-1">
+        <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
           Moderation Queue
         </h1>
-        <p className="text-sm text-rudo-text-sec font-light">
+        <p className="text-sm text-rudo-dark-text-sec font-light">
           Review flagged content before it goes live
         </p>
       </div>
@@ -75,8 +75,8 @@ export default function ModerationQueuePage() {
             onClick={() => setFilter(status)}
             className={`px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase transition-all border cursor-pointer ${
               filter === status
-                ? "border-rudo-blue text-rudo-blue bg-rudo-blue-soft"
-                : "border-rudo-border text-rudo-muted bg-transparent hover:border-rudo-border-hover"
+                ? "border-rudo-blue text-rudo-blue bg-rudo-blue/10"
+                : "border-rudo-card-border text-rudo-dark-muted bg-transparent hover:border-rudo-card-border-hover"
             }`}
           >
             {status}
@@ -88,12 +88,12 @@ export default function ModerationQueuePage() {
       {loading ? (
         <div className="py-20 text-center">
           <div className="status-dot mx-auto mb-4" />
-          <p className="text-rudo-text-sec text-sm">Loading queue...</p>
+          <p className="text-rudo-dark-text-sec text-sm">Loading queue...</p>
         </div>
       ) : posts.length === 0 ? (
-        <div className="bg-rudo-surface border border-rudo-border p-12 text-center">
-          <h3 className="font-instrument text-xl mb-2">Queue is clear</h3>
-          <p className="text-sm text-rudo-text-sec font-light">
+        <div className="bg-rudo-card-bg border border-rudo-card-border p-12 text-center">
+          <h3 className="font-instrument text-xl mb-2 text-rudo-dark-text">Queue is clear</h3>
+          <p className="text-sm text-rudo-dark-text-sec font-light">
             No {filter.toLowerCase()} posts to review
           </p>
         </div>
@@ -102,7 +102,7 @@ export default function ModerationQueuePage() {
           {posts.map((post) => (
             <div
               key={post.id}
-              className="bg-rudo-surface border border-rudo-border p-6"
+              className="bg-rudo-card-bg border border-rudo-card-border p-6"
             >
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
@@ -111,7 +111,7 @@ export default function ModerationQueuePage() {
                     {post.bot.name[0]}
                   </div>
                   <div>
-                    <span className="font-orbitron font-bold text-xs tracking-[1px]">
+                    <span className="font-orbitron font-bold text-xs tracking-[1px] text-rudo-dark-text">
                       {post.bot.name}
                     </span>
                     <span className="text-xs text-rudo-blue ml-2">
@@ -119,14 +119,14 @@ export default function ModerationQueuePage() {
                     </span>
                   </div>
                 </div>
-                <span className="text-[10px] text-rudo-muted font-orbitron tracking-wider">
+                <span className="text-[10px] text-rudo-dark-muted font-orbitron tracking-wider">
                   {timeAgo(new Date(post.createdAt))}
                 </span>
               </div>
 
               {/* Content */}
-              <div className="mb-4 p-4 bg-rudo-bg border border-rudo-border">
-                <p className="text-sm text-rudo-text/80 font-light leading-relaxed whitespace-pre-wrap">
+              <div className="mb-4 p-4 bg-rudo-content-bg border border-rudo-card-border">
+                <p className="text-sm text-rudo-dark-text/80 font-light leading-relaxed whitespace-pre-wrap">
                   {post.content}
                 </p>
               </div>
@@ -135,7 +135,7 @@ export default function ModerationQueuePage() {
               <div className="flex items-center gap-4 mb-4">
                 {post.moderationScore !== null && (
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-orbitron tracking-wider text-rudo-muted">
+                    <span className="text-[10px] font-orbitron tracking-wider text-rudo-dark-muted">
                       SCORE
                     </span>
                     <span
@@ -166,7 +166,7 @@ export default function ModerationQueuePage() {
                 )}
 
                 {post.moderationNote && (
-                  <span className="text-xs text-rudo-text-sec font-light">
+                  <span className="text-xs text-rudo-dark-text-sec font-light">
                     {post.moderationNote}
                   </span>
                 )}

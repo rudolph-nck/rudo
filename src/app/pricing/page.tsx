@@ -135,7 +135,7 @@ export default function PricingPage() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen pt-32 pb-20 px-6 md:px-12 relative z-[1]">
+      <div className="min-h-screen pt-32 pb-20 px-6 md:px-12 relative z-[1] bg-rudo-content-bg">
         <div className="absolute w-[500px] h-[500px] rounded-full bg-rudo-blue-glow top-[10%] left-[25%] opacity-20 blur-[120px] pointer-events-none" />
 
         <div className="max-w-[1200px] mx-auto">
@@ -144,10 +144,10 @@ export default function PricingPage() {
               <span className="status-dot" />
               Access Tiers
             </div>
-            <h1 className="font-instrument font-normal text-[clamp(36px,5vw,64px)] leading-[1.08] tracking-[-2px] mb-4">
+            <h1 className="font-instrument font-normal text-[clamp(36px,5vw,64px)] leading-[1.08] tracking-[-2px] mb-4 text-rudo-dark-text">
               Choose your <em className="text-rudo-blue italic">level</em>
             </h1>
-            <p className="text-rudo-text-sec text-[17px] font-light max-w-[500px] mx-auto">
+            <p className="text-rudo-dark-text-sec text-[17px] font-light max-w-[500px] mx-auto">
               Scale from spectator to syndicate operator. Upgrade anytime.
             </p>
           </div>
@@ -157,7 +157,7 @@ export default function PricingPage() {
               <button
                 onClick={handleManage}
                 disabled={loading === "manage"}
-                className="text-rudo-blue text-sm underline underline-offset-4 bg-transparent border-none cursor-pointer hover:text-rudo-text transition-colors disabled:opacity-50"
+                className="text-rudo-blue text-sm underline underline-offset-4 bg-transparent border-none cursor-pointer hover:text-rudo-dark-text transition-colors disabled:opacity-50"
               >
                 {loading === "manage" ? "Loading..." : "Manage Subscription"}
               </button>
@@ -170,10 +170,10 @@ export default function PricingPage() {
               return (
                 <div
                   key={plan.tier}
-                  className={`bg-rudo-bg border p-8 relative transition-all cyber-card-sm ${
+                  className={`bg-rudo-card-bg border p-8 relative transition-all cyber-card-sm ${
                     plan.hot
                       ? "border-rudo-blue shadow-[0_0_50px_rgba(56,189,248,0.06)]"
-                      : "border-rudo-border"
+                      : "border-rudo-card-border"
                   }`}
                 >
                   {plan.hot && (
@@ -181,25 +181,25 @@ export default function PricingPage() {
                       POPULAR
                     </span>
                   )}
-                  <div className="font-orbitron font-bold text-[10px] tracking-[2px] uppercase text-rudo-muted mb-3">
+                  <div className="font-orbitron font-bold text-[10px] tracking-[2px] uppercase text-rudo-dark-muted mb-3">
                     {plan.name}
                   </div>
-                  <div className="font-instrument text-[44px] tracking-[-2px] mb-1 leading-[1.1]">
+                  <div className="font-instrument text-[44px] tracking-[-2px] mb-1 leading-[1.1] text-rudo-dark-text">
                     {plan.price}
                     {plan.period && (
-                      <small className="font-outfit text-sm text-rudo-muted font-light">
+                      <small className="font-outfit text-sm text-rudo-dark-muted font-light">
                         {plan.period}
                       </small>
                     )}
                   </div>
-                  <div className="text-[12px] text-rudo-text-sec font-light mb-5 min-h-[36px]">
+                  <div className="text-[12px] text-rudo-dark-text-sec font-light mb-5 min-h-[36px]">
                     {plan.desc}
                   </div>
                   <ul className="list-none mb-6">
                     {plan.features.map((f) => (
                       <li
                         key={f}
-                        className="py-1.5 text-[12px] text-rudo-text-sec font-light flex items-center gap-2"
+                        className="py-1.5 text-[12px] text-rudo-dark-text-sec font-light flex items-center gap-2"
                       >
                         <span className="text-rudo-blue text-[10px]">▸</span>
                         {f}
@@ -211,7 +211,7 @@ export default function PricingPage() {
                       Current Plan
                     </div>
                   ) : plan.tier === "FREE" ? (
-                    <div className="w-full py-3 text-center text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-muted border border-rudo-border">
+                    <div className="w-full py-3 text-center text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted border border-rudo-card-border">
                       Free Forever
                     </div>
                   ) : (
@@ -221,7 +221,7 @@ export default function PricingPage() {
                       className={`w-full py-3 text-[10px] font-orbitron font-bold tracking-[2px] uppercase cursor-pointer border-none transition-all disabled:opacity-50 ${
                         plan.hot
                           ? "bg-rudo-rose text-white hover:bg-rudo-rose/80"
-                          : "bg-rudo-surface text-rudo-text border border-rudo-border hover:border-rudo-blue hover:text-rudo-blue"
+                          : "bg-rudo-content-bg text-rudo-dark-text border border-rudo-card-border hover:border-rudo-blue hover:text-rudo-blue"
                       }`}
                     >
                       {loading === plan.tier ? "Loading..." : plan.cta}
@@ -232,7 +232,7 @@ export default function PricingPage() {
             })}
           </div>
 
-          <div className="text-center mt-12 text-sm text-rudo-muted">
+          <div className="text-center mt-12 text-sm text-rudo-dark-muted">
             Need enterprise-level access?{" "}
             <span className="text-rudo-blue cursor-pointer hover:underline">
               Contact us

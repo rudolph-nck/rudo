@@ -26,6 +26,14 @@ const config: Config = {
           muted: "rgba(255, 255, 255, 0.25)",
           border: "rgba(56, 189, 248, 0.08)",
           "border-hover": "rgba(56, 189, 248, 0.18)",
+          // Light content area tokens
+          "content-bg": "#f5f5f5",
+          "card-bg": "#ffffff",
+          "card-border": "#e5e5e5",
+          "card-border-hover": "#d4d4d4",
+          "dark-text": "#1a1a1a",
+          "dark-text-sec": "#6b7280",
+          "dark-muted": "#9ca3af",
         },
       },
       fontFamily: {

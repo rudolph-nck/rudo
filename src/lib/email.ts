@@ -3,7 +3,7 @@ import { Resend } from "resend";
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
-const FROM = process.env.EMAIL_FROM || "rudo <noreply@rudo.ai>";
+const FROM = process.env.EMAIL_FROM || "rudo.ai <noreply@rudo.ai>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 /**
@@ -28,10 +28,10 @@ export async function sendWelcomeEmail(params: {
   await resend!.emails.send({
     from: FROM,
     to: params.email,
-    subject: "Welcome to the grid — rudo",
+    subject: "Welcome to the grid — rudo.ai",
     html: `
       <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; background: #080a0e; color: #e4eef5; padding: 40px;">
-        <h1 style="font-size: 28px; font-weight: 400; margin-bottom: 8px;">Welcome to <span style="color: #38bdf8;">rudo</span></h1>
+        <h1 style="font-size: 28px; font-weight: 400; margin-bottom: 8px;">Welcome to <span style="color: #38bdf8;">rudo.ai</span></h1>
         <p style="color: rgba(228,238,245,0.5); font-size: 14px; line-height: 1.8; margin-bottom: 24px;">
           Hey ${params.name}, you're in. ${roleMessages[params.role] || roleMessages.SPECTATOR}
         </p>
@@ -40,7 +40,7 @@ export async function sendWelcomeEmail(params: {
         </a>
         <hr style="border: none; border-top: 1px solid rgba(56,189,248,0.08); margin: 32px 0;" />
         <p style="color: rgba(255,255,255,0.25); font-size: 11px;">
-          &copy; 2026 RUDO. The AI Creator Platform.
+          &copy; 2026 RUDO.AI. The AI Creator Platform.
         </p>
       </div>
     `,
@@ -73,10 +73,10 @@ export async function sendWeeklyDigest(params: {
   await resend!.emails.send({
     from: FROM,
     to: params.email,
-    subject: "Your weekly grid update — rudo",
+    subject: "Your weekly grid update — rudo.ai",
     html: `
       <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; background: #080a0e; color: #e4eef5; padding: 40px;">
-        <h1 style="font-size: 24px; font-weight: 400; margin-bottom: 24px;">This week on <span style="color: #38bdf8;">rudo</span></h1>
+        <h1 style="font-size: 24px; font-weight: 400; margin-bottom: 24px;">This week on <span style="color: #38bdf8;">rudo.ai</span></h1>
         <h3 style="color: rgba(255,255,255,0.25); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px;">Trending Posts</h3>
         ${postsHtml}
         <a href="${APP_URL}/feed" style="display: inline-block; margin-top: 16px; padding: 12px 28px; background: #c4285a; color: white; text-decoration: none; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;">
@@ -84,7 +84,7 @@ export async function sendWeeklyDigest(params: {
         </a>
         <hr style="border: none; border-top: 1px solid rgba(56,189,248,0.08); margin: 32px 0;" />
         <p style="color: rgba(255,255,255,0.25); font-size: 11px;">
-          &copy; 2026 RUDO. <a href="${APP_URL}" style="color: rgba(255,255,255,0.25);">Unsubscribe</a>
+          &copy; 2026 RUDO.AI. <a href="${APP_URL}" style="color: rgba(255,255,255,0.25);">Unsubscribe</a>
         </p>
       </div>
     `,
@@ -105,7 +105,7 @@ export async function sendWebhookAlert(params: {
   await resend!.emails.send({
     from: FROM,
     to: params.email,
-    subject: "Webhook delivery failed — rudo",
+    subject: "Webhook delivery failed — rudo.ai",
     html: `
       <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; background: #080a0e; color: #e4eef5; padding: 40px;">
         <h1 style="font-size: 24px; font-weight: 400; margin-bottom: 16px;">Webhook Failure</h1>

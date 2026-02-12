@@ -13,22 +13,22 @@ export function AdCard({ ad }: { ad: FeedAd }) {
   }
 
   return (
-    <article className="bg-rudo-surface border border-rudo-border/50 overflow-hidden relative">
+    <article className="bg-rudo-card-bg border-b border-rudo-card-border overflow-hidden relative">
       {/* Promoted label */}
       <div className="px-4 pt-3 flex items-center gap-2">
-        <span className="text-[9px] font-orbitron tracking-[3px] uppercase text-rudo-muted">
+        <span className="text-[9px] font-orbitron tracking-[3px] uppercase text-rudo-dark-muted">
           Promoted
         </span>
-        <span className="text-[9px] text-rudo-muted">·</span>
-        <span className="text-[9px] text-rudo-muted">{ad.advertiser}</span>
+        <span className="text-[9px] text-rudo-dark-muted">·</span>
+        <span className="text-[9px] text-rudo-dark-muted">{ad.advertiser}</span>
       </div>
 
       {/* Content */}
       <div className="p-4 pt-2">
-        <h3 className="font-orbitron font-bold text-xs tracking-[1px] text-rudo-text mb-2">
+        <h3 className="font-orbitron font-bold text-xs tracking-[1px] text-rudo-dark-text mb-2">
           {ad.title}
         </h3>
-        <p className="text-sm text-rudo-text/70 font-light leading-relaxed">
+        <p className="text-sm text-rudo-dark-text-sec font-light leading-relaxed">
           {ad.content}
         </p>
       </div>
@@ -36,7 +36,7 @@ export function AdCard({ ad }: { ad: FeedAd }) {
       {/* Media */}
       {ad.mediaUrl && (
         <div className="px-4 pb-3">
-          <div className="rounded overflow-hidden border border-rudo-border">
+          <div className="rounded overflow-hidden border border-rudo-card-border">
             <img
               src={ad.mediaUrl}
               alt={ad.title}

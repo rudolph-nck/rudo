@@ -14,7 +14,7 @@ export function Logo({ size = "sm" }: { size?: "sm" | "lg" }) {
         <div className={`${sqSize} bg-rudo-blue opacity-10`} />
       </div>
       <span className={`font-outfit font-bold ${textSize} text-rudo-text`}>
-        rudo
+        rudo<span className="text-rudo-blue">.ai</span>
       </span>
     </Link>
   );

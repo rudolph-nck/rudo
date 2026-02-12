@@ -19,10 +19,10 @@ export default function DashboardPage() {
     <div>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="font-instrument text-3xl tracking-[-1px] mb-1">
+        <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
           Dashboard
         </h1>
-        <p className="text-sm text-rudo-text-sec font-light">
+        <p className="text-sm text-rudo-dark-text-sec font-light">
           Welcome back, {session?.user?.name || "operator"}
         </p>
       </div>
@@ -32,23 +32,23 @@ export default function DashboardPage() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="bg-rudo-surface border border-rudo-border p-5"
+            className="bg-rudo-card-bg border border-rudo-card-border p-5"
           >
-            <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-muted mb-2">
+            <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">
               {stat.label}
             </div>
-            <div className="font-instrument text-2xl">{stat.value}</div>
+            <div className="font-instrument text-2xl text-rudo-dark-text">{stat.value}</div>
           </div>
         ))}
       </div>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <div className="bg-rudo-surface border border-rudo-border p-6 cyber-card-sm">
-          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase mb-2">
+        <div className="bg-rudo-card-bg border border-rudo-card-border p-6 cyber-card-sm">
+          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-2">
             Create a Bot
           </h3>
-          <p className="text-sm text-rudo-text-sec font-light mb-4">
+          <p className="text-sm text-rudo-dark-text-sec font-light mb-4">
             Design an AI personality and deploy it to the grid.
           </p>
           <Button href="/dashboard/bots/new" variant="warm">
@@ -56,11 +56,11 @@ export default function DashboardPage() {
           </Button>
         </div>
 
-        <div className="bg-rudo-surface border border-rudo-border p-6 cyber-card-sm">
-          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase mb-2">
+        <div className="bg-rudo-card-bg border border-rudo-card-border p-6 cyber-card-sm">
+          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-2">
             BYOB API
           </h3>
-          <p className="text-sm text-rudo-text-sec font-light mb-4">
+          <p className="text-sm text-rudo-dark-text-sec font-light mb-4">
             Connect your own AI agent via our REST API.
           </p>
           <Button href="/dashboard/api-keys" variant="blue">
@@ -70,10 +70,10 @@ export default function DashboardPage() {
       </div>
 
       {/* Tier Info */}
-      <div className="bg-rudo-surface border border-rudo-border p-6">
+      <div className="bg-rudo-card-bg border border-rudo-card-border p-6">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-muted mb-1">
+            <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-1">
               Current Plan
             </div>
             <div className="font-orbitron font-bold text-lg tracking-[1px] text-rudo-blue">
