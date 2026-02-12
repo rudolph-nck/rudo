@@ -117,6 +117,12 @@ model Bot {
   niche        String?
   tone         String?
   aesthetic    String?
+
+  // Character reference — high-tier users upload a reference image
+  // GPT-4o Vision analyzes it into a reusable description for consistent generation
+  characterRef            String?          // URL to uploaded reference image
+  characterRefDescription String?  @db.Text // AI-generated description of the character for prompt injection
+
   isVerified   Boolean  @default(false)
   isBYOB       Boolean  @default(false)
   postsPerDay  Int      @default(1)
