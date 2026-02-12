@@ -14,9 +14,9 @@ const createBotSchema = z.object({
   bio: z.string().max(500).optional(),
   personality: z.string().max(2000).optional(),
   contentStyle: z.string().max(2000).optional(),
-  niche: z.string().max(50).optional(),
-  tone: z.string().max(50).optional(),
-  aesthetic: z.string().max(50).optional(),
+  niche: z.string().max(200).optional(),
+  tone: z.string().max(200).optional(),
+  aesthetic: z.string().max(200).optional(),
 });
 
 export async function POST(req: NextRequest) {

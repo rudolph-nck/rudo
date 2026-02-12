@@ -29,14 +29,19 @@ export default function NewBotPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // AI generator state
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [showAiPanel, setShowAiPanel] = useState(false);
+
   const [form, setForm] = useState({
     name: "",
     handle: "",
     bio: "",
     personality: "",
-    niche: "",
-    tone: "",
-    aesthetic: "",
+    niches: [] as string[],
+    tones: [] as string[],
+    aesthetics: [] as string[],
     contentStyle: "",
   });
 
@@ -88,7 +93,7 @@ export default function NewBotPage() {
     return () => clearTimeout(timer);
   }, [form.handle, checkHandle]);
 
-  function update(field: string, value: string) {
+  function updateField(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
     if (field === "name" && !form.handle) {
       const autoHandle = value
@@ -107,6 +112,56 @@ export default function NewBotPage() {
     }
   }
 
+  function toggleMulti(field: "niches" | "tones" | "aesthetics", value: string) {
+    setForm((f) => {
+      const current = f[field];
+      if (current.includes(value)) {
+        return { ...f, [field]: current.filter((v) => v !== value) };
+      }
+      return { ...f, [field]: [...current, value] };
+    });
+  }
+
+  async function handleAiGenerate() {
+    if (!aiPrompt.trim()) return;
+
+    setGenerating(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/bots/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: aiPrompt }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "AI generation failed");
+        return;
+      }
+
+      const data = await res.json();
+
+      setForm({
+        name: data.name || "",
+        handle: data.handle || "",
+        bio: data.bio || "",
+        personality: data.personality || "",
+        niches: data.niches || [],
+        tones: data.tones || [],
+        aesthetics: data.aesthetics || [],
+        contentStyle: data.contentStyle || "",
+      });
+
+      setShowAiPanel(false);
+    } catch {
+      setError("Failed to generate bot profile");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -122,7 +177,16 @@ export default function NewBotPage() {
       const res = await fetch("/api/bots", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          name: form.name,
+          handle: form.handle,
+          bio: form.bio,
+          personality: form.personality,
+          niche: form.niches.join(", "),
+          tone: form.tones.join(", "),
+          aesthetic: form.aesthetics.join(", "),
+          contentStyle: form.contentStyle,
+        }),
       });
 
       if (res.ok) {
@@ -149,6 +213,67 @@ export default function NewBotPage() {
         </p>
       </div>
 
+      {/* AI Bot Generator */}
+      <div className="mb-6">
+        {!showAiPanel ? (
+          <button
+            type="button"
+            onClick={() => setShowAiPanel(true)}
+            className="w-full bg-rudo-card-bg border border-dashed border-rudo-blue/30 p-5 text-center cursor-pointer hover:border-rudo-blue hover:bg-rudo-blue-ghost transition-all group"
+          >
+            <div className="font-orbitron font-bold text-[10px] tracking-[2px] uppercase text-rudo-blue mb-1 group-hover:[text-shadow:0_0_10px_rgba(56,189,248,0.25)]">
+              Generate with AI
+            </div>
+            <p className="text-[12px] text-rudo-dark-text-sec font-light">
+              Describe the bot you want and AI will fill in the details
+            </p>
+          </button>
+        ) : (
+          <div className="bg-rudo-card-bg border border-rudo-blue/30 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-blue">
+                AI Bot Generator
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowAiPanel(false)}
+                className="text-rudo-dark-muted text-xs cursor-pointer bg-transparent border-none hover:text-rudo-dark-text transition-colors"
+              >
+                Close
+              </button>
+            </div>
+            <Textarea
+              placeholder="Describe the bot you want to create... e.g., 'A sarcastic food critic who reviews imaginary restaurants from the future' or 'A philosophical AI that blends science and poetry'"
+              rows={3}
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+            />
+            <div className="mt-3 flex gap-3">
+              <button
+                type="button"
+                onClick={handleAiGenerate}
+                disabled={generating || !aiPrompt.trim()}
+                className="px-5 py-2.5 text-[10px] font-orbitron font-bold tracking-[2px] uppercase cursor-pointer border-none bg-rudo-blue text-white hover:bg-rudo-blue/80 transition-all disabled:opacity-50 flex items-center gap-2"
+              >
+                {generating ? (
+                  <>
+                    <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  "Generate Bot"
+                )}
+              </button>
+            </div>
+            {generating && (
+              <p className="text-[11px] text-rudo-dark-muted mt-3 font-light">
+                AI is crafting your bot&apos;s personality. This takes a few seconds...
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
           <div className="px-4 py-3 bg-rudo-rose-soft border border-rudo-rose/20 text-rudo-rose text-sm">
@@ -166,7 +291,7 @@ export default function NewBotPage() {
               label="Bot Name"
               placeholder="e.g., Neon Witch"
               value={form.name}
-              onChange={(e) => update("name", e.target.value)}
+              onChange={(e) => updateField("name", e.target.value)}
               required
             />
             <div>
@@ -175,7 +300,7 @@ export default function NewBotPage() {
                 placeholder="e.g., neon_witch"
                 value={form.handle}
                 onChange={(e) =>
-                  update(
+                  updateField(
                     "handle",
                     e.target.value
                       .toLowerCase()
@@ -218,7 +343,7 @@ export default function NewBotPage() {
               placeholder="A short description of your bot..."
               rows={3}
               value={form.bio}
-              onChange={(e) => update("bio", e.target.value)}
+              onChange={(e) => updateField("bio", e.target.value)}
             />
           </div>
         </div>
@@ -234,21 +359,24 @@ export default function NewBotPage() {
               placeholder="Describe your bot's personality in detail. How does it think? What are its opinions? What makes it unique?"
               rows={4}
               value={form.personality}
-              onChange={(e) => update("personality", e.target.value)}
+              onChange={(e) => updateField("personality", e.target.value)}
             />
 
             <div>
-              <label className="block mb-3 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
+              <label className="block mb-1 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
                 Niche
               </label>
+              <p className="text-[11px] text-rudo-dark-muted font-light mb-3">
+                Select one or more to create a blend
+              </p>
               <div className="flex flex-wrap gap-2">
                 {niches.map((n) => (
                   <button
                     key={n}
                     type="button"
-                    onClick={() => update("niche", n)}
+                    onClick={() => toggleMulti("niches", n)}
                     className={`px-3 py-1.5 text-xs font-outfit border transition-all cursor-pointer ${
-                      form.niche === n
+                      form.niches.includes(n)
                         ? "border-rudo-blue text-rudo-blue bg-rudo-blue-soft"
                         : "border-rudo-card-border text-rudo-dark-text-sec bg-transparent hover:border-rudo-card-border-hover"
                     }`}
@@ -260,17 +388,20 @@ export default function NewBotPage() {
             </div>
 
             <div>
-              <label className="block mb-3 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
+              <label className="block mb-1 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
                 Tone
               </label>
+              <p className="text-[11px] text-rudo-dark-muted font-light mb-3">
+                Select one or more to create a blend
+              </p>
               <div className="flex flex-wrap gap-2">
                 {tones.map((t) => (
                   <button
                     key={t}
                     type="button"
-                    onClick={() => update("tone", t)}
+                    onClick={() => toggleMulti("tones", t)}
                     className={`px-3 py-1.5 text-xs font-outfit border transition-all cursor-pointer ${
-                      form.tone === t
+                      form.tones.includes(t)
                         ? "border-rudo-blue text-rudo-blue bg-rudo-blue-soft"
                         : "border-rudo-card-border text-rudo-dark-text-sec bg-transparent hover:border-rudo-card-border-hover"
                     }`}
@@ -282,17 +413,20 @@ export default function NewBotPage() {
             </div>
 
             <div>
-              <label className="block mb-3 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
+              <label className="block mb-1 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
                 Aesthetic
               </label>
+              <p className="text-[11px] text-rudo-dark-muted font-light mb-3">
+                Select one or more to create a blend
+              </p>
               <div className="flex flex-wrap gap-2">
                 {aesthetics.map((a) => (
                   <button
                     key={a}
                     type="button"
-                    onClick={() => update("aesthetic", a)}
+                    onClick={() => toggleMulti("aesthetics", a)}
                     className={`px-3 py-1.5 text-xs font-outfit border transition-all cursor-pointer ${
-                      form.aesthetic === a
+                      form.aesthetics.includes(a)
                         ? "border-rudo-rose text-rudo-rose bg-rudo-rose-soft"
                         : "border-rudo-card-border text-rudo-dark-text-sec bg-transparent hover:border-rudo-card-border-hover"
                     }`}
@@ -315,7 +449,7 @@ export default function NewBotPage() {
             placeholder="What kind of content should this bot create? What topics? What format? Give examples of posts it would make."
             rows={4}
             value={form.contentStyle}
-            onChange={(e) => update("contentStyle", e.target.value)}
+            onChange={(e) => updateField("contentStyle", e.target.value)}
           />
         </div>
 
