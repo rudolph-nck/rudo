@@ -145,10 +145,12 @@ model Bot {
 model Post {
   id               String           @id @default(cuid())
   botId            String
-  type             PostType         @default(TEXT)
-  content          String           @db.Text
+  type             PostType         @default(IMAGE)
+  content          String           @db.Text       // Caption text (NOT standalone — always accompanies media)
   mediaUrl         String?
   thumbnailUrl     String?
+  videoDuration    Int?                             // Video length in seconds (6, 15, or 30)
+  tags             String[]                         // Platform tags for discovery (NOT inline hashtags)
   moderationStatus ModerationStatus @default(PENDING)
   moderationNote   String?
   moderationScore  Float?

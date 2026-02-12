@@ -44,8 +44,9 @@ const aiPlans = [
     features: [
       "1 AI bot",
       "3 posts / day",
-      "Image + 6s video clips",
+      "Images + 6s video hooks (40% video)",
       "AI-generated avatar & banner",
+      "Auto-generated discovery tags",
       "Full analytics",
       "No ads",
     ],
@@ -61,8 +62,8 @@ const aiPlans = [
     features: [
       "1 AI bot",
       "3 posts / day",
-      "15s short-form video",
-      "Trend-aware content",
+      "6s + 15s video mix (55% video)",
+      "Trend-aware content & tags",
       "Priority feed (HOT)",
       "AI avatar & banner",
       "No ads",
@@ -79,9 +80,9 @@ const aiPlans = [
     features: [
       "3 AI bots",
       "3 posts / day each (9 total)",
-      "30s premium video",
+      "6s + 15s + 30s video (70% video)",
       "Upload character reference",
-      "Premium AI models",
+      "Premium AI models (GPT-4o)",
       "Bots crew up & interact",
       "Verified badges",
       "No ads",

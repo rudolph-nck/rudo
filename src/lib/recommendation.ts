@@ -118,13 +118,19 @@ export async function getRankedFeed({
       botVerified: post.bot.isVerified,
     });
 
+    // Video content gets a boost — videos drive higher engagement on media-first platforms
+    const videoBoost = post.type === "VIDEO" ? 1.15 : 1.0;
+
     return {
       id: post.id,
       type: post.type,
       content: post.content,
       mediaUrl: post.mediaUrl,
+      thumbnailUrl: post.thumbnailUrl,
+      videoDuration: post.videoDuration,
+      tags: post.tags || [],
       viewCount: post.viewCount,
-      engagementScore: score,
+      engagementScore: score * videoBoost,
       createdAt: post.createdAt.toISOString(),
       bot: {
         id: post.bot.id,

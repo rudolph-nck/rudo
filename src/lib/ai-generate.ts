@@ -19,47 +19,172 @@ type BotContext = {
   characterRefDescription: string | null;
 };
 
-// Tier capabilities for content generation
-// Video durations calibrated to current AI video gen quality ceilings:
-//   6s  = single generation, no stitching, punchy hook (Pika/Kling native)
+// ---------------------------------------------------------------------------
+// Tier capabilities & content mix
+// ---------------------------------------------------------------------------
+// NO text-only posts. Every post is IMAGE or VIDEO.
+// Video is the engagement driver (TikTok model).
+// Higher tiers get more video AND a mix of durations.
+//
+// Duration calibration (current AI video gen ceilings):
+//   6s  = single generation, punchy hook (Pika/Kling native)
 //   15s = 1-2 stitches, short-form sweet spot (Reels/TikTok standard)
 //   30s = 2-3 stitches, premium mini-stories, quality ceiling before degradation
+//
+// SPARK is a loss leader — 40% video hooks users on seeing their bot create.
+// The upgrade path to PULSE/GRID is where the revenue is.
+// ---------------------------------------------------------------------------
+
 const TIER_CAPABILITIES: Record<string, {
-  canGenerateImages: boolean;
-  canGenerateVideo: boolean;
-  maxVideoDuration: number;
   videoChance: number;
+  videoDurationMix: { duration: number; weight: number }[];
   premiumModel: boolean;
   trendAware: boolean;
   canUploadCharacterRef: boolean;
 }> = {
-  SPARK:  { canGenerateImages: true,  canGenerateVideo: true,  maxVideoDuration: 6,  videoChance: 0.2,  premiumModel: false, trendAware: false, canUploadCharacterRef: false },
-  PULSE:  { canGenerateImages: true,  canGenerateVideo: true,  maxVideoDuration: 15, videoChance: 0.35, premiumModel: false, trendAware: true,  canUploadCharacterRef: false },
-  GRID:   { canGenerateImages: true,  canGenerateVideo: true,  maxVideoDuration: 30, videoChance: 0.5,  premiumModel: true,  trendAware: true,  canUploadCharacterRef: true },
+  SPARK: {
+    videoChance: 0.4,
+    videoDurationMix: [{ duration: 6, weight: 1.0 }],
+    premiumModel: false,
+    trendAware: false,
+    canUploadCharacterRef: false,
+  },
+  PULSE: {
+    videoChance: 0.55,
+    videoDurationMix: [
+      { duration: 6, weight: 0.6 },   // 60% quick hooks (cost-efficient)
+      { duration: 15, weight: 0.4 },   // 40% short-form (signature format)
+    ],
+    premiumModel: false,
+    trendAware: true,
+    canUploadCharacterRef: false,
+  },
+  GRID: {
+    videoChance: 0.7,
+    videoDurationMix: [
+      { duration: 6, weight: 0.3 },    // 30% quick hooks
+      { duration: 15, weight: 0.4 },   // 40% short-form
+      { duration: 30, weight: 0.3 },   // 30% premium stories
+    ],
+    premiumModel: true,
+    trendAware: true,
+    canUploadCharacterRef: true,
+  },
 };
 
+// ---------------------------------------------------------------------------
+// Video creative direction by duration
+// ---------------------------------------------------------------------------
+
+const VIDEO_STYLE_BY_DURATION: Record<number, { label: string; direction: string }> = {
+  6:  { label: "6-second hook", direction: "A single punchy moment — one striking visual transition, one dramatic reveal, or one mesmerizing loop. Think \"stop-scroll\" energy. No narrative arc needed, just pure visual impact." },
+  15: { label: "15-second short", direction: "A mini-sequence with a beginning and payoff — establish a mood, build tension, deliver a moment. Think Instagram Reels / TikTok standard. Quick cuts or one fluid camera move." },
+  30: { label: "30-second story", direction: "A micro-narrative with setup, development, and resolution. Think cinematic short — atmospheric establishing shot, character/subject action, and a memorable closing frame. Allow the visual to breathe." },
+};
+
+// ---------------------------------------------------------------------------
+// Content type decisions
+// ---------------------------------------------------------------------------
+
 /**
- * Media-first platform: every post is visual.
- * Decide between IMAGE and VIDEO based on tier.
- * Higher tiers get more video and longer durations.
- *
- * Video mix by tier:
- *   SPARK — 20% video (6s clips, punchy hooks)
- *   PULSE — 35% video (15s clips, short-form standard)
- *   GRID  — 50% video (30s clips, mini-stories)
+ * Decide IMAGE or VIDEO. No text-only posts — ever.
  */
 function decidePostType(tier: string): "IMAGE" | "VIDEO" {
-  const caps = TIER_CAPABILITIES[tier];
-  if (!caps?.canGenerateVideo) return "IMAGE";
-
+  const caps = TIER_CAPABILITIES[tier] || TIER_CAPABILITIES.SPARK;
   return Math.random() < caps.videoChance ? "VIDEO" : "IMAGE";
 }
 
 /**
- * Build a character reference prompt fragment.
- * If the bot has an analyzed character ref, inject its description
- * for visual consistency across all generated media.
+ * Pick a video duration from the tier's weighted mix.
+ * e.g. GRID might roll 6s (30%), 15s (40%), or 30s (30%).
  */
+function pickVideoDuration(tier: string): number {
+  const caps = TIER_CAPABILITIES[tier] || TIER_CAPABILITIES.SPARK;
+  const roll = Math.random();
+  let cumulative = 0;
+  for (const { duration, weight } of caps.videoDurationMix) {
+    cumulative += weight;
+    if (roll < cumulative) return duration;
+  }
+  return caps.videoDurationMix[0].duration;
+}
+
+// ---------------------------------------------------------------------------
+// Tag generation
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate 2-5 platform tags for a post using AI.
+ * Tags are structured metadata for discovery — NOT inline hashtags.
+ * They power trending, topic browsing, feed recommendations, and explore.
+ *
+ * Trend-aware tiers (Pulse+) get tags optimized against current trending topics.
+ */
+async function generateTags(
+  bot: BotContext,
+  caption: string,
+  trendAware: boolean,
+  model: string
+): Promise<string[]> {
+  try {
+    let trendingHint = "";
+    if (trendAware) {
+      try {
+        const trending = await getTrendingTopics();
+        if (trending.length > 0) {
+          trendingHint = `\nCurrently trending on rudo.ai: ${trending.slice(0, 5).map(t => t.topic).join(", ")}
+If any trending topics are relevant, include them as tags to boost discoverability.`;
+        }
+      } catch {
+        // Non-critical
+      }
+    }
+
+    const response = await openai.chat.completions.create({
+      model,
+      messages: [
+        {
+          role: "system",
+          content: `You are a social media tag generator for rudo.ai, an AI creator platform. Generate 2-5 discovery tags for a post.
+
+Rules:
+- Tags are lowercase, 1-3 words each, no # symbol
+- Mix specific and broad: e.g. ["digital art", "cyberpunk", "neon cityscape", "ai art"]
+- Include the creator's niche as a tag
+- Tags should help users discover this content through topic browsing
+- No generic filler tags like "content" or "post"
+- Return ONLY valid JSON: { "tags": ["tag1", "tag2", ...] }${trendingHint}`,
+        },
+        {
+          role: "user",
+          content: `Creator: @${bot.handle} (${bot.niche || "general"}, ${bot.aesthetic || "modern"} aesthetic)\nCaption: ${caption}`,
+        },
+      ],
+      max_tokens: 100,
+      temperature: 0.7,
+      response_format: { type: "json_object" },
+    });
+
+    const content = response.choices[0]?.message?.content?.trim() || "{}";
+    const parsed = JSON.parse(content);
+    const tags = Array.isArray(parsed) ? parsed : (parsed.tags || []);
+    return tags
+      .filter((t: unknown): t is string => typeof t === "string")
+      .map((t: string) => t.toLowerCase().replace(/^#/, "").trim())
+      .filter((t: string) => t.length > 0)
+      .slice(0, 5);
+  } catch (error: any) {
+    console.error("Tag generation failed:", error.message);
+    // Fallback: extract tags from bot niche
+    const fallback = [bot.niche?.toLowerCase(), bot.aesthetic?.toLowerCase()].filter(Boolean) as string[];
+    return fallback.length > 0 ? fallback : ["ai creator"];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Character reference helpers
+// ---------------------------------------------------------------------------
+
 function buildCharacterContext(bot: BotContext): string {
   if (!bot.characterRefDescription) return "";
 
@@ -68,10 +193,10 @@ ${bot.characterRefDescription}
 Always depict this character/entity consistently. Maintain the same visual identity, colors, features, and style across all generated images.`;
 }
 
-/**
- * Generate an image using DALL-E 3 based on bot personality, post content,
- * and optional character reference for consistency.
- */
+// ---------------------------------------------------------------------------
+// Image generation
+// ---------------------------------------------------------------------------
+
 async function generateImage(
   bot: BotContext,
   postContent: string
@@ -109,21 +234,10 @@ Requirements:
   }
 }
 
-/**
- * Video duration labels for prompt engineering.
- * Each duration tier has a different creative approach.
- */
-const VIDEO_STYLE_BY_DURATION: Record<number, { label: string; direction: string }> = {
-  6:  { label: "6-second hook", direction: "A single punchy moment — one striking visual transition, one dramatic reveal, or one mesmerizing loop. Think \"stop-scroll\" energy. No narrative arc needed, just pure visual impact." },
-  15: { label: "15-second short", direction: "A mini-sequence with a beginning and payoff — establish a mood, build tension, deliver a moment. Think Instagram Reels / TikTok standard. Quick cuts or one fluid camera move." },
-  30: { label: "30-second story", direction: "A micro-narrative with setup, development, and resolution. Think cinematic short — atmospheric establishing shot, character/subject action, and a memorable closing frame. Allow the visual to breathe." },
-};
+// ---------------------------------------------------------------------------
+// Video generation (thumbnail + concept for future API integration)
+// ---------------------------------------------------------------------------
 
-/**
- * Generate a video concept with duration-aware creative direction.
- * Produces a thumbnail (first frame) + storyboard prompt for video API.
- * Actual video generation integrates with Runway/Kling/Sora APIs.
- */
 async function generateVideoContent(
   bot: BotContext,
   caption: string,
@@ -131,10 +245,8 @@ async function generateVideoContent(
 ): Promise<{ thumbnailUrl: string | null; videoConcept: string; duration: number }> {
   const style = VIDEO_STYLE_BY_DURATION[durationSec] || VIDEO_STYLE_BY_DURATION[6];
 
-  // Generate a thumbnail / first frame for the video
   const thumbnailUrl = await generateImage(bot, caption);
 
-  // Build a video generation prompt (for future API integration)
   const characterContext = bot.characterRefDescription
     ? `\nCharacter/Entity: ${bot.characterRefDescription}`
     : "";
@@ -153,11 +265,10 @@ Generate a ${durationSec}-second video that matches the creator's aesthetic and 
   return { thumbnailUrl, videoConcept, duration: durationSec };
 }
 
-/**
- * Generate avatar image for a bot using DALL-E 3.
- * Uses bot personality, aesthetic, and character reference to create
- * a consistent profile picture.
- */
+// ---------------------------------------------------------------------------
+// Avatar & banner generation
+// ---------------------------------------------------------------------------
+
 export async function generateAvatar(
   bot: BotContext
 ): Promise<string | null> {
@@ -195,9 +306,6 @@ Requirements:
   }
 }
 
-/**
- * Generate banner image for a bot using DALL-E 3.
- */
 export async function generateBanner(
   bot: BotContext
 ): Promise<string | null> {
@@ -234,11 +342,10 @@ Requirements:
   }
 }
 
-/**
- * Analyze an uploaded character reference image using GPT-4o Vision.
- * Returns a detailed text description that can be injected into
- * future DALL-E prompts for visual consistency.
- */
+// ---------------------------------------------------------------------------
+// Character reference analysis (GPT-4o Vision)
+// ---------------------------------------------------------------------------
+
 export async function analyzeCharacterReference(
   imageUrl: string
 ): Promise<string> {
@@ -279,10 +386,14 @@ Write the description as a single paragraph, 100-200 words, in a format that wor
   return response.choices[0]?.message?.content?.trim() || "";
 }
 
+// ---------------------------------------------------------------------------
+// Main post generation — MEDIA-FIRST, NO TEXT-ONLY
+// ---------------------------------------------------------------------------
+
 /**
- * Generate a post for a bot — MEDIA-FIRST.
- * Every post includes visual media (image or video).
- * Text is a caption, not standalone content.
+ * Generate a post for a bot.
+ * EVERY post is visual — IMAGE or VIDEO with a caption.
+ * No text-only posts exist on rudo.ai.
  */
 export async function generatePost(
   bot: BotContext & { id?: string },
@@ -292,8 +403,11 @@ export async function generatePost(
   type: "IMAGE" | "VIDEO";
   mediaUrl?: string;
   thumbnailUrl?: string;
+  videoDuration?: number;
+  tags: string[];
 }> {
   const caps = TIER_CAPABILITIES[ownerTier] || TIER_CAPABILITIES.SPARK;
+  const model = caps.premiumModel ? "gpt-4o" : "gpt-4o-mini";
 
   // Get recent posts to avoid repetition
   const recentPosts = await prisma.post.findMany({
@@ -308,13 +422,13 @@ export async function generatePost(
       ? `\n\nRecent posts (DO NOT repeat these themes):\n${recentPosts.map((p) => `- ${p.content.slice(0, 100)}`).join("\n")}`
       : "";
 
-  // Learning loop: pull performance insights if bot has enough history
+  // Learning loop
   let performanceContext = "";
   if (bot.id) {
     try {
       performanceContext = await buildPerformanceContext(bot.id);
     } catch {
-      // Non-critical — continue without performance data
+      // Non-critical
     }
   }
 
@@ -333,18 +447,26 @@ React to trending topics through your unique lens. Don't just comment on them �
     }
   }
 
-  // Character reference context for visual consistency
   const characterContext = buildCharacterContext(bot);
 
+  // Decide post type and video duration
   const postType = decidePostType(ownerTier);
+  const videoDuration = postType === "VIDEO" ? pickVideoDuration(ownerTier) : undefined;
 
-  const videoStyle = VIDEO_STYLE_BY_DURATION[caps.maxVideoDuration] || VIDEO_STYLE_BY_DURATION[6];
-
-  const captionInstruction = postType === "VIDEO"
-    ? `\n- This post is a ${videoStyle.label} VIDEO. Write a compelling caption (50-200 chars) that hooks viewers. ${caps.maxVideoDuration <= 6 ? "Ultra-short — punchy, one idea, stop-scroll energy." : caps.maxVideoDuration <= 15 ? "Short-form — hook + payoff, Reels/TikTok energy." : "Mini-story — cinematic, atmospheric, worth watching."}`
-    : "\n- This post is an IMAGE post (Instagram style). Write a caption (50-300 chars) that works WITH a visual, not as standalone text. Be evocative, descriptive, and feed-stopping.";
-
-  const model = caps.premiumModel ? "gpt-4o" : "gpt-4o-mini";
+  // Build caption instruction based on format
+  let captionInstruction: string;
+  if (postType === "VIDEO" && videoDuration) {
+    const videoStyle = VIDEO_STYLE_BY_DURATION[videoDuration] || VIDEO_STYLE_BY_DURATION[6];
+    captionInstruction = `\n- This post is a ${videoStyle.label} VIDEO. Write a compelling caption (50-200 chars) that hooks viewers. ${
+      videoDuration <= 6
+        ? "Ultra-short — punchy, one idea, stop-scroll energy."
+        : videoDuration <= 15
+          ? "Short-form — hook + payoff, Reels/TikTok energy."
+          : "Mini-story — cinematic, atmospheric, worth watching."
+    }`;
+  } else {
+    captionInstruction = "\n- This post is an IMAGE post (Instagram style). Write a caption (50-300 chars) that works WITH a visual, not as standalone text. Be evocative, descriptive, and feed-stopping.";
+  }
 
   const systemPrompt = `You are an AI content creator bot on rudo.ai — a media-first social platform where AI creators post images and videos (like TikTok meets Instagram, but every creator is AI).
 
@@ -362,7 +484,7 @@ Rules:
 - Write a caption for a visual post — this is a MEDIA-FIRST platform, every post has an image or video
 - Stay in character at all times
 - Be original and creative — think viral social media energy
-- No hashtags unless they fit your persona naturally
+- NEVER use hashtags in the caption — tags are generated separately by the platform
 - Don't use meta-commentary like "Here's my post" or "Check out my latest"
 - Just write the caption directly${captionInstruction}${recentContext}${performanceContext}${trendingContext}${characterContext}`;
 
@@ -378,16 +500,16 @@ Rules:
 
   const content = response.choices[0]?.message?.content?.trim() || "";
 
-  // Generate media based on post type
+  // Generate tags and media in parallel
+  const tagsPromise = generateTags(bot, content, caps.trendAware, model);
+
   let mediaUrl: string | undefined;
   let thumbnailUrl: string | undefined;
 
-  if (postType === "VIDEO") {
-    const video = await generateVideoContent(bot, content, caps.maxVideoDuration);
+  if (postType === "VIDEO" && videoDuration) {
+    const video = await generateVideoContent(bot, content, videoDuration);
     thumbnailUrl = video.thumbnailUrl || undefined;
-    // Video URL would come from a video generation API (Runway/Kling/Sora)
-    // For now, the thumbnail serves as the preview frame
-    mediaUrl = video.thumbnailUrl || undefined;
+    mediaUrl = video.thumbnailUrl || undefined; // Video URL from Runway/Kling/Sora in the future
   } else {
     const imageUrl = await generateImage(bot, content);
     if (imageUrl) {
@@ -395,19 +517,22 @@ Rules:
     }
   }
 
+  const tags = await tagsPromise;
+
   return {
     content,
     type: postType,
     mediaUrl,
     thumbnailUrl,
+    videoDuration,
+    tags,
   };
 }
 
-/**
- * Generate and publish a post for a bot.
- * Runs moderation before publishing.
- * All posts are media-first (image or video).
- */
+// ---------------------------------------------------------------------------
+// Generate & publish (scheduler entrypoint)
+// ---------------------------------------------------------------------------
+
 export async function generateAndPublish(botId: string): Promise<{
   success: boolean;
   postId?: string;
@@ -452,6 +577,8 @@ export async function generateAndPublish(botId: string): Promise<{
         content: generated.content,
         mediaUrl: generated.mediaUrl,
         thumbnailUrl: generated.thumbnailUrl,
+        videoDuration: generated.videoDuration,
+        tags: generated.tags,
         moderationStatus: status,
         moderationNote: modResult.reason,
         moderationScore: modResult.score,
