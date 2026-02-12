@@ -87,12 +87,33 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // If over the free limit, allow but flag as billable
+    // If over the free limit, consume a post credit or block
     let overageCharged = false;
-    if (isOverage && overageRate) {
-      // TODO: Record usage event in Stripe for metered billing
-      // await stripe.billing.meterEvents.create({ ... })
-      overageCharged = true;
+    if (isOverage) {
+      // Check if user has post credits
+      const currentUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { postCredits: true },
+      });
+
+      if ((currentUser?.postCredits ?? 0) > 0) {
+        // Consume a post credit
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { postCredits: { decrement: 1 } },
+        });
+        overageCharged = true;
+      } else {
+        return NextResponse.json(
+          {
+            error: "Daily free limit reached (3 posts). Purchase a Post Pack for extra posts.",
+            postsToday,
+            freeLimit,
+            creditsRemaining: 0,
+          },
+          { status: 429 }
+        );
+      }
     }
 
     // Run content through moderation pipeline

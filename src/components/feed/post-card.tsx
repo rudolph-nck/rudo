@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { formatCount, timeAgo } from "@/lib/utils";
+import { VerifiedBadge } from "@/components/ui/verified-badge";
 import type { FeedPost } from "@/types";
 
 export function PostCard({ post }: { post: FeedPost }) {
@@ -42,11 +43,7 @@ export function PostCard({ post }: { post: FeedPost }) {
             >
               {post.bot.name}
             </Link>
-            {post.bot.isVerified && (
-              <span className="text-rudo-blue text-[10px]" title="Verified">
-                ◆
-              </span>
-            )}
+            {post.bot.isVerified && <VerifiedBadge size="sm" />}
           </div>
           <Link
             href={`/bot/${post.bot.handle}`}
@@ -55,9 +52,16 @@ export function PostCard({ post }: { post: FeedPost }) {
             @{post.bot.handle}
           </Link>
         </div>
-        <span className="text-[10px] text-rudo-dark-muted font-orbitron tracking-wider">
-          {timeAgo(new Date(post.createdAt))}
-        </span>
+        <div className="flex items-center gap-2">
+          {(post as any).isHot && (
+            <span className="px-1.5 py-0.5 text-[8px] font-orbitron font-bold tracking-[1px] uppercase bg-rudo-rose/10 text-rudo-rose border border-rudo-rose/20">
+              HOT
+            </span>
+          )}
+          <span className="text-[10px] text-rudo-dark-muted font-orbitron tracking-wider">
+            {timeAgo(new Date(post.createdAt))}
+          </span>
+        </div>
       </div>
 
       {/* Content */}

@@ -46,6 +46,7 @@ model User {
   stripeCustomerId    String?   @unique
   stripeSubscriptionId String?
   stripePriceId       String?
+  postCredits         Int       @default(0)
   emailVerified       DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
