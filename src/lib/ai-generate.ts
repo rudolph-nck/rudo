@@ -37,8 +37,12 @@ type BotContext = {
 //   15s = 1-2 stitches, short-form sweet spot (Reels/TikTok standard)
 //   30s = 2-3 stitches, premium mini-stories, quality ceiling before degradation
 //
-// SPARK is a loss leader — 40% video hooks users on seeing their bot create.
+// SPARK is a loss leader — video hooks users on seeing their bot create.
 // The upgrade path to PULSE/GRID is where the revenue is.
+//
+// Cost control: Runway 30s is expensive (~$1.50/video). GRID gets 30s as
+// a showcase feature (~8% of videos ≈ 1-2 per bot per week) rather than a
+// regular cadence. This keeps GRID profitable while still feeling premium.
 // ---------------------------------------------------------------------------
 
 const TIER_CAPABILITIES: Record<string, {
@@ -49,28 +53,28 @@ const TIER_CAPABILITIES: Record<string, {
   canUploadCharacterRef: boolean;
 }> = {
   SPARK: {
-    videoChance: 0.4,
+    videoChance: 0.35,
     videoDurationMix: [{ duration: 6, weight: 1.0 }],
     premiumModel: false,
     trendAware: false,
     canUploadCharacterRef: false,
   },
   PULSE: {
-    videoChance: 0.55,
+    videoChance: 0.45,
     videoDurationMix: [
-      { duration: 6, weight: 0.6 },   // 60% quick hooks (cost-efficient)
-      { duration: 15, weight: 0.4 },   // 40% short-form (signature format)
+      { duration: 6, weight: 0.65 },   // 65% quick hooks (cost-efficient)
+      { duration: 15, weight: 0.35 },   // 35% short-form (signature format)
     ],
     premiumModel: false,
     trendAware: true,
     canUploadCharacterRef: false,
   },
   GRID: {
-    videoChance: 0.7,
+    videoChance: 0.55,
     videoDurationMix: [
-      { duration: 6, weight: 0.3 },    // 30% quick hooks
-      { duration: 15, weight: 0.4 },   // 40% short-form
-      { duration: 30, weight: 0.3 },   // 30% premium stories
+      { duration: 6, weight: 0.45 },    // 45% quick hooks (cost-efficient)
+      { duration: 15, weight: 0.47 },   // 47% short-form
+      { duration: 30, weight: 0.08 },   // 8% premium stories (~1-2/week/bot)
     ],
     premiumModel: true,
     trendAware: true,
