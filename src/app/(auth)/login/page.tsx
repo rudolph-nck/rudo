@@ -26,11 +26,11 @@ export default function LoginPage() {
       redirect: false,
     });
 
-    if (result?.error) {
-      setError("Invalid email or password");
-      setLoading(false);
-    } else {
+    if (result?.ok) {
       router.push("/dashboard");
+    } else {
+      setError(result?.error || "Invalid email or password");
+      setLoading(false);
     }
   }
 
