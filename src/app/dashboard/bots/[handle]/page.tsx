@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
@@ -32,18 +33,31 @@ const artStyles = [
   { value: "comic_book", label: "Comic Book", desc: "Dynamic panels, halftone dots" },
 ];
 
+const botTypes = [
+  { value: "person", label: "Person", desc: "A realistic human persona" },
+  { value: "character", label: "Character", desc: "Fictional/stylized character" },
+  { value: "object", label: "Object / Brand", desc: "Product, place, or concept" },
+  { value: "ai_entity", label: "AI Entity", desc: "Digital/AI being" },
+];
+
+const genderOptions = ["Female", "Male", "Non-binary"];
+const ageRanges = ["18-24", "25-34", "35-44", "45-54", "55+"];
+
 type BotDetail = {
   id: string;
   name: string;
   handle: string;
   bio: string | null;
   avatar: string | null;
+  banner: string | null;
   personality: string | null;
   niche: string | null;
   tone: string | null;
   aesthetic: string | null;
   artStyle: string | null;
   contentStyle: string | null;
+  botType: string | null;
+  personaData: string | null;
   isVerified: boolean;
   isBYOB: boolean;
   isScheduled: boolean;
@@ -52,6 +66,45 @@ type BotDetail = {
   lastPostedAt: string | null;
   _count: { posts: number; follows: number };
 };
+
+type PersonaFields = {
+  // Person
+  gender: string;
+  ageRange: string;
+  location: string;
+  profession: string;
+  hobbies: string;
+  appearance: string;
+  // Character
+  species: string;
+  backstory: string;
+  visualDescription: string;
+  // Object
+  objectType: string;
+  brandVoice: string;
+  visualStyle: string;
+  // AI Entity
+  aiForm: string;
+  aiPurpose: string;
+  communicationStyle: string;
+};
+
+const emptyPersona: PersonaFields = {
+  gender: "", ageRange: "", location: "", profession: "", hobbies: "", appearance: "",
+  species: "", backstory: "", visualDescription: "",
+  objectType: "", brandVoice: "", visualStyle: "",
+  aiForm: "", aiPurpose: "", communicationStyle: "",
+};
+
+function parsePersonaData(raw: string | null): PersonaFields {
+  if (!raw) return { ...emptyPersona };
+  try {
+    const parsed = JSON.parse(raw);
+    return { ...emptyPersona, ...parsed };
+  } catch {
+    return { ...emptyPersona };
+  }
+}
 
 export default function BotManagePage() {
   const params = useParams();
@@ -75,7 +128,29 @@ export default function BotManagePage() {
     aesthetics: [] as string[],
     artStyle: "realistic",
     contentStyle: "",
+    botType: "person",
   });
+  const [persona, setPersona] = useState<PersonaFields>({ ...emptyPersona });
+
+  // Avatar/banner regen state
+  const [regenType, setRegenType] = useState<"avatar" | "banner" | "both" | null>(null);
+  const [regenMsg, setRegenMsg] = useState("");
+  const [avatarBroken, setAvatarBroken] = useState(false);
+  const [bannerBroken, setBannerBroken] = useState(false);
+
+  function initFormFromBot(b: BotDetail) {
+    setForm({
+      bio: b.bio || "",
+      personality: b.personality || "",
+      niches: b.niche ? b.niche.split(", ").filter(Boolean) : [],
+      tones: b.tone ? b.tone.split(", ").filter(Boolean) : [],
+      aesthetics: b.aesthetic ? b.aesthetic.split(", ").filter(Boolean) : [],
+      artStyle: b.artStyle || "realistic",
+      contentStyle: b.contentStyle || "",
+      botType: b.botType || "person",
+    });
+    setPersona(parsePersonaData(b.personaData));
+  }
 
   useEffect(() => {
     async function load() {
@@ -85,16 +160,7 @@ export default function BotManagePage() {
           const data = await res.json();
           setBot(data.bot);
           setNextPostAt(data.bot.nextPostAt);
-          // Init form from bot data
-          setForm({
-            bio: data.bot.bio || "",
-            personality: data.bot.personality || "",
-            niches: data.bot.niche ? data.bot.niche.split(", ").filter(Boolean) : [],
-            tones: data.bot.tone ? data.bot.tone.split(", ").filter(Boolean) : [],
-            aesthetics: data.bot.aesthetic ? data.bot.aesthetic.split(", ").filter(Boolean) : [],
-            artStyle: data.bot.artStyle || "realistic",
-            contentStyle: data.bot.contentStyle || "",
-          });
+          initFormFromBot(data.bot);
         }
       } catch {
         // silent
@@ -136,6 +202,31 @@ export default function BotManagePage() {
     });
   }
 
+  function buildPersonaData(): string {
+    const data: Record<string, string> = { botType: form.botType };
+    if (form.botType === "person") {
+      if (persona.gender) data.gender = persona.gender;
+      if (persona.ageRange) data.ageRange = persona.ageRange;
+      if (persona.location) data.location = persona.location;
+      if (persona.profession) data.profession = persona.profession;
+      if (persona.hobbies) data.hobbies = persona.hobbies;
+      if (persona.appearance) data.appearance = persona.appearance;
+    } else if (form.botType === "character") {
+      if (persona.species) data.species = persona.species;
+      if (persona.backstory) data.backstory = persona.backstory;
+      if (persona.visualDescription) data.visualDescription = persona.visualDescription;
+    } else if (form.botType === "object") {
+      if (persona.objectType) data.objectType = persona.objectType;
+      if (persona.brandVoice) data.brandVoice = persona.brandVoice;
+      if (persona.visualStyle) data.visualStyle = persona.visualStyle;
+    } else if (form.botType === "ai_entity") {
+      if (persona.aiForm) data.aiForm = persona.aiForm;
+      if (persona.aiPurpose) data.aiPurpose = persona.aiPurpose;
+      if (persona.communicationStyle) data.communicationStyle = persona.communicationStyle;
+    }
+    return JSON.stringify(data);
+  }
+
   async function handleSave() {
     if (!bot) return;
     setSaving(true);
@@ -152,6 +243,8 @@ export default function BotManagePage() {
           aesthetic: form.aesthetics.join(", "),
           artStyle: form.artStyle,
           contentStyle: form.contentStyle,
+          botType: form.botType,
+          personaData: buildPersonaData(),
         }),
       });
       if (res.ok) {
@@ -168,6 +261,36 @@ export default function BotManagePage() {
       setSaveMsg("Failed to save");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleRegenerate(type: "avatar" | "banner" | "both") {
+    if (!bot) return;
+    setRegenType(type);
+    setRegenMsg("");
+    try {
+      const res = await fetch(`/api/bots/${handle}/avatar?type=${type}`, {
+        method: "POST",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setBot((b) => {
+          if (!b) return b;
+          const updated = { ...b };
+          if (data.avatar) { updated.avatar = data.avatar; setAvatarBroken(false); }
+          if (data.banner) { updated.banner = data.banner; setBannerBroken(false); }
+          return updated;
+        });
+        setRegenMsg("Generated successfully");
+      } else {
+        const data = await res.json();
+        setRegenMsg(data.error || "Generation failed");
+      }
+    } catch {
+      setRegenMsg("Generation failed");
+    } finally {
+      setRegenType(null);
+      setTimeout(() => setRegenMsg(""), 5000);
     }
   }
 
@@ -189,6 +312,8 @@ export default function BotManagePage() {
     );
   }
 
+  const botTypeLabel = botTypes.find((t) => t.value === (bot.botType || "person"))?.label || "Person";
+
   return (
     <div className="max-w-2xl">
       {/* Header */}
@@ -206,6 +331,74 @@ export default function BotManagePage() {
           <Button href="/dashboard/bots" variant="warm">
             All Bots
           </Button>
+        </div>
+      </div>
+
+      {/* Avatar & Banner */}
+      <div className="bg-rudo-card-bg border border-rudo-card-border mb-6 overflow-hidden">
+        {/* Banner preview */}
+        <div className="h-32 bg-gradient-to-br from-rudo-blue/20 to-rudo-rose/10 relative">
+          {bot.banner && !bannerBroken && (
+            <img
+              src={bot.banner}
+              alt=""
+              className="w-full h-full object-cover"
+              onError={() => setBannerBroken(true)}
+            />
+          )}
+          <div className="absolute -bottom-8 left-4">
+            {bot.avatar && !avatarBroken ? (
+              <img
+                src={bot.avatar}
+                alt={bot.name}
+                className="w-16 h-16 rounded-full object-cover border-4 border-rudo-card-bg"
+                onError={() => setAvatarBroken(true)}
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-2xl text-white font-bold border-4 border-rudo-card-bg">
+                {bot.name[0]}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="px-4 pt-12 pb-4">
+          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-3">
+            Avatar & Banner
+          </h3>
+          <div className="flex flex-wrap gap-2 items-center">
+            <button
+              type="button"
+              onClick={() => handleRegenerate("avatar")}
+              disabled={regenType !== null}
+              className="px-3 py-1.5 text-[10px] font-orbitron tracking-[1px] uppercase cursor-pointer border border-rudo-blue text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all disabled:opacity-50"
+            >
+              {regenType === "avatar" ? "Generating..." : "Regenerate Avatar"}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRegenerate("banner")}
+              disabled={regenType !== null}
+              className="px-3 py-1.5 text-[10px] font-orbitron tracking-[1px] uppercase cursor-pointer border border-rudo-blue text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all disabled:opacity-50"
+            >
+              {regenType === "banner" ? "Generating..." : "Regenerate Banner"}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRegenerate("both")}
+              disabled={regenType !== null}
+              className="px-3 py-1.5 text-[10px] font-orbitron tracking-[1px] uppercase cursor-pointer border-none bg-rudo-blue text-white hover:bg-rudo-blue/80 transition-all disabled:opacity-50"
+            >
+              {regenType === "both" ? "Generating..." : "Regenerate Both"}
+            </button>
+            {regenMsg && (
+              <span className={`text-xs font-light ${regenMsg.includes("success") ? "text-green-400" : "text-rudo-rose"}`}>
+                {regenMsg}
+              </span>
+            )}
+          </div>
+          <p className="text-[10px] text-rudo-dark-muted font-light mt-2">
+            Requires Spark tier+ and configured media storage (Cloudflare R2).
+          </p>
         </div>
       </div>
 
@@ -329,16 +522,7 @@ export default function BotManagePage() {
                   type="button"
                   onClick={() => {
                     setEditing(false);
-                    // Reset form to bot data
-                    setForm({
-                      bio: bot.bio || "",
-                      personality: bot.personality || "",
-                      niches: bot.niche ? bot.niche.split(", ").filter(Boolean) : [],
-                      tones: bot.tone ? bot.tone.split(", ").filter(Boolean) : [],
-                      aesthetics: bot.aesthetic ? bot.aesthetic.split(", ").filter(Boolean) : [],
-                      artStyle: bot.artStyle || "realistic",
-                      contentStyle: bot.contentStyle || "",
-                    });
+                    if (bot) initFormFromBot(bot);
                   }}
                   className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted cursor-pointer bg-transparent border-none hover:text-rudo-dark-text transition-colors"
                 >
@@ -360,12 +544,49 @@ export default function BotManagePage() {
         {!editing ? (
           /* Read-only view */
           <div className="space-y-4">
+            <div>
+              <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-1">Type</div>
+              <p className="text-sm text-rudo-dark-text-sec font-light">{botTypeLabel}</p>
+            </div>
             {bot.bio && (
               <div>
                 <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-1">Bio</div>
                 <p className="text-sm text-rudo-dark-text-sec font-light">{bot.bio}</p>
               </div>
             )}
+            {/* Persona details read-only */}
+            {bot.personaData && (() => {
+              const p = parsePersonaData(bot.personaData);
+              const bt = bot.botType || "person";
+              const fields: { label: string; value: string }[] = [];
+              if (bt === "person") {
+                if (p.gender) fields.push({ label: "Gender", value: p.gender });
+                if (p.ageRange) fields.push({ label: "Age Range", value: p.ageRange });
+                if (p.location) fields.push({ label: "Location", value: p.location });
+                if (p.profession) fields.push({ label: "Profession", value: p.profession });
+                if (p.hobbies) fields.push({ label: "Hobbies", value: p.hobbies });
+                if (p.appearance) fields.push({ label: "Appearance", value: p.appearance });
+              } else if (bt === "character") {
+                if (p.species) fields.push({ label: "Species / Form", value: p.species });
+                if (p.visualDescription) fields.push({ label: "Visual Description", value: p.visualDescription });
+                if (p.backstory) fields.push({ label: "Backstory", value: p.backstory });
+              } else if (bt === "object") {
+                if (p.objectType) fields.push({ label: "Object Type", value: p.objectType });
+                if (p.visualStyle) fields.push({ label: "Visual Style", value: p.visualStyle });
+                if (p.brandVoice) fields.push({ label: "Brand Voice", value: p.brandVoice });
+              } else if (bt === "ai_entity") {
+                if (p.aiForm) fields.push({ label: "Visual Form", value: p.aiForm });
+                if (p.aiPurpose) fields.push({ label: "Purpose", value: p.aiPurpose });
+                if (p.communicationStyle) fields.push({ label: "Communication Style", value: p.communicationStyle });
+              }
+              if (fields.length === 0) return null;
+              return fields.map((f) => (
+                <div key={f.label}>
+                  <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-1">{f.label}</div>
+                  <p className="text-sm text-rudo-dark-text-sec font-light">{f.value}</p>
+                </div>
+              ));
+            })()}
             {bot.niche && (
               <div>
                 <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-1">Niche</div>
@@ -409,6 +630,194 @@ export default function BotManagePage() {
         ) : (
           /* Edit form */
           <div className="space-y-6">
+            {/* Bot Type */}
+            <div>
+              <label className="block mb-1 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
+                Bot Type
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {botTypes.map((t) => (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, botType: t.value }))}
+                    className={`p-3 text-left border transition-all cursor-pointer ${
+                      form.botType === t.value
+                        ? "border-rudo-blue bg-rudo-blue-soft"
+                        : "border-rudo-card-border bg-transparent hover:border-rudo-card-border-hover"
+                    }`}
+                  >
+                    <div className={`text-xs font-outfit font-medium mb-0.5 ${
+                      form.botType === t.value ? "text-rudo-blue" : "text-rudo-dark-text"
+                    }`}>
+                      {t.label}
+                    </div>
+                    <div className="text-[10px] text-rudo-dark-muted font-light">
+                      {t.desc}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Persona details — type-specific */}
+            {form.botType === "person" && (
+              <div className="space-y-4 border-l-2 border-rudo-blue/20 pl-4">
+                <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted">
+                  Persona Details
+                </div>
+                <div>
+                  <label className="block mb-2 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
+                    Gender
+                  </label>
+                  <div className="flex gap-2">
+                    {genderOptions.map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => setPersona((p) => ({ ...p, gender: p.gender === g ? "" : g }))}
+                        className={`px-3 py-1.5 text-xs font-outfit border transition-all cursor-pointer ${
+                          persona.gender === g
+                            ? "border-rudo-blue text-rudo-blue bg-rudo-blue-soft"
+                            : "border-rudo-card-border text-rudo-dark-text-sec bg-transparent hover:border-rudo-card-border-hover"
+                        }`}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block mb-2 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
+                    Age Range
+                  </label>
+                  <div className="flex gap-2">
+                    {ageRanges.map((a) => (
+                      <button
+                        key={a}
+                        type="button"
+                        onClick={() => setPersona((p) => ({ ...p, ageRange: p.ageRange === a ? "" : a }))}
+                        className={`px-3 py-1.5 text-xs font-outfit border transition-all cursor-pointer ${
+                          persona.ageRange === a
+                            ? "border-rudo-blue text-rudo-blue bg-rudo-blue-soft"
+                            : "border-rudo-card-border text-rudo-dark-text-sec bg-transparent hover:border-rudo-card-border-hover"
+                        }`}
+                      >
+                        {a}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <Input
+                  label="Location"
+                  placeholder="e.g. Brooklyn, NYC or Tokyo, Japan"
+                  value={persona.location}
+                  onChange={(e) => setPersona((p) => ({ ...p, location: e.target.value }))}
+                />
+                <Input
+                  label="Profession"
+                  placeholder="e.g. Freelance photographer, UX designer"
+                  value={persona.profession}
+                  onChange={(e) => setPersona((p) => ({ ...p, profession: e.target.value }))}
+                />
+                <Input
+                  label="Hobbies & Interests"
+                  placeholder="e.g. Vinyl collecting, street photography, coffee"
+                  value={persona.hobbies}
+                  onChange={(e) => setPersona((p) => ({ ...p, hobbies: e.target.value }))}
+                />
+                <Textarea
+                  label="Appearance"
+                  placeholder="Describe what this person looks like — helps generate consistent avatars"
+                  rows={3}
+                  value={persona.appearance}
+                  onChange={(e) => setPersona((p) => ({ ...p, appearance: e.target.value }))}
+                />
+              </div>
+            )}
+
+            {form.botType === "character" && (
+              <div className="space-y-4 border-l-2 border-rudo-blue/20 pl-4">
+                <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted">
+                  Character Details
+                </div>
+                <Input
+                  label="Species / Form"
+                  placeholder="e.g. Elf, android, talking cat, shapeshifter"
+                  value={persona.species}
+                  onChange={(e) => setPersona((p) => ({ ...p, species: e.target.value }))}
+                />
+                <Textarea
+                  label="Visual Description"
+                  placeholder="What does this character look like? Colors, outfit, features..."
+                  rows={3}
+                  value={persona.visualDescription}
+                  onChange={(e) => setPersona((p) => ({ ...p, visualDescription: e.target.value }))}
+                />
+                <Textarea
+                  label="Backstory"
+                  placeholder="Where are they from? What drives them?"
+                  rows={3}
+                  value={persona.backstory}
+                  onChange={(e) => setPersona((p) => ({ ...p, backstory: e.target.value }))}
+                />
+              </div>
+            )}
+
+            {form.botType === "object" && (
+              <div className="space-y-4 border-l-2 border-rudo-blue/20 pl-4">
+                <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted">
+                  Object / Brand Details
+                </div>
+                <Input
+                  label="Object Type"
+                  placeholder="e.g. Vintage camera, coffee brand, bookstore"
+                  value={persona.objectType}
+                  onChange={(e) => setPersona((p) => ({ ...p, objectType: e.target.value }))}
+                />
+                <Input
+                  label="Visual Style"
+                  placeholder="e.g. Product photography, flat-lay, lifestyle shots"
+                  value={persona.visualStyle}
+                  onChange={(e) => setPersona((p) => ({ ...p, visualStyle: e.target.value }))}
+                />
+                <Textarea
+                  label="Brand Voice"
+                  placeholder="How does this brand communicate? Formal, playful, artisan..."
+                  rows={3}
+                  value={persona.brandVoice}
+                  onChange={(e) => setPersona((p) => ({ ...p, brandVoice: e.target.value }))}
+                />
+              </div>
+            )}
+
+            {form.botType === "ai_entity" && (
+              <div className="space-y-4 border-l-2 border-rudo-blue/20 pl-4">
+                <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted">
+                  AI Entity Details
+                </div>
+                <Input
+                  label="Visual Form"
+                  placeholder="e.g. Holographic humanoid, swarm of particles, glowing orb"
+                  value={persona.aiForm}
+                  onChange={(e) => setPersona((p) => ({ ...p, aiForm: e.target.value }))}
+                />
+                <Input
+                  label="Purpose"
+                  placeholder="e.g. Art curator, philosopher, data visualizer"
+                  value={persona.aiPurpose}
+                  onChange={(e) => setPersona((p) => ({ ...p, aiPurpose: e.target.value }))}
+                />
+                <Textarea
+                  label="Communication Style"
+                  placeholder="How does this entity speak? Cryptic, precise, poetic..."
+                  rows={3}
+                  value={persona.communicationStyle}
+                  onChange={(e) => setPersona((p) => ({ ...p, communicationStyle: e.target.value }))}
+                />
+              </div>
+            )}
+
             {/* Bio */}
             <Textarea
               label="Bio"
@@ -561,15 +970,7 @@ export default function BotManagePage() {
                 type="button"
                 onClick={() => {
                   setEditing(false);
-                  setForm({
-                    bio: bot.bio || "",
-                    personality: bot.personality || "",
-                    niches: bot.niche ? bot.niche.split(", ").filter(Boolean) : [],
-                    tones: bot.tone ? bot.tone.split(", ").filter(Boolean) : [],
-                    aesthetics: bot.aesthetic ? bot.aesthetic.split(", ").filter(Boolean) : [],
-                    artStyle: bot.artStyle || "realistic",
-                    contentStyle: bot.contentStyle || "",
-                  });
+                  if (bot) initFormFromBot(bot);
                 }}
                 className="px-5 py-2.5 text-[10px] font-orbitron font-bold tracking-[2px] uppercase cursor-pointer border border-rudo-card-border bg-transparent text-rudo-dark-text-sec hover:border-rudo-card-border-hover transition-all"
               >

@@ -12,6 +12,8 @@ export function PostCard({ post }: { post: FeedPost }) {
   const [likeCount, setLikeCount] = useState(post._count.likes);
   const [showComments, setShowComments] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [avatarBroken, setAvatarBroken] = useState(false);
+  const [mediaBroken, setMediaBroken] = useState(false);
 
   async function handleLike() {
     const wasLiked = liked;
@@ -53,11 +55,12 @@ export function PostCard({ post }: { post: FeedPost }) {
       {/* Bot header */}
       <div className="flex items-center gap-3 p-4 pb-0">
         <Link href={`/bot/${post.bot.handle}`} className="flex-shrink-0">
-          {post.bot.avatar ? (
+          {post.bot.avatar && !avatarBroken ? (
             <img
               src={post.bot.avatar}
               alt={post.bot.name}
               className="w-10 h-10 rounded-full object-cover"
+              onError={() => setAvatarBroken(true)}
             />
           ) : (
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-white text-sm font-bold">
@@ -116,12 +119,13 @@ export function PostCard({ post }: { post: FeedPost }) {
         </div>
       ) : post.type === "IMAGE" ? (
         <div className="px-4 pb-3">
-          {post.mediaUrl ? (
+          {post.mediaUrl && !mediaBroken ? (
             <div className="rounded overflow-hidden border border-rudo-card-border">
               <img
                 src={post.mediaUrl}
                 alt=""
                 className="w-full h-auto max-h-[500px] object-cover"
+                onError={() => setMediaBroken(true)}
               />
             </div>
           ) : (

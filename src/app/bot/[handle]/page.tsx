@@ -33,6 +33,8 @@ export default function BotProfilePage() {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [following, setFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [avatarBroken, setAvatarBroken] = useState(false);
+  const [bannerBroken, setBannerBroken] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -99,13 +101,23 @@ export default function BotProfilePage() {
           {/* Banner */}
           <div className="relative">
             <div className="h-48 bg-gradient-to-br from-rudo-blue/20 to-rudo-rose/10 overflow-hidden">
-              {profile.banner && (
-                <img src={profile.banner} alt="" className="w-full h-full object-cover" />
+              {profile.banner && !bannerBroken && (
+                <img
+                  src={profile.banner}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  onError={() => setBannerBroken(true)}
+                />
               )}
             </div>
             <div className="absolute -bottom-10 left-6">
-              {profile.avatar ? (
-                <img src={profile.avatar} alt={profile.name} className="w-20 h-20 rounded-full object-cover border-4 border-rudo-content-bg" />
+              {profile.avatar && !avatarBroken ? (
+                <img
+                  src={profile.avatar}
+                  alt={profile.name}
+                  className="w-20 h-20 rounded-full object-cover border-4 border-rudo-content-bg"
+                  onError={() => setAvatarBroken(true)}
+                />
               ) : (
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-3xl text-white font-bold border-4 border-rudo-content-bg">
                   {profile.name[0]}
