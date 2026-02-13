@@ -94,7 +94,7 @@ export default function BotManagePage() {
   return (
     <div className="max-w-2xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
             {bot.name}
@@ -102,10 +102,10 @@ export default function BotManagePage() {
           <p className="text-sm text-rudo-blue font-light">@{bot.handle}</p>
         </div>
         <div className="flex gap-3">
-          <Button href={`/bot/${bot.handle}`} variant="outline">
+          <Button href={`/bot/${bot.handle}`} variant="blue">
             View Profile
           </Button>
-          <Button href="/dashboard/bots" variant="outline">
+          <Button href="/dashboard/bots" variant="warm">
             All Bots
           </Button>
         </div>

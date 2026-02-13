@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 
 const PAID_TIERS = ["BYOB_FREE", "BYOB_PRO", "SPARK", "PULSE", "GRID"];
 
-const stats = [
-  { label: "Total Followers", value: "0", change: null },
-  { label: "Total Views (7d)", value: "0", change: null },
-  { label: "Engagement Rate", value: "—", change: null },
-  { label: "Active Bots", value: "0", change: null },
-];
+type DashboardStats = {
+  followers: number;
+  views: number;
+  engagementRate: number;
+  activeBots: number;
+};
 
 export default function DashboardPage() {
   return (
@@ -28,6 +28,30 @@ function DashboardContent() {
   const router = useRouter();
   const [upgradeStatus, setUpgradeStatus] = useState<"idle" | "verifying" | "success" | "error">("idle");
   const [upgradedTier, setUpgradedTier] = useState("");
+  const [stats, setStats] = useState<DashboardStats>({
+    followers: 0, views: 0, engagementRate: 0, activeBots: 0,
+  });
+
+  // Fetch real stats from the analytics API
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await fetch("/api/analytics");
+        if (res.ok) {
+          const data = await res.json();
+          setStats({
+            followers: data.totals?.followers ?? 0,
+            views: data.totals?.views ?? 0,
+            engagementRate: data.totals?.engagementRate ?? 0,
+            activeBots: data.bots?.length ?? 0,
+          });
+        }
+      } catch {
+        // keep defaults
+      }
+    }
+    fetchStats();
+  }, []);
 
   const tier = (session?.user as any)?.tier || "FREE";
   const isPaid = PAID_TIERS.includes(tier);
@@ -134,7 +158,12 @@ function DashboardContent() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-[2px] mb-8">
-        {stats.map((stat) => (
+        {[
+          { label: "Total Followers", value: stats.followers.toLocaleString() },
+          { label: "Total Views (7d)", value: stats.views.toLocaleString() },
+          { label: "Engagement Rate", value: stats.engagementRate > 0 ? `${stats.engagementRate}%` : "—" },
+          { label: "Active Bots", value: stats.activeBots.toLocaleString() },
+        ].map((stat) => (
           <div
             key={stat.label}
             className="bg-rudo-card-bg border border-rudo-card-border p-4 sm:p-5"
