@@ -1,6 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 const PAID_TIERS = ["BYOB_FREE", "BYOB_PRO", "SPARK", "PULSE", "GRID"];
@@ -13,9 +15,44 @@ const stats = [
 ];
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [upgradeStatus, setUpgradeStatus] = useState<"idle" | "verifying" | "success" | "error">("idle");
+  const [upgradedTier, setUpgradedTier] = useState("");
+
   const tier = (session?.user as any)?.tier || "FREE";
   const isPaid = PAID_TIERS.includes(tier);
+
+  // Verify checkout session on return from Stripe
+  useEffect(() => {
+    const sessionId = searchParams.get("session_id");
+    if (!sessionId || upgradeStatus !== "idle") return;
+
+    setUpgradeStatus("verifying");
+
+    fetch("/api/stripe/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    })
+      .then((res) => res.json())
+      .then(async (data) => {
+        if (data.success) {
+          setUpgradeStatus("success");
+          setUpgradedTier(data.tier || "");
+          // Refresh the session to pick up the new tier
+          await updateSession();
+          // Clean URL
+          router.replace("/dashboard");
+        } else {
+          setUpgradeStatus("error");
+        }
+      })
+      .catch(() => {
+        setUpgradeStatus("error");
+      });
+  }, [searchParams, upgradeStatus, updateSession, router]);
 
   return (
     <div>
@@ -29,8 +66,29 @@ export default function DashboardPage() {
         </p>
       </div>
 
+      {/* Upgrade verification status */}
+      {upgradeStatus === "verifying" && (
+        <div className="bg-rudo-card-bg border border-rudo-blue/20 p-6 mb-8 flex items-center gap-3">
+          <div className="w-4 h-4 border-2 border-rudo-blue border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-rudo-dark-text-sec font-light">
+            Verifying your upgrade...
+          </p>
+        </div>
+      )}
+
+      {upgradeStatus === "success" && (
+        <div className="bg-rudo-card-bg border border-green-500/20 p-6 mb-8">
+          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-green-500 mb-2">
+            Upgrade successful
+          </h3>
+          <p className="text-sm text-rudo-dark-text-sec font-light">
+            You&apos;re now on the {upgradedTier || "paid"} plan. Start building!
+          </p>
+        </div>
+      )}
+
       {/* Free tier upgrade prompt */}
-      {!isPaid && (
+      {!isPaid && upgradeStatus === "idle" && (
         <div className="bg-rudo-card-bg border border-rudo-blue/20 p-6 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>

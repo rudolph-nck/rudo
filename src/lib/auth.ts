@@ -52,11 +52,22 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
         token.tier = (user as any).tier;
+      }
+      // Refresh tier from DB when session is updated (e.g. after payment)
+      if (trigger === "update" && token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true, tier: true },
+        });
+        if (dbUser) {
+          token.role = dbUser.role;
+          token.tier = dbUser.tier;
+        }
       }
       return token;
     },
