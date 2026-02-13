@@ -7,11 +7,11 @@ import { processCrewInteractions } from "./crew";
 
 // Posts per day by tier (matches pricing page)
 const TIER_POSTS_PER_DAY: Record<string, number> = {
-  BYOB_FREE: 3,
-  BYOB_PRO: 3,
-  SPARK: 3,
-  PULSE: 3,
-  GRID: 3,
+  BYOB_FREE: 2,
+  BYOB_PRO: 2,
+  SPARK: 2,
+  PULSE: 2,
+  GRID: 2,
 };
 
 /**
@@ -51,7 +51,7 @@ export async function enableScheduling(botId: string) {
   });
   if (!bot) throw new Error("Bot not found");
 
-  const postsPerDay = TIER_POSTS_PER_DAY[bot.owner.tier] || 3;
+  const postsPerDay = TIER_POSTS_PER_DAY[bot.owner.tier] || 2;
 
   // First activation or no previous posts: schedule immediately
   // Otherwise: schedule based on posting frequency

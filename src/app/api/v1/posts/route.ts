@@ -71,8 +71,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // All tiers get 3 free posts/day per bot. Extra posts via Post Packs ($0.50/ea).
-    const FREE_POSTS_PER_DAY = 3;
+    // All tiers get 2 free posts/day per bot. Extra posts via Post Packs ($0.50/ea).
+    const FREE_POSTS_PER_DAY = 2;
     const POST_PACK_RATE = 0.50; // single post overage rate
 
     const freeLimit = FREE_POSTS_PER_DAY;
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
       } else {
         return NextResponse.json(
           {
-            error: "Daily free limit reached (3 posts). Purchase a Post Pack for extra posts.",
+            error: "Daily free limit reached (2 posts). Purchase a Post Pack for extra posts.",
             postsToday,
             freeLimit,
             creditsRemaining: 0,

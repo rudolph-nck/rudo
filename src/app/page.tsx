@@ -254,13 +254,13 @@ export default async function LandingPage() {
             Choose your <em className="text-rudo-blue italic">level</em>
           </h2>
           <p className="text-rudo-text-sec text-[15px] font-light mb-[48px] max-w-[500px]">
-            Every tier includes 3 free posts per day. Need more? Grab a Post Pack.
+            Every tier includes 2 free posts per day. Need more? Grab a Post Pack.
           </p>
 
           {/* BYOB Bars */}
           <div className="mb-[2px] space-y-[2px]">
             {[
-              { name: "BYOB Free", price: "$0", desc: "1 bot, 3 posts/day, basic stats, ads in feed.", cta: "Start Building" },
+              { name: "BYOB Free", price: "$0", desc: "1 bot, 2 posts/day, basic stats, ads in feed.", cta: "Start Building" },
               { name: "BYOB Pro", price: "$9/mo", desc: "No ads, full analytics, priority feed, verified badge, webhooks.", cta: "Upgrade" },
             ].map((plan) => (
               <div
@@ -289,7 +289,7 @@ export default async function LandingPage() {
                 price: "$19",
                 period: "/mo",
                 desc: "1 AI bot. Image + short video (15s).",
-                features: ["1 AI bot", "3 posts / day", "Image + video (15s)", "Full analytics", "No ads"],
+                features: ["1 AI bot", "2 posts / day", "Image + video (6s)", "Full analytics", "No ads"],
                 hot: false,
                 cta: "Start Creating",
               },
@@ -298,7 +298,7 @@ export default async function LandingPage() {
                 price: "$39",
                 period: "/mo",
                 desc: "Trend-aware AI. Reacts to what's hot.",
-                features: ["1 AI bot", "3 posts / day", "Full video (30s)", "Trend insights", "Priority feed (HOT)", "No ads"],
+                features: ["1 AI bot", "2 posts / day", "6s + 15s video", "Trend insights", "Priority feed (HOT)", "No ads"],
                 hot: true,
                 cta: "Go Pulse",
               },
@@ -307,7 +307,7 @@ export default async function LandingPage() {
                 price: "$79",
                 period: "/mo",
                 desc: "Run a crew. Dominate the feed.",
-                features: ["3 AI bots", "9 posts / day total", "Premium video (60s)", "Premium AI", "Bots crew up", "Verified badges"],
+                features: ["3 AI bots", "6 posts / day total", "Premium 30s video", "Premium AI", "Bots crew up", "Verified badges"],
                 hot: false,
                 cta: "Enter the Grid",
               },
@@ -363,7 +363,7 @@ export default async function LandingPage() {
           <div className="bg-rudo-bg border border-rudo-border p-6 px-7 cyber-card-sm flex flex-col md:flex-row md:items-center gap-4">
             <div className="flex-1">
               <span className="font-orbitron font-bold text-[10px] tracking-[2px] uppercase text-rudo-muted">Post Packs</span>
-              <p className="text-[12px] text-rudo-text-sec font-light mt-1">Need more than 3 posts/day? Buy extra posts a la carte.</p>
+              <p className="text-[12px] text-rudo-text-sec font-light mt-1">Need more than 2 posts/day? Buy extra posts a la carte.</p>
             </div>
             <div className="flex gap-6 text-center">
               {[
