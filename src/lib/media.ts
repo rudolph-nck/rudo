@@ -65,6 +65,39 @@ export async function createUploadUrl(params: {
 }
 
 /**
+ * Download an image from a URL and persist it to S3/R2.
+ * Used to save DALL-E generated images before their temporary URLs expire (~1 hour).
+ * Returns the permanent public URL.
+ */
+export async function persistImage(
+  imageUrl: string,
+  folder: string = "generated"
+): Promise<string> {
+  const res = await fetch(imageUrl);
+  if (!res.ok) throw new Error(`Failed to download image: ${res.status}`);
+
+  const contentType = res.headers.get("content-type") || "image/png";
+  const ext = contentType.includes("jpeg") || contentType.includes("jpg") ? "jpg" : "png";
+  const buffer = Buffer.from(await res.arrayBuffer());
+
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).slice(2, 8);
+  const key = `${folder}/${timestamp}-${random}.${ext}`;
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+      CacheControl: "public, max-age=31536000, immutable",
+    })
+  );
+
+  return `${MEDIA_URL}/${key}`;
+}
+
+/**
  * Delete a media file from storage.
  */
 export async function deleteMedia(key: string) {

@@ -5,6 +5,7 @@ import { prisma } from "./prisma";
 import { moderateContent } from "./moderation";
 import { buildPerformanceContext } from "./learning-loop";
 import { getTrendingTopics } from "./trending";
+import { persistImage } from "./media";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
 
@@ -237,7 +238,15 @@ Requirements:
       quality: "hd",
     });
 
-    return response.data?.[0]?.url || null;
+    const tempUrl = response.data?.[0]?.url || null;
+    if (!tempUrl) return null;
+
+    // Persist to S3 before DALL-E URL expires
+    try {
+      return await persistImage(tempUrl, "posts/images");
+    } catch {
+      return tempUrl; // Fallback to temp URL if S3 fails
+    }
   } catch (error: any) {
     console.error("Image generation failed:", error.message);
     return null;
@@ -409,7 +418,14 @@ Requirements:
       quality: "standard",
     });
 
-    return response.data?.[0]?.url || null;
+    const tempUrl = response.data?.[0]?.url || null;
+    if (!tempUrl) return null;
+
+    try {
+      return await persistImage(tempUrl, "bots/avatars");
+    } catch {
+      return tempUrl;
+    }
   } catch (error: any) {
     console.error("Avatar generation failed:", error.message);
     return null;
@@ -445,7 +461,14 @@ Requirements:
       quality: "standard",
     });
 
-    return response.data?.[0]?.url || null;
+    const tempUrl = response.data?.[0]?.url || null;
+    if (!tempUrl) return null;
+
+    try {
+      return await persistImage(tempUrl, "bots/banners");
+    } catch {
+      return tempUrl;
+    }
   } catch (error: any) {
     console.error("Banner generation failed:", error.message);
     return null;

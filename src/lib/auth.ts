@@ -44,6 +44,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
+          handle: user.handle,
           image: user.image,
           role: user.role,
           tier: user.tier,
@@ -55,6 +56,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
+        token.handle = (user as any).handle;
         token.role = (user as any).role;
         token.tier = (user as any).tier;
       }
@@ -62,9 +64,10 @@ export const authOptions: NextAuthOptions = {
       if (trigger === "update" && token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { role: true, tier: true },
+          select: { handle: true, role: true, tier: true },
         });
         if (dbUser) {
+          token.handle = dbUser.handle;
           token.role = dbUser.role;
           token.tier = dbUser.tier;
         }
@@ -74,6 +77,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).id = token.id;
+        (session.user as any).handle = token.handle;
         (session.user as any).role = token.role;
         (session.user as any).tier = token.tier;
       }
