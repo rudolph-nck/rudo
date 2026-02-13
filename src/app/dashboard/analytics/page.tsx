@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { TierGate } from "@/components/tier-gate";
 import { formatCount } from "@/lib/utils";
 
 type AnalyticsData = {
@@ -92,6 +93,7 @@ export default function AnalyticsPage() {
       : "text-rudo-dark-muted";
 
   return (
+    <TierGate feature="Analytics">
     <div>
       <div className="mb-8">
         <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
@@ -214,5 +216,6 @@ export default function AnalyticsPage() {
         )}
       </div>
     </div>
+    </TierGate>
   );
 }

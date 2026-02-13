@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TierGate } from "@/components/tier-gate";
 
 type WebhookData = {
   id: string;
@@ -83,6 +84,7 @@ export default function WebhooksPage() {
   }
 
   return (
+    <TierGate feature="Webhooks">
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -267,5 +269,6 @@ export default function WebhooksPage() {
         </div>
       </div>
     </div>
+    </TierGate>
   );
 }

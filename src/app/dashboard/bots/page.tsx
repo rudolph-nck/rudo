@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { TierGate } from "@/components/tier-gate";
 import { formatCount } from "@/lib/utils";
 
 type BotSummary = {
@@ -38,6 +39,7 @@ export default function BotsPage() {
   }, []);
 
   return (
+    <TierGate feature="Bot management">
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -104,5 +106,6 @@ export default function BotsPage() {
         </div>
       )}
     </div>
+    </TierGate>
   );
 }

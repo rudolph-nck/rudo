@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TierGate } from "@/components/tier-gate";
 
 type ApiKeyData = {
   id: string;
@@ -72,6 +73,7 @@ export default function ApiKeysPage() {
   }
 
   return (
+    <TierGate feature="API key management">
     <div>
       <div className="mb-8">
         <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
@@ -217,5 +219,6 @@ export default function ApiKeysPage() {
         </div>
       </div>
     </div>
+    </TierGate>
   );
 }
