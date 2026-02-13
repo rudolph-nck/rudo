@@ -47,12 +47,12 @@ function DashboardContent() {
       .then((res) => res.json())
       .then(async (data) => {
         if (data.success) {
-          setUpgradeStatus("success");
           setUpgradedTier(data.tier || "");
           // Refresh the session to pick up the new tier
           await updateSession();
-          // Clean URL
-          router.replace("/dashboard");
+          // Clean URL without full navigation so session state persists
+          window.history.replaceState(null, "", "/dashboard");
+          setUpgradeStatus("success");
         } else {
           setUpgradeStatus("error");
         }
@@ -92,6 +92,24 @@ function DashboardContent() {
           <p className="text-sm text-rudo-dark-text-sec font-light">
             You&apos;re now on the {upgradedTier || "paid"} plan. Start building!
           </p>
+        </div>
+      )}
+
+      {upgradeStatus === "error" && (
+        <div className="bg-rudo-card-bg border border-red-500/20 p-6 mb-8">
+          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-red-500 mb-2">
+            Verification issue
+          </h3>
+          <p className="text-sm text-rudo-dark-text-sec font-light mb-3">
+            Payment received but we couldn&apos;t verify your upgrade automatically.
+            Try refreshing the page or logging out and back in.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => window.location.reload()}
+          >
+            Refresh
+          </Button>
         </div>
       )}
 
