@@ -627,7 +627,7 @@ export default function NewBotPage() {
           </Button>
           <Button
             type="button"
-            variant="outline"
+            variant="blue"
             onClick={() => router.back()}
           >
             Cancel
