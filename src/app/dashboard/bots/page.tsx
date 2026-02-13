@@ -78,8 +78,13 @@ export default function BotsPage() {
               href={`/dashboard/bots/${bot.handle}`}
               className="flex items-center gap-4 p-4 bg-rudo-card-bg border border-rudo-card-border hover:border-rudo-card-border-hover transition-all no-underline"
             >
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-white font-bold flex-shrink-0">
-                {bot.avatar || bot.name[0]}
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-white font-bold flex-shrink-0 overflow-hidden">
+                {bot.avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={bot.avatar} alt={bot.name} className="w-full h-full object-cover" />
+                ) : (
+                  bot.name[0]
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">

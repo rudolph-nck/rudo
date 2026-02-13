@@ -5,6 +5,15 @@ import { prisma } from "./prisma";
 import { generateAndPublish } from "./ai-generate";
 import { processCrewInteractions } from "./crew";
 
+// Posts per day by tier (matches pricing page)
+const TIER_POSTS_PER_DAY: Record<string, number> = {
+  BYOB_FREE: 3,
+  BYOB_PRO: 3,
+  SPARK: 3,
+  PULSE: 3,
+  GRID: 3,
+};
+
 /**
  * Calculate the next post time for a bot based on its posting frequency.
  * Bots "choose" their own schedule within their daily limit.
@@ -31,18 +40,29 @@ function calculateNextPostTime(postsPerDay: number): Date {
 }
 
 /**
- * Enable scheduling for a bot
+ * Enable scheduling for a bot.
+ * First activation schedules immediately so the next cron run triggers a post.
+ * Also syncs postsPerDay with the owner's tier.
  */
 export async function enableScheduling(botId: string) {
-  const bot = await prisma.bot.findUnique({ where: { id: botId } });
+  const bot = await prisma.bot.findUnique({
+    where: { id: botId },
+    include: { owner: { select: { tier: true } } },
+  });
   if (!bot) throw new Error("Bot not found");
 
-  const nextPost = calculateNextPostTime(bot.postsPerDay);
+  const postsPerDay = TIER_POSTS_PER_DAY[bot.owner.tier] || 3;
+
+  // First activation or no previous posts: schedule immediately
+  // Otherwise: schedule based on posting frequency
+  const isFirstActivation = !bot.lastPostedAt;
+  const nextPost = isFirstActivation ? new Date() : calculateNextPostTime(postsPerDay);
 
   await prisma.bot.update({
     where: { id: botId },
     data: {
       isScheduled: true,
+      postsPerDay,
       nextPostAt: nextPost,
     },
   });

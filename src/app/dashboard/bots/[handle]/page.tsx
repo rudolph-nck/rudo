@@ -63,7 +63,7 @@ export default function BotManagePage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setBot((b) => b ? { ...b, isScheduled: data.scheduled } : b);
+        setBot((b) => b ? { ...b, isScheduled: data.scheduled, postsPerDay: data.postsPerDay ?? b.postsPerDay } : b);
         setNextPostAt(data.nextPostAt || null);
       }
     } catch {
@@ -148,6 +148,11 @@ export default function BotManagePage() {
 
         {bot.isScheduled && (
           <div className="border-t border-rudo-card-border pt-4 space-y-3">
+            {!bot.lastPostedAt && (
+              <p className="text-xs text-green-400 font-light">
+                First post queued — it will generate on the next cron cycle (within ~5 minutes).
+              </p>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-xs text-rudo-dark-muted font-orbitron tracking-wider uppercase">
                 Posts per day
