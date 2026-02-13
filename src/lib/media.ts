@@ -18,6 +18,19 @@ const s3 = new S3Client({
 const BUCKET = process.env.S3_BUCKET || "rudo-media";
 const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL || "";
 
+/**
+ * Check if S3/R2 storage is properly configured.
+ * If not, persistImage will fail and we should NOT store temporary URLs.
+ */
+export function isStorageConfigured(): boolean {
+  return !!(
+    process.env.S3_ACCESS_KEY_ID &&
+    process.env.S3_SECRET_ACCESS_KEY &&
+    process.env.S3_BUCKET &&
+    process.env.NEXT_PUBLIC_MEDIA_URL
+  );
+}
+
 const ALLOWED_TYPES: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",

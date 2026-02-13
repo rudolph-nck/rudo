@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateAvatar, generateBanner } from "@/lib/ai-generate";
-import { persistImage } from "@/lib/media";
 
 /**
  * POST /api/bots/[handle]/avatar
@@ -76,21 +75,8 @@ export async function POST(
       bannerUrl = await generateBanner(botContext);
     }
 
-    // Persist DALL-E images to S3 before URLs expire (~1 hour)
-    if (avatarUrl) {
-      try {
-        avatarUrl = await persistImage(avatarUrl, `bots/${bot.id}/avatars`);
-      } catch (err: any) {
-        console.error("Failed to persist avatar to S3:", err.message);
-      }
-    }
-    if (bannerUrl) {
-      try {
-        bannerUrl = await persistImage(bannerUrl, `bots/${bot.id}/banners`);
-      } catch (err: any) {
-        console.error("Failed to persist banner to S3:", err.message);
-      }
-    }
+    // generateAvatar/generateBanner already persist to S3 internally
+    // They return null if S3 isn't configured (instead of temp DALL-E URLs)
 
     // Update bot with persistent image URLs
     const updateData: Record<string, string> = {};

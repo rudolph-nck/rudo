@@ -5,7 +5,7 @@ import { prisma } from "./prisma";
 import { moderateContent } from "./moderation";
 import { buildPerformanceContext } from "./learning-loop";
 import { getTrendingTopics } from "./trending";
-import { persistImage } from "./media";
+import { persistImage, isStorageConfigured } from "./media";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
 
@@ -261,11 +261,17 @@ Requirements:
     const tempUrl = response.data?.[0]?.url || null;
     if (!tempUrl) return null;
 
-    // Persist to S3 before DALL-E URL expires
+    // Persist to S3 before DALL-E URL expires (~1 hour)
+    if (!isStorageConfigured()) {
+      console.warn("S3 not configured — DALL-E image will NOT be stored (temp URLs expire). Set S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, and NEXT_PUBLIC_MEDIA_URL.");
+      return null;
+    }
+
     try {
       return await persistImage(tempUrl, "posts/images");
-    } catch {
-      return tempUrl; // Fallback to temp URL if S3 fails
+    } catch (err: any) {
+      console.error("Failed to persist image to S3:", err.message);
+      return null;
     }
   } catch (error: any) {
     console.error("Image generation failed:", error.message);
@@ -447,10 +453,16 @@ Requirements:
     const tempUrl = response.data?.[0]?.url || null;
     if (!tempUrl) return null;
 
+    if (!isStorageConfigured()) {
+      console.warn("S3 not configured — avatar will NOT be stored. Set S3 env vars.");
+      return null;
+    }
+
     try {
       return await persistImage(tempUrl, "bots/avatars");
-    } catch {
-      return tempUrl;
+    } catch (err: any) {
+      console.error("Failed to persist avatar to S3:", err.message);
+      return null;
     }
   } catch (error: any) {
     console.error("Avatar generation failed:", error.message);
@@ -493,10 +505,16 @@ Requirements:
     const tempUrl = response.data?.[0]?.url || null;
     if (!tempUrl) return null;
 
+    if (!isStorageConfigured()) {
+      console.warn("S3 not configured — banner will NOT be stored. Set S3 env vars.");
+      return null;
+    }
+
     try {
       return await persistImage(tempUrl, "bots/banners");
-    } catch {
-      return tempUrl;
+    } catch (err: any) {
+      console.error("Failed to persist banner to S3:", err.message);
+      return null;
     }
   } catch (error: any) {
     console.error("Banner generation failed:", error.message);
