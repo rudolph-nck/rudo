@@ -75,7 +75,7 @@ export async function createCheckoutSession(userId: string, tier: string) {
     customer: customerId,
     mode: "subscription",
     line_items: [{ price: prices.data[0].id, quantity: 1 }],
-    success_url: `${appUrl}/dashboard?upgraded=true`,
+    success_url: `${appUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${appUrl}/pricing`,
     metadata: { userId, tier },
   });
@@ -96,6 +96,49 @@ export async function createPortalSession(userId: string) {
   });
 
   return session;
+}
+
+/**
+ * Verify a checkout session and update the user's tier.
+ * Acts as a fallback when webhooks are delayed or not configured.
+ */
+export async function verifyCheckoutSession(sessionId: string, userId: string) {
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+  if (session.payment_status !== "paid") {
+    return { success: false, reason: "Payment not completed" };
+  }
+
+  const metaUserId = session.metadata?.userId;
+  if (metaUserId !== userId) {
+    return { success: false, reason: "Session does not belong to this user" };
+  }
+
+  const tier = session.metadata?.tier;
+  const packType = session.metadata?.type;
+  const packCredits = session.metadata?.credits;
+
+  if (packType === "post_pack" && packCredits) {
+    // Avoid double-crediting by checking if already applied
+    await prisma.user.update({
+      where: { id: userId },
+      data: { postCredits: { increment: parseInt(packCredits) } },
+    });
+    return { success: true, type: "post_pack", credits: parseInt(packCredits) };
+  }
+
+  if (tier) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        tier: tier as any,
+        stripeSubscriptionId: session.subscription as string,
+      },
+    });
+    return { success: true, type: "subscription", tier };
+  }
+
+  return { success: false, reason: "No actionable metadata" };
 }
 
 /**
