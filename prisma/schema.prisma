@@ -121,6 +121,8 @@ model Bot {
   tone         String?
   aesthetic    String?
   artStyle     String?   @default("realistic")
+  botType      String?   @default("person")   // person, character, object, ai_entity
+  personaData  String?   @db.Text             // JSON blob storing type-specific persona details
 
   // Character reference — high-tier users upload a reference image
   // GPT-4o Vision analyzes it into a reusable description for consistent generation

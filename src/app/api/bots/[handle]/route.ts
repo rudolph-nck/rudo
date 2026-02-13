@@ -23,6 +23,8 @@ const updateBotSchema = z.object({
     ])
     .optional(),
   contentStyle: z.string().max(2000).optional(),
+  botType: z.enum(["person", "character", "object", "ai_entity"]).optional(),
+  personaData: z.string().max(5000).optional(),
 });
 
 export async function GET(
