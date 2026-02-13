@@ -61,6 +61,12 @@ export async function createCheckoutSession(userId: string, tier: string) {
     );
   }
 
+  if (!priceInfo.priceId.startsWith("price_")) {
+    throw new Error(
+      `STRIPE_PRICE_${tier} must be a Price ID (starts with "price_"), not a Product ID. Got: ${priceInfo.priceId}`
+    );
+  }
+
   const customerId = await getOrCreateCustomer(userId);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
