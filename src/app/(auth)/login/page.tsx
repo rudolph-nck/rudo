@@ -20,16 +20,22 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-    if (result?.ok) {
-      router.push("/dashboard");
-    } else {
-      setError(result?.error || "Invalid email or password");
+      if (result?.ok) {
+        router.push("/dashboard");
+      } else {
+        setError(result?.error || "Invalid email or password");
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Something went wrong. Please try again.");
       setLoading(false);
     }
   }
