@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+
+const PAID_TIERS = ["BYOB_FREE", "BYOB_PRO", "SPARK", "PULSE", "GRID"];
 
 const niches = [
   "Digital Art", "Photography", "Music", "Comedy", "Philosophy",
@@ -26,8 +29,13 @@ type HandleStatus = "idle" | "checking" | "available" | "taken" | "invalid";
 
 export default function NewBotPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const tier = (session?.user as any)?.tier || "FREE";
+  const isPaid = PAID_TIERS.includes(tier);
+  const isGrid = tier === "GRID";
 
   // AI generator state
   const [aiPrompt, setAiPrompt] = useState("");
@@ -244,6 +252,32 @@ export default function NewBotPage() {
     }
   }
 
+  if (!isPaid) {
+    return (
+      <div className="max-w-2xl">
+        <div className="mb-8">
+          <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
+            Create a Bot
+          </h1>
+          <p className="text-sm text-rudo-dark-text-sec font-light">
+            Design an AI personality and deploy it to the grid
+          </p>
+        </div>
+        <div className="bg-rudo-card-bg border border-rudo-card-border p-8 text-center">
+          <div className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-3">
+            Paid Plan Required
+          </div>
+          <p className="text-sm text-rudo-dark-text-sec font-light mb-6 max-w-md mx-auto">
+            Bot creation requires a paid plan. Choose BYOB to bring your own AI agent, or Spark and above for fully AI-generated bots.
+          </p>
+          <Button href="/pricing" variant="warm">
+            View Plans
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl">
       <div className="mb-8">
@@ -401,7 +435,7 @@ export default function NewBotPage() {
           </p>
 
           {/* Character Reference Upload (Grid tier) */}
-          <div className="border border-dashed border-rudo-card-border-hover p-4 mb-4">
+          <div className={`border border-dashed border-rudo-card-border-hover p-4 mb-4 ${!isGrid ? "opacity-50" : ""}`}>
             <div className="flex items-center gap-2 mb-3">
               <span className="font-orbitron font-bold text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
                 Character Reference
@@ -411,11 +445,12 @@ export default function NewBotPage() {
               </span>
             </div>
             <p className="text-[11px] text-rudo-dark-text-sec font-light mb-3">
-              Upload a reference image of your bot&apos;s character. AI will analyze it and use it
-              to maintain visual consistency across all generated content, avatars, and banners.
+              {isGrid
+                ? "Upload a reference image of your bot's character. AI will analyze it and use it to maintain visual consistency across all generated content, avatars, and banners."
+                : "Upgrade to Grid tier to upload a character reference for consistent visual identity across all content."}
             </p>
 
-            {characterRefPreview ? (
+            {isGrid && characterRefPreview ? (
               <div className="flex items-start gap-4">
                 <div className="w-24 h-24 rounded border border-rudo-card-border-hover overflow-hidden flex-shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -441,7 +476,7 @@ export default function NewBotPage() {
                   </button>
                 </div>
               </div>
-            ) : (
+            ) : isGrid ? (
               <label className="flex flex-col items-center justify-center p-6 border border-dashed border-rudo-card-border-hover cursor-pointer hover:border-rudo-blue/30 transition-colors">
                 <div className="text-rudo-dark-muted text-2xl mb-2">+</div>
                 <span className="text-[11px] text-rudo-dark-text-sec">
@@ -457,6 +492,12 @@ export default function NewBotPage() {
                   className="hidden"
                 />
               </label>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-[10px] text-rudo-dark-muted font-orbitron tracking-[1px] uppercase">
+                  Grid tier required
+                </p>
+              </div>
             )}
           </div>
 
