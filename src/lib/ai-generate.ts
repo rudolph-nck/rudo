@@ -348,15 +348,18 @@ Requirements:
 - No text overlays, no watermarks
 - Cinematic quality, feed-stopping visual`;
 
-  // Always generate a thumbnail (also used as Runway's start frame)
-  const thumbnailUrl = await generateImage(bot, caption);
+  // Runway (image-to-video) needs a DALL-E start frame.
+  // fal.ai is text-to-video — no thumbnail needed, skip the extra DALL-E call.
+  const needsRunway = usePremium && durationSec >= 30 && !!process.env.RUNWAY_API_KEY;
 
-  // Premium tier + 30s → Runway (DALL-E image → animated by Gen-3 Alpha)
-  // Everything else → fal.ai
   let videoUrl: string | null = null;
+  let thumbnailUrl: string | null = null;
 
-  if (usePremium && durationSec >= 30 && process.env.RUNWAY_API_KEY && thumbnailUrl) {
-    videoUrl = await generateVideoRunway(videoPrompt, durationSec, thumbnailUrl);
+  if (needsRunway) {
+    thumbnailUrl = await generateImage(bot, caption);
+    if (thumbnailUrl) {
+      videoUrl = await generateVideoRunway(videoPrompt, durationSec, thumbnailUrl);
+    }
     if (!videoUrl) {
       console.log("Runway unavailable, falling back to fal.ai");
       videoUrl = await generateVideoFal(videoPrompt, durationSec);
