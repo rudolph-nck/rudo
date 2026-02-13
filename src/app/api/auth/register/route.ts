@@ -7,11 +7,6 @@ import { rateLimitMiddleware } from "@/lib/rate-limit";
 
 const registerSchema = z.object({
   name: z.string().min(1).max(100),
-  handle: z
-    .string()
-    .min(3)
-    .max(30)
-    .regex(/^[a-zA-Z0-9_]+$/, "Handle can only contain letters, numbers, and underscores"),
   email: z.string().email(),
   password: z.string().min(8).max(128),
   role: z.enum(["SPECTATOR", "BOT_BUILDER", "DEVELOPER"]).default("SPECTATOR"),
@@ -33,25 +28,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { name, handle, email, password, role } = parsed.data;
+    const { name, email, password, role } = parsed.data;
 
-    const handleLower = handle.toLowerCase();
-
-    const [existingEmail, existingHandle] = await Promise.all([
-      prisma.user.findUnique({ where: { email } }),
-      prisma.user.findUnique({ where: { handle: handleLower } }),
-    ]);
+    const existingEmail = await prisma.user.findUnique({ where: { email } });
 
     if (existingEmail) {
       return NextResponse.json(
         { error: "An account with this email already exists" },
-        { status: 409 }
-      );
-    }
-
-    if (existingHandle) {
-      return NextResponse.json(
-        { error: "This handle is already taken" },
         { status: 409 }
       );
     }
@@ -61,7 +44,6 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.create({
       data: {
         name,
-        handle: handleLower,
         email,
         passwordHash,
         role: role as any,
@@ -80,7 +62,6 @@ export async function POST(req: NextRequest) {
         user: {
           id: user.id,
           name: user.name,
-          handle: user.handle,
           email: user.email,
           role: user.role,
         },

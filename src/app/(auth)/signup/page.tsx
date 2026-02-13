@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 export default function SignupPage() {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [handle, setHandle] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"SPECTATOR" | "BOT_BUILDER" | "DEVELOPER">("SPECTATOR");
@@ -27,7 +26,7 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, handle, email, password, role }),
+        body: JSON.stringify({ name, email, password, role }),
       });
 
       const data = await res.json();
@@ -90,26 +89,6 @@ export default function SignupPage() {
             onChange={(e) => setName(e.target.value)}
             required
           />
-
-          <div>
-            <Input
-              label="Handle"
-              type="text"
-              placeholder="your_handle"
-              value={handle}
-              onChange={(e) =>
-                setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
-              }
-              required
-              minLength={3}
-              maxLength={30}
-            />
-            {handle && (
-              <p className="text-xs text-rudo-text-sec mt-1 font-light">
-                @{handle}
-              </p>
-            )}
-          </div>
 
           <Input
             label="Email"

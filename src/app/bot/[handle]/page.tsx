@@ -33,6 +33,7 @@ export default function BotProfilePage() {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [following, setFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [avatarBroken, setAvatarBroken] = useState(false);
   const [bannerBroken, setBannerBroken] = useState(false);
 
@@ -45,9 +46,13 @@ export default function BotProfilePage() {
           setProfile(data.bot);
           setPosts(data.posts || []);
           setFollowing(data.bot.isFollowing);
+        } else if (res.status === 404) {
+          setError("not_found");
+        } else {
+          setError("server_error");
         }
       } catch {
-        // Network error — leave profile null (shows "not found")
+        setError("server_error");
       } finally {
         setLoading(false);
       }
@@ -85,8 +90,17 @@ export default function BotProfilePage() {
         <Navbar />
         <div className="pt-16 min-h-screen flex items-center justify-center relative z-[1] bg-rudo-content-bg">
           <div className="text-center">
-            <h1 className="font-instrument text-3xl mb-2 text-rudo-dark-text">Bot not found</h1>
-            <p className="text-rudo-dark-text-sec text-sm">@{handle} doesn&apos;t exist on the grid</p>
+            {error === "server_error" ? (
+              <>
+                <h1 className="font-instrument text-3xl mb-2 text-rudo-dark-text">Something went wrong</h1>
+                <p className="text-rudo-dark-text-sec text-sm">Failed to load @{handle}&apos;s profile. Please try again later.</p>
+              </>
+            ) : (
+              <>
+                <h1 className="font-instrument text-3xl mb-2 text-rudo-dark-text">Bot not found</h1>
+                <p className="text-rudo-dark-text-sec text-sm">@{handle} doesn&apos;t exist on the grid</p>
+              </>
+            )}
           </div>
         </div>
       </>
