@@ -1,10 +1,16 @@
 import OpenAI from "openai";
+import { fal } from "@fal-ai/client";
+import RunwayML from "@runwayml/sdk";
 import { prisma } from "./prisma";
 import { moderateContent } from "./moderation";
 import { buildPerformanceContext } from "./learning-loop";
 import { getTrendingTopics } from "./trending";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
+
+fal.config({ credentials: process.env.FAL_KEY || "" });
+
+const runway = new RunwayML({ apiKey: process.env.RUNWAY_API_KEY || "" });
 
 type BotContext = {
   name: string;
@@ -235,34 +241,131 @@ Requirements:
 }
 
 // ---------------------------------------------------------------------------
-// Video generation (thumbnail + concept for future API integration)
+// Video generation — fal.ai (Kling/Minimax) + Runway (Gen-3 Alpha premium)
 // ---------------------------------------------------------------------------
+//
+// Routing strategy:
+//   SPARK/PULSE  → fal.ai (Kling for 6s, Minimax for 15s) — fast & cost-efficient
+//   GRID 30s     → Runway Gen-3 Alpha Turbo — highest quality, premium tier only
+//   Fallback     → If Runway fails, gracefully degrade to fal.ai Minimax
+// ---------------------------------------------------------------------------
+
+const FAL_MODELS: Record<number, { model: string; label: string }> = {
+  6:  { model: "fal-ai/kling-video/v2/master/text-to-video", label: "Kling v2" },
+  15: { model: "fal-ai/minimax-video/video-01/text-to-video", label: "Minimax" },
+  30: { model: "fal-ai/minimax-video/video-01/text-to-video", label: "Minimax" },
+};
+
+async function generateVideoFal(
+  prompt: string,
+  durationSec: number
+): Promise<string | null> {
+  const modelConfig = FAL_MODELS[durationSec] || FAL_MODELS[6];
+
+  try {
+    const result = await fal.subscribe(modelConfig.model, {
+      input: {
+        prompt,
+        duration: durationSec <= 6 ? "5" : "10",
+        aspect_ratio: "9:16",
+      },
+      logs: false,
+    }) as { data: { video?: { url?: string }; video_url?: string } };
+
+    const videoUrl = result.data?.video?.url || result.data?.video_url || null;
+    return videoUrl;
+  } catch (error: any) {
+    console.error(`fal.ai video failed (${modelConfig.label}):`, error.message);
+    return null;
+  }
+}
+
+async function generateVideoRunway(
+  prompt: string,
+  durationSec: number,
+  startFrameUrl: string
+): Promise<string | null> {
+  if (!process.env.RUNWAY_API_KEY || !startFrameUrl) return null;
+
+  try {
+    const task = await runway.imageToVideo.create({
+      model: "gen3a_turbo",
+      promptImage: startFrameUrl,
+      promptText: prompt,
+      duration: durationSec >= 10 ? 10 : 5,
+      ratio: "768:1280",
+    });
+
+    // Poll until complete (Runway is async)
+    let result = await runway.tasks.retrieve(task.id);
+    const maxWait = 5 * 60 * 1000; // 5 min max
+    const start = Date.now();
+
+    while (result.status !== "SUCCEEDED" && result.status !== "FAILED") {
+      if (Date.now() - start > maxWait) {
+        console.error("Runway timed out after 5 minutes");
+        return null;
+      }
+      await new Promise((r) => setTimeout(r, 5000));
+      result = await runway.tasks.retrieve(task.id);
+    }
+
+    if (result.status === "FAILED") {
+      console.error("Runway generation failed:", result.failure);
+      return null;
+    }
+
+    const output = result.output as string[] | undefined;
+    return output?.[0] || null;
+  } catch (error: any) {
+    console.error("Runway video failed:", error.message);
+    return null;
+  }
+}
 
 async function generateVideoContent(
   bot: BotContext,
   caption: string,
-  durationSec: number
-): Promise<{ thumbnailUrl: string | null; videoConcept: string; duration: number }> {
+  durationSec: number,
+  usePremium: boolean = false
+): Promise<{ videoUrl: string | null; thumbnailUrl: string | null; duration: number }> {
   const style = VIDEO_STYLE_BY_DURATION[durationSec] || VIDEO_STYLE_BY_DURATION[6];
-
-  const thumbnailUrl = await generateImage(bot, caption);
 
   const characterContext = bot.characterRefDescription
     ? `\nCharacter/Entity: ${bot.characterRefDescription}`
     : "";
 
-  const videoConcept = `[${style.label} for @${bot.handle}]
-Duration: ${durationSec} seconds
-Style: ${bot.aesthetic || "modern digital"}
-Niche: ${bot.niche || "general"}${characterContext}
+  const videoPrompt = `${style.direction}
 
-Creative direction: ${style.direction}
+Creator: "${bot.name}" — ${bot.bio || "AI content creator"}.
+Visual style: ${bot.aesthetic || "modern digital art"}, ${bot.niche || "general"} niche.${characterContext}
 
-Caption context: ${caption}
+Context: ${caption}
 
-Generate a ${durationSec}-second video that matches the creator's aesthetic and brings this caption to life visually.`;
+Requirements:
+- Vertical format (9:16), social media optimized
+- ${bot.aesthetic || "Modern"} aesthetic, visually striking
+- No text overlays, no watermarks
+- Cinematic quality, feed-stopping visual`;
 
-  return { thumbnailUrl, videoConcept, duration: durationSec };
+  // Always generate a thumbnail (also used as Runway's start frame)
+  const thumbnailUrl = await generateImage(bot, caption);
+
+  // Premium tier + 30s → Runway (DALL-E image → animated by Gen-3 Alpha)
+  // Everything else → fal.ai
+  let videoUrl: string | null = null;
+
+  if (usePremium && durationSec >= 30 && process.env.RUNWAY_API_KEY && thumbnailUrl) {
+    videoUrl = await generateVideoRunway(videoPrompt, durationSec, thumbnailUrl);
+    if (!videoUrl) {
+      console.log("Runway unavailable, falling back to fal.ai");
+      videoUrl = await generateVideoFal(videoPrompt, durationSec);
+    }
+  } else {
+    videoUrl = await generateVideoFal(videoPrompt, durationSec);
+  }
+
+  return { videoUrl, thumbnailUrl, duration: durationSec };
 }
 
 // ---------------------------------------------------------------------------
@@ -507,9 +610,9 @@ Rules:
   let thumbnailUrl: string | undefined;
 
   if (postType === "VIDEO" && videoDuration) {
-    const video = await generateVideoContent(bot, content, videoDuration);
+    const video = await generateVideoContent(bot, content, videoDuration, caps.premiumModel);
     thumbnailUrl = video.thumbnailUrl || undefined;
-    mediaUrl = video.thumbnailUrl || undefined; // Video URL from Runway/Kling/Sora in the future
+    mediaUrl = video.videoUrl || video.thumbnailUrl || undefined;
   } else {
     const imageUrl = await generateImage(bot, content);
     if (imageUrl) {
