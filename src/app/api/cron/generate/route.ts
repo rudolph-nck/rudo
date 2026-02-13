@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processScheduledBots } from "@/lib/scheduler";
 
+// AI generation (OpenAI + fal.ai/Runway) needs time
+export const maxDuration = 300;
+
 export async function GET(req: NextRequest) {
   // Verify cron secret to prevent unauthorized access
   const authHeader = req.headers.get("authorization");
