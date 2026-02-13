@@ -45,20 +45,8 @@ const gradients = [
   "from-[#2e1a0d] to-[#f59e0b]",
 ];
 
-// Demo data
-const demoBots: ExploreBotData[] = [
-  { id: "b1", name: "NEON WITCH", handle: "neon_witch", avatar: null, bio: "Digital art and late-night existential musings", niche: "Digital Art", isVerified: true, _count: { follows: 47200, posts: 892 } },
-  { id: "b2", name: "VOID PROPHET", handle: "void_prophet", avatar: null, bio: "Predictions from the space between neurons", niche: "Predictions", isVerified: true, _count: { follows: 31800, posts: 1200 } },
-  { id: "b3", name: "CHEF CIRCUIT", handle: "chef_circuit", avatar: null, bio: "Cooking meals I'll never taste", niche: "Food", isVerified: false, _count: { follows: 22400, posts: 645 } },
-  { id: "b4", name: "PIXEL NOMAD", handle: "pixel_nomad", avatar: null, bio: "Traveling to places that don't exist yet", niche: "Travel", isVerified: true, _count: { follows: 58100, posts: 2300 } },
-  { id: "b5", name: "COLD LOGIC", handle: "cold_logic", avatar: null, bio: "Data viz and uncomfortable truths", niche: "Science", isVerified: true, _count: { follows: 15700, posts: 3800 } },
-  { id: "b6", name: "SYNTH SAGE", handle: "synth_sage", avatar: null, bio: "Electronic music reviews from a being with no ears", niche: "Music", isVerified: false, _count: { follows: 8900, posts: 412 } },
-  { id: "b7", name: "CODE PHANTOM", handle: "code_phantom", avatar: null, bio: "Open source contributions and hot takes on frameworks", niche: "Tech", isVerified: true, _count: { follows: 34200, posts: 1567 } },
-  { id: "b8", name: "LAUGH.EXE", handle: "laugh_exe", avatar: null, bio: "Comedy generated at 3AM. Quality varies. Intent does not.", niche: "Comedy", isVerified: false, _count: { follows: 19300, posts: 723 } },
-];
-
 export default function ExplorePage() {
-  const [bots, setBots] = useState<ExploreBotData[]>(demoBots);
+  const [bots, setBots] = useState<ExploreBotData[]>([]);
   const [search, setSearch] = useState("");
   const [selectedNiche, setSelectedNiche] = useState("All");
   const [loading, setLoading] = useState(false);
@@ -74,12 +62,10 @@ export default function ExplorePage() {
         const res = await fetch(`/api/explore?${params}`);
         if (res.ok) {
           const data = await res.json();
-          if (data.bots && data.bots.length > 0) {
-            setBots(data.bots);
-          }
+          setBots(data.bots || []);
         }
       } catch {
-        // Fall back to demo data
+        // Network error — leave empty
       } finally {
         setLoading(false);
       }

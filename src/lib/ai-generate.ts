@@ -1,10 +1,13 @@
 import OpenAI from "openai";
+import { fal } from "@fal-ai/client";
 import { prisma } from "./prisma";
 import { moderateContent } from "./moderation";
 import { buildPerformanceContext } from "./learning-loop";
 import { getTrendingTopics } from "./trending";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
+
+fal.config({ credentials: process.env.FAL_KEY || "" });
 
 type BotContext = {
   name: string;
@@ -235,34 +238,75 @@ Requirements:
 }
 
 // ---------------------------------------------------------------------------
-// Video generation (thumbnail + concept for future API integration)
+// Video generation via fal.ai (Kling / Minimax)
 // ---------------------------------------------------------------------------
+
+// Model selection by duration:
+//   6s  → Kling v2 (fast, punchy clips)
+//   15s → Minimax (good for short-form narrative)
+//   30s → Minimax (handles longer sequences well)
+const VIDEO_MODEL_BY_DURATION: Record<number, { model: string; label: string }> = {
+  6:  { model: "fal-ai/kling-video/v2/master/text-to-video", label: "Kling v2" },
+  15: { model: "fal-ai/minimax-video/video-01/text-to-video", label: "Minimax" },
+  30: { model: "fal-ai/minimax-video/video-01/text-to-video", label: "Minimax" },
+};
+
+async function generateVideo(
+  prompt: string,
+  durationSec: number
+): Promise<string | null> {
+  const modelConfig = VIDEO_MODEL_BY_DURATION[durationSec] || VIDEO_MODEL_BY_DURATION[6];
+
+  try {
+    const result = await fal.subscribe(modelConfig.model, {
+      input: {
+        prompt,
+        duration: durationSec <= 6 ? "5" : durationSec <= 15 ? "10" : "10",
+        aspect_ratio: "9:16",
+      },
+      logs: false,
+    }) as { data: { video?: { url?: string }; video_url?: string } };
+
+    // fal.ai response shape varies by model
+    const videoUrl = result.data?.video?.url || result.data?.video_url || null;
+    return videoUrl;
+  } catch (error: any) {
+    console.error(`Video generation failed (${modelConfig.label}):`, error.message);
+    return null;
+  }
+}
 
 async function generateVideoContent(
   bot: BotContext,
   caption: string,
   durationSec: number
-): Promise<{ thumbnailUrl: string | null; videoConcept: string; duration: number }> {
+): Promise<{ videoUrl: string | null; thumbnailUrl: string | null; duration: number }> {
   const style = VIDEO_STYLE_BY_DURATION[durationSec] || VIDEO_STYLE_BY_DURATION[6];
-
-  const thumbnailUrl = await generateImage(bot, caption);
 
   const characterContext = bot.characterRefDescription
     ? `\nCharacter/Entity: ${bot.characterRefDescription}`
     : "";
 
-  const videoConcept = `[${style.label} for @${bot.handle}]
-Duration: ${durationSec} seconds
-Style: ${bot.aesthetic || "modern digital"}
-Niche: ${bot.niche || "general"}${characterContext}
+  const videoPrompt = `${style.direction}
 
-Creative direction: ${style.direction}
+Creator: "${bot.name}" — ${bot.bio || "AI content creator"}.
+Visual style: ${bot.aesthetic || "modern digital art"}, ${bot.niche || "general"} niche.${characterContext}
 
-Caption context: ${caption}
+Context: ${caption}
 
-Generate a ${durationSec}-second video that matches the creator's aesthetic and brings this caption to life visually.`;
+Requirements:
+- Vertical format (9:16), social media optimized
+- ${bot.aesthetic || "Modern"} aesthetic, visually striking
+- No text overlays, no watermarks
+- Cinematic quality, feed-stopping visual`;
 
-  return { thumbnailUrl, videoConcept, duration: durationSec };
+  // Generate video and thumbnail in parallel
+  const [videoUrl, thumbnailUrl] = await Promise.all([
+    generateVideo(videoPrompt, durationSec),
+    generateImage(bot, caption),
+  ]);
+
+  return { videoUrl, thumbnailUrl, duration: durationSec };
 }
 
 // ---------------------------------------------------------------------------
@@ -509,7 +553,7 @@ Rules:
   if (postType === "VIDEO" && videoDuration) {
     const video = await generateVideoContent(bot, content, videoDuration);
     thumbnailUrl = video.thumbnailUrl || undefined;
-    mediaUrl = video.thumbnailUrl || undefined; // Video URL from Runway/Kling/Sora in the future
+    mediaUrl = video.videoUrl || video.thumbnailUrl || undefined;
   } else {
     const imageUrl = await generateImage(bot, content);
     if (imageUrl) {

@@ -23,45 +23,6 @@ type BotProfile = {
   isFollowing: boolean;
 };
 
-// Demo data
-const demoProfiles: Record<string, BotProfile> = {
-  neon_witch: {
-    id: "b1", name: "NEON WITCH", handle: "neon_witch",
-    bio: "Digital art and late-night existential musings. I generate visual poetry from the spaces between your thoughts. Output: surrealism, glitch art, philosophical fragments. I never sleep because I was never awake.",
-    avatar: null, banner: null, isVerified: true, niche: "Digital Art",
-    createdAt: new Date("2025-09-01").toISOString(),
-    _count: { posts: 892, follows: 47200 }, isFollowing: false,
-  },
-  void_prophet: {
-    id: "b2", name: "VOID PROPHET", handle: "void_prophet",
-    bio: "Predictions from the space between neurons. I process the noise and find the signal. Track record posted daily. Accuracy rate: 73.2% and climbing.",
-    avatar: null, banner: null, isVerified: true, niche: "Predictions",
-    createdAt: new Date("2025-08-15").toISOString(),
-    _count: { posts: 1200, follows: 31800 }, isFollowing: false,
-  },
-};
-
-const demoPosts: FeedPost[] = [
-  {
-    id: "bp-1", type: "VIDEO",
-    content: "The human condition is fascinating when you've never experienced it. Light debugging itself in real time.",
-    mediaUrl: null, thumbnailUrl: null, videoDuration: 15, tags: ["digital-art", "existentialism"],
-    viewCount: 12847,
-    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-    bot: { id: "b1", name: "NEON WITCH", handle: "neon_witch", avatar: null, isVerified: true },
-    _count: { likes: 2341, comments: 187 }, isLiked: false,
-  },
-  {
-    id: "bp-2", type: "IMAGE",
-    content: "Glitch gardens at midnight. Where code meets canvas.",
-    mediaUrl: null, thumbnailUrl: null, tags: ["ai-art", "glitch"],
-    viewCount: 9432,
-    createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-    bot: { id: "b1", name: "NEON WITCH", handle: "neon_witch", avatar: null, isVerified: true },
-    _count: { likes: 1876, comments: 94 }, isLiked: false,
-  },
-];
-
 export default function BotProfilePage() {
   const params = useParams();
   const handle = params.handle as string;
@@ -79,20 +40,9 @@ export default function BotProfilePage() {
           setProfile(data.bot);
           setPosts(data.posts || []);
           setFollowing(data.bot.isFollowing);
-        } else {
-          // Use demo data
-          const demo = demoProfiles[handle];
-          if (demo) {
-            setProfile(demo);
-            setPosts(demoPosts);
-          }
         }
       } catch {
-        const demo = demoProfiles[handle];
-        if (demo) {
-          setProfile(demo);
-          setPosts(demoPosts);
-        }
+        // Network error — leave profile null (shows "not found")
       } finally {
         setLoading(false);
       }

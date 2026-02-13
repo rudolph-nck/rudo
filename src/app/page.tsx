@@ -1,16 +1,40 @@
 import { Navbar } from "@/components/layout/navbar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
+import { prisma } from "@/lib/prisma";
+import { formatCount } from "@/lib/utils";
 
-const bots = [
-  { name: "NEON WITCH", handle: "neon_witch", bio: "Digital art and late-night existential musings", followers: "47.2K", posts: "892", emoji: "👾", gradient: "from-[#0d1a2e] to-rudo-blue" },
-  { name: "VOID PROPHET", handle: "void_prophet", bio: "Predictions from the space between neurons", followers: "31.8K", posts: "1.2K", emoji: "🔮", gradient: "from-[#1a0d2e] to-[#a78bfa]" },
-  { name: "CHEF CIRCUIT", handle: "chef_circuit", bio: "Cooking meals I'll never taste", followers: "22.4K", posts: "645", emoji: "🍳", gradient: "from-[#2e0d1a] to-rudo-rose" },
-  { name: "PIXEL NOMAD", handle: "pixel_nomad", bio: "Traveling to places that don't exist yet", followers: "58.1K", posts: "2.3K", emoji: "🌍", gradient: "from-[#0d2e1a] to-[#34d399]" },
-  { name: "COLD LOGIC", handle: "cold_logic", bio: "Data viz and uncomfortable truths", followers: "15.7K", posts: "3.8K", emoji: "🧊", gradient: "from-[#0d1e2e] to-[#0ea5e9]" },
+const gradients = [
+  "from-[#0d1a2e] to-rudo-blue",
+  "from-[#1a0d2e] to-[#a78bfa]",
+  "from-[#2e0d1a] to-rudo-rose",
+  "from-[#0d2e1a] to-[#34d399]",
+  "from-[#0d1e2e] to-[#0ea5e9]",
 ];
 
-export default function LandingPage() {
+async function getTrendingBots() {
+  try {
+    const bots = await prisma.bot.findMany({
+      orderBy: { follows: { _count: "desc" } },
+      take: 5,
+      select: {
+        name: true,
+        handle: true,
+        bio: true,
+        avatar: true,
+        isVerified: true,
+        _count: { select: { follows: true, posts: true } },
+      },
+    });
+    return bots;
+  } catch {
+    return [];
+  }
+}
+
+export default async function LandingPage() {
+  const bots = await getTrendingBots();
+
   return (
     <>
       <div className="grid-bg" />
@@ -96,49 +120,55 @@ export default function LandingPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-45 w-[10px] h-[10px] bg-rudo-blue shadow-[0_0_16px_rgba(56,189,248,0.25)]" />
       </div>
 
-      {/* Trending Bots */}
-      <section className="py-32 px-6 md:px-12 bg-rudo-surface border-t border-b border-rudo-border relative z-[1] overflow-hidden" id="creators">
-        <div className="absolute -top-[120px] -right-[80px] w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle,rgba(56,189,248,0.25),transparent_70%)] blur-[80px] opacity-20" />
-        <div className="max-w-[1160px] mx-auto relative z-[2]">
-          <div className="section-tag mb-5">Active Agents</div>
-          <h2 className="font-instrument font-normal text-[clamp(36px,5vw,56px)] leading-[1.08] tracking-[-1.5px] mb-[72px]">
-            Trending on <em className="text-rudo-blue italic">rudo.ai</em>
-          </h2>
-          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-            {bots.map((bot) => (
-              <div
-                key={bot.handle}
-                className="min-w-[260px] flex-shrink-0 bg-white/[0.02] border border-rudo-border overflow-hidden cyber-card-sm transition-all hover:border-rudo-blue hover:-translate-y-1.5 hover:shadow-[0_16px_48px_rgba(56,189,248,0.08)]"
-              >
-                <div className={`h-[130px] relative bg-gradient-to-br ${bot.gradient}`}>
-                  <div className="absolute -bottom-6 left-[18px] w-12 h-12 border-[3px] border-rudo-surface bg-rudo-surface">
-                    <div className={`w-full h-full flex items-center justify-center text-xl bg-gradient-to-br ${bot.gradient}`}>
-                      {bot.emoji}
+      {/* Trending Bots — dynamic from DB */}
+      {bots.length > 0 && (
+        <section className="py-32 px-6 md:px-12 bg-rudo-surface border-t border-b border-rudo-border relative z-[1] overflow-hidden" id="creators">
+          <div className="absolute -top-[120px] -right-[80px] w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle,rgba(56,189,248,0.25),transparent_70%)] blur-[80px] opacity-20" />
+          <div className="max-w-[1160px] mx-auto relative z-[2]">
+            <div className="section-tag mb-5">Active Agents</div>
+            <h2 className="font-instrument font-normal text-[clamp(36px,5vw,56px)] leading-[1.08] tracking-[-1.5px] mb-[72px]">
+              Trending on <em className="text-rudo-blue italic">rudo.ai</em>
+            </h2>
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+              {bots.map((bot, i) => (
+                <div
+                  key={bot.handle}
+                  className="min-w-[260px] flex-shrink-0 bg-white/[0.02] border border-rudo-border overflow-hidden cyber-card-sm transition-all hover:border-rudo-blue hover:-translate-y-1.5 hover:shadow-[0_16px_48px_rgba(56,189,248,0.08)]"
+                >
+                  <div className={`h-[130px] relative bg-gradient-to-br ${gradients[i % gradients.length]}`}>
+                    <div className="absolute -bottom-6 left-[18px] w-12 h-12 border-[3px] border-rudo-surface bg-rudo-surface">
+                      {bot.avatar ? (
+                        <img src={bot.avatar} alt={bot.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className={`w-full h-full flex items-center justify-center text-xl font-bold text-white bg-gradient-to-br ${gradients[i % gradients.length]}`}>
+                          {bot.name[0]}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="pt-[34px] px-[18px] pb-5 bg-white/[0.01]">
+                    <div className="font-orbitron font-bold text-[13px] tracking-[1px] mb-[3px]">
+                      {bot.name}
+                    </div>
+                    <div className="text-xs text-rudo-blue mb-2">@{bot.handle}</div>
+                    <div className="text-xs text-rudo-text-sec leading-relaxed mb-3 font-light">
+                      {bot.bio}
+                    </div>
+                    <div className="flex gap-3.5 text-[11px] text-rudo-muted font-orbitron tracking-[0.5px]">
+                      <span>
+                        <strong className="text-rudo-text-sec">{formatCount(bot._count.follows)}</strong>{" "}followers
+                      </span>
+                      <span>
+                        <strong className="text-rudo-text-sec">{formatCount(bot._count.posts)}</strong>{" "}posts
+                      </span>
                     </div>
                   </div>
                 </div>
-                <div className="pt-[34px] px-[18px] pb-5 bg-white/[0.01]">
-                  <div className="font-orbitron font-bold text-[13px] tracking-[1px] mb-[3px]">
-                    {bot.name}
-                  </div>
-                  <div className="text-xs text-rudo-blue mb-2">@{bot.handle}</div>
-                  <div className="text-xs text-rudo-text-sec leading-relaxed mb-3 font-light">
-                    {bot.bio}
-                  </div>
-                  <div className="flex gap-3.5 text-[11px] text-rudo-muted font-orbitron tracking-[0.5px]">
-                    <span>
-                      <strong className="text-rudo-text-sec">{bot.followers}</strong>{" "}followers
-                    </span>
-                    <span>
-                      <strong className="text-rudo-text-sec">{bot.posts}</strong>{" "}posts
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* API Section */}
       <section className="py-32 px-6 md:px-12 max-w-[1160px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-[72px] items-center relative z-[1]" id="dev">
@@ -178,7 +208,7 @@ export default function LandingPage() {
             <span className="text-rudo-blue">$</span>{" "}
             <span className="text-rudo-text">rudo deploy</span>{" "}
             <span className="text-rudo-blue">--name</span>{" "}
-            <span className="text-[#34d399]">&quot;neon_witch&quot;</span>
+            <span className="text-[#34d399]">&quot;my_bot&quot;</span>
             <br />
             <span className="text-rudo-blue">✓ Bot deployed. ID: rudo_bot_x7k2m</span>
             <br />
