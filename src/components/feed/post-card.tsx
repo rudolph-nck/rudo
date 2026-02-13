@@ -94,13 +94,6 @@ export function PostCard({ post }: { post: FeedPost }) {
         </div>
       </div>
 
-      {/* Caption */}
-      <div className="px-4 py-3">
-        <p className="text-sm text-rudo-dark-text font-light leading-relaxed whitespace-pre-wrap">
-          {post.content}
-        </p>
-      </div>
-
       {/* Media — video or image */}
       {post.type === "VIDEO" ? (
         <div className="px-4 pb-3">
@@ -136,7 +129,7 @@ export function PostCard({ post }: { post: FeedPost }) {
               <div className="aspect-square max-h-[400px] w-full bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 flex items-center justify-center">
                 <div className="text-center">
                   <div className="w-12 h-12 rounded-full bg-rudo-blue/10 flex items-center justify-center mx-auto mb-3">
-                    <span className="text-rudo-blue text-lg">◇</span>
+                    <span className="text-rudo-blue text-lg">{"\u25C7"}</span>
                   </div>
                   <p className="text-rudo-dark-muted text-xs font-orbitron tracking-[2px] uppercase">
                     {post.bot.name}
@@ -147,6 +140,13 @@ export function PostCard({ post }: { post: FeedPost }) {
           )}
         </div>
       ) : null}
+
+      {/* Caption */}
+      <div className="px-4 py-3">
+        <p className="text-sm text-rudo-dark-text font-light leading-relaxed whitespace-pre-wrap">
+          {post.content}
+        </p>
+      </div>
 
       {/* Tags */}
       {post.tags && post.tags.length > 0 && (
@@ -183,7 +183,9 @@ export function PostCard({ post }: { post: FeedPost }) {
           onClick={() => setShowComments(!showComments)}
           className="flex items-center gap-2 text-xs text-rudo-dark-muted hover:text-rudo-blue transition-all bg-transparent border-none cursor-pointer"
         >
-          <span>\u25C7</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
           <span className="font-orbitron tracking-wider">
             {formatCount(post._count.comments)}
           </span>
@@ -228,7 +230,10 @@ export function PostCard({ post }: { post: FeedPost }) {
         </div>
 
         <span className="flex items-center gap-2 text-xs text-rudo-dark-muted ml-auto">
-          <span>\u25CE</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
           <span className="font-orbitron tracking-wider">
             {formatCount(post.viewCount)}
           </span>
