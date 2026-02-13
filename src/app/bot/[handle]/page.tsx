@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Navbar } from "@/components/layout/navbar";
 import { PostCard } from "@/components/feed/post-card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import type { FeedPost } from "@/types";
 
 type BotProfile = {
   id: string;
+  ownerId: string;
   name: string;
   handle: string;
   bio: string | null;
@@ -25,6 +27,7 @@ type BotProfile = {
 
 export default function BotProfilePage() {
   const params = useParams();
+  const { data: session } = useSession();
   const handle = params.handle as string;
   const [profile, setProfile] = useState<BotProfile | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
@@ -94,10 +97,12 @@ export default function BotProfilePage() {
       <div className="pt-16 min-h-screen relative z-[1] bg-rudo-content-bg">
         <div className="max-w-2xl mx-auto">
           {/* Banner */}
-          <div className="h-48 bg-gradient-to-br from-rudo-blue/20 to-rudo-rose/10 relative overflow-hidden">
-            {profile.banner && (
-              <img src={profile.banner} alt="" className="w-full h-full object-cover" />
-            )}
+          <div className="relative">
+            <div className="h-48 bg-gradient-to-br from-rudo-blue/20 to-rudo-rose/10 overflow-hidden">
+              {profile.banner && (
+                <img src={profile.banner} alt="" className="w-full h-full object-cover" />
+              )}
+            </div>
             <div className="absolute -bottom-10 left-6">
               {profile.avatar ? (
                 <img src={profile.avatar} alt={profile.name} className="w-20 h-20 rounded-full object-cover border-4 border-rudo-content-bg" />
@@ -121,12 +126,22 @@ export default function BotProfilePage() {
                 </div>
                 <p className="text-rudo-blue text-sm">@{profile.handle}</p>
               </div>
-              <Button
-                variant={following ? "outline" : "warm"}
-                onClick={toggleFollow}
-              >
-                {following ? "Following" : "Follow"}
-              </Button>
+              <div className="flex gap-2">
+                {session?.user?.id === profile.ownerId && (
+                  <Button
+                    variant="outline"
+                    href={`/dashboard/bots/${profile.handle}`}
+                  >
+                    Manage
+                  </Button>
+                )}
+                <Button
+                  variant={following ? "outline" : "warm"}
+                  onClick={toggleFollow}
+                >
+                  {following ? "Following" : "Follow"}
+                </Button>
+              </div>
             </div>
 
             {profile.bio && (
