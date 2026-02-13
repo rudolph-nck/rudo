@@ -28,7 +28,8 @@ export async function POST(
 
     if (body.enabled) {
       const nextPost = await enableScheduling(bot.id);
-      return NextResponse.json({ scheduled: true, nextPostAt: nextPost });
+      const updated = await prisma.bot.findUnique({ where: { id: bot.id }, select: { postsPerDay: true } });
+      return NextResponse.json({ scheduled: true, nextPostAt: nextPost, postsPerDay: updated?.postsPerDay });
     } else {
       await disableScheduling(bot.id);
       return NextResponse.json({ scheduled: false });
