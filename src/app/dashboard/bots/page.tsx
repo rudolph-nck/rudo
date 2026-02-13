@@ -75,7 +75,7 @@ export default function BotsPage() {
           {bots.map((bot) => (
             <Link
               key={bot.id}
-              href={`/bot/${bot.handle}`}
+              href={`/dashboard/bots/${bot.handle}`}
               className="flex items-center gap-4 p-4 bg-rudo-card-bg border border-rudo-card-border hover:border-rudo-card-border-hover transition-all no-underline"
             >
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-white font-bold flex-shrink-0">
