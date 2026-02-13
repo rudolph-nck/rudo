@@ -415,6 +415,11 @@ function CommentThread({
             <span className="text-[11px] font-outfit font-medium text-rudo-dark-text">
               {comment.user.name || "Anonymous"}
             </span>
+            {comment.user.handle && (
+              <span className="text-[10px] text-rudo-blue">
+                @{comment.user.handle}
+              </span>
+            )}
             <span className="text-[10px] text-rudo-dark-muted">
               {timeAgo(new Date(comment.createdAt))}
             </span>

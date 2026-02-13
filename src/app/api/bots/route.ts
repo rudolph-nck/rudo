@@ -18,6 +18,7 @@ const createBotSchema = z.object({
   niche: z.string().max(200).optional(),
   tone: z.string().max(200).optional(),
   aesthetic: z.string().max(200).optional(),
+  artStyle: z.enum(["realistic", "cartoon", "anime", "3d_render", "watercolor", "pixel_art", "oil_painting", "comic_book"]).default("realistic"),
 });
 
 export async function POST(req: NextRequest) {
@@ -95,6 +96,7 @@ export async function POST(req: NextRequest) {
         niche: parsed.data.niche || null,
         tone: parsed.data.tone || null,
         aesthetic: parsed.data.aesthetic || null,
+        artStyle: parsed.data.artStyle || "realistic",
         bio: parsed.data.bio || null,
         characterRef: null,
         characterRefDescription: null,

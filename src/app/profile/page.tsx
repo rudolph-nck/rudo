@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/navbar";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ type UserProfile = {
   id: string;
   email: string;
   name: string | null;
+  handle: string | null;
+  bio: string | null;
   image: string | null;
   role: string;
   tier: string;
@@ -48,7 +50,10 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState("");
+  const [editBio, setEditBio] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function load() {
@@ -59,6 +64,7 @@ export default function ProfilePage() {
           setProfile(data.user);
           setFollowedBots(data.followedBots || []);
           setEditName(data.user.name || "");
+          setEditBio(data.user.bio || "");
         }
       } catch {
         // silent
@@ -76,12 +82,12 @@ export default function ProfilePage() {
       const res = await fetch("/api/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName.trim() }),
+        body: JSON.stringify({ name: editName.trim(), bio: editBio.trim() }),
       });
       if (res.ok) {
         const data = await res.json();
         setProfile((prev) =>
-          prev ? { ...prev, name: data.user.name } : prev
+          prev ? { ...prev, name: data.user.name, bio: data.user.bio } : prev
         );
         setEditing(false);
       }
@@ -89,6 +95,48 @@ export default function ProfilePage() {
       // silent
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+
+    setUploadingAvatar(true);
+    try {
+      // Get presigned upload URL
+      const urlRes = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+          size: file.size,
+        }),
+      });
+      if (!urlRes.ok) return;
+      const { uploadUrl, publicUrl } = await urlRes.json();
+
+      // Upload to S3
+      await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+
+      // Update profile with new avatar URL
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: publicUrl }),
+      });
+      if (res.ok) {
+        setProfile((prev) => (prev ? { ...prev, image: publicUrl } : prev));
+      }
+    } catch {
+      // silent
+    } finally {
+      setUploadingAvatar(false);
     }
   }
 
@@ -138,56 +186,101 @@ export default function ProfilePage() {
           <div className="bg-gradient-to-br from-rudo-blue/10 to-rudo-rose/5 px-6 pt-8 pb-6 border-b border-rudo-card-border">
             <div className="flex items-start gap-5">
               {/* Avatar */}
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-3xl text-white font-bold flex-shrink-0">
-                {profile.image ? (
-                  <img
-                    src={profile.image}
-                    alt=""
-                    className="w-20 h-20 rounded-full object-cover"
-                  />
-                ) : (
-                  (profile.name || "?")[0].toUpperCase()
-                )}
+              <div className="relative group flex-shrink-0">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-3xl text-white font-bold overflow-hidden">
+                  {profile.image ? (
+                    <img
+                      src={profile.image}
+                      alt=""
+                      className="w-20 h-20 rounded-full object-cover"
+                    />
+                  ) : (
+                    (profile.name || "?")[0].toUpperCase()
+                  )}
+                </div>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="absolute inset-0 w-20 h-20 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none"
+                >
+                  <span className="text-white text-[10px] font-orbitron tracking-wider">
+                    {uploadingAvatar ? "..." : "Edit"}
+                  </span>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
               </div>
 
               {/* Info */}
               <div className="flex-1 min-w-0">
                 {editing ? (
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="space-y-3 mb-2">
                     <input
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
+                      placeholder="Display name"
                       className="font-instrument text-2xl text-rudo-dark-text bg-white border border-rudo-card-border rounded px-2 py-1 focus:outline-none focus:border-rudo-blue/40 w-full"
                     />
-                    <Button variant="warm" onClick={handleSave} disabled={saving}>
-                      {saving ? "..." : "Save"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setEditing(false);
-                        setEditName(profile.name || "");
-                      }}
-                    >
-                      Cancel
-                    </Button>
+                    <textarea
+                      value={editBio}
+                      onChange={(e) => setEditBio(e.target.value.slice(0, 160))}
+                      placeholder="Write a short bio..."
+                      rows={2}
+                      className="text-sm text-rudo-dark-text bg-white border border-rudo-card-border rounded px-2 py-1.5 focus:outline-none focus:border-rudo-blue/40 w-full resize-none font-light"
+                    />
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-rudo-dark-muted">
+                        {editBio.length}/160
+                      </span>
+                      <div className="flex-1" />
+                      <Button variant="warm" onClick={handleSave} disabled={saving}>
+                        {saving ? "..." : "Save"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setEditing(false);
+                          setEditName(profile.name || "");
+                          setEditBio(profile.bio || "");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-3 mb-1">
-                    <h1 className="font-instrument text-2xl tracking-[-0.5px] text-rudo-dark-text">
-                      {profile.name || "Anonymous"}
-                    </h1>
-                    <button
-                      onClick={() => setEditing(true)}
-                      className="text-[10px] text-rudo-blue bg-transparent border border-rudo-blue/20 px-2 py-1 rounded cursor-pointer hover:bg-rudo-blue/5 transition-colors font-orbitron tracking-wider"
-                    >
-                      Edit
-                    </button>
-                  </div>
+                  <>
+                    <div className="flex items-center gap-3 mb-1">
+                      <h1 className="font-instrument text-2xl tracking-[-0.5px] text-rudo-dark-text">
+                        {profile.name || "Anonymous"}
+                      </h1>
+                      <button
+                        onClick={() => setEditing(true)}
+                        className="text-[10px] text-rudo-blue bg-transparent border border-rudo-blue/20 px-2 py-1 rounded cursor-pointer hover:bg-rudo-blue/5 transition-colors font-orbitron tracking-wider"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                    {profile.handle && (
+                      <p className="text-sm text-rudo-blue mb-1">
+                        @{profile.handle}
+                      </p>
+                    )}
+                    {profile.bio && (
+                      <p className="text-sm text-rudo-dark-text/80 font-light leading-relaxed mb-1">
+                        {profile.bio}
+                      </p>
+                    )}
+                    <p className="text-xs text-rudo-dark-text-sec font-light">
+                      {profile.email}
+                    </p>
+                  </>
                 )}
-                <p className="text-sm text-rudo-dark-text-sec font-light">
-                  {profile.email}
-                </p>
                 <div className="flex items-center gap-3 mt-3">
                   <span
                     className={`text-[10px] font-orbitron tracking-[2px] uppercase border px-2 py-0.5 ${tier.color}`}

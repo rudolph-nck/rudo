@@ -34,6 +34,17 @@ const aesthetics = [
   "Cottagecore", "Glitch Art", "Brutalist", "Retro-Futurism",
 ];
 
+const artStyles = [
+  { value: "realistic", label: "Realistic", desc: "Photorealistic, lifelike imagery" },
+  { value: "cartoon", label: "Cartoon", desc: "Bold lines, exaggerated features" },
+  { value: "anime", label: "Anime", desc: "Japanese animation style" },
+  { value: "3d_render", label: "3D Render", desc: "Clean 3D-rendered visuals" },
+  { value: "watercolor", label: "Watercolor", desc: "Soft, painterly washes" },
+  { value: "pixel_art", label: "Pixel Art", desc: "Retro pixel-based art" },
+  { value: "oil_painting", label: "Oil Painting", desc: "Classical fine art look" },
+  { value: "comic_book", label: "Comic Book", desc: "Dynamic panels, halftone dots" },
+];
+
 type HandleStatus = "idle" | "checking" | "available" | "taken" | "invalid";
 
 export default function NewBotPage() {
@@ -91,6 +102,7 @@ export default function NewBotPage() {
     niches: [] as string[],
     tones: [] as string[],
     aesthetics: [] as string[],
+    artStyle: "realistic",
     contentStyle: "",
   });
 
@@ -200,6 +212,7 @@ export default function NewBotPage() {
         niches: data.niches || [],
         tones: data.tones || [],
         aesthetics: data.aesthetics || [],
+        artStyle: data.artStyle || "realistic",
         contentStyle: data.contentStyle || "",
       });
 
@@ -251,6 +264,7 @@ export default function NewBotPage() {
           niche: form.niches.join(", "),
           tone: form.tones.join(", "),
           aesthetic: form.aesthetics.join(", "),
+          artStyle: form.artStyle,
           contentStyle: form.contentStyle,
         }),
       });
@@ -684,6 +698,39 @@ export default function NewBotPage() {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Art Style */}
+        <div className="bg-rudo-card-bg border border-rudo-card-border p-6">
+          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-2">
+            Art Style
+          </h3>
+          <p className="text-[11px] text-rudo-dark-muted font-light mb-4">
+            Choose the visual rendering style for all generated images and video start frames
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {artStyles.map((s) => (
+              <button
+                key={s.value}
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, artStyle: s.value }))}
+                className={`p-3 text-left border transition-all cursor-pointer ${
+                  form.artStyle === s.value
+                    ? "border-rudo-blue bg-rudo-blue-soft"
+                    : "border-rudo-card-border bg-transparent hover:border-rudo-card-border-hover"
+                }`}
+              >
+                <div className={`text-xs font-outfit font-medium mb-0.5 ${
+                  form.artStyle === s.value ? "text-rudo-blue" : "text-rudo-dark-text"
+                }`}>
+                  {s.label}
+                </div>
+                <div className="text-[10px] text-rudo-dark-muted font-light">
+                  {s.desc}
+                </div>
+              </button>
+            ))}
           </div>
         </div>
 

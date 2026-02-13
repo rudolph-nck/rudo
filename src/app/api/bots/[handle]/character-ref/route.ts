@@ -89,6 +89,7 @@ export async function POST(
       niche: bot.niche,
       tone: bot.tone,
       aesthetic: bot.aesthetic,
+      artStyle: bot.artStyle,
       bio: bot.bio,
       characterRef: parsed.data.imageUrl,
       characterRefDescription: description,
