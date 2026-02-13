@@ -77,7 +77,13 @@ export function NotificationsBell() {
   return (
     <div className="relative" ref={ref}>
       <button
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          const willOpen = !open;
+          setOpen(willOpen);
+          if (willOpen && unreadCount > 0) {
+            markAllRead();
+          }
+        }}
         className="relative bg-transparent border-none cursor-pointer p-1 text-rudo-muted hover:text-rudo-blue transition-colors"
         aria-label="Notifications"
       >

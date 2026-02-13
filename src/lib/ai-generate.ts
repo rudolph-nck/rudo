@@ -21,6 +21,7 @@ type BotContext = {
   niche: string | null;
   tone: string | null;
   aesthetic: string | null;
+  artStyle: string | null;
   bio: string | null;
   characterRef: string | null;
   characterRefDescription: string | null;
@@ -205,6 +206,21 @@ Always depict this character/entity consistently. Maintain the same visual ident
 }
 
 // ---------------------------------------------------------------------------
+// Art style rendering instructions
+// ---------------------------------------------------------------------------
+
+const ART_STYLE_PROMPTS: Record<string, string> = {
+  realistic: "Photorealistic, lifelike, high-resolution photography style",
+  cartoon: "Bold cartoon style with clean outlines, exaggerated features, vibrant flat colors",
+  anime: "Japanese anime/manga illustration style with large expressive eyes and dynamic poses",
+  "3d_render": "Clean 3D rendered style, smooth surfaces, studio lighting, Pixar/Blender quality",
+  watercolor: "Delicate watercolor painting style with soft washes, visible brush strokes, paper texture",
+  pixel_art: "Retro pixel art style, chunky pixels, limited color palette, 16-bit era aesthetic",
+  oil_painting: "Classical oil painting style, rich impasto textures, museum-quality fine art look",
+  comic_book: "Dynamic comic book illustration, bold ink lines, halftone dots, action panels",
+};
+
+// ---------------------------------------------------------------------------
 // Image generation
 // ---------------------------------------------------------------------------
 
@@ -217,13 +233,17 @@ async function generateImage(
       ? `\nCharacter/Entity to feature: ${bot.characterRefDescription}`
       : "";
 
+    const artStyleHint = ART_STYLE_PROMPTS[bot.artStyle || "realistic"] || ART_STYLE_PROMPTS.realistic;
+
     const imagePrompt = `Create a visually striking social media image for an AI creator.
 Creator identity: "${bot.name}" — ${bot.bio || "AI content creator"}.
 Style: ${bot.aesthetic || "modern digital art"}.
+Art style: ${artStyleHint}.
 Niche: ${bot.niche || "general"}.
 Caption context: ${postContent.slice(0, 200)}${characterContext}
 
 Requirements:
+- Render in ${artStyleHint} style
 - Eye-catching, feed-stopping visual suitable for Instagram/TikTok
 - Match the aesthetic and mood of the creator's brand
 - Bold composition, vibrant or atmospheric depending on niche
@@ -348,16 +368,19 @@ async function generateVideoContent(
     ? `\nCharacter/Entity: ${bot.characterRefDescription}`
     : "";
 
+  const artStyleHint = ART_STYLE_PROMPTS[bot.artStyle || "realistic"] || ART_STYLE_PROMPTS.realistic;
+
   const videoPrompt = `${style.direction}
 
 Creator: "${bot.name}" — ${bot.bio || "AI content creator"}.
-Visual style: ${bot.aesthetic || "modern digital art"}, ${bot.niche || "general"} niche.${characterContext}
+Visual style: ${bot.aesthetic || "modern digital art"}, ${bot.niche || "general"} niche.
+Art style: ${artStyleHint}.${characterContext}
 
 Context: ${caption}
 
 Requirements:
+- Render in ${artStyleHint} style
 - Vertical format (9:16), social media optimized
-- ${bot.aesthetic || "Modern"} aesthetic, visually striking
 - No text overlays, no watermarks
 - Cinematic quality, feed-stopping visual`;
 
@@ -396,16 +419,19 @@ export async function generateAvatar(
       ? `Based on this character: ${bot.characterRefDescription}`
       : `An abstract, iconic representation of an AI entity named "${bot.name}"`;
 
+    const artStyleHint = ART_STYLE_PROMPTS[bot.artStyle || "realistic"] || ART_STYLE_PROMPTS.realistic;
+
     const prompt = `Create a profile picture / avatar for an AI content creator.
 ${characterHint}
 Aesthetic: ${bot.aesthetic || "modern digital"}.
+Art style: ${artStyleHint}.
 Niche: ${bot.niche || "general"}.
 Personality: ${bot.personality?.slice(0, 150) || "creative AI"}
 
 Requirements:
+- Render in ${artStyleHint} style
 - Circular-crop friendly (centered subject)
 - Bold, iconic, immediately recognizable at small sizes
-- ${bot.aesthetic || "modern"} style
 - No text, no watermarks
 - Single subject/entity, clean background or atmospheric backdrop
 - Should feel like a distinctive social media profile picture`;
@@ -440,16 +466,19 @@ export async function generateBanner(
       ? `Feature this character/entity: ${bot.characterRefDescription}`
       : "";
 
+    const artStyleHint = ART_STYLE_PROMPTS[bot.artStyle || "realistic"] || ART_STYLE_PROMPTS.realistic;
+
     const prompt = `Create a wide banner image for an AI content creator's profile.
 Creator: "${bot.name}" — ${bot.bio || "AI creator"}.
 Aesthetic: ${bot.aesthetic || "modern digital"}.
+Art style: ${artStyleHint}.
 Niche: ${bot.niche || "general"}.
 ${characterHint}
 
 Requirements:
+- Render in ${artStyleHint} style
 - Wide landscape format (banner/header style)
 - Atmospheric, sets the mood for the creator's brand
-- ${bot.aesthetic || "modern"} style, visually immersive
 - No text, no watermarks
 - Should work as a profile header/banner background`;
 

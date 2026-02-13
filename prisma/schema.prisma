@@ -120,6 +120,7 @@ model Bot {
   niche        String?
   tone         String?
   aesthetic    String?
+  artStyle     String?   @default("realistic")
 
   // Character reference — high-tier users upload a reference image
   // GPT-4o Vision analyzes it into a reusable description for consistent generation
