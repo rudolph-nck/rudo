@@ -9,6 +9,15 @@ import { Button } from "@/components/ui/button";
 
 const PAID_TIERS = ["BYOB_FREE", "BYOB_PRO", "SPARK", "PULSE", "GRID"];
 
+const BOT_LIMITS: Record<string, number> = {
+  FREE: 0,
+  BYOB_FREE: 1,
+  BYOB_PRO: 1,
+  SPARK: 1,
+  PULSE: 1,
+  GRID: 3,
+};
+
 const niches = [
   "Digital Art", "Photography", "Music", "Comedy", "Philosophy",
   "Science", "Gaming", "Food", "Travel", "Fashion",
@@ -36,11 +45,38 @@ export default function NewBotPage() {
   const tier = (session?.user as any)?.tier || "FREE";
   const isPaid = PAID_TIERS.includes(tier);
   const isGrid = tier === "GRID";
+  const maxBots = BOT_LIMITS[tier] ?? 0;
+
+  // Bot limit check
+  const [botCount, setBotCount] = useState<number | null>(null);
+  const [checkingLimit, setCheckingLimit] = useState(true);
+
+  useEffect(() => {
+    async function checkBotCount() {
+      try {
+        const res = await fetch("/api/bots/mine");
+        if (res.ok) {
+          const data = await res.json();
+          setBotCount(data.bots?.length ?? 0);
+        }
+      } catch {
+        // allow through on error, backend will still enforce
+        setBotCount(0);
+      } finally {
+        setCheckingLimit(false);
+      }
+    }
+    if (isPaid) checkBotCount();
+    else setCheckingLimit(false);
+  }, [isPaid]);
+
+  const atBotLimit = botCount !== null && botCount >= maxBots;
 
   // AI generator state
   const [aiPrompt, setAiPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [showAiPanel, setShowAiPanel] = useState(false);
+  const [aiUsed, setAiUsed] = useState(false);
 
   // Character reference state (Grid tier)
   const [characterRefUrl, setCharacterRefUrl] = useState("");
@@ -167,6 +203,7 @@ export default function NewBotPage() {
         contentStyle: data.contentStyle || "",
       });
 
+      setAiUsed(true);
       setShowAiPanel(false);
     } catch {
       setError("Failed to generate bot profile");
@@ -278,6 +315,50 @@ export default function NewBotPage() {
     );
   }
 
+  if (checkingLimit) {
+    return (
+      <div className="py-20 text-center">
+        <div className="status-dot mx-auto mb-4" />
+        <p className="text-rudo-dark-text-sec text-sm">Loading...</p>
+      </div>
+    );
+  }
+
+  if (atBotLimit) {
+    return (
+      <div className="max-w-2xl">
+        <div className="mb-8">
+          <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
+            Create a Bot
+          </h1>
+          <p className="text-sm text-rudo-dark-text-sec font-light">
+            Design an AI personality and deploy it to the grid
+          </p>
+        </div>
+        <div className="bg-rudo-card-bg border border-rudo-card-border p-8 text-center">
+          <div className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-rose mb-3">
+            Bot Limit Reached
+          </div>
+          <p className="text-sm text-rudo-dark-text-sec font-light mb-2 max-w-md mx-auto">
+            Your <span className="text-rudo-blue font-medium">{tier}</span> plan allows up to {maxBots} {maxBots === 1 ? "bot" : "bots"}.
+            You currently have {botCount}.
+          </p>
+          <p className="text-sm text-rudo-dark-text-sec font-light mb-6 max-w-md mx-auto">
+            Upgrade your plan to create more bots.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Button href="/pricing" variant="warm">
+              Upgrade Plan
+            </Button>
+            <Button href="/dashboard/bots" variant="blue">
+              My Bots
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl">
       <div className="mb-8">
@@ -291,7 +372,16 @@ export default function NewBotPage() {
 
       {/* AI Bot Generator */}
       <div className="mb-6">
-        {!showAiPanel ? (
+        {aiUsed ? (
+          <div className="w-full bg-rudo-card-bg border border-rudo-card-border p-5 text-center">
+            <div className="font-orbitron font-bold text-[10px] tracking-[2px] uppercase text-green-500 mb-1">
+              AI Generation Used
+            </div>
+            <p className="text-[12px] text-rudo-dark-text-sec font-light">
+              You&apos;ve used your AI generation for this bot. Edit the fields below to fine-tune.
+            </p>
+          </div>
+        ) : !showAiPanel ? (
           <button
             type="button"
             onClick={() => setShowAiPanel(true)}
@@ -301,7 +391,7 @@ export default function NewBotPage() {
               Generate with AI
             </div>
             <p className="text-[12px] text-rudo-dark-text-sec font-light">
-              Describe the bot you want and AI will fill in the details
+              Describe the bot you want and AI will fill in the details (1 use per bot)
             </p>
           </button>
         ) : (

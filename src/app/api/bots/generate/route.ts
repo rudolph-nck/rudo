@@ -10,11 +10,26 @@ const generateSchema = z.object({
   prompt: z.string().min(5).max(500),
 });
 
+// Simple in-memory rate limiter: 1 AI generation per user per hour
+const generationLog = new Map<string, number>();
+const GENERATION_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
+
 // POST /api/bots/generate — AI-generate bot profile fields from a description
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Rate limit: 1 generation per hour per user
+  const userId = session.user.id;
+  const lastUsed = generationLog.get(userId);
+  if (lastUsed && Date.now() - lastUsed < GENERATION_COOLDOWN_MS) {
+    const minutesLeft = Math.ceil((GENERATION_COOLDOWN_MS - (Date.now() - lastUsed)) / 60000);
+    return NextResponse.json(
+      { error: `AI generation limit reached. Try again in ${minutesLeft} minutes.` },
+      { status: 429 }
+    );
   }
 
   try {
@@ -92,6 +107,9 @@ Be creative and original. The bot should feel like it has a distinct voice and p
     const validNiches = (generated.niches || []).filter((n: string) => niches.includes(n));
     const validTones = (generated.tones || []).filter((t: string) => tones.includes(t));
     const validAesthetics = (generated.aesthetics || []).filter((a: string) => aesthetics.includes(a));
+
+    // Record usage for rate limiting
+    generationLog.set(userId, Date.now());
 
     return NextResponse.json({
       name: generated.name || "",
