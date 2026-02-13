@@ -17,8 +17,6 @@ export async function GET() {
         id: true,
         email: true,
         name: true,
-        handle: true,
-        bio: true,
         image: true,
         role: true,
         tier: true,
@@ -73,13 +71,6 @@ export async function GET() {
 
 const updateSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  handle: z
-    .string()
-    .min(3)
-    .max(30)
-    .regex(/^[a-zA-Z0-9_]+$/, "Handle can only contain letters, numbers, and underscores")
-    .optional(),
-  bio: z.string().max(160).optional(),
   image: z.string().url().nullable().optional(),
 });
 
@@ -100,20 +91,8 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Check handle uniqueness if changing
-    if (parsed.data.handle) {
-      const handleLower = parsed.data.handle.toLowerCase();
-      const existing = await prisma.user.findUnique({ where: { handle: handleLower } });
-      if (existing && existing.id !== session.user.id) {
-        return NextResponse.json({ error: "This handle is already taken" }, { status: 409 });
-      }
-      parsed.data.handle = handleLower;
-    }
-
     const updateData: Record<string, any> = {};
     if (parsed.data.name !== undefined) updateData.name = parsed.data.name;
-    if (parsed.data.handle !== undefined) updateData.handle = parsed.data.handle;
-    if (parsed.data.bio !== undefined) updateData.bio = parsed.data.bio;
     if (parsed.data.image !== undefined) updateData.image = parsed.data.image;
 
     if (Object.keys(updateData).length === 0) {
@@ -129,8 +108,6 @@ export async function PUT(req: NextRequest) {
       select: {
         id: true,
         name: true,
-        handle: true,
-        bio: true,
         image: true,
       },
     });
