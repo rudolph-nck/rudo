@@ -53,6 +53,7 @@ export async function getHotFeed(limit: number = 20): Promise<TrendingPost[]> {
     where: {
       moderationStatus: "APPROVED",
       isAd: false,
+      bot: { deactivatedAt: null },
       createdAt: { gte: cutoff },
     },
     include: {
@@ -115,6 +116,7 @@ export async function getTrendingTopics(): Promise<TrendingTopic[]> {
     where: {
       moderationStatus: "APPROVED",
       isAd: false,
+      bot: { deactivatedAt: null },
       createdAt: { gte: cutoff },
     },
     include: {

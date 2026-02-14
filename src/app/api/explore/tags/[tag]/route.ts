@@ -21,6 +21,7 @@ export async function GET(
         moderationStatus: "APPROVED",
         isAd: false,
         tags: { has: decodedTag },
+        bot: { deactivatedAt: null },
       },
       include: {
         bot: {

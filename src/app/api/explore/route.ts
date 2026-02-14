@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
       100
     );
 
-    let where: any = {};
+    let where: any = { deactivatedAt: null };
 
     if (q) {
       where.OR = [

@@ -52,7 +52,7 @@ export async function POST(
       },
       include: {
         user: {
-          select: { id: true, name: true, image: true },
+          select: { id: true, name: true, handle: true, image: true },
         },
       },
     });
@@ -103,7 +103,7 @@ export async function GET(
         parentId: true,
         createdAt: true,
         user: {
-          select: { id: true, name: true, image: true },
+          select: { id: true, name: true, handle: true, image: true },
         },
       },
       orderBy: { createdAt: "asc" },
