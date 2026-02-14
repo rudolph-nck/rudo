@@ -2,17 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateAvatar, generateBanner } from "@/lib/ai-generate";
+import { generateAvatar } from "@/lib/ai-generate";
 
 /**
  * POST /api/bots/[handle]/avatar
- * Generate (or regenerate) avatar and/or banner for a bot using DALL-E 3.
+ * Generate (or regenerate) avatar for a bot using Flux via fal.ai.
  * Spark+ tiers can AI-generate. All tiers can manually upload (handled separately via media upload).
- *
- * Query params:
- *   ?type=avatar  — generate avatar only
- *   ?type=banner  — generate banner only
- *   ?type=both    — generate both (default)
  */
 export async function POST(
   req: NextRequest,
@@ -24,7 +19,6 @@ export async function POST(
   }
 
   const { handle } = await params;
-  const genType = req.nextUrl.searchParams.get("type") || "both";
 
   // Find the bot and verify ownership
   const bot = await prisma.bot.findUnique({
@@ -61,43 +55,25 @@ export async function POST(
     bio: bot.bio,
     characterRef: bot.characterRef,
     characterRefDescription: bot.characterRefDescription,
+    botType: bot.botType,
+    personaData: bot.personaData,
   };
 
   try {
-    let avatarUrl: string | null = null;
-    let bannerUrl: string | null = null;
+    const avatarUrl = await generateAvatar(botContext);
 
-    if (genType === "avatar" || genType === "both") {
-      avatarUrl = await generateAvatar(botContext);
-    }
-
-    if (genType === "banner" || genType === "both") {
-      bannerUrl = await generateBanner(botContext);
-    }
-
-    // generateAvatar/generateBanner already persist to S3 internally
-    // They return null if S3 isn't configured (instead of temp DALL-E URLs)
-
-    // Update bot with persistent image URLs
-    const updateData: Record<string, string> = {};
-    if (avatarUrl) updateData.avatar = avatarUrl;
-    if (bannerUrl) updateData.banner = bannerUrl;
-
-    if (Object.keys(updateData).length > 0) {
+    if (avatarUrl) {
       await prisma.bot.update({
         where: { id: bot.id },
-        data: updateData,
+        data: { avatar: avatarUrl },
       });
     }
 
-    return NextResponse.json({
-      avatar: avatarUrl,
-      banner: bannerUrl,
-    });
+    return NextResponse.json({ avatar: avatarUrl });
   } catch (error: any) {
-    console.error("Avatar/banner generation error:", error.message);
+    console.error("Avatar generation error:", error.message);
     return NextResponse.json(
-      { error: "Failed to generate avatar/banner" },
+      { error: "Failed to generate avatar" },
       { status: 500 }
     );
   }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateAvatar, generateBanner } from "@/lib/ai-generate";
+import { generateAvatar } from "@/lib/ai-generate";
 import { z } from "zod";
 
 const createBotSchema = z.object({
@@ -88,8 +88,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Auto-generate avatar + banner for paid AI tiers (Spark+)
-    // Runs async — bot is created immediately, visuals follow
+    // Auto-generate avatar for paid AI tiers (Spark+)
+    // Runs async — bot is created immediately, avatar follows
     const aiTiers = ["SPARK", "PULSE", "GRID"];
     if (aiTiers.includes(user?.tier || "")) {
       const botContext = {
@@ -104,24 +104,20 @@ export async function POST(req: NextRequest) {
         bio: parsed.data.bio || null,
         characterRef: null,
         characterRefDescription: null,
+        botType: parsed.data.botType || "person",
+        personaData: parsed.data.personaData || null,
       };
 
       // Fire-and-forget: don't block bot creation on image generation
-      Promise.all([
-        generateAvatar(botContext),
-        generateBanner(botContext),
-      ]).then(async ([avatarUrl, bannerUrl]) => {
-        const updateData: Record<string, string> = {};
-        if (avatarUrl) updateData.avatar = avatarUrl;
-        if (bannerUrl) updateData.banner = bannerUrl;
-        if (Object.keys(updateData).length > 0) {
+      generateAvatar(botContext).then(async (avatarUrl) => {
+        if (avatarUrl) {
           await prisma.bot.update({
             where: { id: bot.id },
-            data: updateData,
+            data: { avatar: avatarUrl },
           });
         }
       }).catch((err) => {
-        console.error("Auto avatar/banner generation failed:", err.message);
+        console.error("Auto avatar generation failed:", err.message);
       });
     }
 
