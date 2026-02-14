@@ -54,6 +54,7 @@ export default function ProfilePage() {
   const [editBio, setEditBio] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -109,6 +110,7 @@ export default function ProfilePage() {
     if (!file || !profile) return;
 
     setUploadingAvatar(true);
+    setError(null);
     try {
       // Get presigned upload URL
       const urlRes = await fetch("/api/upload", {
@@ -120,15 +122,23 @@ export default function ProfilePage() {
           size: file.size,
         }),
       });
-      if (!urlRes.ok) return;
+      if (!urlRes.ok) {
+        const data = await urlRes.json().catch(() => ({}));
+        setError(data.error || "Failed to get upload URL");
+        return;
+      }
       const { uploadUrl, publicUrl } = await urlRes.json();
 
-      // Upload to S3
-      await fetch(uploadUrl, {
+      // Upload to R2/S3
+      const uploadRes = await fetch(uploadUrl, {
         method: "PUT",
         body: file,
         headers: { "Content-Type": file.type },
       });
+      if (!uploadRes.ok) {
+        setError("Failed to upload file to storage");
+        return;
+      }
 
       // Update profile with new avatar URL
       const res = await fetch("/api/profile", {
@@ -138,9 +148,11 @@ export default function ProfilePage() {
       });
       if (res.ok) {
         setProfile((prev) => (prev ? { ...prev, image: publicUrl } : prev));
+      } else {
+        setError("Failed to update profile");
       }
     } catch {
-      // silent
+      setError("Upload failed — check your connection");
     } finally {
       setUploadingAvatar(false);
     }
@@ -220,6 +232,11 @@ export default function ProfilePage() {
                   onChange={handleAvatarUpload}
                   className="hidden"
                 />
+                {error && (
+                  <p className="absolute -bottom-6 left-0 text-[10px] text-red-500 whitespace-nowrap">
+                    {error}
+                  </p>
+                )}
               </div>
 
               {/* Info */}

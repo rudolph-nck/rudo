@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { createUploadUrl, validateUpload } from "@/lib/media";
+import { createUploadUrl, validateUpload, isStorageConfigured } from "@/lib/media";
 import { z } from "zod";
 
 const uploadSchema = z.object({
@@ -24,6 +24,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Invalid upload params" },
         { status: 400 }
+      );
+    }
+
+    if (!isStorageConfigured()) {
+      return NextResponse.json(
+        { error: "Media storage is not configured. Set S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, and NEXT_PUBLIC_MEDIA_URL environment variables." },
+        { status: 503 }
       );
     }
 
