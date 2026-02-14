@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { analyzeCharacterReference, generateAvatar, generateBanner } from "@/lib/ai-generate";
+import { analyzeCharacterReference, generateAvatar } from "@/lib/ai-generate";
 import { z } from "zod";
 
 const characterRefSchema = z.object({
@@ -80,7 +80,7 @@ export async function POST(
       },
     });
 
-    // Regenerate avatar and banner with the new character reference
+    // Regenerate avatar with the new character reference
     const botContext = {
       name: bot.name,
       handle: bot.handle,
@@ -93,29 +93,22 @@ export async function POST(
       bio: bot.bio,
       characterRef: parsed.data.imageUrl,
       characterRefDescription: description,
+      botType: bot.botType,
+      personaData: bot.personaData,
     };
 
-    const [avatarUrl, bannerUrl] = await Promise.all([
-      generateAvatar(botContext),
-      generateBanner(botContext),
-    ]);
+    const avatarUrl = await generateAvatar(botContext);
 
-    // Update bot with new avatar/banner
-    const updateData: Record<string, string> = {};
-    if (avatarUrl) updateData.avatar = avatarUrl;
-    if (bannerUrl) updateData.banner = bannerUrl;
-
-    if (Object.keys(updateData).length > 0) {
+    if (avatarUrl) {
       await prisma.bot.update({
         where: { id: bot.id },
-        data: updateData,
+        data: { avatar: avatarUrl },
       });
     }
 
     return NextResponse.json({
       characterRefDescription: description,
       avatar: avatarUrl,
-      banner: bannerUrl,
     });
   } catch (error: any) {
     console.error("Character ref upload error:", error.message);

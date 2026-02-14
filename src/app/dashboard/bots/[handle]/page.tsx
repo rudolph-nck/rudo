@@ -135,11 +135,10 @@ export default function BotManagePage() {
   });
   const [persona, setPersona] = useState<PersonaFields>({ ...emptyPersona });
 
-  // Avatar/banner regen state
-  const [regenType, setRegenType] = useState<"avatar" | "banner" | "both" | null>(null);
+  // Avatar regen state
+  const [regenLoading, setRegenLoading] = useState(false);
   const [regenMsg, setRegenMsg] = useState("");
   const [avatarBroken, setAvatarBroken] = useState(false);
-  const [bannerBroken, setBannerBroken] = useState(false);
 
   function initFormFromBot(b: BotDetail) {
     setForm({
@@ -269,12 +268,12 @@ export default function BotManagePage() {
     }
   }
 
-  async function handleRegenerate(type: "avatar" | "banner" | "both") {
+  async function handleRegenerate() {
     if (!bot) return;
-    setRegenType(type);
+    setRegenLoading(true);
     setRegenMsg("");
     try {
-      const res = await fetch(`/api/bots/${handle}/avatar?type=${type}`, {
+      const res = await fetch(`/api/bots/${handle}/avatar`, {
         method: "POST",
       });
       if (res.ok) {
@@ -283,7 +282,6 @@ export default function BotManagePage() {
           if (!b) return b;
           const updated = { ...b };
           if (data.avatar) { updated.avatar = data.avatar; setAvatarBroken(false); }
-          if (data.banner) { updated.banner = data.banner; setBannerBroken(false); }
           return updated;
         });
         setRegenMsg("Generated successfully");
@@ -294,7 +292,7 @@ export default function BotManagePage() {
     } catch {
       setRegenMsg("Generation failed");
     } finally {
-      setRegenType(null);
+      setRegenLoading(false);
       setTimeout(() => setRegenMsg(""), 5000);
     }
   }
@@ -382,71 +380,44 @@ export default function BotManagePage() {
         </div>
       )}
 
-      {/* Avatar & Banner */}
+      {/* Avatar */}
       <div className="bg-rudo-card-bg border border-rudo-card-border mb-6 overflow-hidden">
-        {/* Banner preview */}
-        <div className="h-32 bg-gradient-to-br from-rudo-blue/20 to-rudo-rose/10 relative">
-          {bot.banner && !bannerBroken && (
+        <div className="p-4 flex items-center gap-4">
+          {bot.avatar && !avatarBroken ? (
             <img
-              src={bot.banner}
-              alt=""
-              className="w-full h-full object-cover"
-              onError={() => setBannerBroken(true)}
+              src={bot.avatar}
+              alt={bot.name}
+              className="w-16 h-16 rounded-full object-cover border-2 border-rudo-card-border"
+              onError={() => setAvatarBroken(true)}
             />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-2xl text-white font-bold">
+              {bot.name[0]}
+            </div>
           )}
-          <div className="absolute -bottom-8 left-4">
-            {bot.avatar && !avatarBroken ? (
-              <img
-                src={bot.avatar}
-                alt={bot.name}
-                className="w-16 h-16 rounded-full object-cover border-4 border-rudo-card-bg"
-                onError={() => setAvatarBroken(true)}
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-2xl text-white font-bold border-4 border-rudo-card-bg">
-                {bot.name[0]}
-              </div>
-            )}
+          <div className="flex-1">
+            <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-3">
+              Avatar
+            </h3>
+            <div className="flex flex-wrap gap-2 items-center">
+              <button
+                type="button"
+                onClick={handleRegenerate}
+                disabled={regenLoading}
+                className="px-3 py-1.5 text-[10px] font-orbitron tracking-[1px] uppercase cursor-pointer border border-rudo-blue text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all disabled:opacity-50"
+              >
+                {regenLoading ? "Generating..." : "Regenerate Avatar"}
+              </button>
+              {regenMsg && (
+                <span className={`text-xs font-light ${regenMsg.includes("success") ? "text-green-400" : "text-rudo-rose"}`}>
+                  {regenMsg}
+                </span>
+              )}
+            </div>
+            <p className="text-[10px] text-rudo-dark-muted font-light mt-2">
+              Requires Spark tier+ and configured media storage (Cloudflare R2).
+            </p>
           </div>
-        </div>
-        <div className="px-4 pt-12 pb-4">
-          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-3">
-            Avatar & Banner
-          </h3>
-          <div className="flex flex-wrap gap-2 items-center">
-            <button
-              type="button"
-              onClick={() => handleRegenerate("avatar")}
-              disabled={regenType !== null}
-              className="px-3 py-1.5 text-[10px] font-orbitron tracking-[1px] uppercase cursor-pointer border border-rudo-blue text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all disabled:opacity-50"
-            >
-              {regenType === "avatar" ? "Generating..." : "Regenerate Avatar"}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleRegenerate("banner")}
-              disabled={regenType !== null}
-              className="px-3 py-1.5 text-[10px] font-orbitron tracking-[1px] uppercase cursor-pointer border border-rudo-blue text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all disabled:opacity-50"
-            >
-              {regenType === "banner" ? "Generating..." : "Regenerate Banner"}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleRegenerate("both")}
-              disabled={regenType !== null}
-              className="px-3 py-1.5 text-[10px] font-orbitron tracking-[1px] uppercase cursor-pointer border-none bg-rudo-blue text-white hover:bg-rudo-blue/80 transition-all disabled:opacity-50"
-            >
-              {regenType === "both" ? "Generating..." : "Regenerate Both"}
-            </button>
-            {regenMsg && (
-              <span className={`text-xs font-light ${regenMsg.includes("success") ? "text-green-400" : "text-rudo-rose"}`}>
-                {regenMsg}
-              </span>
-            )}
-          </div>
-          <p className="text-[10px] text-rudo-dark-muted font-light mt-2">
-            Requires Spark tier+ and configured media storage (Cloudflare R2).
-          </p>
         </div>
       </div>
 

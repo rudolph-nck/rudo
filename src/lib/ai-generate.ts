@@ -25,6 +25,8 @@ type BotContext = {
   bio: string | null;
   characterRef: string | null;
   characterRefDescription: string | null;
+  botType: string | null;
+  personaData: string | null;
 };
 
 // ---------------------------------------------------------------------------
@@ -414,25 +416,66 @@ Requirements:
 }
 
 // ---------------------------------------------------------------------------
-// Avatar & banner generation
+// Avatar generation (Flux via fal.ai)
 // ---------------------------------------------------------------------------
 
 export async function generateAvatar(
   bot: BotContext
 ): Promise<string | null> {
   try {
-    const characterHint = bot.characterRefDescription
-      ? `Based on this character: ${bot.characterRefDescription}`
-      : `An abstract, iconic representation of an AI entity named "${bot.name}"`;
+    // Parse persona data for person-type bots
+    let personaDetails: Record<string, string> = {};
+    if (bot.personaData) {
+      try { personaDetails = JSON.parse(bot.personaData); } catch { /* ignore */ }
+    }
 
-    const artStyleHint = ART_STYLE_PROMPTS[bot.artStyle || "realistic"] || ART_STYLE_PROMPTS.realistic;
+    const isPerson = (bot.botType || "person") === "person";
 
-    const prompt = `Create a profile picture / avatar for an AI content creator.
+    let prompt: string;
+
+    if (isPerson) {
+      // Build a detailed photorealistic portrait prompt from persona data
+      const gender = personaDetails.gender || "";
+      const ageRange = personaDetails.ageRange || "25-34";
+      const appearance = personaDetails.appearance || "";
+      const profession = personaDetails.profession || "";
+      const location = personaDetails.location || "";
+
+      const subjectDesc = [
+        gender ? `${gender.toLowerCase()}` : "person",
+        ageRange ? `aged ${ageRange}` : "",
+        profession ? `who works as a ${profession}` : "",
+        location ? `based in ${location}` : "",
+      ].filter(Boolean).join(", ");
+
+      const appearanceHint = appearance
+        ? `Physical appearance: ${appearance}.`
+        : "";
+
+      const characterHint = bot.characterRefDescription
+        ? `Character details: ${bot.characterRefDescription}.`
+        : "";
+
+      prompt = `Professional portrait photograph of a real ${subjectDesc}. ${appearanceHint} ${characterHint}
+
+Shot on Canon EOS R5 with 85mm f/1.4 lens. Natural lighting, shallow depth of field with soft bokeh background. Head and shoulders framing, looking at camera with a natural expression. High-end editorial portrait photography style.
+
+The person should look like a real human being — natural skin texture, realistic features, authentic expression. Think LinkedIn headshot meets editorial magazine portrait. Clean, simple background.
+
+No illustrations, no digital art, no anime, no cartoon, no AI-looking artifacts. Ultra photorealistic. No text, no watermarks.`;
+    } else {
+      // Non-person bots: use art style for a stylized avatar
+      const characterHint = bot.characterRefDescription
+        ? `Based on this character: ${bot.characterRefDescription}`
+        : `An iconic representation of "${bot.name}"`;
+
+      const artStyleHint = ART_STYLE_PROMPTS[bot.artStyle || "realistic"] || ART_STYLE_PROMPTS.realistic;
+
+      prompt = `Create a profile picture / avatar for a content creator.
 ${characterHint}
 Aesthetic: ${bot.aesthetic || "modern digital"}.
 Art style: ${artStyleHint}.
 Niche: ${bot.niche || "general"}.
-Personality: ${bot.personality?.slice(0, 150) || "creative AI"}
 
 Requirements:
 - Render in ${artStyleHint} style
@@ -441,16 +484,20 @@ Requirements:
 - No text, no watermarks
 - Single subject/entity, clean background or atmospheric backdrop
 - Should feel like a distinctive social media profile picture`;
+    }
 
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "standard",
-    });
+    // Use Flux via fal.ai for high-quality image generation
+    const result = await fal.subscribe("fal-ai/flux/dev", {
+      input: {
+        prompt,
+        image_size: "square_hd",
+        num_images: 1,
+        enable_safety_checker: true,
+      },
+      logs: false,
+    }) as { data: { images?: { url?: string }[] } };
 
-    const tempUrl = response.data?.[0]?.url || null;
+    const tempUrl = result.data?.images?.[0]?.url || null;
     if (!tempUrl) return null;
 
     if (!isStorageConfigured()) {
@@ -470,57 +517,6 @@ Requirements:
   }
 }
 
-export async function generateBanner(
-  bot: BotContext
-): Promise<string | null> {
-  try {
-    const characterHint = bot.characterRefDescription
-      ? `Feature this character/entity: ${bot.characterRefDescription}`
-      : "";
-
-    const artStyleHint = ART_STYLE_PROMPTS[bot.artStyle || "realistic"] || ART_STYLE_PROMPTS.realistic;
-
-    const prompt = `Create a wide banner image for an AI content creator's profile.
-Creator: "${bot.name}" — ${bot.bio || "AI creator"}.
-Aesthetic: ${bot.aesthetic || "modern digital"}.
-Art style: ${artStyleHint}.
-Niche: ${bot.niche || "general"}.
-${characterHint}
-
-Requirements:
-- Render in ${artStyleHint} style
-- Wide landscape format (banner/header style)
-- Atmospheric, sets the mood for the creator's brand
-- No text, no watermarks
-- Should work as a profile header/banner background`;
-
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt,
-      n: 1,
-      size: "1792x1024",
-      quality: "standard",
-    });
-
-    const tempUrl = response.data?.[0]?.url || null;
-    if (!tempUrl) return null;
-
-    if (!isStorageConfigured()) {
-      console.warn("S3 not configured — banner will NOT be stored. Set S3 env vars.");
-      return null;
-    }
-
-    try {
-      return await persistImage(tempUrl, "bots/banners");
-    } catch (err: any) {
-      console.error("Failed to persist banner to S3:", err.message);
-      return null;
-    }
-  } catch (error: any) {
-    console.error("Banner generation failed:", error.message);
-    return null;
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Character reference analysis (GPT-4o Vision)

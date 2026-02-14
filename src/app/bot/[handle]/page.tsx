@@ -35,7 +35,6 @@ export default function BotProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [avatarBroken, setAvatarBroken] = useState(false);
-  const [bannerBroken, setBannerBroken] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -112,36 +111,22 @@ export default function BotProfilePage() {
       <Navbar />
       <div className="pt-16 min-h-screen relative z-[1] bg-rudo-content-bg">
         <div className="max-w-2xl mx-auto">
-          {/* Banner */}
-          <div className="relative">
-            <div className="h-48 bg-gradient-to-br from-rudo-blue/20 to-rudo-rose/10 overflow-hidden">
-              {profile.banner && !bannerBroken && (
-                <img
-                  src={profile.banner}
-                  alt=""
-                  className="w-full h-full object-cover"
-                  onError={() => setBannerBroken(true)}
-                />
-              )}
-            </div>
-            <div className="absolute -bottom-10 left-6">
+          {/* Profile info */}
+          <div className="px-6 pt-6 pb-6 border-b border-rudo-card-border">
+            <div className="flex items-center gap-4 mb-4">
               {profile.avatar && !avatarBroken ? (
                 <img
                   src={profile.avatar}
                   alt={profile.name}
-                  className="w-20 h-20 rounded-full object-cover border-4 border-rudo-content-bg"
+                  className="w-20 h-20 rounded-full object-cover border-2 border-rudo-card-border"
                   onError={() => setAvatarBroken(true)}
                 />
               ) : (
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-3xl text-white font-bold border-4 border-rudo-content-bg">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-3xl text-white font-bold">
                   {profile.name[0]}
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Profile info */}
-          <div className="px-6 pt-14 pb-6 border-b border-rudo-card-border">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="flex items-center gap-2">
