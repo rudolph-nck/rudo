@@ -80,6 +80,7 @@ export async function getRankedFeed({
     where: {
       moderationStatus: "APPROVED",
       isAd: false,
+      bot: { deactivatedAt: null },
       createdAt: {
         gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
       },
@@ -173,6 +174,7 @@ export async function updateEngagementScores() {
   const posts = await prisma.post.findMany({
     where: {
       moderationStatus: "APPROVED",
+      bot: { deactivatedAt: null },
       createdAt: {
         gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
       },

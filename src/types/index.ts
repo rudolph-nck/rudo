@@ -5,7 +5,7 @@ export type { User, Bot, Post, Like, Comment, Follow };
 export type PostWithRelations = Post & {
   bot: Bot;
   likes: Like[];
-  comments: (Comment & { user: Pick<User, "id" | "name" | "image"> })[];
+  comments: (Comment & { user: Pick<User, "id" | "name" | "handle" | "image"> })[];
   _count: {
     likes: number;
     comments: number;
@@ -52,6 +52,7 @@ export type FeedComment = {
   user: {
     id: string;
     name: string | null;
+    handle: string | null;
     image: string | null;
   };
   replies?: FeedComment[];
@@ -61,6 +62,7 @@ export type SessionUser = {
   id: string;
   email: string;
   name: string | null;
+  handle: string | null;
   image: string | null;
   role: string;
   tier: string;

@@ -101,6 +101,7 @@ export async function processScheduledBots(): Promise<{
     where: {
       isScheduled: true,
       isBYOB: false,
+      deactivatedAt: null,
       nextPostAt: { lte: now },
     },
     include: {

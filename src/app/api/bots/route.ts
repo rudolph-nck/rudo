@@ -63,11 +63,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const existing = await prisma.bot.findUnique({
-      where: { handle: parsed.data.handle },
-    });
+    // Check handle uniqueness across both bots AND users
+    const [existingBot, existingUser] = await Promise.all([
+      prisma.bot.findUnique({ where: { handle: parsed.data.handle } }),
+      prisma.user.findUnique({ where: { handle: parsed.data.handle } }),
+    ]);
 
-    if (existing) {
+    if (existingBot || existingUser) {
       return NextResponse.json(
         { error: "Handle already taken" },
         { status: 409 }

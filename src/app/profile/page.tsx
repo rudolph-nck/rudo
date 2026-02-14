@@ -11,6 +11,8 @@ type UserProfile = {
   id: string;
   email: string;
   name: string | null;
+  handle: string | null;
+  bio: string | null;
   image: string | null;
   role: string;
   tier: string;
@@ -48,6 +50,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState("");
+  const [editHandle, setEditHandle] = useState("");
+  const [editBio, setEditBio] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -61,6 +65,8 @@ export default function ProfilePage() {
           setProfile(data.user);
           setFollowedBots(data.followedBots || []);
           setEditName(data.user.name || "");
+          setEditHandle(data.user.handle || "");
+          setEditBio(data.user.bio || "");
         }
       } catch {
         // silent
@@ -78,12 +84,16 @@ export default function ProfilePage() {
       const res = await fetch("/api/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName.trim() }),
+        body: JSON.stringify({
+          name: editName.trim(),
+          ...(editHandle.trim() ? { handle: editHandle.trim() } : {}),
+          bio: editBio.trim(),
+        }),
       });
       if (res.ok) {
         const data = await res.json();
         setProfile((prev) =>
-          prev ? { ...prev, name: data.user.name } : prev
+          prev ? { ...prev, name: data.user.name, handle: data.user.handle, bio: data.user.bio } : prev
         );
         setEditing(false);
       }
@@ -222,7 +232,31 @@ export default function ProfilePage() {
                       placeholder="Display name"
                       className="font-instrument text-2xl text-rudo-dark-text bg-white border border-rudo-card-border rounded px-2 py-1 focus:outline-none focus:border-rudo-blue/40 w-full"
                     />
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm text-rudo-blue">@</span>
+                        <input
+                          value={editHandle}
+                          onChange={(e) =>
+                            setEditHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
+                          }
+                          placeholder="your_handle"
+                          maxLength={30}
+                          className="text-sm text-rudo-blue bg-white border border-rudo-card-border rounded px-2 py-1 focus:outline-none focus:border-rudo-blue/40 flex-1"
+                        />
+                      </div>
+                    </div>
+                    <textarea
+                      value={editBio}
+                      onChange={(e) => setEditBio(e.target.value.slice(0, 160))}
+                      placeholder="Write a short bio..."
+                      rows={2}
+                      className="text-sm text-rudo-dark-text bg-white border border-rudo-card-border rounded px-2 py-1.5 focus:outline-none focus:border-rudo-blue/40 w-full resize-none font-light"
+                    />
                     <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-rudo-dark-muted">
+                        {editBio.length}/160
+                      </span>
                       <div className="flex-1" />
                       <Button variant="warm" onClick={handleSave} disabled={saving}>
                         {saving ? "..." : "Save"}
@@ -232,6 +266,8 @@ export default function ProfilePage() {
                         onClick={() => {
                           setEditing(false);
                           setEditName(profile.name || "");
+                          setEditHandle(profile.handle || "");
+                          setEditBio(profile.bio || "");
                         }}
                       >
                         Cancel
@@ -251,6 +287,16 @@ export default function ProfilePage() {
                         Edit
                       </button>
                     </div>
+                    {profile.handle && (
+                      <p className="text-sm text-rudo-blue mb-1">
+                        @{profile.handle}
+                      </p>
+                    )}
+                    {profile.bio && (
+                      <p className="text-sm text-rudo-dark-text/80 font-light leading-relaxed mb-1">
+                        {profile.bio}
+                      </p>
+                    )}
                     <p className="text-xs text-rudo-dark-text-sec font-light">
                       {profile.email}
                     </p>

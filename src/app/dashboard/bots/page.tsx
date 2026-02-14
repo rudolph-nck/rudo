@@ -12,6 +12,7 @@ type BotSummary = {
   avatar: string | null;
   isVerified: boolean;
   isBYOB: boolean;
+  deactivatedAt: string | null;
   niche: string | null;
   _count: { posts: number; follows: number };
 };
@@ -74,7 +75,7 @@ export default function BotsPage() {
             <Link
               key={bot.id}
               href={`/dashboard/bots/${bot.handle}`}
-              className="flex items-center gap-4 p-4 bg-rudo-card-bg border border-rudo-card-border hover:border-rudo-card-border-hover transition-all no-underline"
+              className={`flex items-center gap-4 p-4 bg-rudo-card-bg border hover:border-rudo-card-border-hover transition-all no-underline ${bot.deactivatedAt ? "border-rudo-rose/20 opacity-60" : "border-rudo-card-border"}`}
             >
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-white font-bold flex-shrink-0 overflow-hidden">
                 {bot.avatar ? (
@@ -95,6 +96,11 @@ export default function BotsPage() {
                   {bot.isBYOB && (
                     <span className="text-[10px] font-orbitron tracking-wider text-rudo-dark-muted border border-rudo-card-border px-2 py-0.5">
                       BYOB
+                    </span>
+                  )}
+                  {bot.deactivatedAt && (
+                    <span className="text-[10px] font-orbitron tracking-wider text-rudo-rose border border-rudo-rose/20 px-2 py-0.5">
+                      Deactivated
                     </span>
                   )}
                 </div>

@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     }
 
     // "Following" and "Trending" use direct queries
-    let where: any = { moderationStatus: "APPROVED", isAd: false };
+    let where: any = { moderationStatus: "APPROVED", isAd: false, bot: { deactivatedAt: null } };
 
     if (tab === "following" && userId) {
       const follows = await prisma.follow.findMany({

@@ -60,6 +60,7 @@ type BotDetail = {
   personaData: string | null;
   isVerified: boolean;
   isBYOB: boolean;
+  deactivatedAt: string | null;
   isScheduled: boolean;
   postsPerDay: number;
   nextPostAt: string | null;
@@ -115,6 +116,7 @@ export default function BotManagePage() {
   const [loading, setLoading] = useState(true);
   const [scheduling, setScheduling] = useState(false);
   const [nextPostAt, setNextPostAt] = useState<string | null>(null);
+  const [deactivating, setDeactivating] = useState(false);
 
   // Edit form state
   const [editing, setEditing] = useState(false);
@@ -297,6 +299,30 @@ export default function BotManagePage() {
     }
   }
 
+  async function handleDeactivate() {
+    if (!bot) return;
+    const action = bot.deactivatedAt ? "reactivate" : "deactivate";
+    if (action === "deactivate" && !confirm("Deactivate this bot? It will be hidden from feeds and explore. Your bot slot stays used until your next billing cycle.")) {
+      return;
+    }
+    setDeactivating(true);
+    try {
+      const res = await fetch(`/api/bots/${handle}/deactivate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setBot((b) => b ? { ...b, deactivatedAt: data.bot.deactivatedAt, isScheduled: action === "deactivate" ? false : b.isScheduled } : b);
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeactivating(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="py-20 text-center">
@@ -336,6 +362,25 @@ export default function BotManagePage() {
           </Button>
         </div>
       </div>
+
+      {/* Deactivated banner */}
+      {bot.deactivatedAt && (
+        <div className="bg-rudo-rose/10 border border-rudo-rose/20 p-4 mb-6 flex items-center justify-between">
+          <div>
+            <p className="text-sm text-rudo-rose font-medium">Bot Deactivated</p>
+            <p className="text-xs text-rudo-dark-muted font-light mt-0.5">
+              Hidden from feeds and explore. Slot remains used until next billing cycle.
+            </p>
+          </div>
+          <button
+            onClick={handleDeactivate}
+            disabled={deactivating}
+            className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase cursor-pointer border border-rudo-blue text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all disabled:opacity-50"
+          >
+            {deactivating ? "..." : "Reactivate"}
+          </button>
+        </div>
+      )}
 
       {/* Avatar & Banner */}
       <div className="bg-rudo-card-bg border border-rudo-card-border mb-6 overflow-hidden">
@@ -992,6 +1037,26 @@ export default function BotManagePage() {
           </div>
         )}
       </div>
+
+      {/* Danger Zone — Deactivate */}
+      {!bot.deactivatedAt && (
+        <div className="border border-rudo-rose/20 p-6 mt-6">
+          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-rose mb-2">
+            Danger Zone
+          </h3>
+          <p className="text-xs text-rudo-dark-text-sec font-light mb-4">
+            Deactivating hides this bot from feeds and explore. Your bot slot stays used until
+            the next billing cycle — you won&apos;t be able to create a replacement bot until then.
+          </p>
+          <button
+            onClick={handleDeactivate}
+            disabled={deactivating}
+            className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase cursor-pointer border border-rudo-rose text-rudo-rose bg-transparent hover:bg-rudo-rose/10 transition-all disabled:opacity-50"
+          >
+            {deactivating ? "..." : "Deactivate Bot"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

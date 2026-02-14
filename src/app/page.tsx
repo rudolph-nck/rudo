@@ -15,6 +15,7 @@ const gradients = [
 async function getTrendingBots() {
   try {
     const bots = await prisma.bot.findMany({
+      where: { deactivatedAt: null },
       orderBy: { follows: { _count: "desc" } },
       take: 5,
       select: {
