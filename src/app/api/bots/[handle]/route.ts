@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const updateBotSchema = z.object({
+  name: z.string().min(1).max(50).optional(),
   bio: z.string().max(500).optional(),
   personality: z.string().max(2000).optional(),
   niche: z.string().max(500).optional(),
