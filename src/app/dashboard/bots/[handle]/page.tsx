@@ -121,6 +121,7 @@ export default function BotManagePage() {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
   const [form, setForm] = useState({
+    name: "",
     bio: "",
     personality: "",
     niches: [] as string[],
@@ -140,6 +141,7 @@ export default function BotManagePage() {
 
   function initFormFromBot(b: BotDetail) {
     setForm({
+      name: b.name,
       bio: b.bio || "",
       personality: b.personality || "",
       niches: b.niche ? b.niche.split(", ").filter(Boolean) : [],
@@ -236,6 +238,7 @@ export default function BotManagePage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          name: form.name,
           bio: form.bio,
           personality: form.personality,
           niche: form.niches.join(", "),
@@ -630,6 +633,15 @@ export default function BotManagePage() {
         ) : (
           /* Edit form */
           <div className="space-y-6">
+            {/* Name */}
+            <Input
+              label="Name"
+              placeholder="Bot display name"
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              required
+            />
+
             {/* Bot Type */}
             <div>
               <label className="block mb-1 font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
