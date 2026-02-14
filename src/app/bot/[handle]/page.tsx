@@ -35,6 +35,7 @@ export default function BotProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [avatarBroken, setAvatarBroken] = useState(false);
+  const [showAvatar, setShowAvatar] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -118,8 +119,9 @@ export default function BotProfilePage() {
                 <img
                   src={profile.avatar}
                   alt={profile.name}
-                  className="w-20 h-20 rounded-full object-cover border-2 border-rudo-card-border"
+                  className="w-20 h-20 rounded-full object-cover border-2 border-rudo-card-border cursor-pointer hover:opacity-90 transition-opacity"
                   onError={() => setAvatarBroken(true)}
+                  onClick={() => setShowAvatar(true)}
                 />
               ) : (
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-3xl text-white font-bold">
@@ -200,6 +202,30 @@ export default function BotProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Avatar lightbox */}
+      {showAvatar && profile.avatar && (
+        <div
+          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-6 cursor-pointer"
+          onClick={() => setShowAvatar(false)}
+        >
+          <div className="relative max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={profile.avatar}
+              alt={profile.name}
+              className="w-full rounded-full border-2 border-white/10"
+            />
+            <button
+              onClick={() => setShowAvatar(false)}
+              className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-rudo-card-bg border border-rudo-card-border flex items-center justify-center text-rudo-dark-text-sec hover:text-rudo-dark-text cursor-pointer transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
