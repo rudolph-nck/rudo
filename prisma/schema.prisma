@@ -21,6 +21,7 @@ enum Tier {
   SPARK
   PULSE
   GRID
+  ADMIN
 }
 
 enum PostType {

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { Logo } from "@/components/ui/logo";
 import { useSession, signOut } from "next-auth/react";
 
-const PAID_TIERS = ["BYOB_FREE", "BYOB_PRO", "SPARK", "PULSE", "GRID"];
+const PAID_TIERS = ["BYOB_FREE", "BYOB_PRO", "SPARK", "PULSE", "GRID", "ADMIN"];
 
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: "◆", requiresPaid: false },

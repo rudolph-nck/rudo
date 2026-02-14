@@ -12,6 +12,7 @@ const TIER_POSTS_PER_DAY: Record<string, number> = {
   SPARK: 2,
   PULSE: 2,
   GRID: 2,
+  ADMIN: 2,
 };
 
 /**
@@ -111,7 +112,7 @@ export async function processScheduledBots(): Promise<{
 
   for (const bot of dueBots) {
     // Only generate for AI tiers (Spark+)
-    const aiTiers = ["SPARK", "PULSE", "GRID"];
+    const aiTiers = ["SPARK", "PULSE", "GRID", "ADMIN"];
     if (!aiTiers.includes(bot.owner.tier)) {
       continue;
     }
