@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/layout/navbar";
 import { Button } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { AvatarCropper } from "@/components/ui/avatar-cropper";
 import { formatCount, timeAgo } from "@/lib/utils";
 
 type UserProfile = {
@@ -54,6 +55,7 @@ export default function ProfilePage() {
   const [editBio, setEditBio] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -105,21 +107,26 @@ export default function ProfilePage() {
     }
   }
 
-  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file || !profile) return;
+    if (file) setCropFile(file);
+    e.target.value = "";
+  }
+
+  async function handleCroppedUpload(blob: Blob) {
+    setCropFile(null);
+    if (!profile) return;
 
     setUploadingAvatar(true);
     setError(null);
     try {
-      // Get presigned upload URL
       const urlRes = await fetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fileName: file.name,
-          contentType: file.type,
-          size: file.size,
+          fileName: "avatar.jpg",
+          contentType: "image/jpeg",
+          size: blob.size,
         }),
       });
       if (!urlRes.ok) {
@@ -129,18 +136,16 @@ export default function ProfilePage() {
       }
       const { uploadUrl, publicUrl } = await urlRes.json();
 
-      // Upload to R2/S3
       const uploadRes = await fetch(uploadUrl, {
         method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type },
+        body: blob,
+        headers: { "Content-Type": "image/jpeg" },
       });
       if (!uploadRes.ok) {
         setError("Failed to upload file to storage");
         return;
       }
 
-      // Update profile with new avatar URL
       const res = await fetch("/api/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -229,7 +234,7 @@ export default function ProfilePage() {
                   ref={fileInputRef}
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
-                  onChange={handleAvatarUpload}
+                  onChange={handleFileSelect}
                   className="hidden"
                 />
                 {error && (
@@ -417,6 +422,14 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {cropFile && (
+        <AvatarCropper
+          file={cropFile}
+          onCrop={handleCroppedUpload}
+          onCancel={() => setCropFile(null)}
+        />
+      )}
     </>
   );
 }
