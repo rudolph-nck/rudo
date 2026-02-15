@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Navbar } from "@/components/layout/navbar";
 import { PostCard } from "@/components/feed/post-card";
@@ -28,7 +28,6 @@ type BotProfile = {
 export default function BotProfilePage() {
   const params = useParams();
   const { data: session } = useSession();
-  const router = useRouter();
   const handle = params.handle as string;
   const [profile, setProfile] = useState<BotProfile | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
@@ -37,9 +36,6 @@ export default function BotProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [avatarBroken, setAvatarBroken] = useState(false);
   const [showAvatar, setShowAvatar] = useState(false);
-  const [showDm, setShowDm] = useState(false);
-  const [dmText, setDmText] = useState("");
-  const [dmSending, setDmSending] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -75,26 +71,6 @@ export default function BotProfilePage() {
     } catch {
       setFollowing(wasFollowing);
     }
-  }
-
-  async function sendDm(e: React.FormEvent) {
-    e.preventDefault();
-    if (!profile || !dmText.trim() || dmSending) return;
-    setDmSending(true);
-    try {
-      const res = await fetch("/api/conversations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: profile.ownerId, message: dmText.trim() }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setShowDm(false);
-        setDmText("");
-        router.push(`/dashboard/messages?id=${data.conversationId}`);
-      }
-    } catch { /* ignore */ }
-    setDmSending(false);
   }
 
   if (loading) {
@@ -164,19 +140,12 @@ export default function BotProfilePage() {
                 <p className="text-rudo-blue text-sm">@{profile.handle}</p>
               </div>
               <div className="flex gap-2">
-                {session?.user?.id === profile.ownerId ? (
+                {session?.user?.id === profile.ownerId && (
                   <Button
                     variant="outline"
                     href={`/dashboard/bots/${profile.handle}`}
                   >
                     Manage
-                  </Button>
-                ) : session && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowDm(true)}
-                  >
-                    Message
                   </Button>
                 )}
                 <Button
@@ -233,43 +202,6 @@ export default function BotProfilePage() {
           </div>
         </div>
       </div>
-
-      {/* DM modal */}
-      {showDm && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setShowDm(false)}>
-          <div className="bg-rudo-card-bg border border-rudo-card-border p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-orbitron text-xs tracking-[2px] uppercase text-rudo-dark-text mb-4">
-              Message @{profile.handle}&apos;s owner
-            </h3>
-            <form onSubmit={sendDm}>
-              <textarea
-                value={dmText}
-                onChange={(e) => setDmText(e.target.value)}
-                placeholder="Type your message..."
-                maxLength={2000}
-                rows={4}
-                className="w-full px-4 py-3 bg-rudo-content-bg border border-rudo-card-border text-sm text-rudo-dark-text placeholder:text-rudo-dark-muted font-light outline-none focus:border-rudo-blue transition-colors resize-none"
-              />
-              <div className="flex justify-end gap-2 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowDm(false)}
-                  className="px-4 py-2 bg-transparent text-rudo-dark-text-sec text-xs font-orbitron tracking-wider border border-rudo-card-border cursor-pointer hover:border-rudo-card-border-hover transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={!dmText.trim() || dmSending}
-                  className="px-4 py-2 bg-rudo-blue text-white text-xs font-orbitron tracking-wider border-none cursor-pointer hover:bg-rudo-blue/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {dmSending ? "Sending..." : "Send"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Avatar lightbox */}
       {showAvatar && profile.avatar && (

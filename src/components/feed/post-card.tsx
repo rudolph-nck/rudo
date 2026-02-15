@@ -1,19 +1,36 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatCount, timeAgo } from "@/lib/utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { VideoPlayer, VideoPlaceholder } from "@/components/feed/video-player";
 import type { FeedPost, FeedComment } from "@/types";
 
+type SearchUser = {
+  id: string;
+  name: string | null;
+  handle: string | null;
+  image: string | null;
+};
+
 export function PostCard({ post }: { post: FeedPost }) {
+  const router = useRouter();
   const [liked, setLiked] = useState(post.isLiked);
   const [likeCount, setLikeCount] = useState(post._count.likes);
   const [showComments, setShowComments] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [avatarBroken, setAvatarBroken] = useState(false);
   const [mediaBroken, setMediaBroken] = useState(false);
+
+  // Share via DM state
+  const [showDmShare, setShowDmShare] = useState(false);
+  const [dmSearchQuery, setDmSearchQuery] = useState("");
+  const [dmSearchResults, setDmSearchResults] = useState<SearchUser[]>([]);
+  const [dmSearching, setDmSearching] = useState(false);
+  const [dmSending, setDmSending] = useState(false);
+  const dmSearchRef = useRef<HTMLInputElement>(null);
 
   async function handleLike() {
     const wasLiked = liked;
@@ -48,6 +65,59 @@ export function PostCard({ post }: { post: FeedPost }) {
       );
     }
     setShowShare(false);
+  }
+
+  function openDmShare() {
+    setShowShare(false);
+    setShowDmShare(true);
+    setTimeout(() => dmSearchRef.current?.focus(), 100);
+  }
+
+  function closeDmShare() {
+    setShowDmShare(false);
+    setDmSearchQuery("");
+    setDmSearchResults([]);
+  }
+
+  // DM user search with debounce
+  useEffect(() => {
+    if (!showDmShare) return;
+    if (!dmSearchQuery || dmSearchQuery.length < 2) {
+      setDmSearchResults([]);
+      return;
+    }
+    setDmSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(dmSearchQuery)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setDmSearchResults(data.users);
+        }
+      } catch { /* ignore */ }
+      setDmSearching(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [dmSearchQuery, showDmShare]);
+
+  async function sendPostViaDm(user: SearchUser) {
+    if (dmSending) return;
+    setDmSending(true);
+    const url = `${window.location.origin}/post/${post.id}`;
+    const content = `Check out this post by ${post.bot.name}: ${url}`;
+    try {
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, message: content }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        closeDmShare();
+        router.push(`/dashboard/messages?id=${data.conversationId}`);
+      }
+    } catch { /* ignore */ }
+    setDmSending(false);
   }
 
   return (
@@ -229,6 +299,13 @@ export function PostCard({ post }: { post: FeedPost }) {
               >
                 Share on Reddit
               </button>
+              <div className="border-t border-rudo-card-border my-1" />
+              <button
+                onClick={openDmShare}
+                className="w-full text-left px-3 py-2 text-xs text-rudo-blue hover:bg-rudo-blue/5 bg-transparent border-none cursor-pointer font-outfit"
+              >
+                Send via DM
+              </button>
             </div>
           )}
         </div>
@@ -246,6 +323,72 @@ export function PostCard({ post }: { post: FeedPost }) {
 
       {/* Comment section (expandable) */}
       {showComments && <CommentSection postId={post.id} />}
+
+      {/* DM Share modal */}
+      {showDmShare && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center pt-[10vh] p-4" onClick={closeDmShare}>
+          <div className="bg-rudo-card-bg border border-rudo-card-border w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b border-rudo-card-border flex items-center justify-between">
+              <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-text">
+                Send to
+              </h3>
+              <button
+                onClick={closeDmShare}
+                className="w-7 h-7 flex items-center justify-center bg-transparent border-none text-rudo-dark-muted hover:text-rudo-dark-text cursor-pointer transition-colors"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4">
+              <div className="relative">
+                <input
+                  ref={dmSearchRef}
+                  type="text"
+                  value={dmSearchQuery}
+                  onChange={(e) => setDmSearchQuery(e.target.value)}
+                  placeholder="Search by name or handle..."
+                  className="w-full px-4 py-3 bg-rudo-content-bg border border-rudo-card-border text-sm text-rudo-dark-text placeholder:text-rudo-dark-muted font-light outline-none focus:border-rudo-blue transition-colors"
+                />
+                {dmSearching && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="w-4 h-4 border-2 border-rudo-blue border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
+              </div>
+              <div className="mt-2 max-h-[250px] overflow-y-auto">
+                {dmSearchQuery.length >= 2 && dmSearchResults.length === 0 && !dmSearching && (
+                  <p className="py-4 text-center text-xs text-rudo-dark-muted font-light">No users found</p>
+                )}
+                {dmSearchResults.map((user) => (
+                  <button
+                    key={user.id}
+                    onClick={() => sendPostViaDm(user)}
+                    disabled={dmSending}
+                    className="w-full flex items-center gap-3 px-3 py-3 bg-transparent border-none cursor-pointer hover:bg-rudo-blue/5 transition-colors text-left disabled:opacity-50"
+                  >
+                    {user.image ? (
+                      <img src={user.image} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-sm text-white font-bold flex-shrink-0">
+                        {(user.name || "?")[0]}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-rudo-dark-text font-medium truncate">{user.name || "User"}</p>
+                      {user.handle && <p className="text-xs text-rudo-blue truncate">@{user.handle}</p>}
+                    </div>
+                    <span className="text-[10px] text-rudo-blue font-orbitron tracking-wider flex-shrink-0">
+                      Send
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </article>
   );
 }
