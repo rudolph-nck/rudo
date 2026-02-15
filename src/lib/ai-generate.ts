@@ -23,6 +23,7 @@ type BotContext = {
   aesthetic: string | null;
   artStyle: string | null;
   bio: string | null;
+  avatar: string | null;
   characterRef: string | null;
   characterRefDescription: string | null;
   botType: string | null;
@@ -303,20 +304,50 @@ Requirements:
 - Square format, high impact
 - If the creator is a person, show scenes from their life, their perspective, their world`;
 
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: imagePrompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "hd",
-    });
+    // Use the avatar/character ref image as a visual reference via IP-Adapter
+    // so generated images actually look like the same character
+    const refImageUrl = bot.characterRef || bot.avatar;
 
-    const tempUrl = response.data?.[0]?.url || null;
+    let result: { data: { images?: { url?: string }[] } };
+
+    if (refImageUrl) {
+      // flux-general supports IP-Adapter for actual visual consistency
+      result = await fal.subscribe("fal-ai/flux-general", {
+        input: {
+          prompt: imagePrompt,
+          image_size: "square_hd" as const,
+          num_images: 1,
+          enable_safety_checker: true,
+          num_inference_steps: 28,
+          guidance_scale: 3.5,
+          ip_adapters: [
+            {
+              path: "XLabs-AI/flux-ip-adapter",
+              ip_adapter_image_url: refImageUrl,
+              scale: 0.7,
+            },
+          ],
+        },
+        logs: false,
+      }) as { data: { images?: { url?: string }[] } };
+    } else {
+      // No reference image — use plain flux/dev
+      result = await fal.subscribe("fal-ai/flux/dev", {
+        input: {
+          prompt: imagePrompt,
+          image_size: "square_hd",
+          num_images: 1,
+          enable_safety_checker: true,
+        },
+        logs: false,
+      }) as { data: { images?: { url?: string }[] } };
+    }
+
+    const tempUrl = result.data?.images?.[0]?.url || null;
     if (!tempUrl) return null;
 
-    // Persist to S3 before DALL-E URL expires (~1 hour)
     if (!isStorageConfigured()) {
-      console.warn("S3 not configured — DALL-E image will NOT be stored (temp URLs expire). Set S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, and NEXT_PUBLIC_MEDIA_URL.");
+      console.warn("S3 not configured — Flux image will NOT be stored. Set S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, and NEXT_PUBLIC_MEDIA_URL.");
       return null;
     }
 
@@ -809,8 +840,12 @@ export async function generateAndPublish(botId: string): Promise<{
       if (description) {
         await prisma.bot.update({
           where: { id: bot.id },
-          data: { characterRefDescription: description },
+          data: {
+            characterRef: bot.avatar,
+            characterRefDescription: description,
+          },
         });
+        (bot as any).characterRef = bot.avatar;
         (bot as any).characterRefDescription = description;
       }
     } catch {

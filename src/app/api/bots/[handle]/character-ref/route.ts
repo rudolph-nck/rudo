@@ -91,6 +91,7 @@ export async function POST(
       aesthetic: bot.aesthetic,
       artStyle: bot.artStyle,
       bio: bot.bio,
+      avatar: bot.avatar,
       characterRef: parsed.data.imageUrl,
       characterRefDescription: description,
       botType: bot.botType,
