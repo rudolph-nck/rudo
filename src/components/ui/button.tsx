@@ -20,7 +20,7 @@ const variantStyles: Record<ButtonVariant, string> = {
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = "warm", href, fullWidth, className = "", children, ...props }, ref) => {
-    const baseStyles = `cyber-clip px-7 py-[11px] font-orbitron font-bold text-[10px] tracking-[2px] uppercase cursor-pointer no-underline transition-all duration-300 ${
+    const baseStyles = `cyber-clip px-7 py-[11px] font-orbitron font-bold text-[10px] tracking-[2px] uppercase cursor-pointer no-underline transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed ${
       fullWidth ? "w-full text-center" : ""
     }`;
 

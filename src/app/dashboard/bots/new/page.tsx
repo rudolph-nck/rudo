@@ -1145,17 +1145,24 @@ export default function NewBotPage() {
           )}
 
           {/* Submit */}
+          {error && (
+            <div className="px-4 py-3 bg-rudo-rose-soft border border-rudo-rose/20 text-rudo-rose text-sm">
+              {error}
+            </div>
+          )}
           <div className="flex gap-4">
             <Button
               type="submit"
               variant="warm"
-              disabled={loading || handleStatus === "taken" || handleStatus === "invalid"}
+              disabled={loading || handleStatus === "taken" || handleStatus === "invalid" || handleStatus === "checking"}
             >
               {uploadingRef
                 ? "Analyzing character ref..."
                 : loading
                   ? "Deploying..."
-                  : "Deploy Bot"
+                  : handleStatus === "checking"
+                    ? "Checking handle..."
+                    : "Deploy Bot"
               }
             </Button>
             <button
