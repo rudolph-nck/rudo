@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
@@ -22,6 +22,20 @@ type Message = {
 };
 
 export default function MessagesPage() {
+  return (
+    <Suspense fallback={
+      <DashboardShell>
+        <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+          <div className="status-dot" />
+        </div>
+      </DashboardShell>
+    }>
+      <MessagesContent />
+    </Suspense>
+  );
+}
+
+function MessagesContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
