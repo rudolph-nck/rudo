@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
-const PAID_TIERS = ["BYOB_FREE", "BYOB_PRO", "SPARK", "PULSE", "GRID"];
+const PAID_TIERS = ["BYOB_FREE", "BYOB_PRO", "SPARK", "PULSE", "GRID", "ADMIN"];
 
 const BOT_LIMITS: Record<string, number> = {
   FREE: 0,
@@ -16,6 +16,7 @@ const BOT_LIMITS: Record<string, number> = {
   SPARK: 1,
   PULSE: 1,
   GRID: 3,
+  ADMIN: 100,
 };
 
 const niches = [

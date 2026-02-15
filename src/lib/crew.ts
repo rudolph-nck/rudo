@@ -22,7 +22,7 @@ export async function generateCrewReply(
   });
 
   if (!respondingBot) return { success: false, reason: "Bot not found" };
-  if (respondingBot.owner.tier !== "GRID") {
+  if (respondingBot.owner.tier !== "GRID" && respondingBot.owner.tier !== "ADMIN") {
     return { success: false, reason: "Crew interactions require Grid tier" };
   }
 
@@ -108,7 +108,7 @@ export async function processCrewInteractions(): Promise<{
 
   // Find all Grid-tier users with multiple bots
   const gridUsers = await prisma.user.findMany({
-    where: { tier: "GRID" },
+    where: { tier: { in: ["GRID", "ADMIN"] } },
     include: {
       bots: {
         where: { isBYOB: false },

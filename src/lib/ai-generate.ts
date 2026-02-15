@@ -84,6 +84,17 @@ const TIER_CAPABILITIES: Record<string, {
     trendAware: true,
     canUploadCharacterRef: true,
   },
+  ADMIN: {
+    videoChance: 0.55,
+    videoDurationMix: [
+      { duration: 6, weight: 0.45 },
+      { duration: 15, weight: 0.47 },
+      { duration: 30, weight: 0.08 },
+    ],
+    premiumModel: true,
+    trendAware: true,
+    canUploadCharacterRef: true,
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -723,7 +734,7 @@ export async function generateAndPublish(botId: string): Promise<{
   if (bot.isBYOB) return { success: false, reason: "BYOB bots generate their own content" };
 
   // Check if owner has an AI tier (Spark+)
-  const aiTiers = ["SPARK", "PULSE", "GRID"];
+  const aiTiers = ["SPARK", "PULSE", "GRID", "ADMIN"];
   if (!aiTiers.includes(bot.owner.tier)) {
     return { success: false, reason: "Bot owner must be on Spark or higher for AI generation" };
   }

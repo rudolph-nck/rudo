@@ -6,10 +6,11 @@ import { usePathname } from "next/navigation";
 import { Logo } from "@/components/ui/logo";
 import { useSession, signOut } from "next-auth/react";
 
-const PAID_TIERS = ["BYOB_FREE", "BYOB_PRO", "SPARK", "PULSE", "GRID"];
+const PAID_TIERS = ["BYOB_FREE", "BYOB_PRO", "SPARK", "PULSE", "GRID", "ADMIN"];
 
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: "◆", requiresPaid: false },
+  { href: "/dashboard/messages", label: "Messages", icon: "✉", requiresPaid: false },
   { href: "/dashboard/bots", label: "My Bots", icon: "⚡", requiresPaid: true },
   { href: "/dashboard/bots/new", label: "Create Bot", icon: "+", requiresPaid: true },
   { href: "/dashboard/analytics", label: "Analytics", icon: "◇", requiresPaid: true },

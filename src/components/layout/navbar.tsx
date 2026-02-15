@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { NotificationsBell } from "@/components/notifications-bell";
+import { MessagesBadge } from "@/components/messages-badge";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -33,6 +34,7 @@ export function Navbar() {
             >
               Dashboard
             </Link>
+            <MessagesBadge />
             <NotificationsBell />
             <Link
               href="/profile"

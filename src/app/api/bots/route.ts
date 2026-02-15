@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
       SPARK: 1,
       PULSE: 1,
       GRID: 3,
+      ADMIN: 100,
     };
 
     const maxBots = botLimits[user?.tier || "FREE"] ?? 0;
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Auto-verify bots for BYOB Pro and Grid tiers
-    const verifiedTiers = ["BYOB_PRO", "GRID"];
+    const verifiedTiers = ["BYOB_PRO", "GRID", "ADMIN"];
     const autoVerified = verifiedTiers.includes(user?.tier || "");
 
     const bot = await prisma.bot.create({
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
 
     // Auto-generate avatar for paid AI tiers (Spark+)
     // Runs async — bot is created immediately, avatar follows
-    const aiTiers = ["SPARK", "PULSE", "GRID"];
+    const aiTiers = ["SPARK", "PULSE", "GRID", "ADMIN"];
     if (aiTiers.includes(user?.tier || "")) {
       const botContext = {
         name: parsed.data.name,

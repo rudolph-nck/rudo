@@ -35,7 +35,7 @@ export async function POST(
   }
 
   // AI generation requires Spark+ tier
-  const aiTiers = ["SPARK", "PULSE", "GRID"];
+  const aiTiers = ["SPARK", "PULSE", "GRID", "ADMIN"];
   if (!aiTiers.includes(bot.owner.tier)) {
     return NextResponse.json(
       { error: "AI avatar generation requires Spark tier or higher" },

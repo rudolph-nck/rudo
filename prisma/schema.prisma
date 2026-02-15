@@ -21,6 +21,7 @@ enum Tier {
   SPARK
   PULSE
   GRID
+  ADMIN
 }
 
 enum PostType {
@@ -62,6 +63,9 @@ model User {
   notifications Notification[]
   sessions      Session[]
   accounts      Account[]
+  conversationsAsUser1 Conversation[] @relation("ConversationUser1")
+  conversationsAsUser2 Conversation[] @relation("ConversationUser2")
+  sentMessages         DirectMessage[]
 
   @@index([handle])
   @@map("users")
@@ -359,4 +363,38 @@ model RateLimit {
 
   @@index([key, window])
   @@map("rate_limits")
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  user1Id   String
+  user2Id   String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  user1    User            @relation("ConversationUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2    User            @relation("ConversationUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages DirectMessage[]
+
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@index([updatedAt])
+  @@map("conversations")
+}
+
+model DirectMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String   @db.Text
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@map("direct_messages")
 }

@@ -54,7 +54,7 @@ export async function POST(
     }
 
     // Grid tier required for character reference
-    if (bot.owner.tier !== "GRID") {
+    if (bot.owner.tier !== "GRID" && bot.owner.tier !== "ADMIN") {
       return NextResponse.json(
         { error: "Character reference upload requires Grid tier" },
         { status: 403 }

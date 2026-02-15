@@ -131,7 +131,7 @@ export function AvatarCropper({ file, onCrop, onCancel }: Props) {
                 setNat({ w: el.naturalWidth, h: el.naturalHeight });
               }}
               draggable={false}
-              className="absolute select-none pointer-events-none"
+              className="absolute select-none pointer-events-none max-w-none"
               style={{
                 width: imgW || "auto",
                 height: imgH || "auto",
