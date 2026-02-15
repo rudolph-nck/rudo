@@ -50,6 +50,8 @@ type BotDetail = {
   bio: string | null;
   avatar: string | null;
   banner: string | null;
+  characterRef: string | null;
+  characterRefDescription: string | null;
   personality: string | null;
   niche: string | null;
   tone: string | null;
@@ -139,6 +141,10 @@ export default function BotManagePage() {
   const [regenLoading, setRegenLoading] = useState(false);
   const [regenMsg, setRegenMsg] = useState("");
   const [avatarBroken, setAvatarBroken] = useState(false);
+
+  // Avatar as character reference
+  const [analyzingAvatar, setAnalyzingAvatar] = useState(false);
+  const [avatarRefMsg, setAvatarRefMsg] = useState("");
 
   function initFormFromBot(b: BotDetail) {
     setForm({
@@ -297,6 +303,44 @@ export default function BotManagePage() {
     }
   }
 
+  async function toggleAvatarAsRef() {
+    if (!bot) return;
+    setAnalyzingAvatar(true);
+    setAvatarRefMsg("");
+
+    const hasRef = !!bot.characterRefDescription;
+
+    try {
+      if (hasRef) {
+        // Remove character reference
+        const res = await fetch(`/api/bots/${handle}/analyze-avatar`, { method: "DELETE" });
+        if (res.ok) {
+          setBot((b) => b ? { ...b, characterRef: null, characterRefDescription: null } : b);
+          setAvatarRefMsg("Character reference removed");
+        } else {
+          const data = await res.json();
+          setAvatarRefMsg(data.error || "Failed to remove");
+        }
+      } else {
+        // Analyze avatar as character reference
+        const res = await fetch(`/api/bots/${handle}/analyze-avatar`, { method: "POST" });
+        if (res.ok) {
+          const data = await res.json();
+          setBot((b) => b ? { ...b, characterRef: b.avatar, characterRefDescription: data.characterRefDescription } : b);
+          setAvatarRefMsg("Avatar analyzed as character reference");
+        } else {
+          const data = await res.json();
+          setAvatarRefMsg(data.error || "Failed to analyze");
+        }
+      }
+    } catch {
+      setAvatarRefMsg("Something went wrong");
+    } finally {
+      setAnalyzingAvatar(false);
+      setTimeout(() => setAvatarRefMsg(""), 5000);
+    }
+  }
+
   async function handleDeactivate() {
     if (!bot) return;
     const action = bot.deactivatedAt ? "reactivate" : "deactivate";
@@ -419,6 +463,37 @@ export default function BotManagePage() {
             </p>
           </div>
         </div>
+        {/* Use avatar as character reference */}
+        {bot.avatar && (
+          <div className="px-4 pb-4 border-t border-rudo-card-border pt-3">
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={!!bot.characterRefDescription}
+                onChange={toggleAvatarAsRef}
+                disabled={analyzingAvatar}
+                className="mt-0.5 accent-rudo-blue cursor-pointer"
+              />
+              <div className="flex-1">
+                <span className="text-xs text-rudo-dark-text font-outfit group-hover:text-rudo-blue transition-colors">
+                  {analyzingAvatar
+                    ? "Analyzing avatar..."
+                    : "Use avatar as character reference"}
+                </span>
+                <p className="text-[10px] text-rudo-dark-muted font-light mt-0.5">
+                  {bot.characterRefDescription
+                    ? "Your avatar is being used as a visual reference for consistent image generation across all posts."
+                    : "Analyze your avatar with AI so generated images feature the same character consistently."}
+                </p>
+                {avatarRefMsg && (
+                  <span className={`text-[10px] font-light ${avatarRefMsg.includes("Failed") || avatarRefMsg.includes("wrong") ? "text-rudo-rose" : "text-green-400"}`}>
+                    {avatarRefMsg}
+                  </span>
+                )}
+              </div>
+            </label>
+          </div>
+        )}
       </div>
 
       {/* Scheduling */}

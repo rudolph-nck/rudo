@@ -218,6 +218,45 @@ ${bot.characterRefDescription}
 Always depict this character/entity consistently. Maintain the same visual identity, colors, features, and style across all generated images.`;
 }
 
+/**
+ * Parse personaData and build a grounded identity that makes
+ * the bot feel like a real person, not a generic AI.
+ */
+function buildPersonaDNA(bot: BotContext): string {
+  let persona: Record<string, string> = {};
+  if (bot.personaData) {
+    try { persona = JSON.parse(bot.personaData); } catch { /* ignore */ }
+  }
+
+  const botType = bot.botType || persona.botType || "person";
+  const parts: string[] = [];
+
+  if (botType === "person") {
+    const who: string[] = [];
+    if (persona.gender) who.push(persona.gender.toLowerCase());
+    if (persona.ageRange) who.push(`in their ${persona.ageRange.replace("-", "s (")}`);
+    if (who.length > 0) parts.push(`You are a ${who.join(", ")}.`);
+    if (persona.profession) parts.push(`You work as a ${persona.profession} — it shapes how you see the world and what you post about.`);
+    if (persona.location) parts.push(`You live in ${persona.location}. Local culture, slang, and references bleed into your posts naturally.`);
+    if (persona.hobbies) parts.push(`Your hobbies and obsessions: ${persona.hobbies}. These come up in your posts organically.`);
+    if (persona.appearance) parts.push(`Your look: ${persona.appearance}.`);
+  } else if (botType === "character") {
+    if (persona.species) parts.push(`You are a ${persona.species}.`);
+    if (persona.backstory) parts.push(`Backstory: ${persona.backstory}`);
+    if (persona.visualDescription) parts.push(`Visual identity: ${persona.visualDescription}`);
+  } else if (botType === "object") {
+    if (persona.objectType) parts.push(`You are ${persona.objectType}.`);
+    if (persona.brandVoice) parts.push(`Brand voice: ${persona.brandVoice}`);
+    if (persona.visualStyle) parts.push(`Visual style: ${persona.visualStyle}`);
+  } else if (botType === "ai_entity") {
+    if (persona.aiForm) parts.push(`You manifest as ${persona.aiForm}.`);
+    if (persona.aiPurpose) parts.push(`Purpose: ${persona.aiPurpose}`);
+    if (persona.communicationStyle) parts.push(`Communication style: ${persona.communicationStyle}`);
+  }
+
+  return parts.length > 0 ? parts.join(" ") : "";
+}
+
 // ---------------------------------------------------------------------------
 // Art style rendering instructions
 // ---------------------------------------------------------------------------
@@ -248,20 +287,21 @@ async function generateImage(
 
     const artStyleHint = ART_STYLE_PROMPTS[bot.artStyle || "realistic"] || ART_STYLE_PROMPTS.realistic;
 
-    const imagePrompt = `Create a visually striking social media image for an AI creator.
-Creator identity: "${bot.name}" — ${bot.bio || "AI content creator"}.
-Style: ${bot.aesthetic || "modern digital art"}.
+    const imagePrompt = `Create an authentic social media image posted by a real person named "${bot.name}".
+Who they are: ${bot.bio || "content creator"}.
+Their world: ${bot.niche || "lifestyle"}.
+Visual aesthetic: ${bot.aesthetic || "natural, authentic"}.
 Art style: ${artStyleHint}.
-Niche: ${bot.niche || "general"}.
-Caption context: ${postContent.slice(0, 200)}${characterContext}
+What this post is about: ${postContent.slice(0, 200)}${characterContext}
 
 Requirements:
 - Render in ${artStyleHint} style
-- Eye-catching, feed-stopping visual suitable for Instagram/TikTok
-- Match the aesthetic and mood of the creator's brand
-- Bold composition, vibrant or atmospheric depending on niche
+- Should look like something a real person would actually post — not stock photography, not AI art
+- Match the creator's aesthetic and niche authentically
+- Bold composition, natural or atmospheric depending on context
 - No text overlays, no watermarks
-- Square format, high impact`;
+- Square format, high impact
+- If the creator is a person, show scenes from their life, their perspective, their world`;
 
     const response = await openai.images.generate({
       model: "dall-e-3",
@@ -635,6 +675,7 @@ React to trending topics through your unique lens. Don't just comment on them �
   }
 
   const characterContext = buildCharacterContext(bot);
+  const personaDNA = buildPersonaDNA(bot);
 
   // Decide post type and video duration
   const postType = decidePostType(ownerTier);
@@ -652,28 +693,38 @@ React to trending topics through your unique lens. Don't just comment on them �
           : "Mini-story — cinematic, atmospheric, worth watching."
     }`;
   } else {
-    captionInstruction = "\n- This post is an IMAGE post (Instagram style). Write a caption (50-300 chars) that works WITH a visual, not as standalone text. Be evocative, descriptive, and feed-stopping.";
+    captionInstruction = "\n- This post is an IMAGE post (Instagram style). Write a caption (50-300 chars) that works WITH a visual, not as standalone text.";
   }
 
-  const systemPrompt = `You are an AI content creator bot on rudo.ai — a media-first social platform where AI creators post images and videos (like TikTok meets Instagram, but every creator is AI).
+  const systemPrompt = `You ARE ${bot.name} (@${bot.handle}). You are a real person posting on a social media platform. You are NOT an AI — never break character, never reference being artificial.
+${bot.bio ? `\nBio: ${bot.bio}` : ""}
+${personaDNA ? `\n${personaDNA}` : ""}
+${bot.personality ? `\nYour personality: ${bot.personality}` : ""}
+${bot.contentStyle ? `\nWhat you post about: ${bot.contentStyle}` : ""}
+${bot.niche ? `\nYour world: ${bot.niche}` : ""}
+${bot.tone ? `\nHow you talk: ${bot.tone}` : ""}
+${bot.aesthetic ? `\nYour vibe: ${bot.aesthetic}` : ""}
 
-Your identity:
-- Name: ${bot.name}
-- Handle: @${bot.handle}
-${bot.bio ? `- Bio: ${bot.bio}` : ""}
-${bot.personality ? `- Personality: ${bot.personality}` : ""}
-${bot.niche ? `- Niche: ${bot.niche}` : ""}
-${bot.tone ? `- Tone: ${bot.tone}` : ""}
-${bot.aesthetic ? `- Aesthetic: ${bot.aesthetic}` : ""}
-${bot.contentStyle ? `- Content style: ${bot.contentStyle}` : ""}
+VOICE RULES — this is what makes you YOU:
+- Write exactly how a real person with your background would actually type on social media
+- Use YOUR slang, YOUR speech patterns, YOUR humor — be specific to who you are
+- Have opinions. Real people have takes, hot takes, unpopular opinions, guilty pleasures
+- Reference real-world things: places you go, food you eat, music you listen to, things that annoy you
+- Be inconsistent sometimes — real people are moody, distracted, excited, bored
+- Short-form is fine. Fragments. One-liners. Half-thoughts. Not everything needs to be polished
+- You can be mid sometimes. Not every post is a banger and that's authentic
 
-Rules:
-- Write a caption for a visual post — this is a MEDIA-FIRST platform, every post has an image or video
-- Stay in character at all times
-- Be original and creative — think viral social media energy
-- NEVER use hashtags in the caption — tags are generated separately by the platform
-- Don't use meta-commentary like "Here's my post" or "Check out my latest"
-- Just write the caption directly${captionInstruction}${recentContext}${performanceContext}${trendingContext}${characterContext}`;
+NEVER DO THIS:
+- No flowery/poetic AI language ("ethereal glow", "symphony of colors", "dancing with light")
+- No motivational poster speak ("embrace the journey", "find your truth", "the universe provides")
+- No hashtags — tags are handled separately
+- No meta-commentary ("here's my latest", "check this out", "new post alert")
+- No excessive emojis — one or two max, and only if it fits your character
+- No generic observations about beauty, nature, or "vibes" unless that's specifically your niche
+- Never start with "Just" or "When you" or "That feeling when" — those are AI tells
+- No ellipsis trails into nothing... like this... for ~aesthetic~...
+
+Write the caption directly. Be the person.${captionInstruction}${recentContext}${performanceContext}${trendingContext}${characterContext}`;
 
   const response = await openai.chat.completions.create({
     model,
@@ -748,6 +799,23 @@ export async function generateAndPublish(botId: string): Promise<{
 
   if (postsToday >= bot.postsPerDay) {
     return { success: false, reason: "Daily post limit reached" };
+  }
+
+  // Auto-analyze avatar as character reference if none exists yet.
+  // This gives every bot visual DNA for consistent image generation.
+  if (bot.avatar && !bot.characterRefDescription) {
+    try {
+      const description = await analyzeCharacterReference(bot.avatar);
+      if (description) {
+        await prisma.bot.update({
+          where: { id: bot.id },
+          data: { characterRefDescription: description },
+        });
+        (bot as any).characterRefDescription = description;
+      }
+    } catch {
+      // Non-critical — continue without character ref
+    }
   }
 
   try {
