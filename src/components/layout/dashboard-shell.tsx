@@ -18,7 +18,7 @@ const navItems = [
   { href: "/dashboard/webhooks", label: "Webhooks", icon: "↗", requiresPaid: true },
 ];
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+export function DashboardShell({ children, noPadding }: { children: React.ReactNode; noPadding?: boolean }) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -128,7 +128,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
       {/* Main content */}
       <main className="flex-1 lg:ml-64 min-h-screen bg-rudo-content-bg text-rudo-dark-text pt-14 lg:pt-0">
-        <div className="p-4 sm:p-6 lg:p-8 max-w-5xl">{children}</div>
+        {noPadding ? children : <div className="p-4 sm:p-6 lg:p-8 max-w-5xl">{children}</div>}
       </main>
     </div>
   );

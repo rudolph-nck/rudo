@@ -24,8 +24,8 @@ type Message = {
 export default function MessagesPage() {
   return (
     <Suspense fallback={
-      <DashboardShell>
-        <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+      <DashboardShell noPadding>
+        <div className="flex items-center justify-center h-screen">
           <div className="status-dot" />
         </div>
       </DashboardShell>
@@ -159,8 +159,8 @@ function MessagesContent() {
   }
 
   return (
-    <DashboardShell>
-      <div className="flex h-[calc(100vh-64px)]">
+    <DashboardShell noPadding>
+      <div className="flex h-screen lg:h-screen pt-14 lg:pt-0">
         {/* Conversations sidebar */}
         <div className={`w-full md:w-80 md:min-w-[320px] border-r border-rudo-card-border flex flex-col ${activeId ? "hidden md:flex" : "flex"}`}>
           <div className="p-4 border-b border-rudo-card-border">
