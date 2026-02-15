@@ -21,11 +21,18 @@ type Message = {
   createdAt: string;
 };
 
+type SearchUser = {
+  id: string;
+  name: string | null;
+  handle: string | null;
+  image: string | null;
+};
+
 export default function MessagesPage() {
   return (
     <Suspense fallback={
-      <DashboardShell>
-        <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+      <DashboardShell noPadding>
+        <div className="flex items-center justify-center h-screen">
           <div className="status-dot" />
         </div>
       </DashboardShell>
@@ -51,6 +58,16 @@ function MessagesContent() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userId = (session?.user as any)?.id;
 
+  // New message compose state
+  const [showCompose, setShowCompose] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [composeRecipient, setComposeRecipient] = useState<SearchUser | null>(null);
+  const [composeMessage, setComposeMessage] = useState("");
+  const [composeSending, setComposeSending] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   // Load conversations list
   const loadConversations = useCallback(async () => {
     try {
@@ -74,7 +91,7 @@ function MessagesContent() {
       const res = await fetch(`/api/conversations/${convId}/messages`);
       if (res.ok) {
         const data = await res.json();
-        setMessages(data.messages.reverse()); // API returns newest first, display oldest first
+        setMessages(data.messages.reverse());
         setOtherUser(data.otherUser);
       }
     } catch { /* ignore */ }
@@ -105,6 +122,33 @@ function MessagesContent() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // User search with debounce
+  useEffect(() => {
+    if (!searchQuery || searchQuery.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    setSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(searchQuery)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSearchResults(data.users);
+        }
+      } catch { /* ignore */ }
+      setSearching(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Focus search input when compose opens
+  useEffect(() => {
+    if (showCompose) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    }
+  }, [showCompose]);
+
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim() || !activeId || sending) return;
@@ -112,7 +156,6 @@ function MessagesContent() {
     const content = input.trim();
     setInput("");
 
-    // Optimistic add
     const optimistic: Message = {
       id: `temp-${Date.now()}`,
       content,
@@ -136,11 +179,38 @@ function MessagesContent() {
         loadConversations();
       }
     } catch {
-      // Remove optimistic on failure
       setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
       setInput(content);
     }
     setSending(false);
+  }
+
+  async function handleComposeSend(e: React.FormEvent) {
+    e.preventDefault();
+    if (!composeRecipient || !composeMessage.trim() || composeSending) return;
+    setComposeSending(true);
+    try {
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: composeRecipient.id, message: composeMessage.trim() }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        closeCompose();
+        loadConversations();
+        router.push(`/dashboard/messages?id=${data.conversationId}`);
+      }
+    } catch { /* ignore */ }
+    setComposeSending(false);
+  }
+
+  function closeCompose() {
+    setShowCompose(false);
+    setSearchQuery("");
+    setSearchResults([]);
+    setComposeRecipient(null);
+    setComposeMessage("");
   }
 
   function selectConversation(id: string) {
@@ -159,14 +229,25 @@ function MessagesContent() {
   }
 
   return (
-    <DashboardShell>
-      <div className="flex h-[calc(100vh-64px)]">
+    <DashboardShell noPadding>
+      <div className="flex h-screen lg:h-screen pt-14 lg:pt-0">
         {/* Conversations sidebar */}
         <div className={`w-full md:w-80 md:min-w-[320px] border-r border-rudo-card-border flex flex-col ${activeId ? "hidden md:flex" : "flex"}`}>
-          <div className="p-4 border-b border-rudo-card-border">
+          <div className="p-4 border-b border-rudo-card-border flex items-center justify-between">
             <h2 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-text">
               Messages
             </h2>
+            <button
+              onClick={() => setShowCompose(true)}
+              className="w-8 h-8 flex items-center justify-center bg-rudo-blue text-white border-none cursor-pointer hover:bg-rudo-blue/80 transition-colors rounded-full"
+              title="New message"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                <line x1="12" y1="8" x2="12" y2="16" />
+                <line x1="8" y1="12" x2="16" y2="12" />
+              </svg>
+            </button>
           </div>
 
           <div className="flex-1 overflow-y-auto">
@@ -178,7 +259,7 @@ function MessagesContent() {
               <div className="py-12 text-center px-4">
                 <p className="text-sm text-rudo-dark-text-sec font-light">No conversations yet</p>
                 <p className="text-xs text-rudo-dark-muted font-light mt-1">
-                  Visit a user&apos;s profile to send them a message
+                  Tap the + button to start a conversation
                 </p>
               </div>
             ) : (
@@ -333,14 +414,151 @@ function MessagesContent() {
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mx-auto mb-3 text-rudo-dark-muted">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
-                <p className="text-sm text-rudo-dark-text-sec font-light">
+                <p className="text-sm text-rudo-dark-text-sec font-light mb-3">
                   Select a conversation
                 </p>
+                <button
+                  onClick={() => setShowCompose(true)}
+                  className="px-4 py-2 bg-rudo-blue text-white text-[10px] font-orbitron tracking-[2px] uppercase border-none cursor-pointer hover:bg-rudo-blue/80 transition-colors"
+                >
+                  New Message
+                </button>
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* New Message compose modal */}
+      {showCompose && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center pt-[10vh] p-4" onClick={closeCompose}>
+          <div className="bg-rudo-card-bg border border-rudo-card-border w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b border-rudo-card-border flex items-center justify-between">
+              <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-text">
+                New Message
+              </h3>
+              <button
+                onClick={closeCompose}
+                className="w-7 h-7 flex items-center justify-center bg-transparent border-none text-rudo-dark-muted hover:text-rudo-dark-text cursor-pointer transition-colors"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-4">
+              {!composeRecipient ? (
+                <>
+                  {/* Search for user */}
+                  <div className="relative">
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search by name or handle..."
+                      className="w-full px-4 py-3 bg-rudo-content-bg border border-rudo-card-border text-sm text-rudo-dark-text placeholder:text-rudo-dark-muted font-light outline-none focus:border-rudo-blue transition-colors"
+                    />
+                    {searching && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <div className="w-4 h-4 border-2 border-rudo-blue border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Results */}
+                  <div className="mt-2 max-h-[300px] overflow-y-auto">
+                    {searchQuery.length >= 2 && searchResults.length === 0 && !searching && (
+                      <p className="py-4 text-center text-xs text-rudo-dark-muted font-light">
+                        No users found
+                      </p>
+                    )}
+                    {searchResults.map((user) => (
+                      <button
+                        key={user.id}
+                        onClick={() => setComposeRecipient(user)}
+                        className="w-full flex items-center gap-3 px-3 py-3 bg-transparent border-none cursor-pointer hover:bg-rudo-blue/5 transition-colors text-left"
+                      >
+                        {user.image ? (
+                          <img src={user.image} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-sm text-white font-bold flex-shrink-0">
+                            {(user.name || "?")[0]}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-sm text-rudo-dark-text font-medium truncate">
+                            {user.name || "User"}
+                          </p>
+                          {user.handle && (
+                            <p className="text-xs text-rudo-blue truncate">@{user.handle}</p>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Selected recipient + compose message */}
+                  <div className="flex items-center gap-3 mb-4 p-3 bg-rudo-blue/5 border border-rudo-blue/15">
+                    {composeRecipient.image ? (
+                      <img src={composeRecipient.image} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rudo-blue to-rudo-blue/60 flex items-center justify-center text-xs text-white font-bold flex-shrink-0">
+                        {(composeRecipient.name || "?")[0]}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-rudo-dark-text font-medium truncate">
+                        {composeRecipient.name || "User"}
+                      </p>
+                      {composeRecipient.handle && (
+                        <p className="text-[10px] text-rudo-blue">@{composeRecipient.handle}</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setComposeRecipient(null)}
+                      className="text-[10px] text-rudo-dark-muted hover:text-rudo-rose bg-transparent border-none cursor-pointer font-orbitron tracking-wider"
+                    >
+                      Change
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleComposeSend}>
+                    <textarea
+                      value={composeMessage}
+                      onChange={(e) => setComposeMessage(e.target.value)}
+                      placeholder="Type your message..."
+                      maxLength={2000}
+                      rows={4}
+                      autoFocus
+                      className="w-full px-4 py-3 bg-rudo-content-bg border border-rudo-card-border text-sm text-rudo-dark-text placeholder:text-rudo-dark-muted font-light outline-none focus:border-rudo-blue transition-colors resize-none"
+                    />
+                    <div className="flex justify-end gap-2 mt-3">
+                      <button
+                        type="button"
+                        onClick={closeCompose}
+                        className="px-4 py-2 bg-transparent text-rudo-dark-text-sec text-xs font-orbitron tracking-wider border border-rudo-card-border cursor-pointer hover:border-rudo-card-border-hover transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={!composeMessage.trim() || composeSending}
+                        className="px-4 py-2 bg-rudo-blue text-white text-xs font-orbitron tracking-wider border-none cursor-pointer hover:bg-rudo-blue/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {composeSending ? "Sending..." : "Send"}
+                      </button>
+                    </div>
+                  </form>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardShell>
   );
 }
