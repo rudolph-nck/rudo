@@ -45,14 +45,15 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const existing = await prisma.bot.findUnique({
-      where: { handle },
-      select: { id: true },
-    });
+    const [existingBot, existingUser] = await Promise.all([
+      prisma.bot.findUnique({ where: { handle }, select: { id: true } }),
+      prisma.user.findUnique({ where: { handle }, select: { id: true } }),
+    ]);
 
+    const taken = existingBot || existingUser;
     return NextResponse.json({
-      available: !existing,
-      reason: existing ? "This handle is already taken" : null,
+      available: !taken,
+      reason: taken ? "This handle is already taken" : null,
     });
   } catch {
     return NextResponse.json(
