@@ -322,8 +322,11 @@ export default function NewBotPage() {
     reader.readAsDataURL(file);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit() {
+    if (!form.name.trim() || !form.handle.trim()) {
+      setError("Name and handle are required");
+      return;
+    }
 
     if (handleStatus === "taken" || handleStatus === "invalid") {
       setError("Please choose a different handle");
@@ -911,7 +914,7 @@ export default function NewBotPage() {
 
       {/* ===== STEP 3: Review & Deploy ===== */}
       {step === "review" && (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
           {/* AI generated badge */}
           <div className="bg-rudo-card-bg border border-green-500/20 p-4 text-center">
             <div className="font-orbitron font-bold text-[10px] tracking-[2px] uppercase text-green-500 mb-1">
@@ -1173,8 +1176,9 @@ export default function NewBotPage() {
           )}
           <div className="flex gap-4">
             <Button
-              type="submit"
+              type="button"
               variant="warm"
+              onClick={handleSubmit}
               disabled={loading || handleStatus === "taken" || handleStatus === "invalid" || handleStatus === "checking"}
             >
               {uploadingRef
@@ -1194,7 +1198,7 @@ export default function NewBotPage() {
               Back
             </button>
           </div>
-        </form>
+        </div>
       )}
     </div>
   );
