@@ -634,6 +634,7 @@ export default function NewBotPage() {
                 placeholder="Where do they live? e.g., Brooklyn, NY or Tokyo, Japan"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
+                maxLength={200}
               />
 
               <Input
@@ -641,6 +642,7 @@ export default function NewBotPage() {
                 placeholder="What do they do? e.g., Freelance photographer, barista, fitness coach"
                 value={profession}
                 onChange={(e) => setProfession(e.target.value)}
+                maxLength={200}
               />
 
               <Input
@@ -648,6 +650,7 @@ export default function NewBotPage() {
                 placeholder="e.g., surfing, vintage fashion, cooking, hiking"
                 value={hobbies}
                 onChange={(e) => setHobbies(e.target.value)}
+                maxLength={300}
               />
 
               <Textarea
@@ -656,6 +659,7 @@ export default function NewBotPage() {
                 rows={2}
                 value={appearance}
                 onChange={(e) => setAppearance(e.target.value)}
+                maxLength={500}
               />
 
               {/* Character ref upload for person */}
@@ -718,6 +722,7 @@ export default function NewBotPage() {
                 placeholder="e.g., Elven warrior, robot cat, shadow demon, anime schoolgirl"
                 value={species}
                 onChange={(e) => setSpecies(e.target.value)}
+                maxLength={200}
               />
 
               <Textarea
@@ -726,6 +731,7 @@ export default function NewBotPage() {
                 rows={3}
                 value={visualDescription}
                 onChange={(e) => setVisualDescription(e.target.value)}
+                maxLength={500}
               />
 
               <Textarea
@@ -734,6 +740,7 @@ export default function NewBotPage() {
                 rows={3}
                 value={backstory}
                 onChange={(e) => setBackstory(e.target.value)}
+                maxLength={500}
               />
             </div>
           )}
@@ -753,6 +760,7 @@ export default function NewBotPage() {
                 placeholder="e.g., A vintage typewriter, a neon sign, a coffee brand, a haunted house"
                 value={objectType}
                 onChange={(e) => setObjectType(e.target.value)}
+                maxLength={200}
               />
 
               <Input
@@ -760,6 +768,7 @@ export default function NewBotPage() {
                 placeholder="e.g., Anthropomorphized with eyes, logo-based, abstract representation"
                 value={visualStyle}
                 onChange={(e) => setVisualStyle(e.target.value)}
+                maxLength={200}
               />
 
               <Textarea
@@ -768,6 +777,7 @@ export default function NewBotPage() {
                 rows={2}
                 value={brandVoice}
                 onChange={(e) => setBrandVoice(e.target.value)}
+                maxLength={500}
               />
             </div>
           )}
@@ -787,6 +797,7 @@ export default function NewBotPage() {
                 placeholder="e.g., Holographic humanoid, floating geometric core, glitch art entity"
                 value={aiForm}
                 onChange={(e) => setAiForm(e.target.value)}
+                maxLength={200}
               />
 
               <Input
@@ -794,6 +805,7 @@ export default function NewBotPage() {
                 placeholder="e.g., Dream interpreter, data visualizer, meme oracle, digital philosopher"
                 value={aiPurpose}
                 onChange={(e) => setAiPurpose(e.target.value)}
+                maxLength={200}
               />
 
               <Textarea
@@ -802,6 +814,7 @@ export default function NewBotPage() {
                 rows={2}
                 value={communicationStyle}
                 onChange={(e) => setCommunicationStyle(e.target.value)}
+                maxLength={500}
               />
             </div>
           )}
@@ -847,6 +860,7 @@ export default function NewBotPage() {
               rows={2}
               value={additionalNotes}
               onChange={(e) => setAdditionalNotes(e.target.value)}
+              maxLength={500}
             />
           </div>
 
@@ -915,6 +929,7 @@ export default function NewBotPage() {
                 placeholder="Bot name"
                 value={form.name}
                 onChange={(e) => updateField("name", e.target.value)}
+                maxLength={50}
                 required
               />
               <div>
@@ -930,6 +945,7 @@ export default function NewBotPage() {
                         .replace(/[^a-z0-9_]/g, "")
                     )
                   }
+                  maxLength={30}
                   required
                 />
                 {handleStatus === "checking" && (
@@ -966,6 +982,7 @@ export default function NewBotPage() {
                 rows={2}
                 value={form.bio}
                 onChange={(e) => updateField("bio", e.target.value)}
+                maxLength={500}
               />
             </div>
           </div>
@@ -982,6 +999,7 @@ export default function NewBotPage() {
                 rows={4}
                 value={form.personality}
                 onChange={(e) => updateField("personality", e.target.value)}
+                maxLength={2000}
               />
 
               <div>
@@ -1093,6 +1111,7 @@ export default function NewBotPage() {
               rows={4}
               value={form.contentStyle}
               onChange={(e) => updateField("contentStyle", e.target.value)}
+              maxLength={2000}
             />
           </div>
 
