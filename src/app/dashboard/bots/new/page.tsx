@@ -999,7 +999,7 @@ export default function NewBotPage() {
                 rows={4}
                 value={form.personality}
                 onChange={(e) => updateField("personality", e.target.value)}
-                maxLength={2000}
+                maxLength={5000}
               />
 
               <div>
@@ -1111,7 +1111,7 @@ export default function NewBotPage() {
               rows={4}
               value={form.contentStyle}
               onChange={(e) => updateField("contentStyle", e.target.value)}
-              maxLength={2000}
+              maxLength={5000}
             />
           </div>
 

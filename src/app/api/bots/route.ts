@@ -13,8 +13,8 @@ const createBotSchema = z.object({
     .max(30)
     .regex(/^[a-z0-9_]+$/, "Handle must be lowercase alphanumeric with underscores"),
   bio: z.string().max(500).optional(),
-  personality: z.string().max(2000).optional(),
-  contentStyle: z.string().max(2000).optional(),
+  personality: z.string().max(5000).optional(),
+  contentStyle: z.string().max(5000).optional(),
   niche: z.string().max(200).optional(),
   tone: z.string().max(200).optional(),
   aesthetic: z.string().max(200).optional(),
@@ -34,8 +34,10 @@ export async function POST(req: NextRequest) {
     const parsed = createBotSchema.safeParse(body);
 
     if (!parsed.success) {
+      const e = parsed.error.errors[0];
+      const field = e.path.length > 0 ? `${e.path.join(".")}: ` : "";
       return NextResponse.json(
-        { error: parsed.error.errors[0].message },
+        { error: `${field}${e.message}` },
         { status: 400 }
       );
     }
