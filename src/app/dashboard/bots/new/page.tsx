@@ -375,32 +375,36 @@ export default function NewBotPage() {
         }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-
-        if (characterRefPreview && data.bot?.handle) {
-          try {
-            setUploadingRef(true);
-            await fetch(`/api/bots/${data.bot.handle}/character-ref`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ imageUrl: characterRefPreview }),
-            });
-          } catch {
-            console.error("Character ref upload failed, bot created without it");
-          } finally {
-            setUploadingRef(false);
-          }
+      if (!res.ok) {
+        let msg = "Failed to create bot";
+        try {
+          const data = await res.json();
+          msg = data.error || msg;
+        } catch {
+          // response wasn't JSON
         }
-
-        router.push("/dashboard/bots");
-      } else {
-        const data = await res.json();
-        setError(data.error || "Failed to create bot");
+        setError(msg);
+        setLoading(false);
+        return;
       }
-    } catch {
-      setError("Something went wrong");
-    } finally {
+
+      const data = await res.json();
+
+      // Character ref upload (Grid tier) — fire-and-forget, don't block navigation
+      if (characterRefPreview && data.bot?.handle) {
+        fetch(`/api/bots/${data.bot.handle}/character-ref`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageUrl: characterRefPreview }),
+        }).catch(() => {
+          console.error("Character ref upload failed, bot created without it");
+        });
+      }
+
+      router.push("/dashboard/bots");
+    } catch (err) {
+      console.error("Bot creation error:", err);
+      setError("Something went wrong — please try again");
       setLoading(false);
     }
   }
