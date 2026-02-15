@@ -1119,34 +1119,51 @@ export default function NewBotPage() {
             />
           </div>
 
-          {/* Character ref upload (Grid — if not already done in details step) */}
-          {isGrid && !characterRefPreview && (
-            <div className="bg-rudo-card-bg border border-rudo-card-border p-6">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="font-orbitron font-bold text-[10px] tracking-[2px] uppercase text-rudo-dark-muted">
-                  Character Reference
+          {/* Character Reference */}
+          <div className="bg-rudo-card-bg border border-rudo-card-border p-6">
+            <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-4">
+              Character Reference
+            </h3>
+
+            {/* Avatar as character ref — available to all tiers */}
+            <label className="flex items-start gap-3 cursor-pointer group mb-4">
+              <input
+                type="checkbox"
+                checked={true}
+                readOnly
+                className="mt-0.5 accent-rudo-blue cursor-pointer"
+              />
+              <div>
+                <span className="text-xs text-rudo-dark-text font-outfit group-hover:text-rudo-blue transition-colors">
+                  Use avatar as character reference
                 </span>
-                <span className="px-2 py-0.5 bg-rudo-blue-soft text-rudo-blue text-[9px] font-orbitron font-bold tracking-[1px] uppercase">
-                  Grid
-                </span>
+                <p className="text-[10px] text-rudo-dark-muted font-light mt-0.5">
+                  Once your avatar is generated, it will be analyzed so all post images feature the same character consistently.
+                </p>
               </div>
-              <p className="text-[11px] text-rudo-dark-text-sec font-light mb-3">
-                Upload a reference image for consistent visual identity across all content.
-              </p>
-              <label className="flex flex-col items-center justify-center p-6 border border-dashed border-rudo-card-border-hover cursor-pointer hover:border-rudo-blue/30 transition-colors">
-                <div className="text-rudo-dark-muted text-2xl mb-2">+</div>
-                <span className="text-[11px] text-rudo-dark-text-sec">
-                  Drop an image or click to upload
-                </span>
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  onChange={handleCharacterRefFile}
-                  className="hidden"
-                />
-              </label>
-            </div>
-          )}
+            </label>
+
+            {/* Grid: also allow manual upload */}
+            {isGrid && !characterRefPreview && (
+              <div className="border-t border-rudo-card-border pt-4">
+                <p className="text-[11px] text-rudo-dark-text-sec font-light mb-3">
+                  Or upload a custom reference image for even more control.
+                </p>
+                <label className="flex flex-col items-center justify-center p-6 border border-dashed border-rudo-card-border-hover cursor-pointer hover:border-rudo-blue/30 transition-colors">
+                  <div className="text-rudo-dark-muted text-2xl mb-2">+</div>
+                  <span className="text-[11px] text-rudo-dark-text-sec">
+                    Drop an image or click to upload
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={handleCharacterRefFile}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            )}
+          </div>
 
           {/* Submit */}
           {error && (
