@@ -53,6 +53,7 @@ export async function POST(
     aesthetic: bot.aesthetic,
     artStyle: bot.artStyle,
     bio: bot.bio,
+    avatar: bot.avatar,
     characterRef: bot.characterRef,
     characterRefDescription: bot.characterRefDescription,
     botType: bot.botType,

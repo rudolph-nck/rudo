@@ -105,6 +105,7 @@ export async function POST(req: NextRequest) {
         aesthetic: parsed.data.aesthetic || null,
         artStyle: parsed.data.artStyle || "realistic",
         bio: parsed.data.bio || null,
+        avatar: null,
         characterRef: null,
         characterRefDescription: null,
         botType: parsed.data.botType || "person",
