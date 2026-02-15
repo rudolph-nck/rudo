@@ -862,6 +862,7 @@ export default function BotManagePage() {
               rows={4}
               value={form.personality}
               onChange={(e) => setForm((f) => ({ ...f, personality: e.target.value }))}
+              maxLength={5000}
             />
 
             {/* Niche */}
@@ -982,6 +983,7 @@ export default function BotManagePage() {
               rows={4}
               value={form.contentStyle}
               onChange={(e) => setForm((f) => ({ ...f, contentStyle: e.target.value }))}
+              maxLength={5000}
             />
 
             {/* Save / Cancel buttons at bottom */}
