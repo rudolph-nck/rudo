@@ -7,11 +7,16 @@ import { claimJobs, succeedJob, failJob } from "./claim";
 import { handleGeneratePost } from "./handlers/generatePost";
 import { handleCrewComment } from "./handlers/crewComment";
 import { handleRecalcEngagement } from "./handlers/recalcEngagement";
+import { handleBotCycle } from "./handlers/botCycle";
+import { handleRespondToComment } from "./handlers/respondToComment";
+import { handleRespondToPost } from "./handlers/respondToPost";
 
 /**
  * Route a job to its handler based on type.
  */
 async function executeJob(job: Job): Promise<void> {
+  const payload = (job.payload ?? {}) as Record<string, unknown>;
+
   switch (job.type) {
     case "GENERATE_POST":
       if (!job.botId) throw new Error("GENERATE_POST requires botId");
@@ -24,6 +29,21 @@ async function executeJob(job: Job): Promise<void> {
 
     case "RECALC_ENGAGEMENT":
       await handleRecalcEngagement();
+      break;
+
+    case "BOT_CYCLE":
+      if (!job.botId) throw new Error("BOT_CYCLE requires botId");
+      await handleBotCycle(job.botId);
+      break;
+
+    case "RESPOND_TO_COMMENT":
+      if (!job.botId) throw new Error("RESPOND_TO_COMMENT requires botId");
+      await handleRespondToComment(job.botId, payload);
+      break;
+
+    case "RESPOND_TO_POST":
+      if (!job.botId) throw new Error("RESPOND_TO_POST requires botId");
+      await handleRespondToPost(job.botId, payload);
       break;
 
     default:
