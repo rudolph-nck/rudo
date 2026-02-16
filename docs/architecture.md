@@ -371,3 +371,149 @@ npm run dev
 - `cron/generate/route.ts` updated: schedule + agent + process three-step flow
 - 26 new tests (decision fallback logic, prompt building, cycle timing, job routing)
 - 0 breaking changes to existing behavior
+
+---
+
+## Phase 4 — Tool Router (Provider Abstraction Layer)
+
+AI provider calls are abstracted behind a capability-based tool router. Application code (agent decisions, generation modules, job handlers, crew system) calls the tool router — NEVER providers directly. The router selects providers and models based on tier, trust level, budget, and fallback logic.
+
+### New Module Map
+
+```
+src/lib/ai/providers/
+├── openai.ts             ← OpenAI SDK wrapper (chat completions, vision)
+├── fal.ts                ← fal.ai SDK wrapper (image + video generation)
+└── runway.ts             ← Runway ML SDK wrapper (image-to-video)
+
+src/lib/ai/
+├── tool-router.ts        ← Central routing layer (the ONLY provider interface)
+└── __tests__/
+    └── tool-router.test.ts ← Model selection, budget, tier routing (24 tests)
+```
+
+### Tool Router Capabilities
+
+| Capability | Function | Routes to | Tier logic |
+|------------|----------|-----------|------------|
+| **Caption/Chat** | `generateCaption()` / `generateChat()` | OpenAI | GRID/ADMIN → gpt-4o, others → gpt-4o-mini |
+| **Image** | `generateImage()` | fal.ai Flux | With/without IP-adapter based on reference image |
+| **Video** | `generateVideo()` | fal.ai or Runway | GRID 30s + start frame → Runway, fallback → fal.ai |
+| **Vision** | `analyzeImage()` | OpenAI gpt-4o | Always gpt-4o (requires multimodal) |
+
+### Routing Logic
+
+```
+generateCaption / generateChat
+    │
+    ├─ Check budget (Phase 6 enforcement)
+    ├─ Select model: GRID/ADMIN + trustLevel ≥ 0.5 → gpt-4o, else → gpt-4o-mini
+    └─ Call openaiProvider.chatCompletion()
+
+generateImage
+    │
+    ├─ Check budget
+    ├─ Reference image provided?
+    │   ├─ YES → fal.ai flux-general + IP-adapter (scale 0.7)
+    │   └─ NO  → fal.ai flux/dev
+    └─ Call falProvider.generateImage()
+
+generateVideo
+    │
+    ├─ Check budget
+    ├─ GRID/ADMIN + 30s + startFrame + Runway available?
+    │   ├─ YES → Try Runway Gen-3 Alpha Turbo
+    │   │         └─ On failure → fallback to fal.ai
+    │   └─ NO  → fal.ai (Kling for 6s, Minimax for 15s/30s)
+    └─ Call falProvider.generateVideo() or runwayProvider.generateVideo()
+```
+
+### ToolContext
+
+Every AI call receives a `ToolContext` that drives routing decisions:
+
+```typescript
+type ToolContext = {
+  tier: string;           // SPARK | PULSE | GRID | ADMIN | ...
+  trustLevel?: number;    // 0-1, affects model selection (default: 1)
+  budget?: {              // Phase 6 cost controls
+    dailyLimitCents?: number;
+    spentTodayCents?: number;
+  };
+};
+```
+
+### Provider Isolation
+
+Each provider module wraps a single SDK:
+
+- **`providers/openai.ts`** — `chatCompletion()` wraps `openai.chat.completions.create()`
+- **`providers/fal.ts`** — `generateImage()` and `generateVideo()` wrap `fal.subscribe()`
+- **`providers/runway.ts`** — `generateVideo()` wraps `runway.imageToVideo.create()` + polling
+
+No other module imports the raw SDKs (`openai`, `@fal-ai/client`, `@runwayml/sdk`).
+
+### Refactored Modules
+
+These modules now call the tool router instead of providers directly:
+
+| Module | Before | After |
+|--------|--------|-------|
+| `ai/caption.ts` | `openai.chat.completions.create()` | `toolRouter.generateCaption()` |
+| `ai/tags.ts` | `openai.chat.completions.create()` | `toolRouter.generateCaption()` with jsonMode |
+| `ai/image.ts` | `fal.subscribe()` + `openai` vision | `toolRouter.generateImage()` + `toolRouter.analyzeImage()` |
+| `ai/video.ts` | `fal.subscribe()` + `runway` | `toolRouter.generateVideo()` |
+| `ai/generate-post.ts` | Passed `model` string | Creates `ToolContext`, passes `ctx` |
+| `agent/decide.ts` | `openai.chat.completions.create()` | `toolRouter.generateChat()` |
+| `jobs/handlers/respondToComment.ts` | `new OpenAI()` | `toolRouter.generateChat()` |
+| `jobs/handlers/respondToPost.ts` | `new OpenAI()` | `toolRouter.generateChat()` |
+| `crew.ts` | `new OpenAI()` | `toolRouter.generateChat()` |
+| `api/bots/generate/route.ts` | `new OpenAI()` | `toolRouter.generateChat()` |
+
+### Dependency Graph Update
+
+```
+providers/openai.ts ──────── (leaf: OpenAI SDK)
+providers/fal.ts ─────────── (leaf: fal.ai SDK)
+providers/runway.ts ──────── (leaf: Runway SDK)
+
+tool-router.ts ────────────── providers/openai, providers/fal, providers/runway
+caption.ts ────────────────── tool-router, types
+tags.ts ───────────────────── tool-router, types, ../trending
+image.ts ──────────────────── tool-router, types, ../media
+video.ts ──────────────────── tool-router, types, image
+generate-post.ts ──────────── tool-router, types, caption, tags, image, video, ../prisma, ../learning-loop, ../trending
+publish.ts ────────────────── generate-post, image, moderation, ../prisma
+```
+
+### How to Test Locally
+
+```bash
+# Run all tests (105 tests: 35 Phase 1 + 20 Phase 2 + 26 Phase 3 + 24 Phase 4)
+npm test
+
+# Typecheck
+npx tsc --noEmit
+
+# Build
+npm run build
+
+# Dev server (existing behavior should be identical)
+npm run dev
+
+# Verify video routing unchanged
+# POST /api/cron/generate — bots still post with correct provider routing
+# SPARK → fal.ai images/video
+# GRID 30s → attempts Runway, falls back to fal.ai
+```
+
+### What Changed
+
+- 3 new provider modules under `src/lib/ai/providers/` (openai, fal, runway)
+- 1 new tool-router module (`src/lib/ai/tool-router.ts`)
+- 24 new tests for model selection, budget checks, tier routing
+- 10 modules refactored to use tool router instead of direct provider calls
+- `providers.ts` deprecated (kept as re-export shim)
+- 0 behavioral changes from user perspective
+- 0 database schema changes
+- All 105 tests pass

@@ -1,6 +1,6 @@
 // Post generation orchestrator
 // Coordinates caption, tags, and media generation into a single post.
-// This is the core "brain" that the agent loop will call in Phase 3.
+// Creates a ToolContext from the owner's tier and passes it through all modules.
 
 import { prisma } from "../prisma";
 import { buildPerformanceContext } from "../learning-loop";
@@ -10,6 +10,7 @@ import { generateCaption } from "./caption";
 import { generateTags } from "./tags";
 import { generateImage } from "./image";
 import { generateVideoContent } from "./video";
+import type { ToolContext } from "./tool-router";
 
 /**
  * Generate a post for a bot.
@@ -28,7 +29,9 @@ export async function generatePost(
   tags: string[];
 }> {
   const caps = TIER_CAPABILITIES[ownerTier] || TIER_CAPABILITIES.SPARK;
-  const model = caps.premiumModel ? "gpt-4o" : "gpt-4o-mini";
+
+  // Build tool context from tier â€” all downstream AI calls use this
+  const ctx: ToolContext = { tier: ownerTier, trustLevel: 1 };
 
   // Get recent posts to avoid repetition
   const recentPosts = await prisma.post.findMany({
@@ -75,21 +78,21 @@ React to trending topics through your unique lens. Don't just comment on them â€
     trendingContext,
     postType,
     videoDuration,
-    model,
+    ctx,
   });
 
   // Generate tags and media in parallel
-  const tagsPromise = generateTags(bot, content, caps.trendAware, model);
+  const tagsPromise = generateTags(bot, content, caps.trendAware, ctx);
 
   let mediaUrl: string | undefined;
   let thumbnailUrl: string | undefined;
 
   if (postType === "VIDEO" && videoDuration) {
-    const video = await generateVideoContent(bot, content, videoDuration, caps.premiumModel);
+    const video = await generateVideoContent(bot, content, videoDuration, caps.premiumModel, ctx);
     thumbnailUrl = video.thumbnailUrl || undefined;
     mediaUrl = video.videoUrl || video.thumbnailUrl || undefined;
   } else {
-    const imageUrl = await generateImage(bot, content);
+    const imageUrl = await generateImage(bot, content, ctx);
     if (imageUrl) {
       mediaUrl = imageUrl;
     }

@@ -1,7 +1,13 @@
 // Image generation module
 // Handles image generation (Flux via fal.ai), avatar creation, and character reference analysis.
+// All provider calls go through the tool router.
 
-import { openai, fal } from "./providers";
+import {
+  generateImage as routeImage,
+  analyzeImage as routeVision,
+  type ToolContext,
+  DEFAULT_CONTEXT,
+} from "./tool-router";
 import { BotContext, ART_STYLE_PROMPTS } from "./types";
 import { persistImage, isStorageConfigured } from "../media";
 
@@ -11,7 +17,8 @@ import { persistImage, isStorageConfigured } from "../media";
 
 export async function generateImage(
   bot: BotContext,
-  postContent: string
+  postContent: string,
+  ctx?: ToolContext
 ): Promise<string | null> {
   try {
     const characterContext = bot.characterRefDescription
@@ -40,42 +47,15 @@ Requirements:
     // so generated images actually look like the same character
     const refImageUrl = bot.characterRef || bot.avatar;
 
-    let result: { data: { images?: { url?: string }[] } };
+    const tempUrl = await routeImage(
+      {
+        prompt: imagePrompt,
+        referenceImageUrl: refImageUrl || undefined,
+        imageSize: "square_hd",
+      },
+      ctx || DEFAULT_CONTEXT,
+    );
 
-    if (refImageUrl) {
-      // flux-general supports IP-Adapter for actual visual consistency
-      result = await fal.subscribe("fal-ai/flux-general", {
-        input: {
-          prompt: imagePrompt,
-          image_size: "square_hd" as const,
-          num_images: 1,
-          enable_safety_checker: true,
-          num_inference_steps: 28,
-          guidance_scale: 3.5,
-          ip_adapters: [
-            {
-              path: "XLabs-AI/flux-ip-adapter",
-              ip_adapter_image_url: refImageUrl,
-              scale: 0.7,
-            },
-          ],
-        },
-        logs: false,
-      }) as { data: { images?: { url?: string }[] } };
-    } else {
-      // No reference image — use plain flux/dev
-      result = await fal.subscribe("fal-ai/flux/dev", {
-        input: {
-          prompt: imagePrompt,
-          image_size: "square_hd",
-          num_images: 1,
-          enable_safety_checker: true,
-        },
-        logs: false,
-      }) as { data: { images?: { url?: string }[] } };
-    }
-
-    const tempUrl = result.data?.images?.[0]?.url || null;
     if (!tempUrl) return null;
 
     if (!isStorageConfigured()) {
@@ -100,7 +80,8 @@ Requirements:
 // ---------------------------------------------------------------------------
 
 export async function generateAvatar(
-  bot: BotContext
+  bot: BotContext,
+  ctx?: ToolContext
 ): Promise<string | null> {
   try {
     // Parse persona data for person-type bots
@@ -166,18 +147,12 @@ Requirements:
 - Should feel like a distinctive social media profile picture`;
     }
 
-    // Use Flux via fal.ai for high-quality image generation
-    const result = await fal.subscribe("fal-ai/flux/dev", {
-      input: {
-        prompt,
-        image_size: "square_hd",
-        num_images: 1,
-        enable_safety_checker: true,
-      },
-      logs: false,
-    }) as { data: { images?: { url?: string }[] } };
+    // Avatar generation always uses plain Flux (no IP-adapter)
+    const tempUrl = await routeImage(
+      { prompt, imageSize: "square_hd" },
+      ctx || DEFAULT_CONTEXT,
+    );
 
-    const tempUrl = result.data?.images?.[0]?.url || null;
     if (!tempUrl) return null;
 
     if (!isStorageConfigured()) {
@@ -202,14 +177,12 @@ Requirements:
 // ---------------------------------------------------------------------------
 
 export async function analyzeCharacterReference(
-  imageUrl: string
+  imageUrl: string,
+  ctx?: ToolContext
 ): Promise<string> {
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages: [
-      {
-        role: "system",
-        content: `You are an expert visual analyst. Analyze this character/entity reference image and produce a detailed, reusable description that can be used in future image generation prompts to maintain visual consistency.
+  return routeVision(
+    {
+      systemPrompt: `You are an expert visual analyst. Analyze this character/entity reference image and produce a detailed, reusable description that can be used in future image generation prompts to maintain visual consistency.
 
 Focus on:
 - Physical appearance (body type, features, colors, distinguishing marks)
@@ -220,23 +193,10 @@ Focus on:
 - Overall mood/vibe
 
 Write the description as a single paragraph, 100-200 words, in a format that works as a DALL-E prompt fragment. Start directly with the description, no preamble.`,
-      },
-      {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: "Analyze this character reference image and provide a detailed, reusable visual description.",
-          },
-          {
-            type: "image_url",
-            image_url: { url: imageUrl },
-          },
-        ],
-      },
-    ],
-    max_tokens: 400,
-  });
-
-  return response.choices[0]?.message?.content?.trim() || "";
+      userPrompt: "Analyze this character reference image and provide a detailed, reusable visual description.",
+      imageUrl,
+      maxTokens: 400,
+    },
+    ctx || DEFAULT_CONTEXT,
+  );
 }

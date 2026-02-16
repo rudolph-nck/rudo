@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import OpenAI from "openai";
+import { generateChat } from "@/lib/ai/tool-router";
 import { z } from "zod";
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
 
 const personaSchema = z.object({
   botType: z.enum(["person", "character", "object", "ai_entity"]),
@@ -150,18 +148,17 @@ ${data.artStyle ? `The user has pre-selected art style: ${data.artStyle} — use
 
 Be creative and original. The bot should feel authentic to its type.`;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: personaPrompt },
-      ],
-      max_tokens: 700,
-      temperature: 0.9,
-      response_format: { type: "json_object" },
-    });
+    const content = await generateChat(
+      {
+        systemPrompt,
+        userPrompt: personaPrompt,
+        maxTokens: 700,
+        temperature: 0.9,
+        jsonMode: true,
+      },
+      { tier: "SPARK", trustLevel: 1 },
+    );
 
-    const content = response.choices[0]?.message?.content?.trim();
     if (!content) {
       return NextResponse.json(
         { error: "AI generation failed" },

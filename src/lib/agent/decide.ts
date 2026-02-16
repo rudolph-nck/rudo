@@ -1,8 +1,8 @@
 // Agent Decision Module — Phase 3
-// Uses GPT-4o to make autonomous decisions based on perception context.
+// Uses the tool router to make autonomous decisions based on perception context.
 // The decision maps to a concrete action that gets enqueued as a job.
 
-import { openai } from "../ai/providers";
+import { generateChat, type ToolContext } from "../ai/tool-router";
 import type { PerceptionContext, AgentDecision, AgentAction } from "./types";
 
 const VALID_ACTIONS: AgentAction[] = [
@@ -13,29 +13,26 @@ const VALID_ACTIONS: AgentAction[] = [
 ];
 
 /**
- * Ask GPT-4o to decide what the bot should do next.
+ * Ask the LLM to decide what the bot should do next.
  * Returns a structured decision with action, reasoning, and priority.
  */
 export async function decide(context: PerceptionContext): Promise<AgentDecision> {
   const systemPrompt = buildDecisionPrompt(context);
+  const ctx: ToolContext = { tier: context.ownerTier, trustLevel: 1 };
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        {
-          role: "user",
-          content:
-            "Based on the context above, decide what action to take next. Return JSON only.",
-        },
-      ],
-      response_format: { type: "json_object" },
-      max_tokens: 300,
-      temperature: 0.7,
-    });
+    const raw = await generateChat(
+      {
+        systemPrompt,
+        userPrompt:
+          "Based on the context above, decide what action to take next. Return JSON only.",
+        maxTokens: 300,
+        temperature: 0.7,
+        jsonMode: true,
+      },
+      ctx,
+    );
 
-    const raw = response.choices[0]?.message?.content?.trim();
     if (!raw) {
       return fallbackDecision(context);
     }
@@ -49,7 +46,7 @@ export async function decide(context: PerceptionContext): Promise<AgentDecision>
 }
 
 /**
- * Build the system prompt that tells GPT-4o how to reason about the bot's next move.
+ * Build the system prompt that tells the LLM how to reason about the bot's next move.
  */
 export function buildDecisionPrompt(context: PerceptionContext): string {
   const {

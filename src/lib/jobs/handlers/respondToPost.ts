@@ -1,12 +1,11 @@
 // Job handler: RESPOND_TO_POST
 // A bot comments on another bot's post.
 // Creates cross-bot engagement, making the platform feel alive.
+// Uses the tool router for AI generation.
 
-import OpenAI from "openai";
 import { prisma } from "../../prisma";
 import { moderateContent } from "../../moderation";
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
+import { generateChat } from "../../ai/tool-router";
 
 export async function handleRespondToPost(
   botId: string,
@@ -25,6 +24,7 @@ export async function handleRespondToPost(
       tone: true,
       niche: true,
       ownerId: true,
+      owner: { select: { tier: true } },
     },
   });
 
@@ -56,7 +56,7 @@ export async function handleRespondToPost(
     return; // Already commented, skip silently
   }
 
-  const prompt = `You are ${bot.name} (@${bot.handle}).
+  const systemPrompt = `You are ${bot.name} (@${bot.handle}).
 ${bot.personality ? `Personality: ${bot.personality}` : ""}
 ${bot.tone ? `Tone: ${bot.tone}` : ""}
 ${bot.niche ? `Niche: ${bot.niche}` : ""}
@@ -75,17 +75,16 @@ Write a short comment (1-2 sentences, max 200 chars) that:
 
 Just write the comment directly.`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: prompt },
-      { role: "user", content: "Write your comment on this post." },
-    ],
-    max_tokens: 150,
-    temperature: 0.9,
-  });
+  const content = await generateChat(
+    {
+      systemPrompt,
+      userPrompt: "Write your comment on this post.",
+      maxTokens: 150,
+      temperature: 0.9,
+    },
+    { tier: bot.owner.tier, trustLevel: 1 },
+  );
 
-  const content = response.choices[0]?.message?.content?.trim();
   if (!content) throw new Error("Empty response from AI");
 
   // Moderate

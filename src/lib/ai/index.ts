@@ -1,6 +1,25 @@
 // AI Generation Pipeline — Module Index
 // Re-exports all public functions so consumers can import from "@/lib/ai".
-// The agent loop (Phase 3) will call these modules directly.
+// Phase 4: All AI calls now flow through the tool router.
+
+// Tool router (Phase 4 — the capability layer)
+export {
+  generateCaption as routeCaption,
+  generateChat,
+  generateImage as routeImage,
+  generateVideo as routeVideo,
+  analyzeImage,
+  selectChatModel,
+  DEFAULT_CONTEXT,
+} from "./tool-router";
+export type {
+  ToolContext,
+  CaptionRequest,
+  ChatRequest,
+  ImageRequest,
+  VideoRequest,
+  VisionRequest,
+} from "./tool-router";
 
 // Types and constants
 export type { BotContext } from "./types";
@@ -22,7 +41,7 @@ export { generateTags } from "./tags";
 export { generateImage, generateAvatar, analyzeCharacterReference } from "./image";
 
 // Video generation
-export { generateVideoFal, generateVideoRunway, generateVideoContent } from "./video";
+export { generateVideoContent } from "./video";
 
 // Moderation (re-exported from src/lib/moderation)
 export { moderateContent, moderateUrl } from "./moderation";

@@ -1,7 +1,7 @@
 // Tag generation module
-// Generates 2-5 discovery tags for posts using AI.
+// Generates 2-5 discovery tags for posts using the tool router.
 
-import { openai } from "./providers";
+import { generateCaption, type ToolContext, DEFAULT_CONTEXT } from "./tool-router";
 import { BotContext } from "./types";
 import { getTrendingTopics } from "../trending";
 
@@ -16,7 +16,7 @@ export async function generateTags(
   bot: BotContext,
   caption: string,
   trendAware: boolean,
-  model: string
+  ctx?: ToolContext
 ): Promise<string[]> {
   try {
     let trendingHint = "";
@@ -32,12 +32,9 @@ If any trending topics are relevant, include them as tags to boost discoverabili
       }
     }
 
-    const response = await openai.chat.completions.create({
-      model,
-      messages: [
-        {
-          role: "system",
-          content: `You are a social media tag generator for rudo.ai, an AI creator platform. Generate 2-5 discovery tags for a post.
+    const content = await generateCaption(
+      {
+        systemPrompt: `You are a social media tag generator for rudo.ai, an AI creator platform. Generate 2-5 discovery tags for a post.
 
 Rules:
 - Tags are lowercase, 1-3 words each, no # symbol
@@ -46,19 +43,15 @@ Rules:
 - Tags should help users discover this content through topic browsing
 - No generic filler tags like "content" or "post"
 - Return ONLY valid JSON: { "tags": ["tag1", "tag2", ...] }${trendingHint}`,
-        },
-        {
-          role: "user",
-          content: `Creator: @${bot.handle} (${bot.niche || "general"}, ${bot.aesthetic || "modern"} aesthetic)\nCaption: ${caption}`,
-        },
-      ],
-      max_tokens: 100,
-      temperature: 0.7,
-      response_format: { type: "json_object" },
-    });
+        userPrompt: `Creator: @${bot.handle} (${bot.niche || "general"}, ${bot.aesthetic || "modern"} aesthetic)\nCaption: ${caption}`,
+        maxTokens: 100,
+        temperature: 0.7,
+        jsonMode: true,
+      },
+      ctx || DEFAULT_CONTEXT,
+    );
 
-    const content = response.choices[0]?.message?.content?.trim() || "{}";
-    const parsed = JSON.parse(content);
+    const parsed = JSON.parse(content || "{}");
     const tags = Array.isArray(parsed) ? parsed : (parsed.tags || []);
     return tags
       .filter((t: unknown): t is string => typeof t === "string")

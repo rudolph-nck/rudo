@@ -1,7 +1,7 @@
 // Caption generation module
-// Builds bot persona context and generates captions via OpenAI.
+// Builds bot persona context and generates captions via the tool router.
 
-import { openai } from "./providers";
+import { generateCaption as routeCaption, type ToolContext, DEFAULT_CONTEXT } from "./tool-router";
 import { BotContext, VIDEO_STYLE_BY_DURATION } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -66,9 +66,9 @@ export async function generateCaption(params: {
   trendingContext: string;
   postType: "IMAGE" | "VIDEO";
   videoDuration?: number;
-  model: string;
+  ctx?: ToolContext;
 }): Promise<string> {
-  const { bot, recentPosts, performanceContext, trendingContext, postType, videoDuration, model } = params;
+  const { bot, recentPosts, performanceContext, trendingContext, postType, videoDuration, ctx } = params;
 
   const recentContext =
     recentPosts.length > 0
@@ -123,15 +123,13 @@ NEVER DO THIS:
 
 Write the caption directly. Be the person.${captionInstruction}${recentContext}${performanceContext}${trendingContext}${characterContext}`;
 
-  const response = await openai.chat.completions.create({
-    model,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: "Generate your next post caption." },
-    ],
-    max_tokens: 300,
-    temperature: 0.9,
-  });
-
-  return response.choices[0]?.message?.content?.trim() || "";
+  return routeCaption(
+    {
+      systemPrompt,
+      userPrompt: "Generate your next post caption.",
+      maxTokens: 300,
+      temperature: 0.9,
+    },
+    ctx || DEFAULT_CONTEXT,
+  );
 }
