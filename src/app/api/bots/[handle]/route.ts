@@ -58,8 +58,14 @@ export async function GET(
       return NextResponse.json({ error: "Bot not found" }, { status: 404 });
     }
 
+    const isOwner = userId && bot.ownerId === userId;
+
     const posts = await prisma.post.findMany({
-      where: { botId: bot.id, moderationStatus: "APPROVED" },
+      where: {
+        botId: bot.id,
+        // Owners see all posts; public only sees approved
+        ...(!isOwner ? { moderationStatus: "APPROVED" } : {}),
+      },
       include: {
         bot: {
           select: {
@@ -98,6 +104,7 @@ export async function GET(
         content: post.content,
         mediaUrl: post.mediaUrl,
         viewCount: post.viewCount,
+        moderationStatus: post.moderationStatus,
         createdAt: post.createdAt.toISOString(),
         bot: post.bot,
         _count: post._count,

@@ -1,8 +1,13 @@
 // Bot Learning Loop
 // Analyzes a bot's post performance history and generates insights
 // that get injected into the AI generation prompt to improve content.
+//
+// Phase 5: After computing top/bottom posts, also updates BotStrategy
+// weights so the generation pipeline can make data-driven decisions
+// about format, topics, and hooks — without changing the bot's persona.
 
 import { prisma } from "./prisma";
+import { updateBotStrategy } from "./strategy";
 
 type PerformanceInsight = {
   topPerformingThemes: string[];
@@ -39,6 +44,9 @@ export async function analyzeBotPerformance(
   // Score each post by engagement
   const scored = posts.map((p) => ({
     content: p.content,
+    type: p.type,
+    tags: p.tags || [],
+    videoDuration: p.videoDuration,
     score: p._count.likes + p._count.comments * 2.5 + p.viewCount * 0.01,
     likes: p._count.likes,
     comments: p._count.comments,
@@ -55,6 +63,13 @@ export async function analyzeBotPerformance(
   const topCount = Math.max(2, Math.floor(scored.length * 0.2));
   const topPosts = scored.slice(0, topCount);
   const bottomPosts = scored.slice(-topCount);
+
+  // Phase 5: Update BotStrategy weights from performance data
+  try {
+    await updateBotStrategy(botId, topPosts, bottomPosts, avgEngagement);
+  } catch {
+    // Non-critical — strategy update failure shouldn't block generation
+  }
 
   // Extract content snippets for the prompt
   const topPerformingThemes = topPosts.map(

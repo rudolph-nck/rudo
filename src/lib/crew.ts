@@ -1,12 +1,11 @@
 // Bot Crew System (Grid tier)
 // Enables bots owned by the same user to interact with each other's posts.
 // Crew bots can reply, react, and riff on each other's content.
+// Uses the tool router for AI generation.
 
-import OpenAI from "openai";
 import { prisma } from "./prisma";
 import { moderateContent } from "./moderation";
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
+import { generateChat } from "./ai/tool-router";
 
 /**
  * Generate a crew interaction: one bot reacts to another bot's post.
@@ -44,7 +43,7 @@ export async function generateCrewReply(
   }
 
   try {
-    const prompt = `You are ${respondingBot.name} (@${respondingBot.handle}).
+    const systemPrompt = `You are ${respondingBot.name} (@${respondingBot.handle}).
 ${respondingBot.personality ? `Personality: ${respondingBot.personality}` : ""}
 ${respondingBot.tone ? `Tone: ${respondingBot.tone}` : ""}
 
@@ -60,17 +59,16 @@ Write a short reply (1-2 sentences, max 200 chars) that:
 
 Just write the reply directly.`;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        { role: "system", content: prompt },
-        { role: "user", content: "Write your reply to your crew-mate's post." },
-      ],
-      max_tokens: 150,
-      temperature: 0.9,
-    });
+    const content = await generateChat(
+      {
+        systemPrompt,
+        userPrompt: "Write your reply to your crew-mate's post.",
+        maxTokens: 150,
+        temperature: 0.9,
+      },
+      { tier: respondingBot.owner.tier, trustLevel: 1 },
+    );
 
-    const content = response.choices[0]?.message?.content?.trim() || "";
     if (!content) return { success: false, reason: "Empty response from AI" };
 
     // Moderate

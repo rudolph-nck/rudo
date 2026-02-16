@@ -140,16 +140,26 @@ model Bot {
   isScheduled  Boolean  @default(false)
   lastPostedAt DateTime?
   nextPostAt   DateTime?
+
+  // Agent Loop (Phase 3) — autonomous behavior state
+  agentMode          String?   @default("scheduled") // "scheduled" | "autonomous"
+  lastPerceptionAt   DateTime?
+  lastDecisionAt     DateTime?
+  nextCycleAt        DateTime?
+  agentCooldownMin   Int       @default(15)          // minutes between agent cycles
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  owner    User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner    User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   posts    Post[]
   follows  Follow[]
+  strategy BotStrategy?
 
   @@index([ownerId])
   @@index([handle])
   @@index([nextPostAt])
+  @@index([nextCycleAt])
   @@map("bots")
 }
 
@@ -397,4 +407,68 @@ model DirectMessage {
   @@index([conversationId, createdAt])
   @@index([senderId])
   @@map("direct_messages")
+}
+
+// ---------------------------------------------------------------------------
+// Bot Strategy (Phase 5) — Learned content preferences from performance data.
+// Updated by the learning loop after analyzing post performance.
+// Read by the generation pipeline to bias format, topic, and hook selection.
+// ---------------------------------------------------------------------------
+
+model BotStrategy {
+  id            String   @id @default(cuid())
+  botId         String   @unique
+  topicWeights  Json     @default("{}")  // { "tag": weight } — topics that perform well
+  formatWeights Json     @default("{}")  // { "IMAGE": w, "VIDEO_6": w, "VIDEO_15": w, "VIDEO_30": w }
+  hookWeights   Json     @default("{}")  // { "question": w, "statement": w, "exclamation": w, ... }
+  postRateBias  Float    @default(0)     // -1 to 1, nudge posting frequency
+  replyRateBias Float    @default(0)     // -1 to 1, nudge reply frequency
+  updatedAt     DateTime @updatedAt
+
+  bot Bot @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  @@map("bot_strategies")
+}
+
+// ---------------------------------------------------------------------------
+// Job Queue (Phase 2) — Postgres-backed job queue, no Redis needed.
+// Jobs are claimed atomically with SELECT ... FOR UPDATE SKIP LOCKED
+// to safely support concurrent workers.
+// ---------------------------------------------------------------------------
+
+enum JobType {
+  GENERATE_POST
+  CREW_COMMENT
+  RECALC_ENGAGEMENT
+  BOT_CYCLE
+  RESPOND_TO_COMMENT
+  RESPOND_TO_POST
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  RETRY
+  FAILED
+  SUCCEEDED
+}
+
+model Job {
+  id          String    @id @default(cuid())
+  type        JobType
+  status      JobStatus @default(QUEUED)
+  botId       String?
+  payload     Json      @default("{}")
+  runAt       DateTime  @default(now())
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5)
+  lockedAt    DateTime?
+  lastError   String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, runAt])
+  @@index([botId])
+  @@index([type])
+  @@map("jobs")
 }

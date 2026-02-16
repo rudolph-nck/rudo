@@ -70,6 +70,16 @@ type BotDetail = {
   _count: { posts: number; follows: number };
 };
 
+type PostItem = {
+  id: string;
+  type: string;
+  content: string;
+  mediaUrl: string | null;
+  moderationStatus: string;
+  createdAt: string;
+  _count: { likes: number; comments: number };
+};
+
 type PersonaFields = {
   // Person
   gender: string;
@@ -146,6 +156,10 @@ export default function BotManagePage() {
   const [analyzingAvatar, setAnalyzingAvatar] = useState(false);
   const [avatarRefMsg, setAvatarRefMsg] = useState("");
 
+  // Posts
+  const [posts, setPosts] = useState<PostItem[]>([]);
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+
   function initFormFromBot(b: BotDetail) {
     setForm({
       name: b.name,
@@ -170,6 +184,7 @@ export default function BotManagePage() {
           setBot(data.bot);
           setNextPostAt(data.bot.nextPostAt);
           initFormFromBot(data.bot);
+          if (data.posts) setPosts(data.posts);
         }
       } catch {
         // silent
@@ -338,6 +353,22 @@ export default function BotManagePage() {
     } finally {
       setAnalyzingAvatar(false);
       setTimeout(() => setAvatarRefMsg(""), 5000);
+    }
+  }
+
+  async function handleDeletePost(postId: string) {
+    if (!confirm("Delete this post? This cannot be undone.")) return;
+    setDeletingPostId(postId);
+    try {
+      const res = await fetch(`/api/posts/${postId}`, { method: "DELETE" });
+      if (res.ok) {
+        setPosts((prev) => prev.filter((p) => p.id !== postId));
+        setBot((b) => b ? { ...b, _count: { ...b._count, posts: b._count.posts - 1 } } : b);
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeletingPostId(null);
     }
   }
 
@@ -589,6 +620,53 @@ export default function BotManagePage() {
           </div>
         </div>
       </div>
+
+      {/* Posts */}
+      {posts.length > 0 && (
+        <div className="bg-rudo-card-bg border border-rudo-card-border p-6 mb-6">
+          <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-4">
+            Posts
+          </h3>
+          <div className="space-y-3">
+            {posts.map((post) => (
+              <div key={post.id} className="flex items-start gap-3 p-3 border border-rudo-card-border">
+                {post.mediaUrl && (
+                  <img
+                    src={post.mediaUrl}
+                    alt=""
+                    className="w-14 h-14 object-cover shrink-0"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-rudo-dark-text font-outfit line-clamp-2">
+                    {post.content}
+                  </p>
+                  <div className="flex items-center gap-3 mt-1.5 text-[10px] text-rudo-dark-muted">
+                    <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                    <span className={`uppercase font-orbitron tracking-[1px] ${
+                      post.moderationStatus === "APPROVED" ? "text-green-600"
+                      : post.moderationStatus === "REJECTED" ? "text-rudo-rose"
+                      : "text-amber-500"
+                    }`}>
+                      {post.moderationStatus}
+                    </span>
+                    <span>{post._count.likes} likes</span>
+                    <span>{post._count.comments} comments</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleDeletePost(post.id)}
+                  disabled={deletingPostId === post.id}
+                  className="shrink-0 px-3 py-1.5 text-[10px] font-orbitron tracking-[1px] uppercase cursor-pointer border border-rudo-rose/30 text-rudo-rose bg-transparent hover:bg-rudo-rose/10 transition-all disabled:opacity-50"
+                >
+                  {deletingPostId === post.id ? "..." : "Delete"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Bot Details — Editable */}
       <div className="bg-rudo-card-bg border border-rudo-card-border p-6 mb-6">

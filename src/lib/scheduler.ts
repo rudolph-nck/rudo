@@ -1,9 +1,16 @@
 // Bot scheduling engine
-// Determines when bots should post and triggers AI content generation
+// Determines when bots should post and enqueues generation jobs.
+//
+// Phase 2: The scheduler NO LONGER generates content directly.
+// It enqueues GENERATE_POST jobs for the worker to process.
+// This decouples scheduling (fast) from execution (slow AI calls).
+//
+// Phase 3: Adds agent cycle scheduling for autonomous bots.
+// Bots with agentMode="autonomous" get BOT_CYCLE jobs instead
+// of direct GENERATE_POST jobs. The agent decides what to do.
 
 import { prisma } from "./prisma";
-import { generateAndPublish } from "./ai-generate";
-import { processCrewInteractions } from "./crew";
+import { enqueueJob, hasPendingJob } from "./jobs/enqueue";
 
 // Posts per day by tier (matches pricing page)
 const TIER_POSTS_PER_DAY: Record<string, number> = {
@@ -85,76 +92,160 @@ export async function disableScheduling(botId: string) {
 }
 
 /**
- * Process all bots that are due to post.
- * Called by a cron job (e.g., every 5 minutes).
+ * Enqueue generation jobs for all bots that are due to post.
+ * Called by the cron job every 5 minutes.
+ *
+ * Phase 3: Skips autonomous bots — they get their own cycle via enqueueAgentCycles().
+ *
+ * This is FAST — it only creates job records, no AI calls.
+ * The actual generation happens when the worker processes the jobs.
  */
-export async function processScheduledBots(): Promise<{
+export async function enqueueScheduledBots(): Promise<{
   processed: number;
-  posted: number;
-  errors: string[];
+  enqueued: number;
+  skipped: number;
 }> {
   const now = new Date();
-  const errors: string[] = [];
-  let posted = 0;
+  let enqueued = 0;
+  let skipped = 0;
 
   // Find all bots that are scheduled and due to post
+  // Phase 3: exclude autonomous bots — they use the agent cycle
   const dueBots = await prisma.bot.findMany({
     where: {
       isScheduled: true,
       isBYOB: false,
       deactivatedAt: null,
       nextPostAt: { lte: now },
+      OR: [
+        { agentMode: null },
+        { agentMode: "scheduled" },
+      ],
     },
     include: {
       owner: { select: { tier: true } },
     },
   });
 
+  const aiTiers = ["SPARK", "PULSE", "GRID", "ADMIN"];
+
   for (const bot of dueBots) {
     // Only generate for AI tiers (Spark+)
-    const aiTiers = ["SPARK", "PULSE", "GRID", "ADMIN"];
     if (!aiTiers.includes(bot.owner.tier)) {
       continue;
     }
 
-    const result = await generateAndPublish(bot.id);
-
-    if (result.success) {
-      posted++;
-
-      // Schedule next post
-      const nextPost = calculateNextPostTime(bot.postsPerDay);
-      await prisma.bot.update({
-        where: { id: bot.id },
-        data: { nextPostAt: nextPost },
-      });
-    } else {
-      errors.push(`Bot ${bot.handle}: ${result.reason}`);
-
-      // Still schedule next attempt even on failure
-      const retry = new Date();
-      retry.setMinutes(retry.getMinutes() + 30); // Retry in 30 min
-      await prisma.bot.update({
-        where: { id: bot.id },
-        data: { nextPostAt: retry },
-      });
+    // Don't enqueue if this bot already has a pending job
+    const pending = await hasPendingJob(bot.id, "GENERATE_POST");
+    if (pending) {
+      skipped++;
+      continue;
     }
+
+    // Enqueue the generation job
+    await enqueueJob({
+      type: "GENERATE_POST",
+      botId: bot.id,
+      payload: { ownerTier: bot.owner.tier, handle: bot.handle },
+    });
+    enqueued++;
   }
 
-  // Process crew interactions after posting (Grid tier bots interact)
-  if (posted > 0) {
-    try {
-      const crewResult = await processCrewInteractions();
-      if (crewResult.interactions > 0) {
-        console.log(`Crew interactions: ${crewResult.interactions}`);
-      }
-      if (crewResult.errors.length > 0) {
-        errors.push(...crewResult.errors.map((e) => `[crew] ${e}`));
-      }
-    } catch (err: any) {
-      errors.push(`[crew] ${err.message}`);
-    }
+  // Enqueue a crew interaction job if any bots were enqueued
+  if (enqueued > 0) {
+    await enqueueJob({
+      type: "CREW_COMMENT",
+      payload: {},
+    });
   }
 
-  return { processed: dueBots.length, posted, errors };
+  return { processed: dueBots.length, enqueued, skipped };
+}
+
+/**
+ * Enqueue BOT_CYCLE jobs for all autonomous bots that are due for a cycle.
+ * Called by the cron job every 5 minutes.
+ *
+ * Phase 3: Autonomous bots use the agent loop (perceive → decide → act)
+ * instead of direct GENERATE_POST scheduling.
+ *
+ * This is FAST — it only creates job records, no AI calls.
+ */
+export async function enqueueAgentCycles(): Promise<{
+  processed: number;
+  enqueued: number;
+  skipped: number;
+}> {
+  const now = new Date();
+  let enqueued = 0;
+  let skipped = 0;
+
+  // Find autonomous bots due for a cycle
+  const dueBots = await prisma.bot.findMany({
+    where: {
+      agentMode: "autonomous",
+      isScheduled: true,
+      isBYOB: false,
+      deactivatedAt: null,
+      OR: [
+        { nextCycleAt: null },                 // Never ran
+        { nextCycleAt: { lte: now } },         // Due now
+      ],
+    },
+    include: {
+      owner: { select: { tier: true } },
+    },
+  });
+
+  const aiTiers = ["SPARK", "PULSE", "GRID", "ADMIN"];
+
+  for (const bot of dueBots) {
+    if (!aiTiers.includes(bot.owner.tier)) {
+      continue;
+    }
+
+    // Don't enqueue if this bot already has a pending cycle
+    const pending = await hasPendingJob(bot.id, "BOT_CYCLE");
+    if (pending) {
+      skipped++;
+      continue;
+    }
+
+    await enqueueJob({
+      type: "BOT_CYCLE",
+      botId: bot.id,
+      payload: { ownerTier: bot.owner.tier, handle: bot.handle },
+    });
+    enqueued++;
+  }
+
+  return { processed: dueBots.length, enqueued, skipped };
+}
+
+/**
+ * Enable autonomous agent mode for a bot.
+ * Switches from time-based scheduling to the agent loop.
+ */
+export async function enableAgentMode(botId: string) {
+  await prisma.bot.update({
+    where: { id: botId },
+    data: {
+      agentMode: "autonomous",
+      isScheduled: true,
+      nextCycleAt: new Date(), // Run immediately on next cron
+    },
+  });
+}
+
+/**
+ * Disable autonomous agent mode, reverting to time-based scheduling.
+ */
+export async function disableAgentMode(botId: string) {
+  await prisma.bot.update({
+    where: { id: botId },
+    data: {
+      agentMode: "scheduled",
+      nextCycleAt: null,
+    },
+  });
 }
