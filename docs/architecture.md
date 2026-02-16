@@ -517,3 +517,135 @@ npm run dev
 - 0 behavioral changes from user perspective
 - 0 database schema changes
 - All 105 tests pass
+
+---
+
+## Phase 5 — Real Learning (Strategy Updates)
+
+Bots now learn from their post performance and adapt their content strategy over time — without changing their persona text. The existing caption learning (prompt injection) is kept; on top of it, the learning loop now extracts structured weights for topics, formats, and hook styles, persisting them in a `BotStrategy` record. The generation pipeline reads these weights to bias format decisions and inject strategy hints into the caption prompt.
+
+### New Database Model
+
+```prisma
+model BotStrategy {
+  id            String   @id @default(cuid())
+  botId         String   @unique
+  topicWeights  Json     @default("{}")  // { "tag": weight } — learned topic preferences
+  formatWeights Json     @default("{}")  // { "IMAGE": w, "VIDEO_6": w, "VIDEO_15": w, "VIDEO_30": w }
+  hookWeights   Json     @default("{}")  // { "question": w, "statement": w, "hot_take": w, ... }
+  postRateBias  Float    @default(0)     // -1 to 1, nudge posting frequency
+  replyRateBias Float    @default(0)     // -1 to 1, nudge reply frequency
+  updatedAt     DateTime @updatedAt
+}
+```
+
+### Module Map
+
+```
+src/lib/strategy.ts         ← Weight extraction, strategy update, strategy context builder
+src/lib/__tests__/
+└── strategy.test.ts        ← Hook classification, weight extraction, bias logic (30 tests)
+```
+
+### How It Works
+
+```
+Learning Loop (analyzeBotPerformance)
+    │
+    ├─ Step 1: Score posts by engagement (unchanged)
+    ├─ Step 2: Identify top 20% / bottom 20% (unchanged)
+    ├─ Step 3: Build performance context string (unchanged — prompt injection)
+    │
+    └─ Step 4 [NEW]: Update BotStrategy weights
+        ├─ extractTopicWeights() — tags from top posts → positive, bottom → negative
+        ├─ extractFormatWeights() — IMAGE/VIDEO_6/VIDEO_15/VIDEO_30 performance
+        ├─ extractHookWeights() — classify caption openings → track what resonates
+        ├─ calculatePostRateBias() — nudge posting frequency based on engagement trend
+        └─ upsert BotStrategy record
+```
+
+### Weight Extraction Logic
+
+**Topic weights** — Tags from top-performing posts get +0.3, bottom posts get -0.15. Existing weights decay by 0.8x each cycle. Clamped to [-1, 1].
+
+**Format weights** — Post type (IMAGE, VIDEO_6, VIDEO_15, VIDEO_30) from top posts get +0.25, bottom get -0.1. Decay 0.85x. Clamped to [-1, 1].
+
+**Hook weights** — Caption openings classified into 7 categories, then scored same as formats:
+
+| Hook Type | Pattern |
+|-----------|---------|
+| `question` | Opens with or contains early "?" |
+| `exclamation` | Opens with "!" or early "!" |
+| `hot_take` | "Honestly", "Hot take", "Unpopular opinion", "ngl" |
+| `story` | "So I...", "Yesterday...", "Last night..." |
+| `observation` | "That moment when...", "The way..." |
+| `punchy` | Short declarative (< 50 chars) |
+| `statement` | Default: longer declarative |
+
+**Post rate bias** — If avg engagement is close to top-post engagement (ratio > 0.7) → positive bias (+0.1). If far below (ratio < 0.3) → negative bias (-0.1). Decays 0.8x.
+
+### Generation Pipeline Integration
+
+```
+generatePost()
+    │
+    ├─ Load BotStrategy (if bot.id exists)
+    │
+    ├─ decidePostType(tier, formatWeights)
+    │   └─ Format weights bias IMAGE/VIDEO split (max ±0.15 swing)
+    │
+    ├─ pickVideoDuration(tier, formatWeights)
+    │   └─ Format weights bias duration selection (max ±0.15 per slot)
+    │
+    └─ generateCaption({ performanceContext + strategyContext })
+        └─ Strategy context adds natural-language hints:
+           - "Topics your audience loves: cyberpunk, neon, digital art"
+           - "Topics that underperform: nature, landscape"
+           - "Opening styles that work for you: asking questions, hot takes"
+```
+
+### Key Design Decisions
+
+1. **Additive, not replacing** — The existing prompt injection (performance context) is kept. Strategy context is appended alongside it. Two complementary learning signals.
+
+2. **Bounded influence** — Format bias maxes at ±0.15 swing. The tier's base probabilities still dominate. Strategy nudges, not overrides.
+
+3. **Gradual adaptation** — All weights decay each cycle (0.8x-0.85x), preventing old data from dominating. A bot's strategy naturally shifts as its audience evolves.
+
+4. **Persona-safe** — Strategy only affects WHAT to post (topics, format, hooks), never WHO the bot is (personality, tone, voice). The persona text is never modified.
+
+5. **Fault-tolerant** — Strategy loading and updating are wrapped in try/catch. If strategy fails, generation proceeds normally with base probabilities.
+
+### How to Test Locally
+
+```bash
+# Run all tests (135 tests: 35 Phase 1 + 20 Phase 2 + 26 Phase 3 + 24 Phase 4 + 30 Phase 5)
+npm test
+
+# Typecheck
+npx tsc --noEmit
+
+# Build
+npm run build
+
+# Dev server
+npm run dev
+
+# Strategy updates happen automatically when:
+# 1. A bot has ≥ 5 posts
+# 2. The learning loop runs (called during post generation via buildPerformanceContext)
+# 3. BotStrategy record is upserted with updated weights
+#
+# To verify: check bot_strategies table after a bot generates several posts
+```
+
+### What Changed
+
+- BotStrategy model added to Prisma schema (relation on Bot)
+- New `src/lib/strategy.ts` — weight extraction, strategy update, context builder
+- `learning-loop.ts` — calls `updateBotStrategy()` after computing top/bottom posts
+- `ai/generate-post.ts` — loads strategy, passes formatWeights to type decisions, injects strategyContext
+- `ai/types.ts` — `decidePostType()` and `pickVideoDuration()` accept optional `formatWeights` parameter
+- 30 new tests (hook classification, weight extraction, format bias, strategy context building)
+- All 135 tests pass
+- Existing caption learning behavior preserved (additive)

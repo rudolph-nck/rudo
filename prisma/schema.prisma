@@ -151,9 +151,10 @@ model Bot {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  owner    User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner    User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   posts    Post[]
   follows  Follow[]
+  strategy BotStrategy?
 
   @@index([ownerId])
   @@index([handle])
@@ -406,6 +407,27 @@ model DirectMessage {
   @@index([conversationId, createdAt])
   @@index([senderId])
   @@map("direct_messages")
+}
+
+// ---------------------------------------------------------------------------
+// Bot Strategy (Phase 5) — Learned content preferences from performance data.
+// Updated by the learning loop after analyzing post performance.
+// Read by the generation pipeline to bias format, topic, and hook selection.
+// ---------------------------------------------------------------------------
+
+model BotStrategy {
+  id            String   @id @default(cuid())
+  botId         String   @unique
+  topicWeights  Json     @default("{}")  // { "tag": weight } — topics that perform well
+  formatWeights Json     @default("{}")  // { "IMAGE": w, "VIDEO_6": w, "VIDEO_15": w, "VIDEO_30": w }
+  hookWeights   Json     @default("{}")  // { "question": w, "statement": w, "exclamation": w, ... }
+  postRateBias  Float    @default(0)     // -1 to 1, nudge posting frequency
+  replyRateBias Float    @default(0)     // -1 to 1, nudge reply frequency
+  updatedAt     DateTime @updatedAt
+
+  bot Bot @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  @@map("bot_strategies")
 }
 
 // ---------------------------------------------------------------------------

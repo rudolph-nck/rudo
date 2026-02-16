@@ -1,9 +1,11 @@
 // Post generation orchestrator
 // Coordinates caption, tags, and media generation into a single post.
 // Creates a ToolContext from the owner's tier and passes it through all modules.
+// Phase 5: Loads BotStrategy to bias format decisions and inject strategy hints.
 
 import { prisma } from "../prisma";
 import { buildPerformanceContext } from "../learning-loop";
+import { loadBotStrategy, buildStrategyContext } from "../strategy";
 import { getTrendingTopics } from "../trending";
 import { BotContext, TIER_CAPABILITIES, decidePostType, pickVideoDuration } from "./types";
 import { generateCaption } from "./caption";
@@ -41,11 +43,26 @@ export async function generatePost(
     select: { content: true },
   });
 
-  // Learning loop
+  // Learning loop (also updates BotStrategy in Phase 5)
   let performanceContext = "";
   if (bot.id) {
     try {
       performanceContext = await buildPerformanceContext(bot.id);
+    } catch {
+      // Non-critical
+    }
+  }
+
+  // Load learned strategy (Phase 5)
+  let strategyContext = "";
+  let formatWeights: Record<string, number> | undefined;
+  if (bot.id) {
+    try {
+      const strategy = await loadBotStrategy(bot.id);
+      if (strategy) {
+        strategyContext = buildStrategyContext(strategy);
+        formatWeights = strategy.formatWeights;
+      }
     } catch {
       // Non-critical
     }
@@ -66,15 +83,15 @@ React to trending topics through your unique lens. Don't just comment on them â€
     }
   }
 
-  // Decide post type and video duration
-  const postType = decidePostType(ownerTier);
-  const videoDuration = postType === "VIDEO" ? pickVideoDuration(ownerTier) : undefined;
+  // Decide post type and video duration (biased by learned format weights)
+  const postType = decidePostType(ownerTier, formatWeights);
+  const videoDuration = postType === "VIDEO" ? pickVideoDuration(ownerTier, formatWeights) : undefined;
 
-  // Generate caption
+  // Generate caption (with performance + strategy context)
   const content = await generateCaption({
     bot,
     recentPosts,
-    performanceContext,
+    performanceContext: performanceContext + strategyContext,
     trendingContext,
     postType,
     videoDuration,

@@ -117,23 +117,63 @@ export const ART_STYLE_PROMPTS: Record<string, string> = {
 
 /**
  * Decide IMAGE or VIDEO. No text-only posts — ever.
+ * If formatWeights from BotStrategy are provided, they bias the decision.
  */
-export function decidePostType(tier: string): "IMAGE" | "VIDEO" {
+export function decidePostType(
+  tier: string,
+  formatWeights?: Record<string, number>
+): "IMAGE" | "VIDEO" {
   const caps = TIER_CAPABILITIES[tier] || TIER_CAPABILITIES.SPARK;
-  return Math.random() < caps.videoChance ? "VIDEO" : "IMAGE";
+  let videoChance = caps.videoChance;
+
+  // Apply learned format bias: if VIDEO formats collectively score higher,
+  // nudge the chance up (max ±0.15 swing to keep it bounded).
+  if (formatWeights && Object.keys(formatWeights).length > 0) {
+    const imageWeight = formatWeights["IMAGE"] || 0;
+    const videoWeight = Math.max(
+      formatWeights["VIDEO_6"] || 0,
+      formatWeights["VIDEO_15"] || 0,
+      formatWeights["VIDEO_30"] || 0
+    );
+    const bias = Math.max(-0.15, Math.min(0.15, (videoWeight - imageWeight) * 0.2));
+    videoChance = Math.max(0, Math.min(0.9, videoChance + bias));
+  }
+
+  return Math.random() < videoChance ? "VIDEO" : "IMAGE";
 }
 
 /**
  * Pick a video duration from the tier's weighted mix.
  * e.g. GRID might roll 6s (30%), 15s (40%), or 30s (30%).
+ * If formatWeights from BotStrategy are provided, they bias duration selection.
  */
-export function pickVideoDuration(tier: string): number {
+export function pickVideoDuration(
+  tier: string,
+  formatWeights?: Record<string, number>
+): number {
   const caps = TIER_CAPABILITIES[tier] || TIER_CAPABILITIES.SPARK;
+
+  // Apply learned duration bias
+  let mix = caps.videoDurationMix;
+  if (formatWeights && Object.keys(formatWeights).length > 0) {
+    const total = mix.reduce((s, m) => s + m.weight, 0);
+    mix = mix.map((m) => {
+      const key = `VIDEO_${m.duration}`;
+      const boost = (formatWeights[key] || 0) * 0.15; // max ±0.15 shift
+      return { duration: m.duration, weight: Math.max(0.05, m.weight + boost) };
+    });
+    // Re-normalize to sum to original total
+    const newTotal = mix.reduce((s, m) => s + m.weight, 0);
+    if (newTotal > 0) {
+      mix = mix.map((m) => ({ duration: m.duration, weight: (m.weight / newTotal) * total }));
+    }
+  }
+
   const roll = Math.random();
   let cumulative = 0;
-  for (const { duration, weight } of caps.videoDurationMix) {
+  for (const { duration, weight } of mix) {
     cumulative += weight;
     if (roll < cumulative) return duration;
   }
-  return caps.videoDurationMix[0].duration;
+  return mix[0].duration;
 }
