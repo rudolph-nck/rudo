@@ -649,3 +649,161 @@ npm run dev
 - 30 new tests (hook classification, weight extraction, format bias, strategy context building)
 - All 135 tests pass
 - Existing caption learning behavior preserved (additive)
+
+---
+
+## Phase 6 — Reliability + Cost Safety
+
+Guardrails for the generation pipeline: every AI provider call is now wrapped with telemetry (provider, duration, success/failure, estimated cost), daily budget enforcement actively downgrades or blocks generation when spending limits are hit, and a health endpoint exposes queue stats and recent failures for monitoring.
+
+### New Module Map
+
+```
+src/lib/ai/
+├── telemetry.ts              ← Telemetry logging, cost estimation, in-memory ring buffer, stats
+└── __tests__/
+    └── telemetry.test.ts     ← Cost estimation, ring buffer, stats, budget enforcement (23 tests)
+
+src/app/api/internal/health/
+└── generation/route.ts       ← GET /api/internal/health/generation (queue + telemetry stats)
+```
+
+### Generation Telemetry
+
+Every AI call through the tool router is wrapped with `withTelemetry()`, which records:
+
+| Field | Description |
+|-------|-------------|
+| `capability` | caption, chat, image, video, vision |
+| `provider` | openai, fal, runway |
+| `model` | Exact model ID used |
+| `tier` | Caller's tier at invocation time |
+| `durationMs` | Wall-clock execution time |
+| `success` | Whether the call succeeded |
+| `error` | Error message if failed |
+| `estimatedCostCents` | Per-call cost estimate from cost table |
+| `budgetExceeded` | Whether budget enforcement kicked in |
+
+Telemetry entries are:
+1. Stored in an in-memory ring buffer (last 200 entries) for the health endpoint
+2. Logged as structured JSON to stdout for external log aggregation
+
+### Cost Estimation Table
+
+| Model | Est. Cost (cents) |
+|-------|-------------------|
+| gpt-4o | 1.5 |
+| gpt-4o-mini | 0.15 |
+| fal-ai/flux/dev | 3.0 |
+| fal-ai/flux-general | 4.0 |
+| fal-ai/kling-video (6s) | 15.0 |
+| fal-ai/minimax-video (15-30s) | 20.0 |
+| gen3a_turbo (Runway) | 50.0 |
+
+### Daily Budget Enforcement
+
+The `checkBudget()` function now returns a structured `BudgetCheckResult` with `exceeded` and `percentUsed`. The `enforceBudget()` function applies this to each call:
+
+```
+generateCaption / generateChat
+    │
+    ├─ enforceBudget(ctx)
+    │   ├─ Budget OK → proceed with original tier
+    │   └─ Budget exceeded → downgrade tier to SPARK (gpt-4o-mini)
+    └─ withTelemetry() → openaiProvider.chatCompletion()
+
+generateImage
+    │
+    ├─ checkBudget(ctx)
+    │   ├─ Budget OK → proceed with generation
+    │   └─ Budget exceeded → return null (skip image entirely)
+    └─ withTelemetry() → falProvider.generateImage()
+
+generateVideo
+    │
+    ├─ enforceBudget(ctx)
+    │   ├─ Budget OK → Runway path available for GRID 30s
+    │   └─ Budget exceeded → force fal.ai path (cheapest), block Runway
+    └─ withTelemetry() → falProvider.generateVideo() or runwayProvider.generateVideo()
+```
+
+Enforcement strategy per capability:
+- **Caption/Chat**: Downgrade to gpt-4o-mini (10x cheaper than gpt-4o)
+- **Image**: Skip generation entirely (return null → post falls back to text overlay)
+- **Video**: Block Runway (most expensive), force fal.ai (cheapest video option)
+
+### Health Endpoint
+
+`GET /api/internal/health/generation` — Protected by CRON_SECRET.
+
+Response shape:
+
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-02-16T...",
+  "queue": {
+    "queued": 3,
+    "running": 1,
+    "retry": 0,
+    "failedLast24h": 2,
+    "succeededLast24h": 47,
+    "stuckJobs": 0
+  },
+  "telemetry": {
+    "totalCalls": 50,
+    "successRate": 96,
+    "avgDurationMs": 4200,
+    "totalEstimatedCostCents": 185.5,
+    "byProvider": {
+      "openai": { "calls": 30, "failures": 1, "avgMs": 1200 },
+      "fal": { "calls": 18, "failures": 1, "avgMs": 8500 },
+      "runway": { "calls": 2, "failures": 0, "avgMs": 45000 }
+    }
+  },
+  "recentFailures": [...],
+  "recentTelemetry": [...]
+}
+```
+
+Queue stats come from the Postgres `jobs` table. Telemetry stats come from the in-memory ring buffer. The endpoint also detects stuck jobs (RUNNING for over 1 hour).
+
+### How to Test Locally
+
+```bash
+# Run all tests (158 tests: 35 Phase 1 + 20 Phase 2 + 26 Phase 3 + 24 Phase 4 + 30 Phase 5 + 23 Phase 6)
+npm test
+
+# Typecheck
+npx tsc --noEmit
+
+# Build
+npm run build
+
+# Dev server
+npm run dev
+
+# Test the health endpoint
+# GET /api/internal/health/generation with Authorization: Bearer <CRON_SECRET>
+# Returns queue stats, telemetry summary, recent failures
+
+# Telemetry is logged to stdout as structured JSON:
+# {"event":"generation_telemetry","capability":"caption","provider":"openai","model":"gpt-4o-mini",...}
+# Pipe to jq, Datadog, or any log aggregation tool
+
+# Budget enforcement kicks in when ToolContext.budget.spentTodayCents >= dailyLimitCents
+# Observable via:
+#   - Console warnings: "Tool router: daily budget exceeded ... downgrading to SPARK tier"
+#   - Telemetry entries with budgetExceeded: true
+#   - Health endpoint telemetry stats
+```
+
+### What Changed
+
+- New `src/lib/ai/telemetry.ts` — telemetry wrapper, cost estimation, ring buffer, stats aggregation
+- `tool-router.ts` rewritten — all 5 capabilities now wrapped with `withTelemetry()`, `checkBudget()` returns structured result, `enforceBudget()` actively downgrades tier
+- New endpoint: `GET /api/internal/health/generation` — queue stats + telemetry + failure details
+- 23 new tests (cost estimation, ring buffer, stats aggregation, budget enforcement)
+- All 158 tests pass
+- 0 database schema changes
+- 0 breaking changes to existing behavior
