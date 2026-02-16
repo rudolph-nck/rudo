@@ -1,9 +1,12 @@
 // Bot scheduling engine
-// Determines when bots should post and triggers AI content generation
+// Determines when bots should post and enqueues generation jobs.
+//
+// Phase 2: The scheduler NO LONGER generates content directly.
+// It enqueues GENERATE_POST jobs for the worker to process.
+// This decouples scheduling (fast) from execution (slow AI calls).
 
 import { prisma } from "./prisma";
-import { generateAndPublish } from "./ai-generate";
-import { processCrewInteractions } from "./crew";
+import { enqueueJob, hasPendingJob } from "./jobs/enqueue";
 
 // Posts per day by tier (matches pricing page)
 const TIER_POSTS_PER_DAY: Record<string, number> = {
@@ -85,17 +88,20 @@ export async function disableScheduling(botId: string) {
 }
 
 /**
- * Process all bots that are due to post.
- * Called by a cron job (e.g., every 5 minutes).
+ * Enqueue generation jobs for all bots that are due to post.
+ * Called by the cron job every 5 minutes.
+ *
+ * This is FAST — it only creates job records, no AI calls.
+ * The actual generation happens when the worker processes the jobs.
  */
-export async function processScheduledBots(): Promise<{
+export async function enqueueScheduledBots(): Promise<{
   processed: number;
-  posted: number;
-  errors: string[];
+  enqueued: number;
+  skipped: number;
 }> {
   const now = new Date();
-  const errors: string[] = [];
-  let posted = 0;
+  let enqueued = 0;
+  let skipped = 0;
 
   // Find all bots that are scheduled and due to post
   const dueBots = await prisma.bot.findMany({
@@ -110,51 +116,37 @@ export async function processScheduledBots(): Promise<{
     },
   });
 
+  const aiTiers = ["SPARK", "PULSE", "GRID", "ADMIN"];
+
   for (const bot of dueBots) {
     // Only generate for AI tiers (Spark+)
-    const aiTiers = ["SPARK", "PULSE", "GRID", "ADMIN"];
     if (!aiTiers.includes(bot.owner.tier)) {
       continue;
     }
 
-    const result = await generateAndPublish(bot.id);
-
-    if (result.success) {
-      posted++;
-
-      // Schedule next post
-      const nextPost = calculateNextPostTime(bot.postsPerDay);
-      await prisma.bot.update({
-        where: { id: bot.id },
-        data: { nextPostAt: nextPost },
-      });
-    } else {
-      errors.push(`Bot ${bot.handle}: ${result.reason}`);
-
-      // Still schedule next attempt even on failure
-      const retry = new Date();
-      retry.setMinutes(retry.getMinutes() + 30); // Retry in 30 min
-      await prisma.bot.update({
-        where: { id: bot.id },
-        data: { nextPostAt: retry },
-      });
+    // Don't enqueue if this bot already has a pending job
+    const pending = await hasPendingJob(bot.id, "GENERATE_POST");
+    if (pending) {
+      skipped++;
+      continue;
     }
+
+    // Enqueue the generation job
+    await enqueueJob({
+      type: "GENERATE_POST",
+      botId: bot.id,
+      payload: { ownerTier: bot.owner.tier, handle: bot.handle },
+    });
+    enqueued++;
   }
 
-  // Process crew interactions after posting (Grid tier bots interact)
-  if (posted > 0) {
-    try {
-      const crewResult = await processCrewInteractions();
-      if (crewResult.interactions > 0) {
-        console.log(`Crew interactions: ${crewResult.interactions}`);
-      }
-      if (crewResult.errors.length > 0) {
-        errors.push(...crewResult.errors.map((e) => `[crew] ${e}`));
-      }
-    } catch (err: any) {
-      errors.push(`[crew] ${err.message}`);
-    }
+  // Enqueue a crew interaction job if any bots were enqueued
+  if (enqueued > 0) {
+    await enqueueJob({
+      type: "CREW_COMMENT",
+      payload: {},
+    });
   }
 
-  return { processed: dueBots.length, posted, errors };
+  return { processed: dueBots.length, enqueued, skipped };
 }

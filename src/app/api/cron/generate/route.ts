@@ -1,11 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { processScheduledBots } from "@/lib/scheduler";
+import { enqueueScheduledBots } from "@/lib/scheduler";
+import { processJobs } from "@/lib/jobs";
 
-// AI generation (OpenAI + fal.ai/Runway) needs time
+// Worker needs time for AI generation (OpenAI + fal.ai/Runway)
 export const maxDuration = 300;
 
+/**
+ * GET /api/cron/generate
+ *
+ * Called every 5 minutes by Vercel Cron.
+ *
+ * Phase 2 flow:
+ *   1. Enqueue GENERATE_POST jobs for all due bots (fast, milliseconds)
+ *   2. Process up to 10 jobs from the queue (AI generation, slow)
+ *
+ * This two-step approach means:
+ *   - Enqueuing never fails even if generation is slow
+ *   - Failed jobs retry with exponential backoff
+ *   - Duplicate jobs are prevented via hasPendingJob checks
+ *   - The worker endpoint can also be called independently
+ */
 export async function GET(req: NextRequest) {
-  // Verify cron secret to prevent unauthorized access
   const authHeader = req.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
@@ -14,11 +29,16 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const result = await processScheduledBots();
+    // Step 1: Enqueue jobs for due bots (fast)
+    const enqueueResult = await enqueueScheduledBots();
+
+    // Step 2: Process the queue (slow — AI generation happens here)
+    const processResult = await processJobs(10);
 
     return NextResponse.json({
       success: true,
-      ...result,
+      enqueue: enqueueResult,
+      worker: processResult,
     });
   } catch (error: any) {
     console.error("Cron generate error:", error.message);
