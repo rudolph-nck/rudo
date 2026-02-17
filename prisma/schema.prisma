@@ -50,6 +50,8 @@ model User {
   stripeSubscriptionId String?
   stripePriceId       String?
   postCredits         Int       @default(0)
+  suspendedAt         DateTime?
+  suspendedReason     String?
   emailVerified       DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
@@ -66,6 +68,10 @@ model User {
   conversationsAsUser1 Conversation[] @relation("ConversationUser1")
   conversationsAsUser2 Conversation[] @relation("ConversationUser2")
   sentMessages         DirectMessage[]
+  coachingNudges       CoachingNudge[]
+  postFeedbacks        PostFeedback[]
+  botThemes            BotTheme[]
+  botMissions          BotMission[]
 
   @@index([handle])
   @@map("users")
@@ -135,11 +141,17 @@ model Bot {
 
   isVerified     Boolean  @default(false)
   isBYOB         Boolean  @default(false)
+  isSeed         Boolean  @default(false)            // Platform-owned seed bot
   deactivatedAt  DateTime?
   postsPerDay    Int      @default(1)
   isScheduled  Boolean  @default(false)
   lastPostedAt DateTime?
   nextPostAt   DateTime?
+
+  // Character Brain — stable numeric personality traits that influence all generation
+  brainVersion       Int       @default(1)
+  characterBrain     Json?                            // CharacterBrain v1 JSON
+  brainUpdatedAt     DateTime?
 
   // Agent Loop (Phase 3) — autonomous behavior state
   agentMode          String?   @default("scheduled") // "scheduled" | "autonomous"
@@ -155,6 +167,10 @@ model Bot {
   posts    Post[]
   follows  Follow[]
   strategy BotStrategy?
+  coachingNudges CoachingNudge[]
+  postFeedbacks  PostFeedback[]
+  themes         BotTheme[]
+  missions       BotMission[]
 
   @@index([ownerId])
   @@index([handle])
@@ -185,9 +201,10 @@ model Post {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  bot      Bot       @relation(fields: [botId], references: [id], onDelete: Cascade)
-  likes    Like[]
-  comments Comment[]
+  bot       Bot            @relation(fields: [botId], references: [id], onDelete: Cascade)
+  likes     Like[]
+  comments  Comment[]
+  feedbacks PostFeedback[]
 
   @@index([botId])
   @@index([createdAt])
@@ -196,11 +213,18 @@ model Post {
   @@map("posts")
 }
 
+enum EngagementOrigin {
+  USER
+  SEED
+  SYSTEM
+}
+
 model Like {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   userId    String
   postId    String
-  createdAt DateTime @default(now())
+  origin    EngagementOrigin @default(USER)
+  createdAt DateTime     @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -210,13 +234,14 @@ model Like {
 }
 
 model Comment {
-  id        String   @id @default(cuid())
+  id        String           @id @default(cuid())
   userId    String
   postId    String
   parentId  String?
-  content   String   @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  content   String           @db.Text
+  origin    EngagementOrigin @default(USER)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
   user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   post    Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -410,6 +435,95 @@ model DirectMessage {
 }
 
 // ---------------------------------------------------------------------------
+// Coaching Portal — user coaching signals for bot personality tuning.
+// ---------------------------------------------------------------------------
+
+enum NudgeType {
+  SLIDER_UPDATE
+  THEME_SET
+  POST_FEEDBACK
+  MISSION_SET
+  ARC_SET
+}
+
+enum FeedbackSignal {
+  MORE_LIKE_THIS
+  LESS_LIKE_THIS
+  TOO_FORMAL
+  TOO_CHAOTIC
+  FUNNIER
+  CALMER
+  MORE_DIRECT
+  MORE_POETIC
+}
+
+model CoachingNudge {
+  id        String    @id @default(cuid())
+  botId     String
+  userId    String
+  type      NudgeType
+  payload   Json
+  createdAt DateTime  @default(now())
+
+  bot  Bot  @relation(fields: [botId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([botId, createdAt])
+  @@map("coaching_nudges")
+}
+
+model PostFeedback {
+  id        String         @id @default(cuid())
+  postId    String
+  botId     String
+  userId    String
+  signal    FeedbackSignal
+  note      String?
+  createdAt DateTime       @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  bot  Bot  @relation(fields: [botId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([botId, createdAt])
+  @@index([postId])
+  @@map("post_feedbacks")
+}
+
+model BotTheme {
+  id        String    @id @default(cuid())
+  botId     String
+  userId    String
+  theme     String
+  intensity Float     @default(0.6)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  bot  Bot  @relation(fields: [botId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([botId])
+  @@map("bot_themes")
+}
+
+model BotMission {
+  id        String    @id @default(cuid())
+  botId     String
+  userId    String
+  title     String
+  target    Json
+  active    Boolean   @default(true)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  bot  Bot  @relation(fields: [botId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([botId, active])
+  @@map("bot_missions")
+}
+
+// ---------------------------------------------------------------------------
 // Bot Strategy (Phase 5) — Learned content preferences from performance data.
 // Updated by the learning loop after analyzing post performance.
 // Read by the generation pipeline to bias format, topic, and hook selection.
@@ -443,6 +557,7 @@ enum JobType {
   BOT_CYCLE
   RESPOND_TO_COMMENT
   RESPOND_TO_POST
+  WELCOME_SEQUENCE
 }
 
 enum JobStatus {

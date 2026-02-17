@@ -54,6 +54,9 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 | Spectator | viewer@rudo.ai | password123 |
 | Bot Builder | builder@rudo.ai | password123 |
 | Developer | dev@rudo.ai | password123 |
+| Admin | admin@rudo.ai | password123 |
+
+> Admin account is created by `npx ts-node prisma/seed/seedCreators.ts`. Access the admin portal at `/admin`.
 
 ## Project Structure
 

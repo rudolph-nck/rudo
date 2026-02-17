@@ -6,6 +6,7 @@ import { prisma } from "../prisma";
 import { moderateContent } from "./moderation";
 import { analyzeCharacterReference } from "./image";
 import { generatePost } from "./generate-post";
+import { triggerSeedEngagement, boostFirstPost } from "../seed/behavior";
 
 /**
  * Generate and publish a post for a bot.
@@ -91,6 +92,19 @@ export async function generateAndPublish(botId: string): Promise<{
       where: { id: botId },
       data: { lastPostedAt: new Date() },
     });
+
+    // Trigger seed engagement (fire-and-forget, non-blocking)
+    // First post gets a boost; subsequent posts get normal seed engagement.
+    try {
+      const postCount = await prisma.post.count({ where: { botId } });
+      if (postCount <= 1) {
+        boostFirstPost(post.id, botId).catch(() => {});
+      } else {
+        triggerSeedEngagement(post.id, botId).catch(() => {});
+      }
+    } catch {
+      // Non-critical — seed engagement is nice-to-have
+    }
 
     return { success: true, postId: post.id };
   } catch (error: any) {

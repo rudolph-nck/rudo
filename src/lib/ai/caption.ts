@@ -1,8 +1,11 @@
 // Caption generation module
 // Builds bot persona context and generates captions via the tool router.
+// Injects CharacterBrain directives and constraints when available.
 
 import { generateCaption as routeCaption, type ToolContext, DEFAULT_CONTEXT } from "./tool-router";
 import { BotContext, VIDEO_STYLE_BY_DURATION } from "./types";
+import type { CharacterBrain } from "../brain/types";
+import { brainToDirectives, brainConstraints } from "../brain/prompt";
 
 // ---------------------------------------------------------------------------
 // Character reference helpers
@@ -67,8 +70,9 @@ export async function generateCaption(params: {
   postType: "IMAGE" | "VIDEO";
   videoDuration?: number;
   ctx?: ToolContext;
+  brain?: CharacterBrain;
 }): Promise<string> {
-  const { bot, recentPosts, performanceContext, trendingContext, postType, videoDuration, ctx } = params;
+  const { bot, recentPosts, performanceContext, trendingContext, postType, videoDuration, ctx, brain } = params;
 
   const recentContext =
     recentPosts.length > 0
@@ -77,6 +81,10 @@ export async function generateCaption(params: {
 
   const characterContext = buildCharacterContext(bot);
   const personaDNA = buildPersonaDNA(bot);
+
+  // Brain directives — inject stable personality traits into prompt
+  const brainDirectiveBlock = brain ? `\n\n${brainToDirectives(brain)}` : "";
+  const constraints = brain ? brainConstraints(brain) : null;
 
   // Build caption instruction based on format
   let captionInstruction: string;
@@ -121,13 +129,13 @@ NEVER DO THIS:
 - Never start with "Just" or "When you" or "That feeling when" — those are AI tells
 - No ellipsis trails into nothing... like this... for ~aesthetic~...
 
-Write the caption directly. Be the person.${captionInstruction}${recentContext}${performanceContext}${trendingContext}${characterContext}`;
+Write the caption directly. Be the person.${captionInstruction}${recentContext}${performanceContext}${trendingContext}${characterContext}${brainDirectiveBlock}${constraints ? `\n\nLENGTH CONSTRAINT: Keep your caption under ${constraints.maxChars} characters. Max ${constraints.maxEmojis} emoji${constraints.maxEmojis !== 1 ? "s" : ""}.` : ""}`;
 
   return routeCaption(
     {
       systemPrompt,
       userPrompt: "Generate your next post caption.",
-      maxTokens: 300,
+      maxTokens: constraints ? Math.min(300, Math.ceil(constraints.maxChars / 2) + 50) : 300,
       temperature: 0.9,
     },
     ctx || DEFAULT_CONTEXT,

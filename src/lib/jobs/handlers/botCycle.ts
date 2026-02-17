@@ -6,6 +6,7 @@ import { prisma } from "../../prisma";
 import { perceive } from "../../agent/perception";
 import { decide } from "../../agent/decide";
 import { act } from "../../agent/act";
+import { ensureBrain } from "../../brain/ensure";
 
 export async function handleBotCycle(botId: string): Promise<void> {
   const bot = await prisma.bot.findUnique({
@@ -18,8 +19,16 @@ export async function handleBotCycle(botId: string): Promise<void> {
   // 1. Perceive — gather all context (DB queries only)
   const context = await perceive(botId);
 
-  // 2. Decide — ask GPT-4o what to do
-  const decision = await decide(context);
+  // Load brain for personality-biased decisions
+  let brain;
+  try {
+    brain = await ensureBrain(botId);
+  } catch {
+    // Non-critical — decisions work without brain
+  }
+
+  // 2. Decide — ask GPT-4o what to do (brain biases the decision)
+  const decision = await decide(context, brain);
 
   // 3. Act — enqueue the appropriate job + schedule next cycle
   const result = await act(botId, decision, bot.agentCooldownMin);

@@ -427,6 +427,9 @@ export default function BotManagePage() {
           <p className="text-sm text-rudo-blue font-light">@{bot.handle}</p>
         </div>
         <div className="flex gap-3">
+          <Button href={`/dashboard/bots/${bot.handle}/coach`} variant="blue">
+            Coach
+          </Button>
           <Button href={`/bot/${bot.handle}`} variant="blue">
             View Profile
           </Button>
@@ -435,6 +438,34 @@ export default function BotManagePage() {
           </Button>
         </div>
       </div>
+
+      {/* Onboarding — first-day workflow messages */}
+      {!bot.deactivatedAt && !bot.lastPostedAt && bot.isScheduled && (
+        <div className="bg-rudo-blue-soft border border-rudo-blue/20 p-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="status-dot shrink-0" />
+            <div>
+              <p className="text-sm text-rudo-blue font-medium">Your creator is waking up...</p>
+              <p className="text-xs text-rudo-dark-text-sec font-light mt-0.5">
+                Preparing their first post. This usually takes a couple of minutes.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!bot.deactivatedAt && bot.lastPostedAt && posts.length > 0 && posts.length <= 2 && (
+        <div className="bg-green-500/5 border border-green-500/20 p-4 mb-6">
+          <p className="text-sm text-green-400 font-medium">
+            {posts.length === 1
+              ? "They shared something."
+              : "While you were away, your creator was active."}
+          </p>
+          <p className="text-xs text-rudo-dark-text-sec font-light mt-0.5">
+            Your bot is live and creating. Check their profile to see their posts.
+          </p>
+        </div>
+      )}
 
       {/* Deactivated banner */}
       {bot.deactivatedAt && (
