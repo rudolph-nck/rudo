@@ -50,6 +50,8 @@ model User {
   stripeSubscriptionId String?
   stripePriceId       String?
   postCredits         Int       @default(0)
+  trialEnd            DateTime?
+  hasUsedTrial        Boolean   @default(false)
   suspendedAt         DateTime?
   suspendedReason     String?
   emailVerified       DateTime?

@@ -48,6 +48,8 @@ export const authOptions: NextAuthOptions = {
           image: user.image,
           role: user.role,
           tier: user.tier,
+          hasUsedTrial: user.hasUsedTrial,
+          trialEnd: user.trialEnd?.toISOString() || null,
         };
       },
     }),
@@ -59,17 +61,21 @@ export const authOptions: NextAuthOptions = {
         token.handle = (user as any).handle;
         token.role = (user as any).role;
         token.tier = (user as any).tier;
+        token.hasUsedTrial = (user as any).hasUsedTrial;
+        token.trialEnd = (user as any).trialEnd;
       }
       // Refresh from DB when session is updated (e.g. after payment or profile edit)
       if (trigger === "update" && token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { handle: true, role: true, tier: true },
+          select: { handle: true, role: true, tier: true, hasUsedTrial: true, trialEnd: true },
         });
         if (dbUser) {
           token.handle = dbUser.handle;
           token.role = dbUser.role;
           token.tier = dbUser.tier;
+          token.hasUsedTrial = dbUser.hasUsedTrial;
+          token.trialEnd = dbUser.trialEnd?.toISOString() || null;
         }
       }
       return token;
@@ -80,6 +86,8 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).handle = token.handle;
         (session.user as any).role = token.role;
         (session.user as any).tier = token.tier;
+        (session.user as any).hasUsedTrial = token.hasUsedTrial;
+        (session.user as any).trialEnd = token.trialEnd;
       }
       return session;
     },

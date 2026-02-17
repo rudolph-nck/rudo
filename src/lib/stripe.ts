@@ -49,9 +49,14 @@ export async function getOrCreateCustomer(userId: string) {
 }
 
 /**
- * Create a checkout session for a subscription
+ * Create a checkout session for a subscription.
+ * Pass trial: true to start a 3-day free trial (card collected but not charged).
  */
-export async function createCheckoutSession(userId: string, tier: string) {
+export async function createCheckoutSession(
+  userId: string,
+  tier: string,
+  options?: { trial?: boolean }
+) {
   const priceInfo = TIER_PRICES[tier];
   if (!priceInfo) throw new Error(`Invalid tier: ${tier}`);
 
@@ -67,6 +72,14 @@ export async function createCheckoutSession(userId: string, tier: string) {
     );
   }
 
+  // Prevent trial abuse — one trial per account
+  if (options?.trial) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (user?.hasUsedTrial) {
+      throw new Error("Free trial already used on this account");
+    }
+  }
+
   const customerId = await getOrCreateCustomer(userId);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -74,9 +87,14 @@ export async function createCheckoutSession(userId: string, tier: string) {
     customer: customerId,
     mode: "subscription",
     line_items: [{ price: priceInfo.priceId, quantity: 1 }],
+    ...(options?.trial && {
+      subscription_data: {
+        trial_period_days: 3,
+      },
+    }),
     success_url: `${appUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${appUrl}/pricing`,
-    metadata: { userId, tier },
+    metadata: { userId, tier, ...(options?.trial && { trial: "true" }) },
   });
 
   return session;
@@ -104,7 +122,8 @@ export async function createPortalSession(userId: string) {
 export async function verifyCheckoutSession(sessionId: string, userId: string) {
   const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-  if (session.payment_status !== "paid") {
+  // "paid" for normal checkout, "no_payment_required" for trial starts
+  if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") {
     return { success: false, reason: "Payment not completed" };
   }
 
@@ -114,6 +133,7 @@ export async function verifyCheckoutSession(sessionId: string, userId: string) {
   }
 
   const tier = session.metadata?.tier;
+  const isTrial = session.metadata?.trial === "true";
   const packType = session.metadata?.type;
   const packCredits = session.metadata?.credits;
 
@@ -127,14 +147,22 @@ export async function verifyCheckoutSession(sessionId: string, userId: string) {
   }
 
   if (tier) {
+    const trialEnd = isTrial
+      ? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+      : undefined;
+
     await prisma.user.update({
       where: { id: userId },
       data: {
         tier: tier as any,
         stripeSubscriptionId: session.subscription as string,
+        ...(isTrial && {
+          trialEnd,
+          hasUsedTrial: true,
+        }),
       },
     });
-    return { success: true, type: "subscription", tier };
+    return { success: true, type: isTrial ? "trial" : "subscription", tier };
   }
 
   return { success: false, reason: "No actionable metadata" };
@@ -149,6 +177,7 @@ export async function handleStripeWebhook(event: Stripe.Event) {
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.metadata?.userId;
       const tier = session.metadata?.tier;
+      const isTrial = session.metadata?.trial === "true";
       const packType = session.metadata?.type;
       const packCredits = session.metadata?.credits;
 
@@ -159,12 +188,20 @@ export async function handleStripeWebhook(event: Stripe.Event) {
           data: { postCredits: { increment: parseInt(packCredits) } },
         });
       } else if (userId && tier) {
-        // Subscription checkout
+        // Subscription or trial checkout — set tier immediately
+        const trialEnd = isTrial
+          ? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+          : undefined;
+
         await prisma.user.update({
           where: { id: userId },
           data: {
             tier: tier as any,
             stripeSubscriptionId: session.subscription as string,
+            ...(isTrial && {
+              trialEnd,
+              hasUsedTrial: true,
+            }),
           },
         });
       }
@@ -180,14 +217,18 @@ export async function handleStripeWebhook(event: Stripe.Event) {
       });
 
       if (user) {
-        // Check if subscription is still active
-        if (subscription.status === "active") {
+        // Handle both active subscriptions and trial-period subscriptions
+        if (subscription.status === "active" || subscription.status === "trialing") {
           const priceId = subscription.items.data[0]?.price.id;
           await prisma.user.update({
             where: { id: user.id },
             data: {
               stripeSubscriptionId: subscription.id,
               stripePriceId: priceId,
+              // Clear trialEnd once subscription becomes fully active
+              ...(subscription.status === "active" && user.trialEnd && {
+                trialEnd: null,
+              }),
             },
           });
         }
@@ -204,13 +245,14 @@ export async function handleStripeWebhook(event: Stripe.Event) {
       });
 
       if (user) {
-        // Downgrade to free tier
+        // Downgrade to free tier (covers both trial expiry and cancellation)
         await prisma.user.update({
           where: { id: user.id },
           data: {
             tier: "FREE",
             stripeSubscriptionId: null,
             stripePriceId: null,
+            trialEnd: null,
           },
         });
       }

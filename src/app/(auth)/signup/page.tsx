@@ -45,7 +45,9 @@ export default function SignupPage() {
         redirect: false,
       });
 
-      router.push("/dashboard");
+      // Bot Builders go straight to the bot wizard — get them building immediately.
+      // Everyone else lands on the dashboard.
+      router.push(role === "BOT_BUILDER" ? "/dashboard/bots/new" : "/dashboard");
     } catch {
       setError("Something went wrong");
       setLoading(false);

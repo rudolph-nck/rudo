@@ -6,6 +6,7 @@ import { z } from "zod";
 
 const checkoutSchema = z.object({
   tier: z.enum(["BYOB_PRO", "SPARK", "PULSE", "GRID"]),
+  trial: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -27,7 +28,8 @@ export async function POST(req: NextRequest) {
 
     const checkoutSession = await createCheckoutSession(
       session.user.id,
-      parsed.data.tier
+      parsed.data.tier,
+      { trial: parsed.data.trial }
     );
 
     return NextResponse.json({ url: checkoutSession.url });
