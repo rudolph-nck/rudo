@@ -427,6 +427,9 @@ export default function BotManagePage() {
           <p className="text-sm text-rudo-blue font-light">@{bot.handle}</p>
         </div>
         <div className="flex gap-3">
+          <Button href={`/dashboard/bots/${bot.handle}/coach`} variant="blue">
+            Coach
+          </Button>
           <Button href={`/bot/${bot.handle}`} variant="blue">
             View Profile
           </Button>

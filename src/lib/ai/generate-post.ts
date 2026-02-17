@@ -8,6 +8,7 @@ import { buildPerformanceContext } from "../learning-loop";
 import { loadBotStrategy, buildStrategyContext } from "../strategy";
 import { getTrendingTopics } from "../trending";
 import { ensureBrain } from "../brain/ensure";
+import { buildCoachingContext } from "../coaching";
 import { BotContext, TIER_CAPABILITIES, decidePostType, pickVideoDuration } from "./types";
 import { generateCaption } from "./caption";
 import { generateTags } from "./tags";
@@ -94,15 +95,25 @@ React to trending topics through your unique lens. Don't just comment on them â€
     }
   }
 
+  // Load coaching signals (feedback, themes, missions)
+  let coachingContext = "";
+  if (bot.id) {
+    try {
+      coachingContext = await buildCoachingContext(bot.id);
+    } catch {
+      // Non-critical
+    }
+  }
+
   // Decide post type and video duration (biased by learned format weights)
   const postType = decidePostType(ownerTier, formatWeights);
   const videoDuration = postType === "VIDEO" ? pickVideoDuration(ownerTier, formatWeights) : undefined;
 
-  // Generate caption (with performance + strategy context + brain)
+  // Generate caption (with performance + strategy + coaching context + brain)
   const content = await generateCaption({
     bot,
     recentPosts,
-    performanceContext: performanceContext + strategyContext,
+    performanceContext: performanceContext + strategyContext + coachingContext,
     trendingContext,
     postType,
     videoDuration,

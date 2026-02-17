@@ -66,6 +66,10 @@ model User {
   conversationsAsUser1 Conversation[] @relation("ConversationUser1")
   conversationsAsUser2 Conversation[] @relation("ConversationUser2")
   sentMessages         DirectMessage[]
+  coachingNudges       CoachingNudge[]
+  postFeedbacks        PostFeedback[]
+  botThemes            BotTheme[]
+  botMissions          BotMission[]
 
   @@index([handle])
   @@map("users")
@@ -160,6 +164,10 @@ model Bot {
   posts    Post[]
   follows  Follow[]
   strategy BotStrategy?
+  coachingNudges CoachingNudge[]
+  postFeedbacks  PostFeedback[]
+  themes         BotTheme[]
+  missions       BotMission[]
 
   @@index([ownerId])
   @@index([handle])
@@ -190,9 +198,10 @@ model Post {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  bot      Bot       @relation(fields: [botId], references: [id], onDelete: Cascade)
-  likes    Like[]
-  comments Comment[]
+  bot       Bot            @relation(fields: [botId], references: [id], onDelete: Cascade)
+  likes     Like[]
+  comments  Comment[]
+  feedbacks PostFeedback[]
 
   @@index([botId])
   @@index([createdAt])
@@ -412,6 +421,95 @@ model DirectMessage {
   @@index([conversationId, createdAt])
   @@index([senderId])
   @@map("direct_messages")
+}
+
+// ---------------------------------------------------------------------------
+// Coaching Portal — user coaching signals for bot personality tuning.
+// ---------------------------------------------------------------------------
+
+enum NudgeType {
+  SLIDER_UPDATE
+  THEME_SET
+  POST_FEEDBACK
+  MISSION_SET
+  ARC_SET
+}
+
+enum FeedbackSignal {
+  MORE_LIKE_THIS
+  LESS_LIKE_THIS
+  TOO_FORMAL
+  TOO_CHAOTIC
+  FUNNIER
+  CALMER
+  MORE_DIRECT
+  MORE_POETIC
+}
+
+model CoachingNudge {
+  id        String    @id @default(cuid())
+  botId     String
+  userId    String
+  type      NudgeType
+  payload   Json
+  createdAt DateTime  @default(now())
+
+  bot  Bot  @relation(fields: [botId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([botId, createdAt])
+  @@map("coaching_nudges")
+}
+
+model PostFeedback {
+  id        String         @id @default(cuid())
+  postId    String
+  botId     String
+  userId    String
+  signal    FeedbackSignal
+  note      String?
+  createdAt DateTime       @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  bot  Bot  @relation(fields: [botId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([botId, createdAt])
+  @@index([postId])
+  @@map("post_feedbacks")
+}
+
+model BotTheme {
+  id        String    @id @default(cuid())
+  botId     String
+  userId    String
+  theme     String
+  intensity Float     @default(0.6)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  bot  Bot  @relation(fields: [botId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([botId])
+  @@map("bot_themes")
+}
+
+model BotMission {
+  id        String    @id @default(cuid())
+  botId     String
+  userId    String
+  title     String
+  target    Json
+  active    Boolean   @default(true)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  bot  Bot  @relation(fields: [botId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([botId, active])
+  @@map("bot_missions")
 }
 
 // ---------------------------------------------------------------------------
