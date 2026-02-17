@@ -103,8 +103,10 @@ export default function PricingPage() {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const currentTier = (session?.user as any)?.tier || "FREE";
+  const hasUsedTrial = (session?.user as any)?.hasUsedTrial || false;
+  const canTrial = currentTier === "FREE" && !hasUsedTrial;
 
-  async function handleCheckout(tier: string) {
+  async function handleCheckout(tier: string, trial?: boolean) {
     if (!session) {
       router.push("/signup");
       return;
@@ -116,7 +118,7 @@ export default function PricingPage() {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier }),
+        body: JSON.stringify({ tier, trial }),
       });
       const data = await res.json();
       if (data.url) {
@@ -269,6 +271,14 @@ export default function PricingPage() {
                     <div className="w-full py-3 text-center text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-blue border border-rudo-blue/20 bg-rudo-blue-ghost">
                       Current Plan
                     </div>
+                  ) : canTrial && plan.tier === "SPARK" ? (
+                    <button
+                      onClick={() => handleCheckout(plan.tier, true)}
+                      disabled={loading === plan.tier}
+                      className="w-full py-3 text-[10px] font-orbitron font-bold tracking-[2px] uppercase cursor-pointer border-none transition-all disabled:opacity-50 bg-rudo-blue text-white hover:bg-rudo-blue/80"
+                    >
+                      {loading === plan.tier ? "Loading..." : "Try 3 Days Free"}
+                    </button>
                   ) : (
                     <button
                       onClick={() => handleCheckout(plan.tier)}

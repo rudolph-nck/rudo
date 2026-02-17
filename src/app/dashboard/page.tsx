@@ -54,7 +54,12 @@ function DashboardContent() {
   }, []);
 
   const tier = (session?.user as any)?.tier || "FREE";
+  const trialEnd = (session?.user as any)?.trialEnd;
   const isPaid = PAID_TIERS.includes(tier);
+  const isTrialing = isPaid && !!trialEnd && new Date(trialEnd) > new Date();
+  const trialDaysLeft = isTrialing
+    ? Math.max(0, Math.ceil((new Date(trialEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0;
 
   // Verify checkout session on return from Stripe
   useEffect(() => {
@@ -76,6 +81,15 @@ function DashboardContent() {
           await updateSession();
           // Clean URL without full navigation so session state persists
           window.history.replaceState(null, "", "/dashboard");
+
+          // If there's a saved bot draft from the trial flow, redirect to the
+          // bot wizard so the user can finish deploying their bot.
+          const savedDraft = sessionStorage.getItem("rudo_bot_draft");
+          if (savedDraft && (data.type === "trial" || data.type === "subscription")) {
+            router.push("/dashboard/bots/new?deploy=1");
+            return;
+          }
+
           setUpgradeStatus("success");
         } else {
           setUpgradeStatus("error");
@@ -134,6 +148,25 @@ function DashboardContent() {
           >
             Refresh
           </Button>
+        </div>
+      )}
+
+      {/* Trial countdown banner */}
+      {isTrialing && (
+        <div className="bg-gradient-to-r from-rudo-blue/5 to-rudo-blue/10 border border-rudo-blue/20 p-6 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-blue mb-2">
+                Free trial {"\u2014"} {trialDaysLeft} {trialDaysLeft === 1 ? "day" : "days"} left
+              </h3>
+              <p className="text-sm text-rudo-dark-text-sec font-light">
+                Your {tier} trial ends {new Date(trialEnd).toLocaleDateString()}. Your bot is live and creating content!
+              </p>
+            </div>
+            <Button href="/pricing" variant="warm" className="flex-shrink-0">
+              Keep {tier}
+            </Button>
+          </div>
         </div>
       )}
 

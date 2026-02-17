@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect, useCallback, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -80,13 +80,26 @@ type HandleStatus = "idle" | "checking" | "available" | "taken" | "invalid";
 type WizardStep = "type" | "details" | "generating" | "review";
 
 export default function NewBotPage() {
+  return (
+    <Suspense>
+      <NewBotContent />
+    </Suspense>
+  );
+}
+
+function NewBotContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const autoDeployedRef = useRef(false);
+  const [startingTrial, setStartingTrial] = useState(false);
 
   const tier = (session?.user as any)?.tier || "FREE";
+  const hasUsedTrial = (session?.user as any)?.hasUsedTrial || false;
   const isPaid = PAID_TIERS.includes(tier);
+  const isFreeEligibleForTrial = tier === "FREE" && !hasUsedTrial;
   const isGrid = tier === "GRID" || tier === "ADMIN";
   const maxBots = BOT_LIMITS[tier] ?? 0;
 
@@ -108,11 +121,16 @@ export default function NewBotPage() {
         setCheckingLimit(false);
       }
     }
-    if (isPaid) checkBotCount();
+    if (isPaid || isFreeEligibleForTrial) checkBotCount();
     else setCheckingLimit(false);
-  }, [isPaid]);
+  }, [isPaid, isFreeEligibleForTrial]);
 
   const atBotLimit = botCount !== null && botCount >= maxBots;
+
+  // Restore saved bot draft after trial checkout redirect.
+  // When the user returns from Stripe with ?deploy=1, we restore their
+  // bot configuration and jump straight to the review step for auto-deploy.
+  const shouldAutoDeploy = searchParams.get("deploy") === "1";
 
   // Wizard state
   const [step, setStep] = useState<WizardStep>("type");
@@ -164,6 +182,31 @@ export default function NewBotPage() {
     artStyle: "realistic",
     contentStyle: "",
   });
+
+  // Restore draft after trial checkout redirect and auto-deploy
+  useEffect(() => {
+    if (!shouldAutoDeploy || !isPaid || autoDeployedRef.current) return;
+    const saved = sessionStorage.getItem("rudo_bot_draft");
+    if (!saved) return;
+
+    try {
+      const draft = JSON.parse(saved);
+      if (draft.form) {
+        setForm(draft.form);
+        setBotType(draft.botType || "");
+        if (draft.characterRefPreview) setCharacterRefPreview(draft.characterRefPreview);
+        setStep("review");
+
+        // Clear the draft so it doesn't fire again
+        sessionStorage.removeItem("rudo_bot_draft");
+        // Clean URL
+        window.history.replaceState(null, "", "/dashboard/bots/new");
+      }
+    } catch {
+      // Corrupt draft — just show the wizard from scratch
+      sessionStorage.removeItem("rudo_bot_draft");
+    }
+  }, [shouldAutoDeploy, isPaid]);
 
   // Handle availability state
   const [handleStatus, setHandleStatus] = useState<HandleStatus>("idle");
@@ -414,7 +457,8 @@ export default function NewBotPage() {
 
   // --- Gate screens ---
 
-  if (!isPaid) {
+  // FREE users who have already used their trial must upgrade
+  if (!isPaid && !isFreeEligibleForTrial) {
     return (
       <div className="max-w-2xl">
         <div className="mb-8">
@@ -438,6 +482,41 @@ export default function NewBotPage() {
         </div>
       </div>
     );
+  }
+
+  // Trial checkout handler — called from Deploy button for FREE users.
+  // Saves bot form data to sessionStorage so we can auto-deploy after Stripe redirect.
+  async function handleTrialCheckout() {
+    setStartingTrial(true);
+    setError("");
+    try {
+      // Save bot draft so it survives the Stripe redirect
+      const botDraft = {
+        form,
+        botType,
+        personaData: { botType, gender, ageRange, location, profession, hobbies, appearance,
+          species, backstory, visualDescription, objectType, brandVoice, visualStyle,
+          aiForm, aiPurpose, communicationStyle },
+        characterRefPreview,
+      };
+      sessionStorage.setItem("rudo_bot_draft", JSON.stringify(botDraft));
+
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier: "SPARK", trial: true }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error || "Failed to start trial");
+        setStartingTrial(false);
+      }
+    } catch {
+      setError("Something went wrong — please try again");
+      setStartingTrial(false);
+    }
   }
 
   if (checkingLimit) {
@@ -1174,22 +1253,49 @@ export default function NewBotPage() {
               {error}
             </div>
           )}
+
+          {/* FREE users see trial CTA at deploy time */}
+          {isFreeEligibleForTrial && (
+            <div className="bg-gradient-to-r from-rudo-blue/5 to-rudo-blue/10 border border-rudo-blue/20 p-5 mb-4">
+              <div className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-blue mb-2">
+                Start your 3-day free trial
+              </div>
+              <p className="text-sm text-rudo-dark-text-sec font-light mb-1">
+                Your bot is ready to deploy. Start a free trial to bring <span className="text-rudo-dark-text font-medium">@{form.handle || "your bot"}</span> to life.
+              </p>
+              <p className="text-xs text-rudo-dark-muted font-light">
+                Card required. Cancel anytime. $19/mo after trial ends.
+              </p>
+            </div>
+          )}
+
           <div className="flex gap-4">
-            <Button
-              type="button"
-              variant="warm"
-              onClick={handleSubmit}
-              disabled={loading || handleStatus === "taken" || handleStatus === "invalid" || handleStatus === "checking"}
-            >
-              {uploadingRef
-                ? "Analyzing character ref..."
-                : loading
-                  ? "Deploying..."
-                  : handleStatus === "checking"
-                    ? "Checking handle..."
-                    : "Deploy Bot"
-              }
-            </Button>
+            {isFreeEligibleForTrial ? (
+              <Button
+                type="button"
+                variant="warm"
+                onClick={handleTrialCheckout}
+                disabled={startingTrial}
+              >
+                {startingTrial ? "Starting trial..." : "Deploy Bot \u2014 3 Days Free"}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="warm"
+                onClick={handleSubmit}
+                disabled={loading || handleStatus === "taken" || handleStatus === "invalid" || handleStatus === "checking"}
+              >
+                {uploadingRef
+                  ? "Analyzing character ref..."
+                  : loading
+                    ? "Deploying..."
+                    : handleStatus === "checking"
+                      ? "Checking handle..."
+                      : "Deploy Bot"
+                }
+              </Button>
+            )}
             <button
               type="button"
               onClick={() => setStep("details")}
