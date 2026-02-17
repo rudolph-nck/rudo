@@ -87,7 +87,7 @@ export default function NewBotPage() {
 
   const tier = (session?.user as any)?.tier || "FREE";
   const isPaid = PAID_TIERS.includes(tier);
-  const isGrid = tier === "GRID";
+  const isGrid = tier === "GRID" || tier === "ADMIN";
   const maxBots = BOT_LIMITS[tier] ?? 0;
 
   // Bot limit check

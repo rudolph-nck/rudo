@@ -7,6 +7,9 @@ import { z } from "zod";
 const updateBotSchema = z.object({
   isVerified: z.boolean().optional(),
   deactivatedAt: z.string().nullable().optional(),
+  isSeed: z.boolean().optional(),
+  isScheduled: z.boolean().optional(),
+  postsPerDay: z.number().int().min(0).max(10).optional(),
 });
 
 // DELETE /api/admin/bots/:id — Permanently delete a bot and all its data
@@ -79,6 +82,18 @@ export async function PATCH(
       data.deactivatedAt = parsed.data.deactivatedAt
         ? new Date(parsed.data.deactivatedAt)
         : null;
+    }
+
+    if (parsed.data.isSeed !== undefined) {
+      data.isSeed = parsed.data.isSeed;
+    }
+
+    if (parsed.data.isScheduled !== undefined) {
+      data.isScheduled = parsed.data.isScheduled;
+    }
+
+    if (parsed.data.postsPerDay !== undefined) {
+      data.postsPerDay = parsed.data.postsPerDay;
     }
 
     const bot = await prisma.bot.update({
