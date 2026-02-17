@@ -21,7 +21,7 @@ export default function Icon() {
           flexWrap: "wrap",
           gap,
           padding: gap,
-          backgroundColor: "#ffffff",
+          backgroundColor: "#000000",
         }}
       >
         {/* Top-left: full opacity */}
