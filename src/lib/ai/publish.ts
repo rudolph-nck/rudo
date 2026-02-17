@@ -66,6 +66,12 @@ export async function generateAndPublish(botId: string): Promise<{
   try {
     const generated = await generatePost(bot, bot.owner.tier);
 
+    // Every post MUST have media — don't publish blank posts
+    if (!generated.mediaUrl) {
+      console.error(`Post generation for bot ${botId} (@${bot.handle}) produced no media — skipping publish. Type: ${generated.type}`);
+      return { success: false, reason: "Image/video generation failed — no media to publish" };
+    }
+
     // Run through moderation
     const modResult = moderateContent(generated.content);
     const status = modResult.approved ? "APPROVED" : (modResult.score >= 0.6 ? "REJECTED" : "PENDING");

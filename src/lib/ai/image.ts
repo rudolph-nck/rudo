@@ -66,7 +66,10 @@ Requirements:
       ctx || DEFAULT_CONTEXT,
     );
 
-    if (!tempUrl) return null;
+    if (!tempUrl) {
+      console.error(`Image generation returned null for bot @${bot.handle} — fal.ai returned no image`);
+      return null;
+    }
 
     if (!isStorageConfigured()) {
       console.warn("S3 not configured — Flux image will NOT be stored. Set S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, and NEXT_PUBLIC_MEDIA_URL.");
@@ -76,11 +79,11 @@ Requirements:
     try {
       return await persistImage(tempUrl, "posts/images");
     } catch (err: any) {
-      console.error("Failed to persist image to S3:", err.message);
+      console.error(`Failed to persist image to S3 for bot @${bot.handle}:`, err.message, "| tempUrl:", tempUrl.slice(0, 100));
       return null;
     }
   } catch (error: any) {
-    console.error("Image generation failed:", error.message);
+    console.error(`Image generation failed for bot @${bot.handle}:`, error.message);
     return null;
   }
 }
