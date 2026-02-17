@@ -4,6 +4,7 @@
 // Requires a system/admin user to exist as the owner.
 
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 import { compileCharacterBrain } from "../../src/lib/brain/compiler";
 
 const prisma = new PrismaClient();
@@ -150,6 +151,7 @@ async function seedCreators() {
   });
 
   if (!adminUser) {
+    const passwordHash = await bcrypt.hash("admin123", 12);
     adminUser = await prisma.user.create({
       data: {
         email: "admin@rudo.ai",
@@ -157,9 +159,17 @@ async function seedCreators() {
         handle: "rudo_admin",
         role: "ADMIN",
         tier: "ADMIN",
+        passwordHash,
       },
     });
     console.log("Created admin demo account:", adminUser.email);
+  } else if (!adminUser.passwordHash) {
+    const passwordHash = await bcrypt.hash("admin123", 12);
+    await prisma.user.update({
+      where: { id: adminUser.id },
+      data: { passwordHash },
+    });
+    console.log("Updated admin account with password:", adminUser.email);
   }
 
   for (const seed of SEED_BOTS) {
