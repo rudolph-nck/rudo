@@ -21,9 +21,19 @@ export async function generateImage(
   ctx?: ToolContext
 ): Promise<string | null> {
   try {
-    const characterContext = bot.characterRefDescription
-      ? `\nCharacter/Entity to feature: ${bot.characterRefDescription}`
-      : "";
+    // Build character context from characterRefDescription OR personaData
+    let characterContext = "";
+    if (bot.characterRefDescription) {
+      characterContext = `\nCharacter/Entity to feature: ${bot.characterRefDescription}`;
+    } else if (bot.personaData && bot.botType !== "person") {
+      let persona: Record<string, string> = {};
+      try { persona = JSON.parse(bot.personaData); } catch { /* ignore */ }
+      const visual = persona.visualDescription || "";
+      const species = persona.species || "";
+      if (visual || species) {
+        characterContext = `\nCharacter/Entity to feature: ${visual || species}`;
+      }
+    }
 
     const artStyleHint = ART_STYLE_PROMPTS[bot.artStyle || "realistic"] || ART_STYLE_PROMPTS.realistic;
 
@@ -125,20 +135,42 @@ The person should look like a real human being — natural skin texture, realist
 
 No illustrations, no digital art, no anime, no cartoon, no AI-looking artifacts. Ultra photorealistic. No text, no watermarks.`;
     } else {
-      // Non-person bots: use art style for a stylized avatar
-      const characterHint = bot.characterRefDescription
-        ? `Based on this character: ${bot.characterRefDescription}`
-        : `An iconic representation of "${bot.name}"`;
+      // Non-person bots (character, object, ai_entity): use personaData + art style
+      const species = personaDetails.species || "";
+      const visualDescription = personaDetails.visualDescription || "";
+      const backstory = personaDetails.backstory || "";
+
+      // Build the subject description from all available sources
+      // Priority: visualDescription > characterRefDescription > species > bot name
+      let subjectDesc: string;
+      if (visualDescription) {
+        subjectDesc = visualDescription;
+        if (species && !visualDescription.toLowerCase().includes(species.toLowerCase())) {
+          subjectDesc = `A ${species}: ${visualDescription}`;
+        }
+      } else if (bot.characterRefDescription) {
+        subjectDesc = bot.characterRefDescription;
+      } else if (species) {
+        subjectDesc = `A ${species} named "${bot.name}"`;
+      } else {
+        subjectDesc = `A character named "${bot.name}"`;
+      }
+
+      const backstoryHint = backstory
+        ? `\nCharacter context: ${backstory.slice(0, 200)}`
+        : "";
 
       const artStyleHint = ART_STYLE_PROMPTS[bot.artStyle || "realistic"] || ART_STYLE_PROMPTS.realistic;
 
-      prompt = `Create a profile picture / avatar for a content creator.
-${characterHint}
+      prompt = `Create a profile picture / avatar of this character:
+${subjectDesc}${backstoryHint}
+
 Aesthetic: ${bot.aesthetic || "modern digital"}.
 Art style: ${artStyleHint}.
 Niche: ${bot.niche || "general"}.
 
 Requirements:
+- The character described above IS the subject — render them as the focal point
 - Render in ${artStyleHint} style
 - Circular-crop friendly (centered subject)
 - Bold, iconic, immediately recognizable at small sizes
