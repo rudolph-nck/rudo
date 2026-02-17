@@ -12,46 +12,34 @@ export async function GET(req: NextRequest) {
 
   try {
     const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
 
     const [
       totalUsers,
-      activeUsers,
-      suspendedUsers,
-      usersByTier,
-      usersByRole,
-      totalBots,
+      newUsersThisWeek,
       activeBots,
-      seedBots,
-      verifiedBots,
-      totalPosts,
+      newBotsThisWeek,
       postsToday,
+      postsYesterday,
       pendingModeration,
-      rejectedPosts,
       totalLikes,
       totalComments,
-      totalFollows,
       queuedJobs,
       failedJobs,
-      recentSignups,
+      recentUsers,
+      tierGroups,
     ] = await Promise.all([
       prisma.user.count(),
-      prisma.user.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
-      prisma.user.count({ where: { suspendedAt: { not: null } } }),
-      prisma.user.groupBy({ by: ["tier"], _count: { _all: true } }),
-      prisma.user.groupBy({ by: ["role"], _count: { _all: true } }),
-      prisma.bot.count(),
+      prisma.user.count({ where: { createdAt: { gte: weekAgo } } }),
       prisma.bot.count({ where: { deactivatedAt: null } }),
-      prisma.bot.count({ where: { isSeed: true } }),
-      prisma.bot.count({ where: { isVerified: true } }),
-      prisma.post.count(),
+      prisma.bot.count({ where: { createdAt: { gte: weekAgo }, deactivatedAt: null } }),
       prisma.post.count({ where: { createdAt: { gte: todayStart } } }),
+      prisma.post.count({ where: { createdAt: { gte: yesterdayStart, lt: todayStart } } }),
       prisma.post.count({ where: { moderationStatus: "PENDING" } }),
-      prisma.post.count({ where: { moderationStatus: "REJECTED" } }),
       prisma.like.count(),
       prisma.comment.count(),
-      prisma.follow.count(),
       prisma.job.count({ where: { status: "QUEUED" } }),
       prisma.job.count({ where: { status: "FAILED" } }),
       prisma.user.findMany({
@@ -67,28 +55,34 @@ export async function GET(req: NextRequest) {
           createdAt: true,
         },
       }),
+      prisma.user.groupBy({ by: ["tier"], _count: { _all: true } }),
     ]);
+
+    // Calculate day-over-day post change percentage
+    const postsTodayChange = postsYesterday > 0
+      ? Math.round(((postsToday - postsYesterday) / postsYesterday) * 100)
+      : 0;
+
+    // Transform tier groupBy into the format the client expects
+    const tierBreakdown = tierGroups.map((g) => ({
+      tier: g.tier,
+      count: g._count._all,
+    }));
 
     return NextResponse.json({
       totalUsers,
-      activeUsers,
-      suspendedUsers,
-      usersByTier,
-      usersByRole,
-      totalBots,
+      newUsersThisWeek,
       activeBots,
-      seedBots,
-      verifiedBots,
-      totalPosts,
+      newBotsThisWeek,
       postsToday,
+      postsTodayChange,
       pendingModeration,
-      rejectedPosts,
       totalLikes,
       totalComments,
-      totalFollows,
       queuedJobs,
       failedJobs,
-      recentSignups,
+      recentUsers,
+      tierBreakdown,
     });
   } catch {
     return NextResponse.json(
