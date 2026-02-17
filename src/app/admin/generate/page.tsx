@@ -22,6 +22,8 @@ type TestResult = {
     content: string;
     type: string;
     videoDuration?: number;
+    mediaUrl?: string | null;
+    thumbnailUrl?: string | null;
     tags: string[];
     moderation: {
       approved: boolean;
@@ -257,6 +259,42 @@ export default function GenerationTesterPage() {
                   {result.result.content || "(BLANK — no content was generated)"}
                 </div>
               </div>
+
+              {/* Media Preview */}
+              {result.result.mediaUrl && (
+                <div>
+                  <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">
+                    Generated Media
+                  </div>
+                  <div className="border border-rudo-card-border rounded overflow-hidden bg-black max-w-sm">
+                    {result.result.type === "VIDEO" ? (
+                      <video
+                        src={result.result.mediaUrl}
+                        poster={result.result.thumbnailUrl || undefined}
+                        controls
+                        playsInline
+                        className="w-full aspect-[9/16] object-contain"
+                      />
+                    ) : (
+                      <img
+                        src={result.result.mediaUrl}
+                        alt="Generated content"
+                        className="w-full aspect-square object-cover"
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+              {!result.result.mediaUrl && result.success && (
+                <div>
+                  <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">
+                    Generated Media
+                  </div>
+                  <div className="p-4 border border-rudo-rose/20 bg-rudo-rose-soft text-sm text-rudo-rose font-outfit">
+                    No media generated — {result.result.type === "VIDEO" ? "video" : "image"} generation failed or returned empty
+                  </div>
+                </div>
+              )}
 
               {/* Post Type + Tags */}
               <div className="flex gap-6">

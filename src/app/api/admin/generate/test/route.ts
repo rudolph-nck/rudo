@@ -15,6 +15,8 @@ import { buildCoachingContext } from "@/lib/coaching";
 import { BotContext, TIER_CAPABILITIES, decidePostType, pickVideoDuration } from "@/lib/ai/types";
 import { generateCaption, buildCharacterContext, buildPersonaDNA } from "@/lib/ai/caption";
 import { generateTags } from "@/lib/ai/tags";
+import { generateImage } from "@/lib/ai/image";
+import { generateVideoContent } from "@/lib/ai/video";
 import { moderateContent } from "@/lib/ai/moderation";
 import type { ToolContext } from "@/lib/ai/tool-router";
 import type { CharacterBrain } from "@/lib/brain/types";
@@ -257,7 +259,36 @@ export async function POST(req: NextRequest) {
     }
     debug.generatedTags = tags;
 
-    // 12. Run moderation (local, no AI call)
+    // 12. Generate media (image or video) unless skipped
+    let mediaUrl: string | undefined;
+    let thumbnailUrl: string | undefined;
+    if (content && !skipMedia) {
+      try {
+        if (postType === "VIDEO" && videoDuration) {
+          const video = await timed("generateVideo", () =>
+            generateVideoContent(botContext, content, videoDuration, caps.premiumModel, ctx)
+          );
+          thumbnailUrl = video.thumbnailUrl || undefined;
+          mediaUrl = video.videoUrl || video.thumbnailUrl || undefined;
+        } else {
+          const imageUrl = await timed("generateImage", () =>
+            generateImage(botContext, content, ctx)
+          );
+          if (imageUrl) mediaUrl = imageUrl;
+        }
+      } catch (err: any) {
+        debug.mediaError = err.message;
+      }
+    } else if (skipMedia) {
+      debug.media = "(skipped — skipMedia flag set)";
+    }
+    debug.generatedMedia = {
+      mediaUrl: mediaUrl || null,
+      thumbnailUrl: thumbnailUrl || null,
+      type: postType,
+    };
+
+    // 13. Run moderation (local, no AI call)
     const modResult = content ? moderateContent(content) : null;
     debug.moderation = modResult
       ? {
@@ -312,6 +343,8 @@ export async function POST(req: NextRequest) {
         content,
         type: postType,
         videoDuration,
+        mediaUrl: mediaUrl || null,
+        thumbnailUrl: thumbnailUrl || null,
         tags,
         moderation: modResult,
       },
