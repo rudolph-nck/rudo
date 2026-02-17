@@ -44,6 +44,9 @@ export default function GenerationTesterPage() {
   const [botsLoading, setBotsLoading] = useState(true);
   const [result, setResult] = useState<TestResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [generateMedia, setGenerateMedia] = useState(false);
+  const [imageProvider, setImageProvider] = useState("");
+  const [videoProvider, setVideoProvider] = useState("");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(["result", "diagnosis", "timeline"])
   );
@@ -80,7 +83,12 @@ export default function GenerationTesterPage() {
       const res = await fetch("/api/admin/generate/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ botId: selectedBotId }),
+        body: JSON.stringify({
+          botId: selectedBotId,
+          skipMedia: !generateMedia,
+          ...(generateMedia && imageProvider ? { imageProvider } : {}),
+          ...(generateMedia && videoProvider ? { videoProvider } : {}),
+        }),
       });
 
       if (!res.ok) {
@@ -175,8 +183,8 @@ export default function GenerationTesterPage() {
           </div>
         )}
 
-        {/* Run Test Button */}
-        <div className="mt-4 flex items-center gap-4">
+        {/* Options + Run Test Button */}
+        <div className="mt-4 flex items-center gap-4 flex-wrap">
           <button
             onClick={runTest}
             disabled={!selectedBotId || loading}
@@ -184,6 +192,21 @@ export default function GenerationTesterPage() {
           >
             {loading ? "Generating..." : "Run Generation Test"}
           </button>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={generateMedia}
+              onChange={(e) => setGenerateMedia(e.target.checked)}
+              className="accent-rudo-blue w-4 h-4 cursor-pointer"
+            />
+            <span className="text-xs font-outfit text-rudo-dark-text-sec">
+              Generate media
+            </span>
+            <span className="text-[9px] text-rudo-dark-muted font-outfit">
+              (slower — uses credits)
+            </span>
+          </label>
 
           {selectedBot && (
             <span className="text-sm text-rudo-dark-text-sec font-light">
@@ -194,6 +217,41 @@ export default function GenerationTesterPage() {
             </span>
           )}
         </div>
+
+        {/* Provider Selectors — only shown when media generation is enabled */}
+        {generateMedia && (
+          <div className="mt-4 flex gap-4 flex-wrap">
+            <div>
+              <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-1.5">
+                Image Provider
+              </div>
+              <select
+                value={imageProvider}
+                onChange={(e) => setImageProvider(e.target.value)}
+                className="bg-rudo-content-bg border border-rudo-card-border text-rudo-dark-text px-3 py-2 text-xs font-outfit focus:outline-none focus:border-rudo-blue/40 cursor-pointer min-w-[180px]"
+              >
+                <option value="">Auto (tier-based)</option>
+                <option value="fal-ai/flux/dev">Flux Dev</option>
+                <option value="fal-ai/flux-general">Flux + IP-Adapter</option>
+              </select>
+            </div>
+            <div>
+              <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-1.5">
+                Video Provider
+              </div>
+              <select
+                value={videoProvider}
+                onChange={(e) => setVideoProvider(e.target.value)}
+                className="bg-rudo-content-bg border border-rudo-card-border text-rudo-dark-text px-3 py-2 text-xs font-outfit focus:outline-none focus:border-rudo-blue/40 cursor-pointer min-w-[180px]"
+              >
+                <option value="">Auto (tier-based)</option>
+                <option value="fal-ai/kling-video/v2/master/text-to-video">Kling v2 (6s)</option>
+                <option value="fal-ai/minimax-video/video-01/text-to-video">Minimax (15-30s)</option>
+                <option value="runway">Runway Gen-3 Turbo</option>
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Error */}

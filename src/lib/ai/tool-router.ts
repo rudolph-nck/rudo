@@ -23,6 +23,11 @@ export type ToolContext = {
     dailyLimitCents?: number;
     spentTodayCents?: number;
   };
+  /** Admin override: force a specific provider/model instead of tier-based routing */
+  providerOverride?: {
+    imageModel?: string;  // e.g. "fal-ai/flux/dev"
+    videoModel?: string;  // e.g. "kling", "minimax", "runway"
+  };
 };
 
 export const DEFAULT_CONTEXT: ToolContext = { tier: "SPARK", trustLevel: 1 };
@@ -175,7 +180,8 @@ export async function generateImage(
     return null;
   }
 
-  const model = req.referenceImageUrl ? "fal-ai/flux-general" : "fal-ai/flux/dev";
+  const model = ctx.providerOverride?.imageModel
+    || (req.referenceImageUrl ? "fal-ai/flux-general" : "fal-ai/flux/dev");
 
   return withTelemetry(
     {
@@ -238,15 +244,46 @@ export async function generateVideo(
 ): Promise<string | null> {
   const budget = enforceBudget(ctx);
   const effectiveCtx = budget.ctx;
+  const override = ctx.providerOverride?.videoModel;
 
+  // Force a specific fal.ai model when overridden
+  if (override && override !== "runway" && override !== "auto") {
+    const forcedModel = override;
+    return withTelemetry(
+      {
+        capability: "video",
+        provider: "fal",
+        model: forcedModel,
+        tier: ctx.tier,
+        budgetExceeded: budget.enforced,
+      },
+      async () => {
+        try {
+          return await falProvider.generateVideo({
+            model: forcedModel,
+            prompt: req.prompt,
+            duration: req.durationSec <= 6 ? "5" : "10",
+            aspect_ratio: "9:16",
+          });
+        } catch (error: any) {
+          console.error("Tool router: forced fal.ai video failed:", error.message);
+          return null;
+        }
+      }
+    );
+  }
+
+  const useRunwayOverride = override === "runway";
   const usePremium =
-    PREMIUM_TIERS.has(effectiveCtx.tier) &&
-    req.durationSec >= 30 &&
+    (useRunwayOverride || (
+      PREMIUM_TIERS.has(effectiveCtx.tier) &&
+      req.durationSec >= 30 &&
+      !budget.enforced
+    )) &&
     !!req.startFrameUrl &&
-    runwayProvider.isAvailable() &&
-    !budget.enforced;
+    runwayProvider.isAvailable();
 
-  // Runway path: premium tier + 30s + start frame available + budget OK
+  // Runway path: premium tier + 30s + start frame available + budget OK (or forced)
   if (usePremium) {
     const runwayResult = await withTelemetry(
       {
