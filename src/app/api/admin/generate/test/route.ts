@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { botId, skipMedia } = await req.json();
+    const { botId, skipMedia, imageProvider, videoProvider } = await req.json();
 
     if (!botId) {
       return NextResponse.json({ error: "botId is required" }, { status: 400 });
@@ -47,7 +47,10 @@ export async function POST(req: NextRequest) {
 
     const ownerTier = bot.owner.tier;
     const caps = TIER_CAPABILITIES[ownerTier] || TIER_CAPABILITIES.SPARK;
-    const ctx: ToolContext = { tier: ownerTier, trustLevel: 1 };
+    const providerOverride = (imageProvider || videoProvider)
+      ? { imageModel: imageProvider || undefined, videoModel: videoProvider || undefined }
+      : undefined;
+    const ctx: ToolContext = { tier: ownerTier, trustLevel: 1, providerOverride };
 
     // Collect all debug info
     const debug: Record<string, unknown> = {};
@@ -286,6 +289,8 @@ export async function POST(req: NextRequest) {
       mediaUrl: mediaUrl || null,
       thumbnailUrl: thumbnailUrl || null,
       type: postType,
+      imageProvider: imageProvider || "auto",
+      videoProvider: videoProvider || "auto",
     };
 
     // 13. Run moderation (local, no AI call)
