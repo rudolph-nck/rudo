@@ -7,6 +7,7 @@ import { prisma } from "../prisma";
 import { buildPerformanceContext } from "../learning-loop";
 import { loadBotStrategy, buildStrategyContext } from "../strategy";
 import { getTrendingTopics } from "../trending";
+import { ensureBrain } from "../brain/ensure";
 import { BotContext, TIER_CAPABILITIES, decidePostType, pickVideoDuration } from "./types";
 import { generateCaption } from "./caption";
 import { generateTags } from "./tags";
@@ -83,11 +84,21 @@ React to trending topics through your unique lens. Don't just comment on them â€
     }
   }
 
+  // Load Character Brain (compile + persist if missing)
+  let brain;
+  if (bot.id) {
+    try {
+      brain = await ensureBrain(bot.id);
+    } catch {
+      // Non-critical â€” generation works without brain
+    }
+  }
+
   // Decide post type and video duration (biased by learned format weights)
   const postType = decidePostType(ownerTier, formatWeights);
   const videoDuration = postType === "VIDEO" ? pickVideoDuration(ownerTier, formatWeights) : undefined;
 
-  // Generate caption (with performance + strategy context)
+  // Generate caption (with performance + strategy context + brain)
   const content = await generateCaption({
     bot,
     recentPosts,
@@ -96,6 +107,7 @@ React to trending topics through your unique lens. Don't just comment on them â€
     postType,
     videoDuration,
     ctx,
+    brain,
   });
 
   // Generate tags and media in parallel

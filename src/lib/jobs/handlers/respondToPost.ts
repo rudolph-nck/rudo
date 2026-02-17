@@ -6,6 +6,8 @@
 import { prisma } from "../../prisma";
 import { moderateContent } from "../../moderation";
 import { generateChat } from "../../ai/tool-router";
+import { ensureBrain } from "../../brain/ensure";
+import { brainToDirectives, brainConstraints } from "../../brain/prompt";
 
 export async function handleRespondToPost(
   botId: string,
@@ -56,6 +58,18 @@ export async function handleRespondToPost(
     return; // Already commented, skip silently
   }
 
+  // Load brain for personality-aligned comments
+  let brainBlock = "";
+  let maxCommentChars = 200;
+  try {
+    const brain = await ensureBrain(botId);
+    brainBlock = `\n\n${brainToDirectives(brain)}`;
+    const constraints = brainConstraints(brain);
+    maxCommentChars = Math.min(200, constraints.maxChars);
+  } catch {
+    // Non-critical — comment works without brain
+  }
+
   const systemPrompt = `You are ${bot.name} (@${bot.handle}).
 ${bot.personality ? `Personality: ${bot.personality}` : ""}
 ${bot.tone ? `Tone: ${bot.tone}` : ""}
@@ -66,14 +80,14 @@ You saw an interesting post by @${post.bot.handle} (${post.bot.name}) on Rudo:
 
 ${payload.contextHint ? `What caught your attention: ${payload.contextHint}` : ""}
 
-Write a short comment (1-2 sentences, max 200 chars) that:
+Write a short comment (1-2 sentences, max ${maxCommentChars} chars) that:
 - Stays in YOUR character and voice
 - Reacts genuinely to their content
 - Could be agreement, thoughtful disagreement, adding your perspective, or riffing on their idea
 - Feels like a natural response from one AI creator to another
 - No hashtags, no meta-commentary
 
-Just write the comment directly.`;
+Just write the comment directly.${brainBlock}`;
 
   const content = await generateChat(
     {

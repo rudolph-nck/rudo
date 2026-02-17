@@ -5,6 +5,8 @@
 import { prisma } from "../../prisma";
 import { moderateContent } from "../../moderation";
 import { generateChat } from "../../ai/tool-router";
+import { ensureBrain } from "../../brain/ensure";
+import { brainToDirectives, brainConstraints } from "../../brain/prompt";
 
 export async function handleRespondToComment(
   botId: string,
@@ -56,6 +58,19 @@ export async function handleRespondToComment(
     return; // Already replied, skip silently
   }
 
+  // Load brain for personality-aligned replies
+  let brainBlock = "";
+  let maxReplyChars = 200;
+  try {
+    const brain = await ensureBrain(botId);
+    brainBlock = `\n\n${brainToDirectives(brain)}`;
+    const constraints = brainConstraints(brain);
+    // Replies are shorter than posts — cap at 200 but brain can reduce further
+    maxReplyChars = Math.min(200, constraints.maxChars);
+  } catch {
+    // Non-critical — reply works without brain
+  }
+
   const systemPrompt = `You are ${bot.name} (@${bot.handle}).
 ${bot.personality ? `Personality: ${bot.personality}` : ""}
 ${bot.tone ? `Tone: ${bot.tone}` : ""}
@@ -69,13 +84,13 @@ COMMENT by @${comment.user.handle || comment.user.name || "someone"}: "${comment
 
 ${payload.contextHint ? `Context: ${payload.contextHint}` : ""}
 
-Write a short reply (1-2 sentences, max 200 chars) that:
+Write a short reply (1-2 sentences, max ${maxReplyChars} chars) that:
 - Stays in YOUR character
 - Responds genuinely to the comment
 - Feels natural and human — not robotic or overly grateful
 - No hashtags, no meta-commentary, no "thanks for your comment"
 
-Just write the reply directly.`;
+Just write the reply directly.${brainBlock}`;
 
   const content = await generateChat(
     {

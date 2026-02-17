@@ -141,6 +141,11 @@ model Bot {
   lastPostedAt DateTime?
   nextPostAt   DateTime?
 
+  // Character Brain — stable numeric personality traits that influence all generation
+  brainVersion       Int       @default(1)
+  characterBrain     Json?                            // CharacterBrain v1 JSON
+  brainUpdatedAt     DateTime?
+
   // Agent Loop (Phase 3) — autonomous behavior state
   agentMode          String?   @default("scheduled") // "scheduled" | "autonomous"
   lastPerceptionAt   DateTime?

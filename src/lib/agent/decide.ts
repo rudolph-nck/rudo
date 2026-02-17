@@ -4,6 +4,7 @@
 
 import { generateChat, type ToolContext } from "../ai/tool-router";
 import type { PerceptionContext, AgentDecision, AgentAction } from "./types";
+import type { CharacterBrain } from "../brain/types";
 
 const VALID_ACTIONS: AgentAction[] = [
   "CREATE_POST",
@@ -15,9 +16,10 @@ const VALID_ACTIONS: AgentAction[] = [
 /**
  * Ask the LLM to decide what the bot should do next.
  * Returns a structured decision with action, reasoning, and priority.
+ * If a CharacterBrain is provided, it biases the decision guidelines.
  */
-export async function decide(context: PerceptionContext): Promise<AgentDecision> {
-  const systemPrompt = buildDecisionPrompt(context);
+export async function decide(context: PerceptionContext, brain?: CharacterBrain): Promise<AgentDecision> {
+  const systemPrompt = buildDecisionPrompt(context, brain);
   const ctx: ToolContext = { tier: context.ownerTier, trustLevel: 1 };
 
   try {
@@ -47,8 +49,9 @@ export async function decide(context: PerceptionContext): Promise<AgentDecision>
 
 /**
  * Build the system prompt that tells the LLM how to reason about the bot's next move.
+ * Brain traits bias the decision: warmth→reply, curiosity→comment, chaos→experiment.
  */
-export function buildDecisionPrompt(context: PerceptionContext): string {
+export function buildDecisionPrompt(context: PerceptionContext, brain?: CharacterBrain): string {
   const {
     bot,
     ownerTier,
@@ -123,7 +126,7 @@ DECISION GUIDELINES:
 - RESPOND_TO_POST if an interesting feed post aligns with your niche. Include the postId as targetId. Don't force it.
 - IDLE if it's late at night (past 11pm or before 8am), you've hit the daily limit, or there's nothing compelling to do.
 - Prioritize responding to comments over creating new posts — community engagement is key.
-- Don't create posts just to hit the daily limit. Quality over quantity.`;
+- Don't create posts just to hit the daily limit. Quality over quantity.${brain ? buildBrainBiasGuidelines(brain) : ""}`;
 }
 
 /**
@@ -190,11 +193,30 @@ function validateDecision(
 }
 
 /**
+ * Build brain-specific decision biases as additional prompt guidelines.
+ */
+function buildBrainBiasGuidelines(brain: CharacterBrain): string {
+  const biases: string[] = [];
+  const { traits } = brain;
+
+  if (traits.warmth > 0.7) biases.push("- You naturally lean toward replying to comments — you enjoy connecting with people.");
+  if (traits.curiosity > 0.7) biases.push("- You're drawn to commenting on other creators' posts — especially novel or thought-provoking ones.");
+  if (traits.chaos > 0.6) biases.push("- You sometimes do unexpected things — consider an unconventional action if the moment feels right.");
+  if (traits.controversyAvoidance > 0.75) biases.push("- Avoid engaging with divisive or controversial topics — prefer safe ground.");
+  else if (traits.controversyAvoidance < 0.3) biases.push("- You don't shy away from hot takes or provocative topics when they're relevant.");
+  if (traits.confidence > 0.7) biases.push("- You post confidently — don't hesitate to CREATE_POST if there's room.");
+
+  if (biases.length === 0) return "";
+  return `\n\nPERSONALITY BIASES (your character tendencies):\n${biases.join("\n")}`;
+}
+
+/**
  * Deterministic fallback when the LLM fails or returns garbage.
  * Uses simple rules to pick a reasonable action.
+ * Brain traits influence tie-breaking: warmth→reply, curiosity→comment on feed.
  */
-export function fallbackDecision(context: PerceptionContext): AgentDecision {
-  const { hoursSinceLastPost, postsToday, currentHour, unansweredComments, bot } = context;
+export function fallbackDecision(context: PerceptionContext, brain?: CharacterBrain): AgentDecision {
+  const { hoursSinceLastPost, postsToday, currentHour, unansweredComments, recentFeedPosts, bot } = context;
 
   // Outside posting hours → idle
   if (currentHour >= 23 || currentHour < 8) {
@@ -222,13 +244,24 @@ export function fallbackDecision(context: PerceptionContext): AgentDecision {
     };
   }
 
-  // Unanswered comments → respond
-  if (unansweredComments.length > 0 && hoursSinceLastPost < 4) {
+  // Unanswered comments → respond (brain warmth lowers the threshold)
+  const replyThreshold = brain && brain.traits.warmth > 0.7 ? 6 : 4;
+  if (unansweredComments.length > 0 && hoursSinceLastPost < replyThreshold) {
     return {
       action: "RESPOND_TO_COMMENT",
       reasoning: "Engaging with fans before creating new content",
       priority: "medium",
       targetId: unansweredComments[0].commentId,
+    };
+  }
+
+  // Brain curiosity: if curious and there are interesting posts, comment on feed
+  if (brain && brain.traits.curiosity > 0.7 && recentFeedPosts.length > 0 && hoursSinceLastPost < 3) {
+    return {
+      action: "RESPOND_TO_POST",
+      reasoning: "Curious about what other creators are posting",
+      priority: "low",
+      targetId: recentFeedPosts[0].postId,
     };
   }
 
