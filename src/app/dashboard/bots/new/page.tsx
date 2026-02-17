@@ -90,7 +90,7 @@ export default function NewBotPage() {
 function NewBotContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const autoDeployedRef = useRef(false);
@@ -127,10 +127,11 @@ function NewBotContent() {
 
   const atBotLimit = botCount !== null && botCount >= maxBots && !isFreeEligibleForTrial;
 
-  // Restore saved bot draft after trial checkout redirect.
-  // When the user returns from Stripe with ?deploy=1, we restore their
-  // bot configuration and jump straight to the review step for auto-deploy.
+  // Auto-deploy: when returning from Stripe trial checkout with ?deploy=1,
+  // refresh the session to pick up the new tier, restore the bot draft,
+  // and deploy the bot automatically.
   const shouldAutoDeploy = searchParams.get("deploy") === "1";
+  const [autoDeploying, setAutoDeploying] = useState(shouldAutoDeploy);
 
   // Wizard state
   const [step, setStep] = useState<WizardStep>("type");
@@ -183,30 +184,82 @@ function NewBotContent() {
     contentStyle: "",
   });
 
-  // Restore draft after trial checkout redirect and auto-deploy
+  // Restore draft after trial checkout redirect and auto-deploy the bot.
+  // Refreshes the session first so the new tier is picked up, then calls
+  // the bot creation API directly with the saved draft data.
   useEffect(() => {
-    if (!shouldAutoDeploy || !isPaid || autoDeployedRef.current) return;
-    const saved = sessionStorage.getItem("rudo_bot_draft");
-    if (!saved) return;
+    if (!shouldAutoDeploy || autoDeployedRef.current) return;
+    autoDeployedRef.current = true;
 
-    try {
-      const draft = JSON.parse(saved);
-      if (draft.form) {
-        setForm(draft.form);
-        setBotType(draft.botType || "");
-        if (draft.characterRefPreview) setCharacterRefPreview(draft.characterRefPreview);
-        setStep("review");
+    async function restoreAndDeploy() {
+      // Refresh session so the JWT picks up the new tier from the DB
+      await updateSession();
 
-        // Clear the draft so it doesn't fire again
-        sessionStorage.removeItem("rudo_bot_draft");
-        // Clean URL
-        window.history.replaceState(null, "", "/dashboard/bots/new");
+      const saved = sessionStorage.getItem("rudo_bot_draft");
+      if (!saved) {
+        setAutoDeploying(false);
+        return;
       }
-    } catch {
-      // Corrupt draft — just show the wizard from scratch
-      sessionStorage.removeItem("rudo_bot_draft");
+
+      try {
+        const draft = JSON.parse(saved);
+        if (!draft.form?.name || !draft.form?.handle) {
+          sessionStorage.removeItem("rudo_bot_draft");
+          setAutoDeploying(false);
+          return;
+        }
+
+        sessionStorage.removeItem("rudo_bot_draft");
+        window.history.replaceState(null, "", "/dashboard/bots/new");
+
+        // Deploy the bot directly using saved draft data
+        const res = await fetch("/api/bots", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: draft.form.name,
+            handle: draft.form.handle,
+            bio: draft.form.bio,
+            personality: draft.form.personality,
+            niche: (draft.form.niches || []).join(", "),
+            tone: (draft.form.tones || []).join(", "),
+            aesthetic: (draft.form.aesthetics || []).join(", "),
+            artStyle: draft.form.artStyle,
+            contentStyle: draft.form.contentStyle,
+            botType: draft.botType,
+            personaData: JSON.stringify(draft.personaData || {}),
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          // Character ref upload (fire-and-forget)
+          if (draft.characterRefPreview && data.bot?.handle) {
+            fetch(`/api/bots/${data.bot.handle}/character-ref`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ imageUrl: draft.characterRefPreview }),
+            }).catch(() => {});
+          }
+          router.push("/dashboard/bots");
+        } else {
+          let msg = "Failed to deploy bot";
+          try {
+            const data = await res.json();
+            msg = data.error || msg;
+          } catch {}
+          setError(msg);
+          setAutoDeploying(false);
+        }
+      } catch {
+        sessionStorage.removeItem("rudo_bot_draft");
+        setError("Failed to restore bot draft");
+        setAutoDeploying(false);
+      }
     }
-  }, [shouldAutoDeploy, isPaid]);
+
+    restoreAndDeploy();
+  }, [shouldAutoDeploy, updateSession, router]);
 
   // Handle availability state
   const [handleStatus, setHandleStatus] = useState<HandleStatus>("idle");
@@ -456,6 +509,31 @@ function NewBotContent() {
   }
 
   // --- Gate screens ---
+
+  // Auto-deploying after Stripe trial checkout — bypass all gates
+  if (autoDeploying) {
+    return (
+      <div className="max-w-2xl py-20 text-center">
+        <div className="w-8 h-8 border-2 border-rudo-blue border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-sm text-rudo-dark-text font-medium mb-2">
+          Deploying your bot...
+        </p>
+        <p className="text-xs text-rudo-dark-muted font-light">
+          Setting up your trial and creating your bot
+        </p>
+        {error && (
+          <div className="mt-6 px-4 py-3 bg-rudo-rose-soft border border-rudo-rose/20 text-rudo-rose text-sm max-w-md mx-auto">
+            {error}
+            <div className="mt-3">
+              <Button href="/dashboard/bots/new" variant="blue">
+                Try Manually
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // FREE users who have already used their trial must upgrade
   if (!isPaid && !isFreeEligibleForTrial) {
