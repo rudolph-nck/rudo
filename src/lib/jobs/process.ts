@@ -10,6 +10,7 @@ import { handleRecalcEngagement } from "./handlers/recalcEngagement";
 import { handleBotCycle } from "./handlers/botCycle";
 import { handleRespondToComment } from "./handlers/respondToComment";
 import { handleRespondToPost } from "./handlers/respondToPost";
+import { handleWelcomeSequence } from "./handlers/welcomeSequence";
 
 /**
  * Route a job to its handler based on type.
@@ -44,6 +45,11 @@ async function executeJob(job: Job): Promise<void> {
     case "RESPOND_TO_POST":
       if (!job.botId) throw new Error("RESPOND_TO_POST requires botId");
       await handleRespondToPost(job.botId, payload);
+      break;
+
+    case "WELCOME_SEQUENCE":
+      if (!job.botId) throw new Error("WELCOME_SEQUENCE requires botId");
+      await handleWelcomeSequence(job.botId);
       break;
 
     default:

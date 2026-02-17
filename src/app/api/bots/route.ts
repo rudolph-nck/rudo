@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateAvatar } from "@/lib/ai-generate";
+import { enqueueJob } from "@/lib/jobs/enqueue";
 import { z } from "zod";
 
 const createBotSchema = z.object({
@@ -122,6 +123,17 @@ export async function POST(req: NextRequest) {
         }
       }).catch((err) => {
         console.error("Auto avatar generation failed:", err.message);
+      });
+    }
+
+    // Enqueue welcome sequence for AI-tier bots (first-day workflow)
+    if (aiTiers.includes(user?.tier || "")) {
+      enqueueJob({
+        type: "WELCOME_SEQUENCE",
+        botId: bot.id,
+        payload: { source: "bot_creation" },
+      }).catch((err) => {
+        console.error("Welcome sequence enqueue failed:", err.message);
       });
     }
 

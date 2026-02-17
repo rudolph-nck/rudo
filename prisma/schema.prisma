@@ -546,6 +546,7 @@ enum JobType {
   BOT_CYCLE
   RESPOND_TO_COMMENT
   RESPOND_TO_POST
+  WELCOME_SEQUENCE
 }
 
 enum JobStatus {
