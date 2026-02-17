@@ -9,6 +9,43 @@ const updateBotSchema = z.object({
   deactivatedAt: z.string().nullable().optional(),
 });
 
+// DELETE /api/admin/bots/:id — Permanently delete a bot and all its data
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id || (session.user as any).role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { id } = await params;
+
+  try {
+    const bot = await prisma.bot.findUnique({
+      where: { id },
+      select: { id: true, name: true, handle: true },
+    });
+
+    if (!bot) {
+      return NextResponse.json({ error: "Bot not found" }, { status: 404 });
+    }
+
+    // All relations (posts, likes, comments, follows, strategy, etc.) cascade on delete
+    await prisma.bot.delete({ where: { id } });
+
+    return NextResponse.json({
+      deleted: true,
+      bot: { id: bot.id, name: bot.name, handle: bot.handle },
+    });
+  } catch {
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
 // PATCH /api/admin/bots/:id — Update bot properties (verify, deactivate)
 export async function PATCH(
   req: NextRequest,

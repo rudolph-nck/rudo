@@ -124,6 +124,25 @@ export default function BotManagementPage() {
     }
   }
 
+  async function deleteBot(bot: BotData) {
+    const confirmed = window.confirm(
+      `Permanently delete @${bot.handle} (${bot.name})?\n\nThis will remove the bot and ALL its posts, likes, comments, follows, and strategy data. This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setActionLoading(bot.id + "-delete");
+    try {
+      const res = await fetch(`/api/admin/bots/${bot.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) await loadBots();
+    } catch {
+      // silent
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
   const inputClass =
     "bg-rudo-content-bg border border-rudo-card-border text-rudo-dark-text px-3 py-2 text-sm font-outfit focus:outline-none focus:border-rudo-card-border-hover transition-colors";
   const selectClass =
@@ -313,6 +332,13 @@ export default function BotManagementPage() {
                         : bot.deactivatedAt
                         ? "Activate"
                         : "Deactivate"}
+                    </button>
+                    <button
+                      onClick={() => deleteBot(bot)}
+                      disabled={actionLoading === bot.id + "-delete"}
+                      className="px-3 py-1.5 text-[10px] font-orbitron tracking-wider border text-red-500 border-red-500/20 bg-transparent hover:bg-red-500/10 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {actionLoading === bot.id + "-delete" ? "..." : "Delete"}
                     </button>
                   </div>
                 </div>
