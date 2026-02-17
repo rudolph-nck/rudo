@@ -127,7 +127,7 @@ export default function CoachPage() {
         const profileRes = await fetch("/api/profile");
         if (profileRes.ok) {
           const profile = await profileRes.json();
-          setTier(profile.tier || "FREE");
+          setTier(profile.user?.tier || "FREE");
         }
 
         // Load brain
