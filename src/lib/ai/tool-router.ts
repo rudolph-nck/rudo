@@ -10,6 +10,8 @@
 import * as openaiProvider from "./providers/openai";
 import * as falProvider from "./providers/fal";
 import * as runwayProvider from "./providers/runway";
+import * as klingProvider from "./providers/kling";
+import * as minimaxProvider from "./providers/minimax";
 import { withTelemetry } from "./telemetry";
 
 // ---------------------------------------------------------------------------
@@ -312,10 +314,10 @@ export async function generateVideo(
     console.log("Tool router: Runway failed, falling back to fal.ai");
   }
 
-  // fal.ai fallback / default path
+  // fal.ai default path with direct provider fallback
   const modelConfig = FAL_VIDEO_MODELS[req.durationSec] || FAL_VIDEO_MODELS[6];
 
-  return withTelemetry(
+  const falResult = await withTelemetry(
     {
       capability: "video",
       provider: "fal",
@@ -337,6 +339,77 @@ export async function generateVideo(
       }
     }
   );
+
+  if (falResult) return falResult;
+
+  // Fallback: try direct provider APIs if fal.ai failed
+  return tryDirectVideoFallback(req, ctx, budget.enforced);
+}
+
+/**
+ * Fallback video generation using direct Kling/Minimax APIs.
+ * Only called when fal.ai fails. More expensive but provides redundancy.
+ */
+async function tryDirectVideoFallback(
+  req: VideoRequest,
+  ctx: ToolContext,
+  budgetExceeded: boolean
+): Promise<string | null> {
+  // Try Kling for short videos (5-6s)
+  if (req.durationSec <= 6 && klingProvider.isAvailable()) {
+    console.log("Tool router: fal.ai failed, trying direct Kling API...");
+    const result = await withTelemetry(
+      {
+        capability: "video",
+        provider: "kling-direct",
+        model: "kling-v2-master",
+        tier: ctx.tier,
+        budgetExceeded,
+      },
+      async () => {
+        try {
+          return await klingProvider.generateVideo({
+            prompt: req.prompt,
+            duration: "5",
+            aspectRatio: "9:16",
+          });
+        } catch (error: any) {
+          console.error("Tool router: direct Kling failed:", error.message);
+          return null;
+        }
+      }
+    );
+    if (result) return result;
+  }
+
+  // Try Minimax for any duration
+  if (minimaxProvider.isAvailable()) {
+    console.log("Tool router: trying direct Minimax API...");
+    const result = await withTelemetry(
+      {
+        capability: "video",
+        provider: "minimax-direct",
+        model: "MiniMax-Hailuo-2.3",
+        tier: ctx.tier,
+        budgetExceeded,
+      },
+      async () => {
+        try {
+          return await minimaxProvider.generateVideo({
+            prompt: req.prompt,
+            duration: req.durationSec <= 6 ? 6 : 10,
+          });
+        } catch (error: any) {
+          console.error("Tool router: direct Minimax failed:", error.message);
+          return null;
+        }
+      }
+    );
+    if (result) return result;
+  }
+
+  console.error("Tool router: all video providers failed");
+  return null;
 }
 
 /**

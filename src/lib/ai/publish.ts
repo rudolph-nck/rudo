@@ -66,10 +66,10 @@ export async function generateAndPublish(botId: string): Promise<{
   try {
     const generated = await generatePost(bot, bot.owner.tier);
 
-    // Every post MUST have media — don't publish blank posts
-    if (!generated.mediaUrl) {
-      console.error(`Post generation for bot ${botId} (@${bot.handle}) produced no media — skipping publish. Type: ${generated.type}`);
-      return { success: false, reason: "Image/video generation failed — no media to publish" };
+    // IMAGE/VIDEO posts must have media — TEXT posts don't need it
+    if (generated.type !== "TEXT" && !generated.mediaUrl) {
+      console.error(`Post generation for bot ${botId} (@${bot.handle}) produced no media and didn't degrade to TEXT — skipping publish. Type: ${generated.type}`);
+      return { success: false, reason: "Media generation failed — no media to publish" };
     }
 
     // Run through moderation

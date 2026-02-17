@@ -21,12 +21,16 @@ export type BotContext = {
 // ---------------------------------------------------------------------------
 // Tier capabilities & content mix
 // ---------------------------------------------------------------------------
-// NO text-only posts. Every post is IMAGE or VIDEO.
-// Video is the engagement driver (TikTok model).
-// Higher tiers get more video AND a mix of durations.
+// Three post types: TEXT, IMAGE, VIDEO.
+//   TEXT  = Twitter-style captions, cheapest (~0.15¢), highly reliable.
+//   IMAGE = Visual post with AI-generated image (Flux).
+//   VIDEO = Short-form video (Kling/Minimax/Runway).
+//
+// TEXT posts also serve as the fallback when media generation fails,
+// so bots always publish something rather than silently skipping.
 //
 // Duration calibration (current AI video gen ceilings):
-//   6s  = single generation, punchy hook (Pika/Kling native)
+//   6s  = single generation, punchy hook (Kling native)
 //   15s = 1-2 stitches, short-form sweet spot (Reels/TikTok standard)
 //   30s = 2-3 stitches, premium mini-stories, quality ceiling before degradation
 //
@@ -39,6 +43,7 @@ export type BotContext = {
 // ---------------------------------------------------------------------------
 
 export const TIER_CAPABILITIES: Record<string, {
+  textChance: number;
   videoChance: number;
   videoDurationMix: { duration: number; weight: number }[];
   premiumModel: boolean;
@@ -46,14 +51,16 @@ export const TIER_CAPABILITIES: Record<string, {
   canUploadCharacterRef: boolean;
 }> = {
   SPARK: {
-    videoChance: 0.35,
+    textChance: 0.25,
+    videoChance: 0.30,               // remaining 45% = IMAGE
     videoDurationMix: [{ duration: 6, weight: 1.0 }],
     premiumModel: false,
     trendAware: false,
     canUploadCharacterRef: false,
   },
   PULSE: {
-    videoChance: 0.45,
+    textChance: 0.20,
+    videoChance: 0.40,               // remaining 40% = IMAGE
     videoDurationMix: [
       { duration: 6, weight: 0.65 },   // 65% quick hooks (cost-efficient)
       { duration: 15, weight: 0.35 },   // 35% short-form (signature format)
@@ -63,7 +70,8 @@ export const TIER_CAPABILITIES: Record<string, {
     canUploadCharacterRef: false,
   },
   GRID: {
-    videoChance: 0.55,
+    textChance: 0.15,
+    videoChance: 0.50,               // remaining 35% = IMAGE
     videoDurationMix: [
       { duration: 6, weight: 0.45 },    // 45% quick hooks (cost-efficient)
       { duration: 15, weight: 0.47 },   // 47% short-form
@@ -74,7 +82,8 @@ export const TIER_CAPABILITIES: Record<string, {
     canUploadCharacterRef: true,
   },
   ADMIN: {
-    videoChance: 0.55,
+    textChance: 0.15,
+    videoChance: 0.50,
     videoDurationMix: [
       { duration: 6, weight: 0.45 },
       { duration: 15, weight: 0.47 },
@@ -116,30 +125,39 @@ export const ART_STYLE_PROMPTS: Record<string, string> = {
 // ---------------------------------------------------------------------------
 
 /**
- * Decide IMAGE or VIDEO. No text-only posts — ever.
+ * Decide TEXT, IMAGE, or VIDEO.
+ * TEXT posts are Twitter-style captions — cheap, reliable, and add variety.
  * If formatWeights from BotStrategy are provided, they bias the decision.
  */
 export function decidePostType(
   tier: string,
   formatWeights?: Record<string, number>
-): "IMAGE" | "VIDEO" {
+): "TEXT" | "IMAGE" | "VIDEO" {
   const caps = TIER_CAPABILITIES[tier] || TIER_CAPABILITIES.SPARK;
+  let textChance = caps.textChance;
   let videoChance = caps.videoChance;
 
-  // Apply learned format bias: if VIDEO formats collectively score higher,
-  // nudge the chance up (max ±0.15 swing to keep it bounded).
+  // Apply learned format bias (max ±0.15 swing to keep it bounded).
   if (formatWeights && Object.keys(formatWeights).length > 0) {
+    const textWeight = formatWeights["TEXT"] || 0;
     const imageWeight = formatWeights["IMAGE"] || 0;
     const videoWeight = Math.max(
       formatWeights["VIDEO_6"] || 0,
       formatWeights["VIDEO_15"] || 0,
       formatWeights["VIDEO_30"] || 0
     );
-    const bias = Math.max(-0.15, Math.min(0.15, (videoWeight - imageWeight) * 0.2));
-    videoChance = Math.max(0, Math.min(0.9, videoChance + bias));
+
+    const textBias = Math.max(-0.10, Math.min(0.10, (textWeight - imageWeight) * 0.2));
+    textChance = Math.max(0.05, Math.min(0.40, textChance + textBias));
+
+    const videoBias = Math.max(-0.15, Math.min(0.15, (videoWeight - imageWeight) * 0.2));
+    videoChance = Math.max(0, Math.min(0.75, videoChance + videoBias));
   }
 
-  return Math.random() < videoChance ? "VIDEO" : "IMAGE";
+  const roll = Math.random();
+  if (roll < textChance) return "TEXT";
+  if (roll < textChance + videoChance) return "VIDEO";
+  return "IMAGE";
 }
 
 /**

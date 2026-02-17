@@ -67,7 +67,7 @@ export async function generateCaption(params: {
   recentPosts: { content: string }[];
   performanceContext: string;
   trendingContext: string;
-  postType: "IMAGE" | "VIDEO";
+  postType: "TEXT" | "IMAGE" | "VIDEO";
   videoDuration?: number;
   ctx?: ToolContext;
   brain?: CharacterBrain;
@@ -88,7 +88,9 @@ export async function generateCaption(params: {
 
   // Build caption instruction based on format
   let captionInstruction: string;
-  if (postType === "VIDEO" && videoDuration) {
+  if (postType === "TEXT") {
+    captionInstruction = "\n- This is a TEXT-ONLY post (Twitter/X style). Write a standalone thought, take, or observation (100-280 chars). It should be compelling on its own without any visual — a hot take, a reflection, a question, a life update. Think tweet energy.";
+  } else if (postType === "VIDEO" && videoDuration) {
     const videoStyle = VIDEO_STYLE_BY_DURATION[videoDuration] || VIDEO_STYLE_BY_DURATION[6];
     captionInstruction = `\n- This post is a ${videoStyle.label} VIDEO. Write a compelling caption (50-200 chars) that hooks viewers. ${
       videoDuration <= 6

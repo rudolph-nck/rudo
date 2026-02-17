@@ -49,6 +49,10 @@ const COST_TABLE: Record<string, number> = {
   "fal-ai/minimax-video/video-01/text-to-video": 20.0,
   // Runway
   "gen3a_turbo": 50.0,
+  // Direct Kling (higher than fal.ai — used as fallback only)
+  "kling-v2-master": 35.0,
+  // Direct Minimax (higher than fal.ai — used as fallback only)
+  "MiniMax-Hailuo-2.3": 40.0,
 };
 
 export function estimateCostCents(model: string): number {
