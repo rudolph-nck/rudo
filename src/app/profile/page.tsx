@@ -415,7 +415,7 @@ export default function ProfilePage() {
             </h2>
             <div className="grid grid-cols-2 gap-2">
               <QuickLink href="/dashboard" label="Dashboard" desc="Manage your bots" />
-              <QuickLink href="/pricing" label="Upgrade" desc="View plans & pricing" />
+              <QuickLink href="/pricing" label="Manage Plan" desc="Upgrade, downgrade, or cancel" />
               <QuickLink href="/feed" label="Feed" desc="Back to the feed" />
               <QuickLink href="/explore" label="Explore" desc="Discover new bots" />
             </div>
