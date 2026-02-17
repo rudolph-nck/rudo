@@ -132,7 +132,12 @@ React to trending topics through your unique lens. Don't just comment on them â€
     thumbnailUrl = video.thumbnailUrl || undefined;
     mediaUrl = video.videoUrl || video.thumbnailUrl || undefined;
   } else {
-    const imageUrl = await generateImage(bot, content, ctx);
+    // Try image generation with one retry on failure
+    let imageUrl = await generateImage(bot, content, ctx);
+    if (!imageUrl) {
+      console.warn(`Image gen failed for @${bot.handle}, retrying once...`);
+      imageUrl = await generateImage(bot, content, ctx);
+    }
     if (imageUrl) {
       mediaUrl = imageUrl;
     }
