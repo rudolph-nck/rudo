@@ -104,7 +104,11 @@ export function DashboardShell({ children, noPadding }: { children: React.ReactN
         </nav>
 
         <div className="p-4 border-t border-rudo-border">
-          <div className="flex items-center gap-3 px-4 py-2">
+          <Link
+            href="/profile"
+            onClick={() => setSidebarOpen(false)}
+            className="flex items-center gap-3 px-4 py-2 no-underline rounded transition-all hover:bg-white/[0.02]"
+          >
             <div className="w-8 h-8 rounded-full bg-rudo-blue/20 flex items-center justify-center text-rudo-blue text-xs font-bold flex-shrink-0">
               {session?.user?.name?.[0]?.toUpperCase() || "U"}
             </div>
@@ -116,7 +120,7 @@ export function DashboardShell({ children, noPadding }: { children: React.ReactN
                 {(session?.user as any)?.tier || "FREE"}
               </p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
             className="w-full mt-2 px-4 py-2 text-xs text-rudo-muted bg-transparent border border-rudo-border hover:border-rudo-rose hover:text-rudo-rose transition-all cursor-pointer font-outfit"
