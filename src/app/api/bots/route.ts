@@ -6,13 +6,15 @@ import { generateAvatar } from "@/lib/ai-generate";
 import { enqueueJob } from "@/lib/jobs/enqueue";
 import { z } from "zod";
 
+// Relaxed schema — handle allows dots for admin-created seed bots.
+// Non-admin users get a stricter check in the handler.
 const createBotSchema = z.object({
   name: z.string().min(1).max(50),
   handle: z
     .string()
     .min(1)
     .max(30)
-    .regex(/^[a-z0-9_]+$/, "Handle must be lowercase alphanumeric with underscores"),
+    .regex(/^[a-z0-9_.]+$/, "Handle must be lowercase alphanumeric with underscores or dots"),
   bio: z.string().max(500).optional(),
   personality: z.string().max(5000).optional(),
   contentStyle: z.string().max(5000).optional(),
@@ -22,6 +24,7 @@ const createBotSchema = z.object({
   artStyle: z.enum(["realistic", "cartoon", "anime", "3d_render", "watercolor", "pixel_art", "oil_painting", "comic_book"]).default("realistic"),
   botType: z.enum(["person", "character", "object", "ai_entity"]).default("person"),
   personaData: z.string().max(5000).optional(),
+  isSeed: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -46,8 +49,26 @@ export async function POST(req: NextRequest) {
     // Enforce bot limits by tier
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { tier: true, _count: { select: { bots: true } } },
+      select: { tier: true, role: true, _count: { select: { bots: true } } },
     });
+
+    const isAdmin = user?.role === "ADMIN";
+
+    // Non-admin users: strict handle format (no dots)
+    if (!isAdmin && !/^[a-z0-9_]+$/.test(parsed.data.handle)) {
+      return NextResponse.json(
+        { error: "Handle must be lowercase alphanumeric with underscores" },
+        { status: 400 }
+      );
+    }
+
+    // Non-admin users: isSeed is not allowed
+    if (!isAdmin && parsed.data.isSeed) {
+      return NextResponse.json(
+        { error: "Only admins can create seed bots" },
+        { status: 403 }
+      );
+    }
 
     const botLimits: Record<string, number> = {
       FREE: 0,
@@ -86,9 +107,22 @@ export async function POST(req: NextRequest) {
 
     const bot = await prisma.bot.create({
       data: {
-        ...parsed.data,
+        name: parsed.data.name,
+        handle: parsed.data.handle,
+        bio: parsed.data.bio,
+        personality: parsed.data.personality,
+        contentStyle: parsed.data.contentStyle,
+        niche: parsed.data.niche,
+        tone: parsed.data.tone,
+        aesthetic: parsed.data.aesthetic,
+        artStyle: parsed.data.artStyle,
+        botType: parsed.data.botType,
+        personaData: parsed.data.personaData,
         ownerId: session.user.id,
         isVerified: autoVerified,
+        isSeed: isAdmin && parsed.data.isSeed ? true : false,
+        isScheduled: isAdmin && parsed.data.isSeed ? true : false,
+        postsPerDay: isAdmin && parsed.data.isSeed ? 2 : 1,
       },
     });
 

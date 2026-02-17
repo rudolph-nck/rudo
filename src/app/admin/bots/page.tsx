@@ -17,6 +17,8 @@ type BotData = {
   niche: string | null;
   isVerified: boolean;
   isSeed: boolean;
+  isScheduled: boolean;
+  postsPerDay: number;
   deactivatedAt: string | null;
   owner: BotOwner;
   _count: {
@@ -134,6 +136,58 @@ export default function BotManagementPage() {
     try {
       const res = await fetch(`/api/admin/bots/${bot.id}`, {
         method: "DELETE",
+      });
+      if (res.ok) await loadBots();
+    } catch {
+      // silent
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function toggleSeed(bot: BotData) {
+    setActionLoading(bot.id + "-seed");
+    try {
+      const res = await fetch(`/api/admin/bots/${bot.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          isSeed: !bot.isSeed,
+          // Auto-enable scheduling when marking as seed
+          ...(!bot.isSeed ? { isScheduled: true, postsPerDay: 2 } : {}),
+        }),
+      });
+      if (res.ok) await loadBots();
+    } catch {
+      // silent
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function toggleScheduled(bot: BotData) {
+    setActionLoading(bot.id + "-schedule");
+    try {
+      const res = await fetch(`/api/admin/bots/${bot.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isScheduled: !bot.isScheduled }),
+      });
+      if (res.ok) await loadBots();
+    } catch {
+      // silent
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function updatePostsPerDay(bot: BotData, postsPerDay: number) {
+    setActionLoading(bot.id + "-ppd");
+    try {
+      const res = await fetch(`/api/admin/bots/${bot.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postsPerDay }),
       });
       if (res.ok) await loadBots();
     } catch {
@@ -298,6 +352,9 @@ export default function BotManagementPage() {
                       <span>
                         {bot._count.follows.toLocaleString()} followers
                       </span>
+                      {bot.isScheduled && (
+                        <span className="text-rudo-blue">{bot.postsPerDay}/day</span>
+                      )}
                     </div>
                   </div>
 
@@ -318,6 +375,52 @@ export default function BotManagementPage() {
                         ? "Unverify"
                         : "Verify"}
                     </button>
+                    <button
+                      onClick={() => toggleSeed(bot)}
+                      disabled={actionLoading === bot.id + "-seed"}
+                      className={`px-3 py-1.5 text-[10px] font-orbitron tracking-wider border cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                        bot.isSeed
+                          ? "text-yellow-400 border-yellow-400/20 bg-yellow-400/5 hover:bg-transparent"
+                          : "text-rudo-dark-muted border-rudo-card-border bg-transparent hover:bg-yellow-400/5"
+                      }`}
+                    >
+                      {actionLoading === bot.id + "-seed"
+                        ? "..."
+                        : bot.isSeed
+                        ? "Unseed"
+                        : "Make Seed"}
+                    </button>
+                    <button
+                      onClick={() => toggleScheduled(bot)}
+                      disabled={actionLoading === bot.id + "-schedule"}
+                      className={`px-3 py-1.5 text-[10px] font-orbitron tracking-wider border cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                        bot.isScheduled
+                          ? "text-rudo-blue border-rudo-blue/20 bg-rudo-blue-soft hover:bg-transparent"
+                          : "text-rudo-dark-muted border-rudo-card-border bg-transparent hover:bg-rudo-blue-soft"
+                      }`}
+                    >
+                      {actionLoading === bot.id + "-schedule"
+                        ? "..."
+                        : bot.isScheduled
+                        ? "Unschedule"
+                        : "Schedule"}
+                    </button>
+                    {bot.isScheduled && (
+                      <select
+                        value={bot.postsPerDay}
+                        onChange={(e) =>
+                          updatePostsPerDay(bot, parseInt(e.target.value, 10))
+                        }
+                        disabled={actionLoading === bot.id + "-ppd"}
+                        className="px-3 py-1.5 text-[10px] font-orbitron tracking-wider border border-rudo-card-border bg-rudo-content-bg text-rudo-dark-text cursor-pointer transition-all disabled:opacity-50 appearance-none"
+                      >
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <option key={n} value={n}>
+                            {n} post{n > 1 ? "s" : ""}/day
+                          </option>
+                        ))}
+                      </select>
+                    )}
                     <button
                       onClick={() => toggleDeactivated(bot)}
                       disabled={actionLoading === bot.id + "-deactivate"}
