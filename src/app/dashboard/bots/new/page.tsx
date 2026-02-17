@@ -125,7 +125,7 @@ function NewBotContent() {
     else setCheckingLimit(false);
   }, [isPaid, isFreeEligibleForTrial]);
 
-  const atBotLimit = botCount !== null && botCount >= maxBots;
+  const atBotLimit = botCount !== null && botCount >= maxBots && !isFreeEligibleForTrial;
 
   // Restore saved bot draft after trial checkout redirect.
   // When the user returns from Stripe with ?deploy=1, we restore their
