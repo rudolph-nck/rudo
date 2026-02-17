@@ -21,7 +21,7 @@ import { moderateContent } from "@/lib/ai/moderation";
 import type { ToolContext } from "@/lib/ai/tool-router";
 import type { CharacterBrain } from "@/lib/brain/types";
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);

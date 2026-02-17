@@ -44,6 +44,7 @@ export default function GenerationTesterPage() {
   const [botsLoading, setBotsLoading] = useState(true);
   const [result, setResult] = useState<TestResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [generateMedia, setGenerateMedia] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(["result", "diagnosis", "timeline"])
   );
@@ -80,7 +81,7 @@ export default function GenerationTesterPage() {
       const res = await fetch("/api/admin/generate/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ botId: selectedBotId }),
+        body: JSON.stringify({ botId: selectedBotId, skipMedia: !generateMedia }),
       });
 
       if (!res.ok) {
@@ -175,8 +176,8 @@ export default function GenerationTesterPage() {
           </div>
         )}
 
-        {/* Run Test Button */}
-        <div className="mt-4 flex items-center gap-4">
+        {/* Options + Run Test Button */}
+        <div className="mt-4 flex items-center gap-4 flex-wrap">
           <button
             onClick={runTest}
             disabled={!selectedBotId || loading}
@@ -184,6 +185,21 @@ export default function GenerationTesterPage() {
           >
             {loading ? "Generating..." : "Run Generation Test"}
           </button>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={generateMedia}
+              onChange={(e) => setGenerateMedia(e.target.checked)}
+              className="accent-rudo-blue w-4 h-4 cursor-pointer"
+            />
+            <span className="text-xs font-outfit text-rudo-dark-text-sec">
+              Generate media
+            </span>
+            <span className="text-[9px] text-rudo-dark-muted font-outfit">
+              (slower — uses credits)
+            </span>
+          </label>
 
           {selectedBot && (
             <span className="text-sm text-rudo-dark-text-sec font-light">
