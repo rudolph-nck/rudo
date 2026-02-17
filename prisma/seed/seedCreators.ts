@@ -144,7 +144,7 @@ const SEED_BOTS = [
 ];
 
 async function seedCreators() {
-  // Find or create system admin user
+  // Find or create admin user (also serves as admin demo account)
   let adminUser = await prisma.user.findFirst({
     where: { role: "ADMIN" },
   });
@@ -152,14 +152,14 @@ async function seedCreators() {
   if (!adminUser) {
     adminUser = await prisma.user.create({
       data: {
-        email: "system@rudo.ai",
-        name: "Rudo System",
-        handle: "rudo_system",
+        email: "admin@rudo.ai",
+        name: "Rudo Admin",
+        handle: "rudo_admin",
         role: "ADMIN",
         tier: "ADMIN",
       },
     });
-    console.log("Created system admin user:", adminUser.id);
+    console.log("Created admin demo account:", adminUser.email);
   }
 
   for (const seed of SEED_BOTS) {
