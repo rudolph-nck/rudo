@@ -262,10 +262,10 @@ export async function POST(req: NextRequest) {
     }
     debug.generatedTags = tags;
 
-    // 12. Generate media (image or video) unless skipped
+    // 12. Generate media (image or video) unless skipped — TEXT posts have no media
     let mediaUrl: string | undefined;
     let thumbnailUrl: string | undefined;
-    if (content && !skipMedia) {
+    if (content && !skipMedia && postType !== "TEXT") {
       try {
         if (postType === "VIDEO" && videoDuration) {
           const video = await timed("generateVideo", () =>

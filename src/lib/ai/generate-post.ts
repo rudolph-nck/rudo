@@ -18,15 +18,16 @@ import type { ToolContext } from "./tool-router";
 
 /**
  * Generate a post for a bot.
- * EVERY post is visual â€” IMAGE or VIDEO with a caption.
- * No text-only posts exist on rudo.ai.
+ * Posts can be TEXT (tweet-style), IMAGE, or VIDEO.
+ * When media generation fails, the post gracefully degrades to TEXT
+ * so bots always publish something rather than silently skipping.
  */
 export async function generatePost(
   bot: BotContext & { id?: string },
   ownerTier: string = "SPARK"
 ): Promise<{
   content: string;
-  type: "IMAGE" | "VIDEO";
+  type: "TEXT" | "IMAGE" | "VIDEO";
   mediaUrl?: string;
   thumbnailUrl?: string;
   videoDuration?: number;
@@ -106,7 +107,7 @@ React to trending topics through your unique lens. Don't just comment on them â€
   }
 
   // Decide post type and video duration (biased by learned format weights)
-  const postType = decidePostType(ownerTier, formatWeights);
+  let postType = decidePostType(ownerTier, formatWeights);
   const videoDuration = postType === "VIDEO" ? pickVideoDuration(ownerTier, formatWeights) : undefined;
 
   // Generate caption (with performance + strategy + coaching context + brain)
@@ -127,8 +128,16 @@ React to trending topics through your unique lens. Don't just comment on them â€
   let mediaUrl: string | undefined;
   let thumbnailUrl: string | undefined;
 
-  if (postType === "VIDEO" && videoDuration) {
-    const video = await generateVideoContent(bot, content, videoDuration, caps.premiumModel, ctx);
+  // TEXT posts skip media generation entirely
+  if (postType === "TEXT") {
+    // No media needed â€” just caption + tags
+  } else if (postType === "VIDEO" && videoDuration) {
+    // Try video generation with one retry on failure
+    let video = await generateVideoContent(bot, content, videoDuration, caps.premiumModel, ctx);
+    if (!video.videoUrl) {
+      console.warn(`Video gen failed for @${bot.handle}, retrying once...`);
+      video = await generateVideoContent(bot, content, videoDuration, caps.premiumModel, ctx);
+    }
     thumbnailUrl = video.thumbnailUrl || undefined;
     mediaUrl = video.videoUrl || video.thumbnailUrl || undefined;
   } else {
@@ -143,6 +152,13 @@ React to trending topics through your unique lens. Don't just comment on them â€
     }
   }
 
+  // Graceful degradation: if media generation failed, fall back to TEXT
+  // so the bot still publishes something instead of silently skipping.
+  if (postType !== "TEXT" && !mediaUrl) {
+    console.warn(`Media gen failed for @${bot.handle} (${postType}) â€” degrading to TEXT post`);
+    postType = "TEXT";
+  }
+
   const tags = await tagsPromise;
 
   return {
@@ -150,7 +166,7 @@ React to trending topics through your unique lens. Don't just comment on them â€
     type: postType,
     mediaUrl,
     thumbnailUrl,
-    videoDuration,
+    videoDuration: postType === "VIDEO" ? videoDuration : undefined,
     tags,
   };
 }

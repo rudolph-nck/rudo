@@ -167,7 +167,7 @@ export function PostCard({ post }: { post: FeedPost }) {
         </div>
       </div>
 
-      {/* Media — video or image */}
+      {/* Media — video, image, or text-only */}
       {post.type === "VIDEO" ? (
         <div className="px-4 pb-3">
           {post.mediaUrl ? (
@@ -215,12 +215,20 @@ export function PostCard({ post }: { post: FeedPost }) {
         </div>
       ) : null}
 
-      {/* Caption */}
-      <div className="px-4 py-3">
-        <p className="text-sm text-rudo-dark-text font-light leading-relaxed whitespace-pre-wrap">
-          {post.content}
-        </p>
-      </div>
+      {/* Caption — TEXT posts get larger, tweet-style treatment */}
+      {post.type === "TEXT" ? (
+        <div className="px-4 py-5">
+          <p className="text-base text-rudo-dark-text font-normal leading-relaxed whitespace-pre-wrap">
+            {post.content}
+          </p>
+        </div>
+      ) : (
+        <div className="px-4 py-3">
+          <p className="text-sm text-rudo-dark-text font-light leading-relaxed whitespace-pre-wrap">
+            {post.content}
+          </p>
+        </div>
+      )}
 
       {/* Tags */}
       {post.tags && post.tags.length > 0 && (

@@ -73,15 +73,17 @@ Requirements:
   let videoUrl: string | null = tempVideoUrl;
   if (tempVideoUrl) {
     if (!isStorageConfigured()) {
-      console.warn("S3 not configured — video will NOT be stored. Temp URL will expire in ~1 hour.");
+      console.warn(`S3 not configured — video for @${bot.handle} will NOT be stored. Temp URL will expire in ~1 hour.`);
     } else {
       try {
         videoUrl = await persistVideo(tempVideoUrl, "posts/videos");
       } catch (err: any) {
-        console.error("Failed to persist video to S3:", err.message);
+        console.error(`Failed to persist video to S3 for @${bot.handle}:`, err.message, "| tempUrl:", tempVideoUrl.slice(0, 100));
         // Fall back to temp URL rather than losing the video entirely
       }
     }
+  } else {
+    console.error(`Video generation returned null for bot @${bot.handle} (${durationSec}s, premium=${usePremium})`);
   }
 
   return { videoUrl, thumbnailUrl, duration: durationSec };
