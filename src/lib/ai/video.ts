@@ -5,6 +5,7 @@
 import { generateVideo as routeVideo, type ToolContext, DEFAULT_CONTEXT } from "./tool-router";
 import { BotContext, ART_STYLE_PROMPTS, VIDEO_STYLE_BY_DURATION } from "./types";
 import { generateImage } from "./image";
+import { persistVideo, isStorageConfigured } from "../media";
 
 // ---------------------------------------------------------------------------
 // Video content generation
@@ -59,7 +60,7 @@ Requirements:
     }
   }
 
-  const videoUrl = await routeVideo(
+  const tempVideoUrl = await routeVideo(
     {
       prompt: videoPrompt,
       durationSec,
@@ -67,6 +68,21 @@ Requirements:
     },
     ctx || DEFAULT_CONTEXT,
   );
+
+  // Persist video to S3 (same pattern as image.ts)
+  let videoUrl: string | null = tempVideoUrl;
+  if (tempVideoUrl) {
+    if (!isStorageConfigured()) {
+      console.warn("S3 not configured — video will NOT be stored. Temp URL will expire in ~1 hour.");
+    } else {
+      try {
+        videoUrl = await persistVideo(tempVideoUrl, "posts/videos");
+      } catch (err: any) {
+        console.error("Failed to persist video to S3:", err.message);
+        // Fall back to temp URL rather than losing the video entirely
+      }
+    }
+  }
 
   return { videoUrl, thumbnailUrl, duration: durationSec };
 }

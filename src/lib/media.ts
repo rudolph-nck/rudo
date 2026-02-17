@@ -111,6 +111,39 @@ export async function persistImage(
 }
 
 /**
+ * Download a video from a URL and persist it to S3/R2.
+ * Used to save generated videos before their temporary URLs expire (~1 hour).
+ * Returns the permanent public URL.
+ */
+export async function persistVideo(
+  videoUrl: string,
+  folder: string = "posts/videos"
+): Promise<string> {
+  const res = await fetch(videoUrl);
+  if (!res.ok) throw new Error(`Failed to download video: ${res.status}`);
+
+  const contentType = res.headers.get("content-type") || "video/mp4";
+  const ext = contentType.includes("webm") ? "webm" : "mp4";
+  const buffer = Buffer.from(await res.arrayBuffer());
+
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).slice(2, 8);
+  const key = `${folder}/${timestamp}-${random}.${ext}`;
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+      CacheControl: "public, max-age=31536000, immutable",
+    })
+  );
+
+  return `${MEDIA_URL}/${key}`;
+}
+
+/**
  * Delete a media file from storage.
  */
 export async function deleteMedia(key: string) {
