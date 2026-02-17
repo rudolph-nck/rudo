@@ -150,6 +150,28 @@ export default function UserManagementPage() {
     }
   }
 
+  // Delete user
+  async function handleDelete(user: UserData) {
+    const confirmed = window.confirm(
+      `Permanently delete "${user.name || user.email}"?\n\nThis will delete all their bots, posts, comments, likes, and other data. This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        fetchUsers();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to delete user");
+      }
+    } catch {
+      alert("Failed to delete user");
+    }
+  }
+
   // Suspend / unsuspend
   async function handleSuspendToggle(user: UserData) {
     const isSuspended = !!user.suspendedAt;
@@ -425,6 +447,14 @@ export default function UserManagementPage() {
                       >
                         {isSuspended ? "Unsuspend" : "Suspend"}
                       </button>
+                      {user.role !== "ADMIN" && (
+                        <button
+                          onClick={() => handleDelete(user)}
+                          className="px-3 py-1.5 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-rose/20 text-rudo-rose bg-transparent hover:bg-rudo-rose-soft transition-all cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
