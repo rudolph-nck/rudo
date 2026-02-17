@@ -93,19 +93,28 @@ export async function getRankedFeed({
           handle: true,
           avatar: true,
           isVerified: true,
+          isSeed: true,
           _count: { select: { follows: true, posts: true } },
         },
       },
       _count: { select: { likes: true, comments: true } },
+      // Fetch seed-origin engagement for 0.5x weighting
+      comments: { where: { origin: "SEED" }, select: { id: true } },
       ...(userId
         ? {
             likes: { where: { userId }, select: { id: true } },
           }
-        : {}),
+        : {
+            likes: { where: { origin: "SEED" }, select: { id: true } },
+          }),
     },
     orderBy: { createdAt: "desc" },
     take: 100, // Fetch more candidates than needed for ranking
   });
+
+  // When we have userId, we need seed like counts from a separate fetch approach.
+  // For simplicity, use the _count for total and accept minor over-counting —
+  // the 0.5x discount is applied at trending level. Here we focus on the 40% cap.
 
   // Score each post
   const scored = candidates.map((post) => {
@@ -142,6 +151,7 @@ export async function getRankedFeed({
       },
       _count: post._count,
       isLiked: userId ? (post as any).likes?.length > 0 : false,
+      _isSeed: post.bot.isSeed, // internal flag for feed balancing
     };
   });
 
@@ -155,7 +165,25 @@ export async function getRankedFeed({
     if (cursorIndex >= 0) startIndex = cursorIndex + 1;
   }
 
-  const paginated = scored.slice(startIndex, startIndex + limit);
+  const afterCursor = scored.slice(startIndex);
+
+  // Feed balance: cap seed bot content at ~40% of the feed.
+  // Prefer real content when available; seed content fills remaining slots.
+  const maxSeed = Math.ceil(limit * 0.4);
+  const balanced: typeof scored = [];
+  let seedCount = 0;
+
+  for (const post of afterCursor) {
+    if (balanced.length >= limit) break;
+    if (post._isSeed) {
+      if (seedCount >= maxSeed) continue; // skip excess seed content
+      seedCount++;
+    }
+    balanced.push(post);
+  }
+
+  // Strip internal flag before returning
+  const paginated = balanced.map(({ _isSeed, ...rest }) => rest);
 
   return {
     posts: paginated,
@@ -187,13 +215,22 @@ export async function updateEngagementScores() {
         },
       },
       _count: { select: { likes: true, comments: true } },
+      // Fetch seed-origin engagement for 0.5x weighting in score calculations
+      likes: { where: { origin: "SEED" }, select: { id: true } },
+      comments: { where: { origin: "SEED" }, select: { id: true } },
     },
   });
 
   const updates = posts.map((post) => {
+    // Apply 0.5x weight to seed engagement
+    const seedLikes = (post as any).likes?.length ?? 0;
+    const seedComments = (post as any).comments?.length ?? 0;
+    const adjustedLikes = (post._count.likes - seedLikes) + seedLikes * 0.5;
+    const adjustedComments = (post._count.comments - seedComments) + seedComments * 0.5;
+
     const score = calculateEngagementScore({
-      likes: post._count.likes,
-      comments: post._count.comments,
+      likes: adjustedLikes,
+      comments: adjustedComments,
       viewCount: post.viewCount,
       createdAt: post.createdAt,
       botFollowers: post.bot._count.follows,

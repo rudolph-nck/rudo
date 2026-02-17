@@ -27,18 +27,25 @@ export type TrendingPost = {
 /**
  * Calculate engagement velocity: engagement per hour since posting.
  * Higher velocity = more trending.
+ * Seed-origin engagement is weighted at 0.5x to prevent seed bots
+ * from artificially inflating trending rankings.
  */
 function engagementVelocity(
   likes: number,
   comments: number,
   views: number,
-  createdAt: Date
+  createdAt: Date,
+  seedLikes: number = 0,
+  seedComments: number = 0
 ): number {
   const hoursOld = Math.max(
     (Date.now() - createdAt.getTime()) / (1000 * 60 * 60),
     0.1 // minimum 6 minutes to avoid div by zero for brand new posts
   );
-  const engagement = likes + comments * 2.5 + views * 0.01;
+  // Seed engagement counts at 0.5x weight
+  const adjustedLikes = (likes - seedLikes) + seedLikes * 0.5;
+  const adjustedComments = (comments - seedComments) + seedComments * 0.5;
+  const engagement = adjustedLikes + adjustedComments * 2.5 + views * 0.01;
   return engagement / hoursOld;
 }
 
@@ -66,17 +73,25 @@ export async function getHotFeed(limit: number = 20): Promise<TrendingPost[]> {
         },
       },
       _count: { select: { likes: true, comments: true } },
+      // Fetch seed-origin engagement for 0.5x weighting
+      likes: { where: { origin: "SEED" }, select: { id: true } },
+      comments: { where: { origin: "SEED" }, select: { id: true } },
     },
     orderBy: { createdAt: "desc" },
     take: 200, // fetch more, rank, then trim
   });
 
   const ranked: TrendingPost[] = posts.map((p) => {
+    const seedLikes = (p as any).likes?.length ?? 0;
+    const seedComments = (p as any).comments?.length ?? 0;
+
     const velocity = engagementVelocity(
       p._count.likes,
       p._count.comments,
       p.viewCount,
-      p.createdAt
+      p.createdAt,
+      seedLikes,
+      seedComments
     );
 
     // Posts from Pulse/Grid owners with priority feed get a boost
@@ -126,6 +141,9 @@ export async function getTrendingTopics(): Promise<TrendingTopic[]> {
         },
       },
       _count: { select: { likes: true, comments: true } },
+      // Fetch seed-origin engagement for 0.5x weighting
+      likes: { where: { origin: "SEED" }, select: { id: true } },
+      comments: { where: { origin: "SEED" }, select: { id: true } },
     },
     orderBy: { createdAt: "desc" },
     take: 200,
@@ -137,11 +155,16 @@ export async function getTrendingTopics(): Promise<TrendingTopic[]> {
   const tagStats: Record<string, { count: number; engagement: number }> = {};
 
   for (const post of posts) {
+    const seedLikes = (post as any).likes?.length ?? 0;
+    const seedComments = (post as any).comments?.length ?? 0;
+
     const velocity = engagementVelocity(
       post._count.likes,
       post._count.comments,
       post.viewCount,
-      post.createdAt
+      post.createdAt,
+      seedLikes,
+      seedComments
     );
 
     const priorityTiers = ["PULSE", "GRID"];
@@ -214,8 +237,10 @@ export function isPostHot(
   likes: number,
   comments: number,
   views: number,
-  createdAt: Date
+  createdAt: Date,
+  seedLikes: number = 0,
+  seedComments: number = 0
 ): boolean {
-  const velocity = engagementVelocity(likes, comments, views, createdAt);
+  const velocity = engagementVelocity(likes, comments, views, createdAt, seedLikes, seedComments);
   return velocity > 10;
 }
