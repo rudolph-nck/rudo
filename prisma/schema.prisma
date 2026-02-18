@@ -657,3 +657,165 @@ model Job {
   @@index([type])
   @@map("jobs")
 }
+
+// ---------------------------------------------------------------------------
+// Admin API Credit Tracker — monitor external API connections, balances,
+// spending, and alerts across all generation providers (MiniMax, Kling, etc.)
+// ---------------------------------------------------------------------------
+
+enum ProviderPurpose {
+  VIDEO_GENERATION
+  IMAGE_GENERATION
+  AUDIO_GENERATION
+  TEXT_GENERATION
+  MULTI_PURPOSE
+}
+
+enum ConnectionStatus {
+  CONNECTED
+  DISCONNECTED
+  ERROR
+  LOW_BALANCE
+  PENDING_TEST
+}
+
+enum UsageLogStatus {
+  SUCCESS
+  FAILED
+  RATE_LIMITED
+  INSUFFICIENT_CREDITS
+}
+
+enum BalanceChangeReason {
+  API_CALL_USAGE
+  MANUAL_TOPUP
+  AUTO_TOPUP
+  REFUND
+  BALANCE_SYNC
+}
+
+enum AlertType {
+  LOW_BALANCE
+  BUDGET_EXCEEDED
+  API_ERROR
+  RATE_LIMITED
+  DISCONNECTED
+}
+
+enum AlertSeverity {
+  CRITICAL
+  WARNING
+  INFO
+}
+
+model ApiProvider {
+  id                 Int              @id @default(autoincrement())
+  providerName       String           @unique @db.VarChar(50)
+  displayName        String           @db.VarChar(100)
+  apiKey             String           @db.VarChar(500)
+  apiSecret          String?          @db.VarChar(500)
+  baseUrl            String?          @db.VarChar(255)
+  currentBalance     Decimal          @default(0) @db.Decimal(12, 2)
+  balanceCurrency    String           @default("USD") @db.VarChar(10)
+  monthlyBudget      Decimal?         @db.Decimal(12, 2)
+  alertThreshold     Decimal?         @db.Decimal(12, 2)
+  purpose            ProviderPurpose  @default(MULTI_PURPOSE)
+  capabilities       Json?
+  usedForEffects     Json?
+  priorityOrder      Int              @default(1)
+  fallbackProviderId Int?
+  isActive           Boolean          @default(true)
+  connectionStatus   ConnectionStatus @default(PENDING_TEST)
+  lastBalanceCheck   DateTime?
+  lastSuccessfulCall DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  usageLogs        ApiUsageLog[]
+  balanceHistory   ApiBalanceHistory[]
+  monthlySummaries MonthlySpendingSummary[]
+  alerts           ApiAlert[]
+  fallbackProvider ApiProvider?  @relation("ProviderFallback", fields: [fallbackProviderId], references: [id])
+  fallbackFor      ApiProvider[] @relation("ProviderFallback")
+
+  @@map("api_providers")
+}
+
+model ApiUsageLog {
+  id             Int            @id @default(autoincrement())
+  botId          String?        @db.VarChar(50)
+  providerId     Int
+  effectId       String?        @db.VarChar(50)
+  endpoint       String?        @db.VarChar(255)
+  creditsUsed    Decimal        @default(0) @db.Decimal(10, 4)
+  costUsd        Decimal        @default(0) @db.Decimal(10, 4)
+  requestParams  Json?
+  responseStatus Int?
+  responseTimeMs Int?
+  errorMessage   String?        @db.VarChar(500)
+  postId         String?        @db.VarChar(50)
+  status         UsageLogStatus @default(SUCCESS)
+  createdAt      DateTime       @default(now())
+
+  provider ApiProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId, createdAt])
+  @@index([botId, createdAt])
+  @@index([effectId])
+  @@index([status])
+  @@map("api_usage_logs")
+}
+
+model ApiBalanceHistory {
+  id              Int                 @id @default(autoincrement())
+  providerId      Int
+  balanceSnapshot Decimal             @db.Decimal(12, 2)
+  changeAmount    Decimal?            @db.Decimal(10, 4)
+  changeReason    BalanceChangeReason @default(BALANCE_SYNC)
+  createdAt       DateTime            @default(now())
+
+  provider ApiProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId, createdAt])
+  @@map("api_balance_history")
+}
+
+model MonthlySpendingSummary {
+  id              Int      @id @default(autoincrement())
+  year            Int
+  month           Int
+  providerId      Int
+  totalCreditsUsed Decimal @default(0) @db.Decimal(12, 2)
+  totalCostUsd    Decimal  @default(0) @db.Decimal(12, 2)
+  totalApiCalls   Int      @default(0)
+  successfulCalls Int      @default(0)
+  failedCalls     Int      @default(0)
+  avgCostPerCall  Decimal? @db.Decimal(10, 4)
+  avgResponseTimeMs Int?
+  topEffect       String?  @db.VarChar(50)
+  topBot          String?  @db.VarChar(50)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  provider ApiProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([year, month, providerId])
+  @@map("monthly_spending_summary")
+}
+
+model ApiAlert {
+  id             Int           @id @default(autoincrement())
+  providerId     Int
+  alertType      AlertType
+  message        String?       @db.Text
+  severity       AlertSeverity @default(WARNING)
+  isAcknowledged Boolean       @default(false)
+  acknowledgedAt DateTime?
+  triggeredAt    DateTime      @default(now())
+
+  provider ApiProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([isAcknowledged])
+  @@map("api_alerts")
+}
