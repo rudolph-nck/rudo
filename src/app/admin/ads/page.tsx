@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -23,6 +22,8 @@ export default function AdManagerPage() {
   const [ads, setAds] = useState<AdData[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     content: "",
@@ -53,6 +54,7 @@ export default function AdManagerPage() {
 
   async function createAd(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
     try {
       const res = await fetch("/api/admin/ads", {
         method: "POST",
@@ -67,43 +69,71 @@ export default function AdManagerPage() {
         setShowForm(false);
         setForm({ title: "", content: "", advertiser: "", ctaText: "", ctaUrl: "", budget: "100", cpm: "5" });
         loadAds();
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to create ad");
       }
     } catch {
-      //
+      setError("Request failed");
     }
   }
 
   async function toggleAd(id: string, isActive: boolean) {
-    await fetch(`/api/admin/ads/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isActive: !isActive }),
-    });
-    loadAds();
+    setActionLoading(id);
+    try {
+      await fetch(`/api/admin/ads/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !isActive }),
+      });
+      await loadAds();
+    } finally {
+      setActionLoading(null);
+    }
   }
+
+  const activeCount = ads.filter((a) => a.isActive).length;
+  const totalImpressions = ads.reduce((s, a) => s + a.impressions, 0);
+  const totalClicks = ads.reduce((s, a) => s + a.clicks, 0);
+  const totalRevenue = ads.reduce((s, a) => s + a.spent, 0);
 
   return (
     <div>
+      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="font-instrument text-3xl tracking-[-1px] mb-1">
+          <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
             Ad Manager
           </h1>
-          <p className="text-sm text-rudo-text-sec font-light">
+          <p className="text-sm text-rudo-dark-text-sec font-light">
             Manage in-feed advertisements
           </p>
         </div>
-        <Button variant="warm" onClick={() => setShowForm(!showForm)}>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-rose/20 text-rudo-rose bg-transparent hover:bg-rudo-rose-soft transition-all cursor-pointer"
+        >
           {showForm ? "Cancel" : "Create Ad"}
-        </Button>
+        </button>
       </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="bg-rudo-rose/10 border border-rudo-rose/20 text-rudo-rose text-sm px-4 py-3 mb-6">
+          {error}
+          <button onClick={() => setError(null)} className="ml-3 underline text-xs cursor-pointer bg-transparent border-none text-rudo-rose">dismiss</button>
+        </div>
+      )}
 
       {/* Create form */}
       {showForm && (
         <form
           onSubmit={createAd}
-          className="bg-rudo-surface border border-rudo-border p-6 mb-8 space-y-4"
+          className="bg-rudo-card-bg border border-rudo-card-border p-6 mb-8 space-y-4"
         >
+          <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">
+            Create New Ad
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <Input
               label="Title"
@@ -158,86 +188,102 @@ export default function AdManagerPage() {
               required
             />
           </div>
-          <Button type="submit" variant="warm">
-            Launch Ad
-          </Button>
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-rose/20 text-rudo-rose bg-transparent hover:bg-rudo-rose-soft transition-all cursor-pointer"
+            >
+              Launch Ad
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-card-border text-rudo-dark-text bg-transparent hover:border-rudo-card-border-hover transition-all cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       )}
 
       {/* Stats summary */}
-      <div className="grid grid-cols-4 gap-[2px] mb-8">
+      <div className="grid grid-cols-4 gap-[2px] mb-6">
         {[
-          {
-            label: "Active Ads",
-            value: ads.filter((a) => a.isActive).length,
-          },
-          {
-            label: "Total Impressions",
-            value: ads.reduce((s, a) => s + a.impressions, 0).toLocaleString(),
-          },
-          {
-            label: "Total Clicks",
-            value: ads.reduce((s, a) => s + a.clicks, 0).toLocaleString(),
-          },
-          {
-            label: "Total Revenue",
-            value: `$${ads.reduce((s, a) => s + a.spent, 0).toFixed(2)}`,
-          },
+          { label: "Active Ads", value: activeCount },
+          { label: "Total Impressions", value: totalImpressions.toLocaleString() },
+          { label: "Total Clicks", value: totalClicks.toLocaleString() },
+          { label: "Total Revenue", value: `$${totalRevenue.toFixed(2)}` },
         ].map((stat) => (
           <div
             key={stat.label}
-            className="bg-rudo-surface border border-rudo-border p-4"
+            className="bg-rudo-card-bg border border-rudo-card-border p-4"
           >
-            <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-muted mb-1">
+            <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-1">
               {stat.label}
             </div>
-            <div className="font-instrument text-2xl">{stat.value}</div>
+            <div className="font-instrument text-2xl text-rudo-dark-text">{stat.value}</div>
           </div>
         ))}
       </div>
 
+      {/* Results count */}
+      {!loading && (
+        <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-4">
+          {ads.length} ad{ads.length !== 1 ? "s" : ""}
+        </div>
+      )}
+
       {/* Ads list */}
       {loading ? (
-        <div className="py-12 text-center">
+        <div className="py-20 text-center">
           <div className="status-dot mx-auto mb-4" />
+          <p className="text-rudo-dark-text-sec text-sm">Loading ads...</p>
         </div>
       ) : ads.length === 0 ? (
-        <div className="bg-rudo-surface border border-rudo-border p-12 text-center">
-          <p className="text-rudo-text-sec text-sm font-light">No ads yet</p>
+        <div className="bg-rudo-card-bg border border-rudo-card-border p-12 text-center">
+          <h3 className="font-instrument text-2xl mb-2 text-rudo-dark-text">No ads yet</h3>
+          <p className="text-sm text-rudo-dark-text-sec font-light">
+            Create your first ad to get started
+          </p>
         </div>
       ) : (
         <div className="space-y-3">
           {ads.map((ad) => (
             <div
               key={ad.id}
-              className="bg-rudo-surface border border-rudo-border p-5 flex items-start gap-4"
+              className={`flex items-start gap-4 p-5 bg-rudo-card-bg border hover:border-rudo-card-border-hover transition-all ${
+                !ad.isActive ? "border-rudo-rose/20 opacity-60" : "border-rudo-card-border"
+              }`}
             >
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="font-orbitron font-bold text-xs tracking-[1px]">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-1">
+                  <span className="font-orbitron font-bold text-xs tracking-[1px] text-rudo-dark-text">
                     {ad.title}
                   </span>
                   <span
                     className={`text-[9px] font-orbitron tracking-wider px-2 py-0.5 border ${
                       ad.isActive
                         ? "text-green-400 border-green-400/20 bg-green-400/5"
-                        : "text-rudo-muted border-rudo-border"
+                        : "text-rudo-dark-muted border-rudo-card-border"
                     }`}
                   >
                     {ad.isActive ? "LIVE" : "PAUSED"}
                   </span>
                 </div>
-                <p className="text-xs text-rudo-text-sec font-light mb-2 line-clamp-2">
+                <p className="text-xs text-rudo-dark-text-sec font-light mb-2 line-clamp-2">
                   {ad.content}
                 </p>
-                <div className="flex gap-4 text-[10px] text-rudo-muted font-orbitron tracking-wider">
-                  <span>{ad.impressions.toLocaleString()} impressions</span>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs text-rudo-blue">{ad.advertiser}</span>
+                </div>
+                <div className="flex gap-6 text-[10px] text-rudo-dark-muted font-orbitron tracking-wider">
+                  <span>{ad.impressions.toLocaleString()} imp</span>
                   <span>{ad.clicks} clicks</span>
                   <span>
                     CTR{" "}
                     {ad.impressions > 0
                       ? ((ad.clicks / ad.impressions) * 100).toFixed(2)
-                      : 0}
+                      : "0.00"}
                     %
                   </span>
                   <span>
@@ -247,13 +293,14 @@ export default function AdManagerPage() {
               </div>
               <button
                 onClick={() => toggleAd(ad.id, ad.isActive)}
-                className={`px-3 py-1.5 text-[10px] font-orbitron tracking-wider border cursor-pointer transition-all ${
+                disabled={actionLoading === ad.id}
+                className={`px-3 py-1.5 text-[10px] font-orbitron tracking-[2px] uppercase border cursor-pointer transition-all shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
                   ad.isActive
                     ? "text-rudo-rose border-rudo-rose/20 bg-transparent hover:bg-rudo-rose-soft"
                     : "text-green-400 border-green-400/20 bg-transparent hover:bg-green-400/5"
                 }`}
               >
-                {ad.isActive ? "Pause" : "Resume"}
+                {actionLoading === ad.id ? "..." : ad.isActive ? "Pause" : "Resume"}
               </button>
             </div>
           ))}
