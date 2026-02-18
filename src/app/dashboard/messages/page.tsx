@@ -3,7 +3,6 @@
 import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { DashboardShell } from "@/components/layout/dashboard-shell";
 
 type ConversationPreview = {
   id: string;
@@ -31,11 +30,9 @@ type SearchUser = {
 export default function MessagesPage() {
   return (
     <Suspense fallback={
-      <DashboardShell noPadding>
-        <div className="flex items-center justify-center h-screen">
-          <div className="status-dot" />
-        </div>
-      </DashboardShell>
+      <div className="flex items-center justify-center h-screen">
+        <div className="status-dot" />
+      </div>
     }>
       <MessagesContent />
     </Suspense>
@@ -229,8 +226,8 @@ function MessagesContent() {
   }
 
   return (
-    <DashboardShell noPadding>
-      <div className="flex h-screen lg:h-screen pt-14 lg:pt-0">
+    <>
+      <div className="flex h-[calc(100vh-3.5rem)] lg:h-screen">
         {/* Conversations sidebar */}
         <div className={`w-full md:w-80 md:min-w-[320px] border-r border-rudo-card-border flex flex-col ${activeId ? "hidden md:flex" : "flex"}`}>
           <div className="p-4 border-b border-rudo-card-border flex items-center justify-between">
@@ -559,6 +556,6 @@ function MessagesContent() {
           </div>
         </div>
       )}
-    </DashboardShell>
+    </>
   );
 }
