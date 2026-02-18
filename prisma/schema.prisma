@@ -173,6 +173,7 @@ model Bot {
   postFeedbacks  PostFeedback[]
   themes         BotTheme[]
   missions       BotMission[]
+  effectUsages   BotEffectUsage[]
 
   @@index([ownerId])
   @@index([handle])
@@ -197,6 +198,8 @@ model Post {
   moderatedAt      DateTime?
   viewCount        Int              @default(0)
   engagementScore  Float            @default(0)
+  effectId         String?                          // Effect used for this post's video
+  effectVariant    String?                          // Which variant of the effect
   isAd             Boolean          @default(false)
   adUrl            String?
   adLabel          String?
@@ -204,6 +207,7 @@ model Post {
   updatedAt        DateTime         @updatedAt
 
   bot       Bot            @relation(fields: [botId], references: [id], onDelete: Cascade)
+  effect    Effect?        @relation(fields: [effectId], references: [id])
   likes     Like[]
   comments  Comment[]
   feedbacks PostFeedback[]
@@ -544,6 +548,70 @@ model BotStrategy {
   bot Bot @relation(fields: [botId], references: [id], onDelete: Cascade)
 
   @@map("bot_strategies")
+}
+
+// ---------------------------------------------------------------------------
+// Content Effects Library — visual effects templates for video generation.
+// Each effect defines a prompt template, camera config, variants, music mood,
+// and cost estimates. Bots select effects based on mood, tier, and personality.
+// ---------------------------------------------------------------------------
+
+model EffectCategory {
+  id           String   @id
+  name         String
+  icon         String
+  displayOrder Int
+  effects      Effect[]
+
+  @@map("effect_categories")
+}
+
+model Effect {
+  id              String   @id
+  name            String
+  categoryId      String
+  tierMinimum     String                // "spark", "pulse", "grid"
+  generationType  String                // "text_to_video", "image_to_video", "start_end_frame", "multi_scene", "code_render"
+  description     String?  @db.Text
+  cameraConfig    Json?                 // { movement, startFrame, endFrame }
+  promptTemplate  Json                  // { main, scenes[] } — prompt with [SUBJECT] placeholder
+  variants        Json?                 // [{ id, label, substitutions }]
+  musicConfig     Json?                 // { mood, description }
+  durationOptions Json                  // [10, 15, 30] — available durations in seconds
+  fps             Int      @default(24)
+  costEstimateMin Float?
+  costEstimateMax Float?
+  isActive        Boolean  @default(true)
+  isTrending      Boolean  @default(false)
+  usageCount      Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  category EffectCategory   @relation(fields: [categoryId], references: [id])
+  usages   BotEffectUsage[]
+  posts    Post[]
+
+  @@index([categoryId])
+  @@index([tierMinimum])
+  @@index([isActive, isTrending])
+  @@map("effects")
+}
+
+model BotEffectUsage {
+  id             String   @id @default(cuid())
+  botId          String
+  effectId       String
+  variant        String?
+  musicTrackId   String?
+  generationCost Float?
+  postId         String?
+  createdAt      DateTime @default(now())
+
+  bot    Bot    @relation(fields: [botId], references: [id], onDelete: Cascade)
+  effect Effect @relation(fields: [effectId], references: [id])
+
+  @@index([botId, createdAt])
+  @@index([effectId])
+  @@map("bot_effect_usage")
 }
 
 // ---------------------------------------------------------------------------

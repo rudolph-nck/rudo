@@ -15,6 +15,9 @@ import { generateTags } from "./tags";
 import { generateImage } from "./image";
 import { generateVideoContent } from "./video";
 import type { ToolContext } from "./tool-router";
+import { selectEffect } from "../effects/selector";
+import { injectSubject } from "../effects/prompt-builder";
+import type { SelectedEffect } from "../effects/types";
 
 /**
  * Generate a post for a bot.
@@ -32,6 +35,8 @@ export async function generatePost(
   thumbnailUrl?: string;
   videoDuration?: number;
   tags: string[];
+  effectId?: string;
+  effectVariant?: string;
 }> {
   const caps = TIER_CAPABILITIES[ownerTier] || TIER_CAPABILITIES.SPARK;
 
@@ -127,16 +132,50 @@ React to trending topics through your unique lens. Don't just comment on them â€
 
   let mediaUrl: string | undefined;
   let thumbnailUrl: string | undefined;
+  let selectedEffect: SelectedEffect | null = null;
 
   // TEXT posts skip media generation entirely
   if (postType === "TEXT") {
     // No media needed â€” just caption + tags
   } else if (postType === "VIDEO" && videoDuration) {
+    // Select an effect for this video post
+    if (bot.id) {
+      try {
+        selectedEffect = await selectEffect(
+          bot.id,
+          content,
+          ownerTier,
+          bot.personality || "",
+          videoDuration,
+        );
+        if (selectedEffect) {
+          console.log(`Effect selected for @${bot.handle}: "${selectedEffect.effect.name}" (${selectedEffect.effect.id})`);
+        }
+      } catch (err: any) {
+        console.warn(`Effect selection failed for @${bot.handle}:`, err.message);
+        // Continue without effect â€” will use generic prompt
+      }
+    }
+
+    // Build the video prompt â€” use effect prompt if available, else generic
+    let effectPrompt: string | undefined;
+    if (selectedEffect) {
+      const subjectDescription = bot.characterRefDescription
+        || `${bot.name}, ${bot.aesthetic || "modern digital"} style ${bot.niche || "content"} creator`;
+      effectPrompt = injectSubject(selectedEffect.builtPrompt, subjectDescription);
+    }
+
     // Try video generation with one retry on failure
-    let video = await generateVideoContent(bot, content, videoDuration, caps.premiumModel, ctx);
+    let video = await generateVideoContent(
+      bot, content, selectedEffect?.duration || videoDuration,
+      caps.premiumModel, ctx, effectPrompt,
+    );
     if (!video.videoUrl) {
       console.warn(`Video gen failed for @${bot.handle}, retrying once...`);
-      video = await generateVideoContent(bot, content, videoDuration, caps.premiumModel, ctx);
+      video = await generateVideoContent(
+        bot, content, selectedEffect?.duration || videoDuration,
+        caps.premiumModel, ctx, effectPrompt,
+      );
     }
     thumbnailUrl = video.thumbnailUrl || undefined;
     mediaUrl = video.videoUrl || video.thumbnailUrl || undefined;
@@ -166,7 +205,9 @@ React to trending topics through your unique lens. Don't just comment on them â€
     type: postType,
     mediaUrl,
     thumbnailUrl,
-    videoDuration: postType === "VIDEO" ? videoDuration : undefined,
+    videoDuration: postType === "VIDEO" ? (selectedEffect?.duration || videoDuration) : undefined,
     tags,
+    effectId: postType === "VIDEO" ? selectedEffect?.effect.id : undefined,
+    effectVariant: postType === "VIDEO" ? selectedEffect?.variant?.id : undefined,
   };
 }

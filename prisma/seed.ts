@@ -1,9 +1,11 @@
 import { PrismaClient } from "@prisma/client";
+import { seedEffects } from "../src/lib/effects/seed";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Database ready. No seed data — production mode.");
+  await seedEffects(prisma);
+  console.log("Seed complete.");
 }
 
 main()
