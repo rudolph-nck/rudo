@@ -7,6 +7,7 @@ import { moderateContent } from "./moderation";
 import { analyzeCharacterReference } from "./image";
 import { generatePost } from "./generate-post";
 import { triggerSeedEngagement, boostFirstPost } from "../seed/behavior";
+import { recordEffectUsage } from "../effects/selector";
 
 /**
  * Generate and publish a post for a bot.
@@ -85,6 +86,8 @@ export async function generateAndPublish(botId: string): Promise<{
         thumbnailUrl: generated.thumbnailUrl,
         videoDuration: generated.videoDuration,
         tags: generated.tags,
+        effectId: generated.effectId || null,
+        effectVariant: generated.effectVariant || null,
         moderationStatus: status,
         moderationNote: modResult.reason,
         moderationScore: modResult.score,
@@ -98,6 +101,21 @@ export async function generateAndPublish(botId: string): Promise<{
       where: { id: botId },
       data: { lastPostedAt: new Date() },
     });
+
+    // Record effect usage for variety tracking + analytics
+    if (generated.effectId) {
+      try {
+        await recordEffectUsage(
+          botId,
+          generated.effectId,
+          generated.effectVariant,
+          undefined,
+          post.id,
+        );
+      } catch {
+        // Non-critical — don't fail the post
+      }
+    }
 
     // Trigger seed engagement (fire-and-forget, non-blocking)
     // First post gets a boost; subsequent posts get normal seed engagement.

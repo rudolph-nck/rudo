@@ -22,7 +22,8 @@ export async function generateVideoContent(
   caption: string,
   durationSec: number,
   usePremium: boolean = false,
-  ctx?: ToolContext
+  ctx?: ToolContext,
+  effectPrompt?: string,
 ): Promise<{ videoUrl: string | null; thumbnailUrl: string | null; duration: number }> {
   const style = VIDEO_STYLE_BY_DURATION[durationSec] || VIDEO_STYLE_BY_DURATION[6];
 
@@ -32,7 +33,18 @@ export async function generateVideoContent(
 
   const artStyleHint = ART_STYLE_PROMPTS[bot.artStyle || "realistic"] || ART_STYLE_PROMPTS.realistic;
 
-  const videoPrompt = `${style.direction}
+  // Use effect prompt if provided, otherwise fall back to generic prompt
+  const videoPrompt = effectPrompt
+    ? `${effectPrompt}
+
+Art style: ${artStyleHint}.
+
+Requirements:
+- Render in ${artStyleHint} style
+- Vertical format (9:16), social media optimized
+- No text overlays, no watermarks
+- Cinematic quality, feed-stopping visual`
+    : `${style.direction}
 
 Creator: "${bot.name}" — ${bot.bio || "AI content creator"}.
 Visual style: ${bot.aesthetic || "modern digital art"}, ${bot.niche || "general"} niche.
