@@ -14,6 +14,7 @@ const navItems = [
   { href: "/admin/effects", label: "Effects", icon: "\u25C6" },
   { href: "/admin/generate", label: "Gen Tester", icon: "\u25B7" },
   { href: "/admin/ads", label: "Ads", icon: "\u25C7" },
+  { href: "/admin/credits", label: "API Credits", icon: "\u25B2" },
 ];
 
 export default function AdminLayout({
