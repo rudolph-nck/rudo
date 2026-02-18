@@ -178,6 +178,23 @@ export default function CreditsPage() {
     loadChartData(chartTab);
   }, [chartTab, loadChartData]);
 
+  async function handleSeedProviders() {
+    try {
+      const res = await fetch("/api/admin/credits/seed", { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        const parts: string[] = [];
+        if (data.imported.length) parts.push(`Imported: ${data.imported.join(", ")}`);
+        if (data.skipped.length) parts.push(`Already existed: ${data.skipped.join(", ")}`);
+        if (data.missing.length) parts.push(`Missing env vars: ${data.missing.join(", ")}`);
+        alert(parts.join("\n\n") || "No providers to import");
+        await loadProviders();
+      }
+    } catch {
+      alert("Seed failed");
+    }
+  }
+
   async function handleTestOne(providerId: number) {
     setTestingId(providerId);
     try {
@@ -259,6 +276,14 @@ export default function CreditsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {providers.length === 0 && (
+            <button
+              onClick={handleSeedProviders}
+              className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-yellow-400/20 text-yellow-500 bg-transparent hover:bg-yellow-400/5 transition-all cursor-pointer"
+            >
+              Import from Env
+            </button>
+          )}
           <button
             onClick={handleTestAll}
             className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-blue/20 text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all cursor-pointer"
