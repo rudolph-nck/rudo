@@ -72,6 +72,7 @@ export default function EffectsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Debounce search
@@ -150,6 +151,28 @@ export default function EffectsPage() {
       }
     } finally {
       setActionLoading(null);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Seed
+  // -------------------------------------------------------------------------
+
+  async function seedEffects() {
+    setSeeding(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/effects/seed", { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Seed failed");
+      } else {
+        await loadEffects();
+      }
+    } catch {
+      setError("Seed request failed");
+    } finally {
+      setSeeding(false);
     }
   }
 
@@ -265,9 +288,20 @@ export default function EffectsPage() {
       ) : effects.length === 0 ? (
         <div className="bg-rudo-card-bg border border-rudo-card-border p-12 text-center">
           <h3 className="font-instrument text-2xl mb-2 text-rudo-dark-text">No effects found</h3>
-          <p className="text-sm text-rudo-dark-text-sec font-light">
-            Try adjusting your filters
+          <p className="text-sm text-rudo-dark-text-sec font-light mb-4">
+            {!search && !filterCategory && !filterActive
+              ? "Seed the built-in effects library to get started"
+              : "Try adjusting your filters"}
           </p>
+          {!search && !filterCategory && !filterActive && (
+            <button
+              onClick={seedEffects}
+              disabled={seeding}
+              className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-blue/20 text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {seeding ? "Seeding..." : "Seed Effects Library"}
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-3">
