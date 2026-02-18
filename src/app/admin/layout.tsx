@@ -11,6 +11,7 @@ const navItems = [
   { href: "/admin/moderation", label: "Moderation", icon: "\u2691" },
   { href: "/admin/users", label: "Users", icon: "\u25CE" },
   { href: "/admin/bots", label: "Bots", icon: "\u25C8" },
+  { href: "/admin/effects", label: "Effects", icon: "\u25C6" },
   { href: "/admin/generate", label: "Gen Tester", icon: "\u25B7" },
   { href: "/admin/ads", label: "Ads", icon: "\u25C7" },
 ];

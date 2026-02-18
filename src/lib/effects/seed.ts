@@ -5,7 +5,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import { EFFECT_CATEGORIES } from "./data/categories";
-import { ALL_EFFECTS, PHASE_1_IDS, PHASE_2_IDS } from "./data";
+import { ALL_EFFECTS } from "./data";
 
 export async function seedEffects(prisma: PrismaClient) {
   console.log("Seeding effect categories...");
@@ -26,9 +26,6 @@ export async function seedEffects(prisma: PrismaClient) {
   let updated = 0;
 
   for (const fx of ALL_EFFECTS) {
-    // Phase 1 effects are active; Phase 2 + remaining are inactive until launch
-    const isActive = PHASE_1_IDS.has(fx.id) || PHASE_2_IDS.has(fx.id);
-
     const data = {
       name: fx.name,
       categoryId: fx.categoryId,
@@ -43,7 +40,7 @@ export async function seedEffects(prisma: PrismaClient) {
       fps: fx.fps || 24,
       costEstimateMin: fx.costEstimateMin || null,
       costEstimateMax: fx.costEstimateMax || null,
-      isActive,
+      isActive: true,
     };
 
     const existing = await prisma.effect.findUnique({ where: { id: fx.id } });
@@ -56,8 +53,5 @@ export async function seedEffects(prisma: PrismaClient) {
     }
   }
 
-  console.log(`  ${created} effects created, ${updated} updated. (${ALL_EFFECTS.length} total)`);
-  console.log(`  Phase 1 (active): ${PHASE_1_IDS.size}`);
-  console.log(`  Phase 2 (active): ${PHASE_2_IDS.size}`);
-  console.log(`  Phase 3 (inactive): ${ALL_EFFECTS.length - PHASE_1_IDS.size - PHASE_2_IDS.size}`);
+  console.log(`  ${created} effects created, ${updated} updated. (${ALL_EFFECTS.length} total, all active)`);
 }
