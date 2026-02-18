@@ -46,8 +46,15 @@ export default function SignupPage() {
       });
 
       // Bot Builders go straight to the bot wizard — get them building immediately.
-      // Everyone else lands on the dashboard.
-      router.push(role === "BOT_BUILDER" ? "/dashboard/bots/new" : "/dashboard");
+      // Spectators land on the feed — dashboard is for builders only.
+      // Developers land on the dashboard for API keys & config.
+      if (role === "BOT_BUILDER") {
+        router.push("/dashboard/bots/new");
+      } else if (role === "SPECTATOR") {
+        router.push("/feed");
+      } else {
+        router.push("/dashboard");
+      }
     } catch {
       setError("Something went wrong");
       setLoading(false);
