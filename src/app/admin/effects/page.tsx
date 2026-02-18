@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -64,47 +63,56 @@ export default function EffectsPage() {
 
   // Filters
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [filterActive, setFilterActive] = useState<string>("");
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Edit / Create
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Debounce search
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [search]);
 
   // -------------------------------------------------------------------------
   // Data fetching
   // -------------------------------------------------------------------------
 
   const loadEffects = useCallback(async () => {
+    setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (search) params.set("q", search);
+      if (debouncedSearch) params.set("q", debouncedSearch);
       if (filterCategory) params.set("categoryId", filterCategory);
       if (filterActive) params.set("active", filterActive);
 
-      const res = await fetch(`/api/admin/effects?${params}`);
+      const res = await fetch(`/api/admin/effects?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         setEffects(data.effects || []);
         setCategories(data.categories || []);
       }
     } catch {
-      //
+      // silent
     } finally {
       setLoading(false);
     }
-  }, [search, filterCategory, filterActive]);
+  }, [debouncedSearch, filterCategory, filterActive]);
 
   useEffect(() => {
-    setLoading(true);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => loadEffects(), 300);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
+    loadEffects();
   }, [loadEffects]);
 
   // -------------------------------------------------------------------------
@@ -114,12 +122,12 @@ export default function EffectsPage() {
   async function toggleField(id: string, field: "isActive" | "isTrending", current: boolean) {
     setActionLoading(`${id}-${field}`);
     try {
-      await fetch(`/api/admin/effects/${id}`, {
+      const res = await fetch(`/api/admin/effects/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ [field]: !current }),
       });
-      await loadEffects();
+      if (res.ok) await loadEffects();
     } finally {
       setActionLoading(null);
     }
@@ -147,6 +155,28 @@ export default function EffectsPage() {
   }
 
   // -------------------------------------------------------------------------
+  // Seed
+  // -------------------------------------------------------------------------
+
+  async function seedEffects() {
+    setSeeding(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/effects/seed", { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Seed failed");
+      } else {
+        await loadEffects();
+      }
+    } catch {
+      setError("Seed request failed");
+    } finally {
+      setSeeding(false);
+    }
+  }
+
+  // -------------------------------------------------------------------------
   // Stats
   // -------------------------------------------------------------------------
 
@@ -163,16 +193,19 @@ export default function EffectsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="font-instrument text-3xl tracking-[-1px] mb-1">
+          <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
             Effects Library
           </h1>
-          <p className="text-sm text-rudo-text-sec font-light">
+          <p className="text-sm text-rudo-dark-text-sec font-light">
             Manage video effects — toggle, edit, or create new ones
           </p>
         </div>
-        <Button variant="warm" onClick={() => { setShowCreate(!showCreate); setEditingId(null); }}>
+        <button
+          onClick={() => { setShowCreate(!showCreate); setEditingId(null); }}
+          className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-rose/20 text-rudo-rose bg-transparent hover:bg-rudo-rose-soft transition-all cursor-pointer"
+        >
           {showCreate ? "Cancel" : "New Effect"}
-        </Button>
+        </button>
       </div>
 
       {/* Error banner */}
@@ -200,28 +233,28 @@ export default function EffectsPage() {
           { label: "Trending", value: trendingCount },
           { label: "Total Usages", value: totalUsages.toLocaleString() },
         ].map((stat) => (
-          <div key={stat.label} className="bg-rudo-surface border border-rudo-border p-4">
-            <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-muted mb-1">
+          <div key={stat.label} className="bg-rudo-card-bg border border-rudo-card-border p-4">
+            <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-1">
               {stat.label}
             </div>
-            <div className="font-instrument text-2xl">{stat.value}</div>
+            <div className="font-instrument text-2xl text-rudo-dark-text">{stat.value}</div>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-6">
         <input
           type="text"
-          placeholder="Search effects..."
+          placeholder="Search by name or ID..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 min-w-[200px] px-4 py-2 bg-rudo-surface border border-rudo-border text-rudo-dark-text text-sm font-outfit placeholder:text-rudo-dark-muted focus:outline-none focus:border-rudo-blue/40 transition-colors"
+          className="flex-1 min-w-[200px] bg-rudo-content-bg border border-rudo-card-border text-rudo-dark-text px-3 py-2 text-sm font-outfit placeholder:text-rudo-dark-muted outline-none focus:border-rudo-card-border-hover transition-colors"
         />
         <select
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
-          className="px-3 py-2 bg-rudo-surface border border-rudo-border text-rudo-dark-text text-sm font-outfit focus:outline-none cursor-pointer"
+          className="bg-rudo-content-bg border border-rudo-card-border text-rudo-dark-text px-3 py-2 text-sm font-outfit outline-none focus:border-rudo-card-border-hover transition-colors"
         >
           <option value="">All Categories</option>
           {categories.map((c) => (
@@ -231,7 +264,7 @@ export default function EffectsPage() {
         <select
           value={filterActive}
           onChange={(e) => setFilterActive(e.target.value)}
-          className="px-3 py-2 bg-rudo-surface border border-rudo-border text-rudo-dark-text text-sm font-outfit focus:outline-none cursor-pointer"
+          className="bg-rudo-content-bg border border-rudo-card-border text-rudo-dark-text px-3 py-2 text-sm font-outfit outline-none focus:border-rudo-card-border-hover transition-colors"
         >
           <option value="">All Status</option>
           <option value="true">Active</option>
@@ -239,17 +272,39 @@ export default function EffectsPage() {
         </select>
       </div>
 
+      {/* Results count */}
+      {!loading && (
+        <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-4">
+          {effects.length} effect{effects.length !== 1 ? "s" : ""} found
+        </div>
+      )}
+
       {/* Effects list */}
       {loading ? (
-        <div className="py-12 text-center">
+        <div className="py-20 text-center">
           <div className="status-dot mx-auto mb-4" />
+          <p className="text-rudo-dark-text-sec text-sm">Loading effects...</p>
         </div>
       ) : effects.length === 0 ? (
-        <div className="bg-rudo-surface border border-rudo-border p-12 text-center">
-          <p className="text-rudo-text-sec text-sm font-light">No effects found</p>
+        <div className="bg-rudo-card-bg border border-rudo-card-border p-12 text-center">
+          <h3 className="font-instrument text-2xl mb-2 text-rudo-dark-text">No effects found</h3>
+          <p className="text-sm text-rudo-dark-text-sec font-light mb-4">
+            {!search && !filterCategory && !filterActive
+              ? "Seed the built-in effects library to get started"
+              : "Try adjusting your filters"}
+          </p>
+          {!search && !filterCategory && !filterActive && (
+            <button
+              onClick={seedEffects}
+              disabled={seeding}
+              className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-blue/20 text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {seeding ? "Seeding..." : "Seed Effects Library"}
+            </button>
+          )}
         </div>
       ) : (
-        <div className="space-y-[2px]">
+        <div className="space-y-3">
           {effects.map((fx) => (
             <div key={fx.id}>
               {editingId === fx.id ? (
@@ -260,7 +315,9 @@ export default function EffectsPage() {
                   onCancel={() => setEditingId(null)}
                 />
               ) : (
-                <div className="bg-rudo-surface border border-rudo-border p-4 flex items-center gap-4 hover:border-rudo-card-border-hover transition-colors">
+                <div className={`flex items-center gap-4 p-4 bg-rudo-card-bg border hover:border-rudo-card-border-hover transition-all ${
+                  !fx.isActive ? "border-rudo-rose/20 opacity-60" : "border-rudo-card-border"
+                }`}>
                   {/* Category icon */}
                   <div className="text-xl w-8 text-center flex-shrink-0" title={fx.category.name}>
                     {fx.category.icon}
@@ -268,70 +325,74 @@ export default function EffectsPage() {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="font-orbitron font-bold text-xs tracking-[1px]">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-orbitron font-bold text-xs tracking-[1px] text-rudo-dark-text">
                         {fx.name}
                       </span>
-                      <span className="text-[9px] text-rudo-muted font-mono">{fx.id}</span>
                       <span className={`text-[9px] font-orbitron tracking-wider px-2 py-0.5 border ${TIER_COLORS[fx.tierMinimum] || ""}`}>
                         {fx.tierMinimum.toUpperCase()}
                       </span>
-                      <span className={`text-[9px] font-orbitron tracking-wider px-2 py-0.5 border ${
-                        fx.isActive
-                          ? "text-green-400 border-green-400/20 bg-green-400/5"
-                          : "text-rudo-muted border-rudo-border"
-                      }`}>
-                        {fx.isActive ? "ACTIVE" : "INACTIVE"}
-                      </span>
                       {fx.isTrending && (
-                        <span className="text-[9px] font-orbitron tracking-wider px-2 py-0.5 border text-orange-400 border-orange-400/20 bg-orange-400/5">
+                        <span className="text-[10px] font-orbitron tracking-wider text-orange-400 border border-orange-400/20 px-2 py-0.5">
                           TRENDING
                         </span>
                       )}
+                      {!fx.isActive && (
+                        <span className="text-[10px] font-orbitron tracking-wider text-rudo-rose border border-rudo-rose/20 px-2 py-0.5">
+                          INACTIVE
+                        </span>
+                      )}
                     </div>
-                    <div className="flex gap-4 text-[10px] text-rudo-muted font-orbitron tracking-wider">
-                      <span>{fx.generationType.replace(/_/g, " ")}</span>
-                      <span>{fx.durationOptions.join("/")}s</span>
-                      <span>{fx._count.posts} posts</span>
-                      <span>{fx._count.usages} usages</span>
-                      {fx.variants && <span>{fx.variants.length} variants</span>}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-rudo-blue">{fx.id}</span>
+                      <span className="text-[10px] font-orbitron tracking-wider text-rudo-dark-muted border border-rudo-card-border px-2 py-0.5">
+                        {fx.generationType.replace(/_/g, " ").toUpperCase()}
+                      </span>
                     </div>
                   </div>
 
+                  {/* Stats */}
+                  <div className="flex gap-6 text-xs text-rudo-dark-muted font-orbitron tracking-wider shrink-0">
+                    <span>{fx.durationOptions.join("/")}s</span>
+                    <span>{fx._count.posts} posts</span>
+                    <span>{fx._count.usages} usages</span>
+                    {fx.variants && <span>{fx.variants.length} var</span>}
+                  </div>
+
                   {/* Actions */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     <button
                       onClick={() => toggleField(fx.id, "isActive", fx.isActive)}
                       disabled={actionLoading === `${fx.id}-isActive`}
-                      className={`px-3 py-1.5 text-[10px] font-orbitron tracking-wider border cursor-pointer transition-all disabled:opacity-40 ${
+                      className={`px-3 py-1.5 text-[10px] font-orbitron tracking-[2px] uppercase border cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                         fx.isActive
-                          ? "text-rudo-rose border-rudo-rose/20 bg-transparent hover:bg-rudo-rose-soft"
-                          : "text-green-400 border-green-400/20 bg-transparent hover:bg-green-400/5"
+                          ? "text-green-400 border-green-400/20 bg-green-400/5 hover:bg-transparent"
+                          : "text-rudo-dark-muted border-rudo-card-border bg-transparent hover:border-green-400/20 hover:text-green-400"
                       }`}
                     >
-                      {actionLoading === `${fx.id}-isActive` ? "..." : fx.isActive ? "Deactivate" : "Activate"}
+                      {actionLoading === `${fx.id}-isActive` ? "..." : fx.isActive ? "Active" : "Activate"}
                     </button>
                     <button
                       onClick={() => toggleField(fx.id, "isTrending", fx.isTrending)}
                       disabled={actionLoading === `${fx.id}-isTrending`}
-                      className={`px-3 py-1.5 text-[10px] font-orbitron tracking-wider border cursor-pointer transition-all disabled:opacity-40 ${
+                      className={`px-3 py-1.5 text-[10px] font-orbitron tracking-[2px] uppercase border cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                         fx.isTrending
-                          ? "text-orange-400 border-orange-400/20 bg-transparent hover:bg-orange-400/5"
-                          : "text-rudo-muted border-rudo-border bg-transparent hover:border-orange-400/20 hover:text-orange-400"
+                          ? "text-orange-400 border-orange-400/20 bg-orange-400/5 hover:bg-transparent"
+                          : "text-rudo-dark-muted border-rudo-card-border bg-transparent hover:border-orange-400/20 hover:text-orange-400"
                       }`}
                     >
-                      {actionLoading === `${fx.id}-isTrending` ? "..." : fx.isTrending ? "Untrend" : "Trend"}
+                      {actionLoading === `${fx.id}-isTrending` ? "..." : "Trend"}
                     </button>
                     <button
                       onClick={() => { setEditingId(fx.id); setShowCreate(false); }}
-                      className="px-3 py-1.5 text-[10px] font-orbitron tracking-wider border text-rudo-blue border-rudo-blue/20 bg-transparent hover:bg-rudo-blue-soft cursor-pointer transition-all"
+                      className="px-3 py-1.5 text-[10px] font-orbitron tracking-[2px] uppercase border text-rudo-blue border-rudo-blue/20 bg-transparent hover:bg-rudo-blue-soft cursor-pointer transition-all"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => deleteEffect(fx.id, fx.name)}
                       disabled={actionLoading === `${fx.id}-delete`}
-                      className="px-3 py-1.5 text-[10px] font-orbitron tracking-wider border text-rudo-rose border-rudo-rose/20 bg-transparent hover:bg-rudo-rose-soft cursor-pointer transition-all disabled:opacity-40"
+                      className="px-3 py-1.5 text-[10px] font-orbitron tracking-[2px] uppercase border text-red-500 border-red-500/20 bg-transparent hover:bg-red-500/10 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {actionLoading === `${fx.id}-delete` ? "..." : "Delete"}
                     </button>
@@ -378,7 +439,6 @@ function CreateEffectForm({
     setForm((f) => ({ ...f, [field]: value }));
   }
 
-  // Auto-generate ID from name
   function handleNameChange(name: string) {
     const id = name
       .toLowerCase()
@@ -423,8 +483,8 @@ function CreateEffectForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-rudo-surface border border-rudo-border p-6 mb-8 space-y-4">
-      <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-muted mb-2">
+    <form onSubmit={handleSubmit} className="bg-rudo-card-bg border border-rudo-card-border p-6 mb-8 space-y-4">
+      <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">
         Create New Effect
       </div>
 
@@ -440,19 +500,19 @@ function CreateEffectForm({
       <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted block mb-2">Category</label>
-          <select value={form.categoryId} onChange={(e) => set("categoryId", e.target.value)} className="w-full px-4 py-3 bg-white border border-rudo-card-border text-rudo-dark-text text-sm font-outfit focus:outline-none cursor-pointer">
+          <select value={form.categoryId} onChange={(e) => set("categoryId", e.target.value)} className="w-full px-4 py-3 bg-white border border-rudo-card-border text-rudo-dark-text text-sm font-outfit focus:outline-none focus:border-rudo-card-border-hover cursor-pointer transition-colors">
             {categories.map((c) => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
           </select>
         </div>
         <div>
           <label className="font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted block mb-2">Tier Minimum</label>
-          <select value={form.tierMinimum} onChange={(e) => set("tierMinimum", e.target.value)} className="w-full px-4 py-3 bg-white border border-rudo-card-border text-rudo-dark-text text-sm font-outfit focus:outline-none cursor-pointer">
+          <select value={form.tierMinimum} onChange={(e) => set("tierMinimum", e.target.value)} className="w-full px-4 py-3 bg-white border border-rudo-card-border text-rudo-dark-text text-sm font-outfit focus:outline-none focus:border-rudo-card-border-hover cursor-pointer transition-colors">
             {TIER_OPTIONS.map((t) => <option key={t} value={t}>{t.toUpperCase()}</option>)}
           </select>
         </div>
         <div>
           <label className="font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted block mb-2">Generation Type</label>
-          <select value={form.generationType} onChange={(e) => set("generationType", e.target.value)} className="w-full px-4 py-3 bg-white border border-rudo-card-border text-rudo-dark-text text-sm font-outfit focus:outline-none cursor-pointer">
+          <select value={form.generationType} onChange={(e) => set("generationType", e.target.value)} className="w-full px-4 py-3 bg-white border border-rudo-card-border text-rudo-dark-text text-sm font-outfit focus:outline-none focus:border-rudo-card-border-hover cursor-pointer transition-colors">
             {GEN_TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t.replace(/_/g, " ")}</option>)}
           </select>
         </div>
@@ -474,12 +534,12 @@ function CreateEffectForm({
       </div>
 
       <div className="flex gap-3">
-        <Button type="submit" variant="warm" disabled={saving}>
+        <button type="submit" disabled={saving} className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-rose/20 text-rudo-rose bg-transparent hover:bg-rudo-rose-soft transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
           {saving ? "Creating..." : "Create Effect"}
-        </Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
+        </button>
+        <button type="button" onClick={onCancel} className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-card-border text-rudo-dark-text bg-transparent hover:border-rudo-card-border-hover transition-all cursor-pointer">
           Cancel
-        </Button>
+        </button>
       </div>
     </form>
   );
@@ -532,12 +592,10 @@ function EditEffectForm({
     setError(null);
 
     try {
-      // Build prompt template
       const promptTemplate: any = {};
       if (form.promptMain) promptTemplate.main = form.promptMain;
       if (form.promptScenes) promptTemplate.scenes = form.promptScenes.split("\n---\n");
 
-      // Build camera config
       let cameraConfig = null;
       if (form.cameraMovement || form.cameraStart || form.cameraEnd) {
         cameraConfig = {
@@ -547,13 +605,11 @@ function EditEffectForm({
         };
       }
 
-      // Build music config
       let musicConfig = null;
       if (form.musicMood || form.musicDescription) {
         musicConfig = { mood: form.musicMood, description: form.musicDescription };
       }
 
-      // Parse variants JSON
       let variants = null;
       if (form.variantsJson.trim()) {
         try {
@@ -598,12 +654,12 @@ function EditEffectForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-rudo-surface border-2 border-rudo-blue/30 p-6 space-y-4">
+    <form onSubmit={handleSubmit} className="bg-rudo-card-bg border-2 border-rudo-blue/30 p-6 space-y-4">
       <div className="flex items-center justify-between">
         <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-blue">
           Editing: {effect.id}
         </div>
-        <button type="button" onClick={onCancel} className="text-xs text-rudo-muted hover:text-rudo-dark-text cursor-pointer bg-transparent border-none font-outfit">
+        <button type="button" onClick={onCancel} className="text-xs text-rudo-dark-muted hover:text-rudo-dark-text cursor-pointer bg-transparent border-none font-outfit transition-colors">
           Cancel
         </button>
       </div>
@@ -617,19 +673,19 @@ function EditEffectForm({
         <Input label="Name" value={form.name} onChange={(e) => set("name", e.target.value)} required />
         <div>
           <label className="font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted block mb-2">Category</label>
-          <select value={form.categoryId} onChange={(e) => set("categoryId", e.target.value)} className="w-full px-4 py-3 bg-white border border-rudo-card-border text-rudo-dark-text text-sm font-outfit focus:outline-none cursor-pointer">
+          <select value={form.categoryId} onChange={(e) => set("categoryId", e.target.value)} className="w-full px-4 py-3 bg-white border border-rudo-card-border text-rudo-dark-text text-sm font-outfit focus:outline-none focus:border-rudo-card-border-hover cursor-pointer transition-colors">
             {categories.map((c) => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
           </select>
         </div>
         <div>
           <label className="font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted block mb-2">Tier</label>
-          <select value={form.tierMinimum} onChange={(e) => set("tierMinimum", e.target.value)} className="w-full px-4 py-3 bg-white border border-rudo-card-border text-rudo-dark-text text-sm font-outfit focus:outline-none cursor-pointer">
+          <select value={form.tierMinimum} onChange={(e) => set("tierMinimum", e.target.value)} className="w-full px-4 py-3 bg-white border border-rudo-card-border text-rudo-dark-text text-sm font-outfit focus:outline-none focus:border-rudo-card-border-hover cursor-pointer transition-colors">
             {TIER_OPTIONS.map((t) => <option key={t} value={t}>{t.toUpperCase()}</option>)}
           </select>
         </div>
         <div>
           <label className="font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted block mb-2">Gen Type</label>
-          <select value={form.generationType} onChange={(e) => set("generationType", e.target.value)} className="w-full px-4 py-3 bg-white border border-rudo-card-border text-rudo-dark-text text-sm font-outfit focus:outline-none cursor-pointer">
+          <select value={form.generationType} onChange={(e) => set("generationType", e.target.value)} className="w-full px-4 py-3 bg-white border border-rudo-card-border text-rudo-dark-text text-sm font-outfit focus:outline-none focus:border-rudo-card-border-hover cursor-pointer transition-colors">
             {GEN_TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t.replace(/_/g, " ")}</option>)}
           </select>
         </div>
@@ -676,12 +732,12 @@ function EditEffectForm({
 
       {/* Actions */}
       <div className="flex gap-3">
-        <Button type="submit" variant="blue" disabled={saving}>
+        <button type="submit" disabled={saving} className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-blue/20 text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
           {saving ? "Saving..." : "Save Changes"}
-        </Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
+        </button>
+        <button type="button" onClick={onCancel} className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-card-border text-rudo-dark-text bg-transparent hover:border-rudo-card-border-hover transition-all cursor-pointer">
           Cancel
-        </Button>
+        </button>
       </div>
     </form>
   );
