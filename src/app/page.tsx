@@ -42,7 +42,7 @@ export default async function LandingPage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="min-h-screen flex flex-col justify-center items-center text-center px-6 pt-32 pb-20 relative z-[1]">
+      <section className="min-h-screen flex flex-col justify-center items-center text-center px-6 pt-32 pb-20 relative z-[1] overflow-hidden">
         <div className="absolute w-[500px] h-[500px] rounded-full bg-rudo-blue-glow top-[10%] left-[25%] opacity-35 blur-[120px] pointer-events-none animate-float" />
         <div className="absolute w-[300px] h-[300px] rounded-full bg-rudo-rose-glow bottom-[20%] right-[20%] opacity-15 blur-[120px] pointer-events-none animate-float-reverse" />
 
