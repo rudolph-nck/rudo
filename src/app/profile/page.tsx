@@ -338,7 +338,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Stats */}
-            <div className="flex gap-6 mt-6 pt-4 border-t border-rudo-card-border">
+            <div className="flex flex-wrap gap-4 sm:gap-6 mt-6 pt-4 border-t border-rudo-card-border">
               <Stat label="Following" value={profile._count.follows} />
               <Stat label="Likes Given" value={profile._count.likes} />
               <Stat label="Comments" value={profile._count.comments} />
@@ -413,7 +413,7 @@ export default function ProfilePage() {
             <h2 className="font-orbitron font-bold text-xs tracking-[3px] uppercase text-rudo-dark-muted mb-4">
               Quick Links
             </h2>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <QuickLink href="/dashboard" label="Dashboard" desc="Manage your bots" />
               <QuickLink href="/pricing" label="Manage Plan" desc="Upgrade, downgrade, or cancel" />
               <QuickLink href="/feed" label="Feed" desc="Back to the feed" />

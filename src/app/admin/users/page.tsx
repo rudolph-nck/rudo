@@ -218,8 +218,8 @@ export default function UserManagementPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="font-instrument text-2xl sm:text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
           User Management
         </h1>
         <p className="text-sm text-rudo-dark-text-sec font-light">
@@ -228,13 +228,13 @@ export default function UserManagementPage() {
       </div>
 
       {/* Search + Filters */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <input
           type="text"
           placeholder="Search by name, email, or handle..."
           value={searchInput}
           onChange={(e) => handleSearchChange(e.target.value)}
-          className="flex-1 bg-rudo-content-bg border border-rudo-card-border text-rudo-dark-text px-3 py-2 text-sm font-outfit placeholder:text-rudo-dark-muted outline-none focus:border-rudo-card-border-hover transition-colors"
+          className="flex-1 min-w-0 bg-rudo-content-bg border border-rudo-card-border text-rudo-dark-text px-3 py-2 text-sm font-outfit placeholder:text-rudo-dark-muted outline-none focus:border-rudo-card-border-hover transition-colors"
         />
 
         <select
@@ -298,63 +298,65 @@ export default function UserManagementPage() {
             return (
               <div
                 key={user.id}
-                className="bg-rudo-card-bg border border-rudo-card-border p-6 transition-colors hover:border-rudo-card-border-hover"
+                className="bg-rudo-card-bg border border-rudo-card-border p-4 sm:p-6 transition-colors hover:border-rudo-card-border-hover"
               >
                 {isEditing ? (
                   /* Inline Edit Mode */
                   <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
+                    <div className="mb-4">
+                      <div className="flex flex-wrap items-center gap-1">
                         <span className="text-sm text-rudo-dark-text font-outfit">
                           {user.name || "Unnamed"}
                         </span>
-                        <span className="text-sm text-rudo-dark-text-sec ml-2 font-light">
+                        <span className="text-sm text-rudo-dark-text-sec font-light">
                           {user.email}
                         </span>
                         {user.handle && (
-                          <span className="text-sm text-rudo-blue ml-2">
+                          <span className="text-sm text-rudo-blue">
                             @{user.handle}
                           </span>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <label className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted">
-                          Role
-                        </label>
-                        <select
-                          value={editRole}
-                          onChange={(e) => setEditRole(e.target.value)}
-                          className="bg-rudo-content-bg border border-rudo-card-border text-rudo-dark-text px-3 py-2 text-sm font-outfit outline-none"
-                        >
-                          {USER_ROLES.map((r) => (
-                            <option key={r} value={r}>
-                              {r}
-                            </option>
-                          ))}
-                        </select>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <label className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted">
+                            Role
+                          </label>
+                          <select
+                            value={editRole}
+                            onChange={(e) => setEditRole(e.target.value)}
+                            className="bg-rudo-content-bg border border-rudo-card-border text-rudo-dark-text px-3 py-2 text-sm font-outfit outline-none"
+                          >
+                            {USER_ROLES.map((r) => (
+                              <option key={r} value={r}>
+                                {r}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <label className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted">
+                            Tier
+                          </label>
+                          <select
+                            value={editTier}
+                            onChange={(e) => setEditTier(e.target.value)}
+                            className="bg-rudo-content-bg border border-rudo-card-border text-rudo-dark-text px-3 py-2 text-sm font-outfit outline-none"
+                          >
+                            {TIERS.map((t) => (
+                              <option key={t} value={t}>
+                                {t}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <label className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted">
-                          Tier
-                        </label>
-                        <select
-                          value={editTier}
-                          onChange={(e) => setEditTier(e.target.value)}
-                          className="bg-rudo-content-bg border border-rudo-card-border text-rudo-dark-text px-3 py-2 text-sm font-outfit outline-none"
-                        >
-                          {TIERS.map((t) => (
-                            <option key={t} value={t}>
-                              {t}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="flex items-center gap-2 ml-auto">
+                      <div className="flex items-center gap-2 sm:ml-auto">
                         <button
                           onClick={saveEdit}
                           disabled={saving}
@@ -374,11 +376,11 @@ export default function UserManagementPage() {
                   </div>
                 ) : (
                   /* Display Mode */
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                       {/* Name + Email + Handle */}
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="text-sm text-rudo-dark-text font-outfit truncate">
                             {user.name || "Unnamed"}
                           </span>
@@ -393,44 +395,38 @@ export default function UserManagementPage() {
                         </div>
                       </div>
 
-                      {/* Tier Badge */}
-                      <span
-                        className={`inline-block px-2 py-0.5 text-[9px] font-orbitron tracking-wider uppercase border shrink-0 ${
-                          TIER_COLORS[user.tier] || TIER_COLORS.FREE
-                        }`}
-                      >
-                        {user.tier}
-                      </span>
-
-                      {/* Role Badge */}
-                      <span
-                        className={`inline-block px-2 py-0.5 text-[9px] font-orbitron tracking-wider uppercase border shrink-0 ${
-                          ROLE_COLORS[user.role] || ROLE_COLORS.SPECTATOR
-                        }`}
-                      >
-                        {user.role}
-                      </span>
-
-                      {/* Suspended Badge */}
-                      {isSuspended && (
-                        <span className="inline-block px-2 py-0.5 text-[9px] font-orbitron tracking-wider uppercase border border-rudo-rose/20 text-rudo-rose bg-rudo-rose-soft shrink-0">
-                          Suspended
+                      {/* Badges */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`inline-block px-2 py-0.5 text-[9px] font-orbitron tracking-wider uppercase border shrink-0 ${
+                            TIER_COLORS[user.tier] || TIER_COLORS.FREE
+                          }`}
+                        >
+                          {user.tier}
                         </span>
-                      )}
-
-                      {/* Bot Count */}
-                      <span className="text-[10px] font-orbitron tracking-wider text-rudo-dark-muted shrink-0">
-                        {user._count.bots} bot{user._count.bots !== 1 ? "s" : ""}
-                      </span>
-
-                      {/* Joined */}
-                      <span className="text-[10px] font-orbitron tracking-wider text-rudo-dark-muted shrink-0">
-                        {timeAgo(new Date(user.createdAt))}
-                      </span>
+                        <span
+                          className={`inline-block px-2 py-0.5 text-[9px] font-orbitron tracking-wider uppercase border shrink-0 ${
+                            ROLE_COLORS[user.role] || ROLE_COLORS.SPECTATOR
+                          }`}
+                        >
+                          {user.role}
+                        </span>
+                        {isSuspended && (
+                          <span className="inline-block px-2 py-0.5 text-[9px] font-orbitron tracking-wider uppercase border border-rudo-rose/20 text-rudo-rose bg-rudo-rose-soft shrink-0">
+                            Suspended
+                          </span>
+                        )}
+                        <span className="text-[10px] font-orbitron tracking-wider text-rudo-dark-muted shrink-0">
+                          {user._count.bots} bot{user._count.bots !== 1 ? "s" : ""}
+                        </span>
+                        <span className="text-[10px] font-orbitron tracking-wider text-rudo-dark-muted shrink-0">
+                          {timeAgo(new Date(user.createdAt))}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 ml-4 shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 mt-3 sm:justify-end">
                       <button
                         onClick={() => startEdit(user)}
                         className="px-3 py-1.5 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-blue/20 text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all cursor-pointer"
