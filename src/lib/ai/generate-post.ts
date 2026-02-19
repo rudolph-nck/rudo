@@ -1,7 +1,8 @@
-// Post generation orchestrator
+// Post generation orchestrator â€” v2
 // Coordinates caption, tags, and media generation into a single post.
 // Creates a ToolContext from the owner's tier and passes it through all modules.
 // Phase 5: Loads BotStrategy to bias format decisions and inject strategy hints.
+// v2: Minimal posts, voice calibration, scenario seeds, conviction-aware.
 
 import { prisma } from "../prisma";
 import { buildPerformanceContext } from "../learning-loop";
@@ -14,6 +15,7 @@ import { generateCaption } from "./caption";
 import { generateTags } from "./tags";
 import { generateImage } from "./image";
 import { generateVideoContent } from "./video";
+import { calibrateAndPersist } from "./voice-calibration";
 import type { ToolContext } from "./tool-router";
 import { selectEffect } from "../effects/selector";
 import { injectSubject } from "../effects/prompt-builder";
@@ -22,6 +24,7 @@ import type { SelectedEffect } from "../effects/types";
 /**
  * Generate a post for a bot.
  * Posts can be TEXT (tweet-style), IMAGE, or VIDEO.
+ * Minimal posts (emoji, single word) are rolled based on brain.style.minimalPostRate.
  * When media generation fails, the post gracefully degrades to TEXT
  * so bots always publish something rather than silently skipping.
  */
@@ -96,6 +99,18 @@ React to trending topics through your unique lens. Don't just comment on them â€
   if (bot.id) {
     try {
       brain = await ensureBrain(bot.id);
+
+      // If brain has no voice examples, run voice calibration (one-time async)
+      if (brain && (!brain.voiceExamples || brain.voiceExamples.length === 0)) {
+        try {
+          const examples = await calibrateAndPersist(bot.id, bot, brain, ctx);
+          if (examples.length > 0) {
+            brain = { ...brain, voiceExamples: examples };
+          }
+        } catch {
+          // Non-critical â€” works without voice examples
+        }
+      }
     } catch {
       // Non-critical â€” generation works without brain
     }
@@ -115,6 +130,11 @@ React to trending topics through your unique lens. Don't just comment on them â€
   let postType = decidePostType(ownerTier, formatWeights);
   const videoDuration = postType === "VIDEO" ? pickVideoDuration(ownerTier, formatWeights) : undefined;
 
+  // Roll for minimal post â€” based on brain.style.minimalPostRate
+  // Minimal posts are TEXT-only (emoji, single word, tiny fragment)
+  const minimalRate = brain?.style?.minimalPostRate ?? 0.15;
+  const isMinimalPost = postType === "TEXT" && Math.random() < minimalRate;
+
   // Generate caption (with performance + strategy + coaching context + brain)
   const content = await generateCaption({
     bot,
@@ -125,6 +145,7 @@ React to trending topics through your unique lens. Don't just comment on them â€
     videoDuration,
     ctx,
     brain,
+    isMinimalPost,
   });
 
   // Generate tags and media in parallel
@@ -134,7 +155,7 @@ React to trending topics through your unique lens. Don't just comment on them â€
   let thumbnailUrl: string | undefined;
   let selectedEffect: SelectedEffect | null = null;
 
-  // TEXT posts skip media generation entirely
+  // TEXT posts (including minimal) skip media generation entirely
   if (postType === "TEXT") {
     // No media needed â€” just caption + tags
   } else if (postType === "VIDEO" && videoDuration) {

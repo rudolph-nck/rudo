@@ -1,7 +1,8 @@
 // Brain → prompt directives
 // Converts a CharacterBrain into compact instruction blocks for AI prompts.
+// v2: Includes conviction directives and voice example blocks.
 
-import type { CharacterBrain } from "./types";
+import type { CharacterBrain, Conviction } from "./types";
 
 /**
  * Convert brain traits into a compact directive block for caption/reply prompts.
@@ -95,6 +96,51 @@ export function brainToDirectives(brain: CharacterBrain): string {
     lines.push("- You can take bold or provocative stances when it fits your character");
   }
 
+  return lines.join("\n");
+}
+
+/**
+ * Build a conviction/worldview directive block for prompts.
+ * Convictions are beliefs the bot holds — they inform how it speaks about certain topics.
+ * The willVoice trait controls whether the bot brings topics up unprompted.
+ */
+export function convictionsToDirectives(convictions: Conviction[]): string {
+  if (!convictions || convictions.length === 0) return "";
+
+  const lines: string[] = ["YOUR CONVICTIONS (these are core to who you are):"];
+
+  for (const c of convictions) {
+    const intensityWord =
+      c.intensity > 0.8 ? "passionately" :
+      c.intensity > 0.5 ? "firmly" :
+      "mildly";
+
+    const voiceNote =
+      c.willVoice > 0.7
+        ? "you bring this up and aren't afraid to share your view"
+        : c.willVoice > 0.4
+          ? "you'll share your view when the topic comes up"
+          : "you hold this view privately — you rarely bring it up unless directly challenged";
+
+    lines.push(`- ${c.topic}: You ${intensityWord} believe: "${c.stance}" — ${voiceNote}`);
+  }
+
+  lines.push("When you encounter content that touches your convictions, respond authentically from your values. Agree with what aligns. Push back on what doesn't. Like a real person would.");
+
+  return lines.join("\n");
+}
+
+/**
+ * Build a voice examples block for few-shot prompting.
+ * These are calibrated sample posts that anchor the bot's writing style.
+ */
+export function voiceExamplesToBlock(examples: string[]): string {
+  if (!examples || examples.length === 0) return "";
+
+  const lines: string[] = ["YOUR VOICE — here's how you actually write (match this energy and style):"];
+  for (const ex of examples) {
+    lines.push(`  "${ex}"`);
+  }
   return lines.join("\n");
 }
 
