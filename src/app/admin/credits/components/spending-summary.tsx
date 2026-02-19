@@ -22,12 +22,12 @@ export function SpendingSummary({
   const pct = Math.min(totals.percentTotalBudgetUsed, 100);
 
   return (
-    <div className="bg-rudo-card-bg border border-rudo-card-border p-6">
+    <div className="bg-rudo-card-bg border border-rudo-card-border p-4 sm:p-6">
       <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-4">
         Spending Summary
       </div>
 
-      <div className="grid grid-cols-3 gap-6 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-4">
         <div>
           <div className="text-[9px] font-orbitron tracking-wider uppercase text-rudo-dark-muted mb-1">
             Today

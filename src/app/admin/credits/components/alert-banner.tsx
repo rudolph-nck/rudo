@@ -29,21 +29,21 @@ export function AlertBanner({
       {alerts.map((alert) => (
         <div
           key={alert.id}
-          className={`flex items-center justify-between px-4 py-3 border ${
+          className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-3 sm:px-4 py-3 border ${
             SEVERITY_STYLES[alert.severity] || SEVERITY_STYLES.INFO
           }`}
         >
-          <div className="flex items-center gap-3">
-            <span className="text-sm">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <span className="text-sm flex-shrink-0">
               {alert.severity === "CRITICAL" ? "!!" : "!"}
             </span>
-            <span className="text-sm font-outfit">
+            <span className="text-sm font-outfit break-words">
               <strong>{alert.provider}:</strong> {alert.message}
             </span>
           </div>
           <button
             onClick={() => onDismiss(alert.id)}
-            className="text-[9px] font-orbitron tracking-[2px] uppercase px-3 py-1 border border-current/20 bg-transparent hover:bg-current/5 transition-all cursor-pointer"
+            className="self-end sm:self-auto flex-shrink-0 text-[9px] font-orbitron tracking-[2px] uppercase px-3 py-1 border border-current/20 bg-transparent hover:bg-current/5 transition-all cursor-pointer"
           >
             Dismiss
           </button>

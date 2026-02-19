@@ -50,19 +50,19 @@ export function MonthlyComparison({
   const maxSpent = Math.max(...months.map((m) => m.totalSpent), 1);
 
   return (
-    <div className="bg-rudo-card-bg border border-rudo-card-border p-6">
+    <div className="bg-rudo-card-bg border border-rudo-card-border p-4 sm:p-6">
       <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-4">
         Month Over Month
       </div>
 
-      <div className="grid grid-cols-6 gap-3 mb-6">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 mb-6">
         {months.map((m) => (
           <div key={`${m.year}-${m.month}`} className="text-center">
-            <div className="text-[9px] font-orbitron tracking-wider uppercase text-rudo-dark-muted mb-2">
+            <div className="text-[8px] sm:text-[9px] font-orbitron tracking-wider uppercase text-rudo-dark-muted mb-2">
               {m.label.split(" ")[0].slice(0, 3)}
             </div>
             <div className="flex justify-center mb-2">
-              <div className="w-10 bg-rudo-content-bg border border-rudo-card-border/50 overflow-hidden relative" style={{ height: 80 }}>
+              <div className="w-8 sm:w-10 bg-rudo-content-bg border border-rudo-card-border/50 overflow-hidden relative" style={{ height: 60 }}>
                 <div
                   className="absolute bottom-0 w-full bg-rudo-blue/50 transition-all"
                   style={{
@@ -71,7 +71,7 @@ export function MonthlyComparison({
                 />
               </div>
             </div>
-            <div className="font-instrument text-sm text-rudo-dark-text">
+            <div className="font-instrument text-xs sm:text-sm text-rudo-dark-text">
               {fmt(m.totalSpent)}
             </div>
             {m.changePercent !== null && (
@@ -92,7 +92,7 @@ export function MonthlyComparison({
         ))}
       </div>
 
-      <div className="border-t border-rudo-card-border pt-4 flex items-center gap-6 text-xs text-rudo-dark-text-sec">
+      <div className="border-t border-rudo-card-border pt-4 flex flex-wrap items-center gap-3 sm:gap-6 text-xs text-rudo-dark-text-sec">
         <span>
           Avg:{" "}
           <strong className="text-rudo-dark-text font-instrument">

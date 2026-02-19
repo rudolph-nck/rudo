@@ -24,10 +24,10 @@ export function TestAllModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-      <div className="bg-rudo-card-bg border border-rudo-card-border w-full max-w-md mx-4">
-        <div className="flex items-center justify-between p-6 border-b border-rudo-card-border">
-          <h2 className="font-orbitron text-xs tracking-[2px] uppercase text-rudo-dark-text">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 sm:p-0">
+      <div className="bg-rudo-card-bg border border-rudo-card-border w-full max-w-md">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-rudo-card-border">
+          <h2 className="font-orbitron text-[10px] sm:text-xs tracking-[2px] uppercase text-rudo-dark-text">
             Connection Test Results
           </h2>
           <button
@@ -38,7 +38,7 @@ export function TestAllModal({
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="status-dot mr-3" />
@@ -94,7 +94,7 @@ export function TestAllModal({
           )}
         </div>
 
-        <div className="p-6 border-t border-rudo-card-border flex justify-end">
+        <div className="p-4 sm:p-6 border-t border-rudo-card-border flex justify-end">
           <button
             onClick={onClose}
             className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-card-border text-rudo-dark-muted bg-transparent hover:border-rudo-card-border-hover transition-all cursor-pointer"

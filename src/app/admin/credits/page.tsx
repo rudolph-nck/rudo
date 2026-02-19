@@ -266,27 +266,27 @@ export default function CreditsPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-6">
         <div>
-          <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
+          <h1 className="font-instrument text-2xl sm:text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
             API Credit Dashboard
           </h1>
           <p className="text-sm text-rudo-dark-text-sec font-light">
             Monitor and manage external API connections
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {providers.length === 0 && (
             <button
               onClick={handleSeedProviders}
-              className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-yellow-400/20 text-yellow-500 bg-transparent hover:bg-yellow-400/5 transition-all cursor-pointer"
+              className="px-3 sm:px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-yellow-400/20 text-yellow-500 bg-transparent hover:bg-yellow-400/5 transition-all cursor-pointer"
             >
               Import from Env
             </button>
           )}
           <button
             onClick={handleTestAll}
-            className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-blue/20 text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all cursor-pointer"
+            className="px-3 sm:px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-blue/20 text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all cursor-pointer"
           >
             Test All
           </button>
@@ -295,13 +295,13 @@ export default function CreditsPage() {
               setEditingProvider(null);
               setShowAddModal(true);
             }}
-            className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-green-400/20 text-green-400 bg-transparent hover:bg-green-400/5 transition-all cursor-pointer"
+            className="px-3 sm:px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-green-400/20 text-green-400 bg-transparent hover:bg-green-400/5 transition-all cursor-pointer"
           >
             + Add API
           </button>
           <button
             onClick={handleRefreshAll}
-            className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-card-border text-rudo-dark-muted bg-transparent hover:border-rudo-card-border-hover transition-all cursor-pointer"
+            className="px-3 sm:px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-card-border text-rudo-dark-muted bg-transparent hover:border-rudo-card-border-hover transition-all cursor-pointer"
           >
             Refresh
           </button>
@@ -331,12 +331,12 @@ export default function CreditsPage() {
 
       {/* Chart Tabs + Chart */}
       <div className="mb-6">
-        <div className="flex gap-1 mb-3">
+        <div className="flex gap-1 mb-3 overflow-x-auto">
           {(["daily", "weekly", "monthly"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setChartTab(tab)}
-              className={`px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border transition-all cursor-pointer ${
+              className={`px-3 sm:px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border transition-all cursor-pointer flex-shrink-0 ${
                 chartTab === tab
                   ? "border-rudo-blue/30 text-rudo-blue bg-rudo-blue-soft"
                   : "border-rudo-card-border text-rudo-dark-muted bg-transparent hover:border-rudo-card-border-hover"
@@ -358,11 +358,11 @@ export default function CreditsPage() {
       </div>
 
       {/* Breakdowns Grid */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 sm:mb-6">
         <BreakdownByProvider providers={providers} />
         <BreakdownByEffect data={effectData} />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <BreakdownByBot data={botData} />
         <RecentCallsLog data={recentCalls} />
       </div>
