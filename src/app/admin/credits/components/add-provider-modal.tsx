@@ -174,11 +174,11 @@ export function AddProviderModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-10 overflow-y-auto">
-      <div className="bg-rudo-card-bg border border-rudo-card-border w-full max-w-lg mx-4 mb-10">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-4 sm:pt-10 overflow-y-auto">
+      <div className="bg-rudo-card-bg border border-rudo-card-border w-full max-w-lg mx-3 sm:mx-4 mb-10">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-rudo-card-border">
-          <h2 className="font-orbitron text-xs tracking-[2px] uppercase text-rudo-dark-text">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-rudo-card-border">
+          <h2 className="font-orbitron text-[10px] sm:text-xs tracking-[2px] uppercase text-rudo-dark-text">
             {isEditing ? "Edit API Connection" : "Add New API Connection"}
           </h2>
           <button
@@ -190,7 +190,7 @@ export function AddProviderModal({
         </div>
 
         {/* Form */}
-        <div className="p-6 space-y-4">
+        <div className="p-4 sm:p-6 space-y-4">
           {error && (
             <div className="px-4 py-3 bg-rudo-rose-soft border border-rudo-rose/20 text-rudo-rose text-sm">
               {error}
@@ -269,7 +269,7 @@ export function AddProviderModal({
             <label className="block text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-1.5">
               Capabilities
             </label>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-3 sm:gap-4">
               {(["video", "image", "audio", "text"] as const).map((cap) => (
                 <label key={cap} className="flex items-center gap-1.5 text-sm text-rudo-dark-text cursor-pointer">
                   <input
@@ -292,7 +292,7 @@ export function AddProviderModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             <div>
               <label className="block text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-1.5">
                 Current Balance
@@ -370,12 +370,12 @@ export function AddProviderModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-rudo-card-border">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-6 border-t border-rudo-card-border">
           <div>
             {isEditing && (
               <button
                 onClick={handleDelete}
-                className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-rose/20 text-rudo-rose bg-transparent hover:bg-rudo-rose-soft transition-all cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-rose/20 text-rudo-rose bg-transparent hover:bg-rudo-rose-soft transition-all cursor-pointer"
               >
                 Delete
               </button>
@@ -384,14 +384,14 @@ export function AddProviderModal({
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-card-border text-rudo-dark-muted bg-transparent hover:border-rudo-card-border-hover transition-all cursor-pointer"
+              className="flex-1 sm:flex-none px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-card-border text-rudo-dark-muted bg-transparent hover:border-rudo-card-border-hover transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-6 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-blue/20 text-rudo-blue bg-rudo-blue-soft hover:bg-rudo-blue/10 transition-all cursor-pointer disabled:opacity-40"
+              className="flex-1 sm:flex-none px-6 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-blue/20 text-rudo-blue bg-rudo-blue-soft hover:bg-rudo-blue/10 transition-all cursor-pointer disabled:opacity-40"
             >
               {saving ? "Saving..." : isEditing ? "Update" : "Save Connection"}
             </button>
