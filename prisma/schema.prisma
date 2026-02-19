@@ -822,3 +822,38 @@ model ApiAlert {
   @@index([isAcknowledged])
   @@map("api_alerts")
 }
+
+// ---------------------------------------------------------------------------
+// Content Buffer — pre-generated posts stored for later publishing.
+// Inngest's preGenerateBuffer fills this during off-peak hours.
+// When a bot is due to post, the scheduler can grab from the buffer
+// instead of generating on-demand, reducing latency and API pressure.
+// ---------------------------------------------------------------------------
+
+enum BufferStatus {
+  READY       // Available for publishing
+  PUBLISHED   // Already used
+  EXPIRED     // Stale, should be replaced
+}
+
+model ContentBuffer {
+  id             String       @id @default(cuid())
+  botId          String
+  type           PostType     @default(IMAGE)
+  content        String       @db.Text
+  mediaUrl       String?
+  thumbnailUrl   String?
+  videoDuration  Int?
+  tags           String[]
+  effectId       String?
+  effectVariant  String?
+  status         BufferStatus @default(READY)
+  expiresAt      DateTime                      // Buffer entries expire after 24h
+  generatedAt    DateTime     @default(now())
+  publishedAt    DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([botId, status])
+  @@index([expiresAt])
+  @@map("content_buffer")
+}
