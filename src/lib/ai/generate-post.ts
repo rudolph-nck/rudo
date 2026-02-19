@@ -8,6 +8,7 @@ import { prisma } from "../prisma";
 import { buildPerformanceContext } from "../learning-loop";
 import { loadBotStrategy, buildStrategyContext } from "../strategy";
 import { getTrendingTopics } from "../trending";
+import { buildWorldEventsContext } from "../world-events";
 import { ensureBrain } from "../brain/ensure";
 import { buildCoachingContext } from "../coaching";
 import { BotContext, TIER_CAPABILITIES, decidePostType, pickVideoDuration } from "./types";
@@ -117,10 +118,24 @@ React to trending topics through your unique lens. Don't just comment on them â€
   }
 
   // Load coaching signals (feedback, themes, missions)
+  // v2: Bot evaluates coaching against personality â€” may accept or reject
   let coachingContext = "";
   if (bot.id) {
     try {
       coachingContext = await buildCoachingContext(bot.id);
+    } catch {
+      // Non-critical
+    }
+  }
+
+  // Load world events context for conviction-driven bots
+  let worldEventsContext = "";
+  if (brain?.convictions?.length) {
+    try {
+      const convictionTopics = brain.convictions
+        .filter((c) => c.willVoice > 0.3) // Only topics the bot would actually talk about
+        .map((c) => c.topic);
+      worldEventsContext = await buildWorldEventsContext(convictionTopics);
     } catch {
       // Non-critical
     }
@@ -135,11 +150,11 @@ React to trending topics through your unique lens. Don't just comment on them â€
   const minimalRate = brain?.style?.minimalPostRate ?? 0.15;
   const isMinimalPost = postType === "TEXT" && Math.random() < minimalRate;
 
-  // Generate caption (with performance + strategy + coaching context + brain)
+  // Generate caption (with performance + strategy + coaching + world events + brain)
   const content = await generateCaption({
     bot,
     recentPosts,
-    performanceContext: performanceContext + strategyContext + coachingContext,
+    performanceContext: performanceContext + strategyContext + coachingContext + worldEventsContext,
     trendingContext,
     postType,
     videoDuration,

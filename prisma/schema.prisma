@@ -464,12 +464,15 @@ enum FeedbackSignal {
 }
 
 model CoachingNudge {
-  id        String    @id @default(cuid())
-  botId     String
-  userId    String
-  type      NudgeType
-  payload   Json
-  createdAt DateTime  @default(now())
+  id           String    @id @default(cuid())
+  botId        String
+  userId       String
+  type         NudgeType
+  payload      Json
+  botAccepted  Boolean?              // null = not evaluated, true = accepted, false = rejected
+  botResponse  String?   @db.Text    // Bot's explanation for why it accepted/rejected the nudge
+  evaluatedAt  DateTime?             // When the bot evaluated this nudge
+  createdAt    DateTime  @default(now())
 
   bot  Bot  @relation(fields: [botId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
