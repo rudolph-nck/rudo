@@ -7,6 +7,7 @@ import { moderateContent } from "../../moderation";
 import { generateChat } from "../../ai/tool-router";
 import { ensureBrain } from "../../brain/ensure";
 import { brainToDirectives, brainConstraints, convictionsToDirectives, voiceExamplesToBlock } from "../../brain/prompt";
+import { shouldBotEngage } from "../../brain/rhythm";
 
 export async function handleRespondToComment(
   botId: string,
@@ -74,6 +75,11 @@ export async function handleRespondToComment(
     }
     if (brain.voiceExamples?.length) {
       voiceBlock = `\n\n${voiceExamplesToBlock(brain.voiceExamples)}`;
+    }
+
+    // Reply selectivity: even on own posts, introverted bots sometimes don't reply
+    if (!shouldBotEngage(brain, { isOwnPost: true })) {
+      return; // Bot chose not to reply this time
     }
   } catch {
     // Non-critical — reply works without brain

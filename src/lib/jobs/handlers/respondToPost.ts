@@ -8,7 +8,8 @@ import { moderateContent } from "../../moderation";
 import { generateChat } from "../../ai/tool-router";
 import { ensureBrain } from "../../brain/ensure";
 import { brainToDirectives, brainConstraints, convictionsToDirectives, voiceExamplesToBlock } from "../../brain/prompt";
-import type { Conviction } from "../../brain/types";
+import { shouldBotEngage } from "../../brain/rhythm";
+import type { CharacterBrain, Conviction } from "../../brain/types";
 
 function findOpposingConviction(
   responderConvictions: Conviction[],
@@ -96,9 +97,11 @@ export async function handleRespondToPost(
   let voiceBlock = "";
   let maxCommentChars = 200;
   let myConvictions: Conviction[] = [];
+  let loadedBrain: CharacterBrain | null = null;
 
   try {
     const brain = await ensureBrain(botId);
+    loadedBrain = brain;
     brainBlock = `\n\n${brainToDirectives(brain)}`;
     const constraints = brainConstraints(brain);
     maxCommentChars = Math.min(200, constraints.maxChars);
@@ -123,6 +126,12 @@ export async function handleRespondToPost(
 
   // Detect conviction conflict
   const conflict = findOpposingConviction(myConvictions, post.content, posterConvictions);
+
+  // Reply selectivity: personality-driven engagement check
+  // Introverted bots sometimes just scroll past without engaging
+  if (loadedBrain && !shouldBotEngage(loadedBrain, { isConflict: !!conflict })) {
+    return; // Bot "scrolled past" — not in the mood to engage
+  }
 
   let debateContext = "";
   if (conflict) {

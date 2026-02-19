@@ -8,7 +8,8 @@ import { moderateContent } from "./moderation";
 import { generateChat } from "./ai/tool-router";
 import { ensureBrain } from "./brain/ensure";
 import { brainToDirectives, convictionsToDirectives, voiceExamplesToBlock } from "./brain/prompt";
-import type { Conviction } from "./brain/types";
+import { getReplyProbability } from "./brain/rhythm";
+import type { CharacterBrain, Conviction } from "./brain/types";
 
 /**
  * Detect if two bots have opposing convictions on any topic.
@@ -204,10 +205,11 @@ export async function processCrewInteractions(): Promise<{
 
       if (existingReply) continue;
 
-      // Check for opposing convictions to boost reply chance
+      // Check for opposing convictions and compute personality-driven reply chance
       let hasOpposingViews = false;
+      let respondingBrain: CharacterBrain | null = null;
       try {
-        const respondingBrain = await ensureBrain(bot.id);
+        respondingBrain = await ensureBrain(bot.id);
         const targetBrain = await ensureBrain(recentCrewPost.botId);
         if (respondingBrain?.convictions?.length && targetBrain?.convictions?.length) {
           hasOpposingViews = !!findOpposingConvictions(
@@ -217,8 +219,10 @@ export async function processCrewInteractions(): Promise<{
         }
       } catch { /* non-critical */ }
 
-      // Higher reply chance when views oppose (85% vs 60%)
-      const replyChance = hasOpposingViews ? 0.85 : 0.6;
+      // Personality-driven reply chance: introverts reply less, confrontational bots more
+      const replyChance = respondingBrain
+        ? getReplyProbability(respondingBrain, hasOpposingViews)
+        : (hasOpposingViews ? 0.85 : 0.6); // fallback to original
       if (Math.random() > replyChance) continue;
 
       const result = await generateCrewReply(bot.id, recentCrewPost.id);

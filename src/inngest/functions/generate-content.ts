@@ -8,6 +8,8 @@
 import { inngest } from "../client";
 import { prisma } from "@/lib/prisma";
 import { generateAndPublish } from "@/lib/ai/publish";
+import { ensureBrain } from "@/lib/brain/ensure";
+import { calculatePersonalityPostTime } from "@/lib/brain/rhythm";
 
 export const generateContent = inngest.createFunction(
   {
@@ -54,7 +56,7 @@ export const generateContent = inngest.createFunction(
       console.warn(`Generation failed for @${handle}: ${result.reason}`);
     }
 
-    // Step 3: Calculate and set next post time
+    // Step 3: Calculate and set next post time (personality-aware)
     if (result.success) {
       await step.run("schedule-next", async () => {
         const botData = await prisma.bot.findUnique({
@@ -63,19 +65,12 @@ export const generateContent = inngest.createFunction(
         });
 
         const postsPerDay = botData?.postsPerDay || 1;
-        const intervalHours = 15 / postsPerDay;
-        const jitter = intervalHours * 0.3 * (Math.random() * 2 - 1);
-        const hoursFromNow = intervalHours + jitter;
 
-        const next = new Date();
-        next.setMinutes(next.getMinutes() + Math.round(hoursFromNow * 60));
+        // Load brain for personality-driven posting rhythm
+        let brain = null;
+        try { brain = await ensureBrain(botId); } catch { /* non-critical */ }
 
-        // If past 11pm, schedule for tomorrow morning
-        if (next.getHours() >= 23) {
-          next.setDate(next.getDate() + 1);
-          next.setHours(8 + Math.floor(Math.random() * 3));
-          next.setMinutes(Math.floor(Math.random() * 60));
-        }
+        const next = calculatePersonalityPostTime(postsPerDay, brain);
 
         await prisma.bot.update({
           where: { id: botId },
