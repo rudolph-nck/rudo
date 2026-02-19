@@ -2,47 +2,100 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import jwt from "jsonwebtoken";
 
 async function testProvider(provider: {
   id: number;
   providerName: string;
   displayName: string;
   apiKey: string;
+  apiSecret: string | null;
   baseUrl: string | null;
 }) {
   const start = Date.now();
 
   try {
-    // Attempt a lightweight request to verify the API key is valid
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
 
-    let url = provider.baseUrl || "";
+    let url = "";
     let headers: Record<string, string> = {};
+    let method = "GET";
 
-    // Provider-specific health check endpoints
     switch (provider.providerName.toLowerCase()) {
-      case "minimax":
-        url = `${url || "https://api.minimax.chat"}/v1/models`;
+      case "openai": {
+        // GET /v1/models — lightweight, just lists available models
+        url = `${provider.baseUrl || "https://api.openai.com"}/v1/models`;
         headers = { Authorization: `Bearer ${provider.apiKey}` };
         break;
-      case "runway":
-      case "runwayml":
-        url = `${url || "https://api.dev.runwayml.com"}/v1/tasks`;
-        headers = { Authorization: `Bearer ${provider.apiKey}` };
-        break;
-      case "elevenlabs":
-        url = `${url || "https://api.elevenlabs.io"}/v1/user`;
-        headers = { "xi-api-key": provider.apiKey };
-        break;
+      }
+
       case "fal":
-      case "fal.ai":
-        url = `${url || "https://queue.fal.run"}/fal-ai/flux/dev`;
+      case "fal.ai": {
+        // fal.ai doesn't have a dedicated health endpoint — hit the queue
+        // status for a known model. Any non-network-error = connected.
+        url = "https://queue.fal.run/fal-ai/flux/dev/status";
         headers = { Authorization: `Key ${provider.apiKey}` };
         break;
-      default:
-        // Generic — just try hitting the base URL
-        if (!url) {
+      }
+
+      case "runway":
+      case "runwayml": {
+        // GET /v1/tasks lists recent tasks — lightweight auth check
+        url = `${provider.baseUrl || "https://api.dev.runwayml.com"}/v1/tasks`;
+        headers = {
+          Authorization: `Bearer ${provider.apiKey}`,
+          "X-Runway-Version": "2024-11-06",
+        };
+        break;
+      }
+
+      case "minimax": {
+        // Query the video generation status endpoint with a dummy task
+        // to verify auth. A 200 or 400 "invalid task_id" both prove the key works.
+        const base = provider.baseUrl || "https://api.minimax.io";
+        url = `${base}/v1/query/video_generation?task_id=test`;
+        headers = { Authorization: `Bearer ${provider.apiKey}` };
+        break;
+      }
+
+      case "kling": {
+        // Kling uses JWT auth signed with access key + secret key
+        if (!provider.apiSecret) {
+          clearTimeout(timeout);
+          return {
+            provider: provider.providerName,
+            displayName: provider.displayName,
+            status: "error" as const,
+            latencyMs: null,
+            error: "Missing KLING_SECRET_KEY (api_secret)",
+          };
+        }
+
+        const now = Math.floor(Date.now() / 1000);
+        const token = jwt.sign(
+          { iss: provider.apiKey, exp: now + 1800, nbf: now - 5 },
+          provider.apiSecret,
+          { algorithm: "HS256", header: { alg: "HS256", typ: "JWT" } }
+        );
+
+        // GET a known endpoint — list tasks returns empty array if no tasks
+        url = `${provider.baseUrl || "https://api.klingai.com"}/v1/videos/text2video`;
+        headers = { Authorization: `Bearer ${token}` };
+        // Kling's list endpoint is GET, so this works
+        break;
+      }
+
+      case "elevenlabs": {
+        // GET /v1/user returns user info + subscription credits
+        url = `${provider.baseUrl || "https://api.elevenlabs.io"}/v1/user`;
+        headers = { "xi-api-key": provider.apiKey };
+        break;
+      }
+
+      default: {
+        if (!provider.baseUrl) {
+          clearTimeout(timeout);
           return {
             provider: provider.providerName,
             displayName: provider.displayName,
@@ -51,35 +104,93 @@ async function testProvider(provider: {
             error: "No base URL configured",
           };
         }
+        url = provider.baseUrl;
         headers = { Authorization: `Bearer ${provider.apiKey}` };
+      }
     }
 
-    const res = await fetch(url, {
-      method: "GET",
-      headers,
-      signal: controller.signal,
-    });
+    const res = await fetch(url, { method, headers, signal: controller.signal });
     clearTimeout(timeout);
 
     const latency = Date.now() - start;
 
-    if (res.ok || res.status === 401) {
-      // 401 still means we connected — key is just wrong
-      const connected = res.ok;
+    // Any response from the server means connectivity is fine.
+    // 2xx = key works. 401/403 = connected but bad key. 4xx/5xx = connected but issue.
+    if (res.ok) {
       await prisma.apiProvider.update({
         where: { id: provider.id },
         data: {
-          connectionStatus: connected ? "CONNECTED" : "ERROR",
-          lastBalanceCheck: connected ? new Date() : undefined,
+          connectionStatus: "CONNECTED",
+          lastBalanceCheck: new Date(),
+          lastSuccessfulCall: new Date(),
         },
       });
 
       return {
         provider: provider.providerName,
         displayName: provider.displayName,
-        status: connected ? ("connected" as const) : ("error" as const),
+        status: "connected" as const,
         latencyMs: latency,
-        error: connected ? undefined : "401 Unauthorized. Check API key.",
+      };
+    }
+
+    if (res.status === 401 || res.status === 403) {
+      await prisma.apiProvider.update({
+        where: { id: provider.id },
+        data: { connectionStatus: "ERROR" },
+      });
+
+      return {
+        provider: provider.providerName,
+        displayName: provider.displayName,
+        status: "error" as const,
+        latencyMs: latency,
+        error: `${res.status} Unauthorized. Check API key.`,
+      };
+    }
+
+    // For Minimax, a 400 on the query endpoint still proves the key works
+    // (it just means "invalid task_id" which is expected)
+    if (
+      provider.providerName.toLowerCase() === "minimax" &&
+      res.status === 400
+    ) {
+      await prisma.apiProvider.update({
+        where: { id: provider.id },
+        data: {
+          connectionStatus: "CONNECTED",
+          lastBalanceCheck: new Date(),
+          lastSuccessfulCall: new Date(),
+        },
+      });
+
+      return {
+        provider: provider.providerName,
+        displayName: provider.displayName,
+        status: "connected" as const,
+        latencyMs: latency,
+      };
+    }
+
+    // fal.ai: 404/405 on the status endpoint still proves connectivity + valid key
+    if (
+      ["fal", "fal.ai"].includes(provider.providerName.toLowerCase()) &&
+      (res.status === 404 || res.status === 405 || res.status === 422)
+    ) {
+      await prisma.apiProvider.update({
+        where: { id: provider.id },
+        data: {
+          connectionStatus: "CONNECTED",
+          lastBalanceCheck: new Date(),
+          lastSuccessfulCall: new Date(),
+        },
+      });
+
+      return {
+        provider: provider.providerName,
+        displayName: provider.displayName,
+        status: "connected" as const,
+        latencyMs: latency,
       };
     }
 
@@ -107,7 +218,10 @@ async function testProvider(provider: {
       displayName: provider.displayName,
       status: "error" as const,
       latencyMs: latency > 10000 ? null : latency,
-      error: err.name === "AbortError" ? "Connection timed out (10s)" : err.message,
+      error:
+        err.name === "AbortError"
+          ? "Connection timed out (10s)"
+          : err.message,
     };
   }
 }
@@ -131,6 +245,7 @@ export async function POST(req: NextRequest) {
           providerName: true,
           displayName: true,
           apiKey: true,
+          apiSecret: true,
           baseUrl: true,
         },
       });
@@ -162,12 +277,16 @@ export async function POST(req: NextRequest) {
         providerName: true,
         displayName: true,
         apiKey: true,
+        apiSecret: true,
         baseUrl: true,
       },
     });
 
     if (!provider) {
-      return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Provider not found" },
+        { status: 404 }
+      );
     }
 
     const result = await testProvider(provider);
