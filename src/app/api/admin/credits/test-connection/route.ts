@@ -4,6 +4,79 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
+type TestResult = {
+  provider: string;
+  displayName: string;
+  status: "connected" | "error";
+  latencyMs: number | null;
+  currentBalance?: number | null;
+  error?: string;
+};
+
+/**
+ * Try to fetch the balance/credits from a provider's API.
+ * Returns the balance in USD or null if the provider doesn't expose it.
+ */
+async function fetchBalance(
+  providerName: string,
+  apiKey: string,
+  apiSecret: string | null,
+  baseUrl: string | null
+): Promise<number | null> {
+  try {
+    switch (providerName.toLowerCase()) {
+      case "elevenlabs": {
+        // GET /v1/user → subscription.character_count / character_limit
+        const res = await fetch(
+          `${baseUrl || "https://api.elevenlabs.io"}/v1/user`,
+          { headers: { "xi-api-key": apiKey } }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          const remaining =
+            (data.subscription?.character_limit || 0) -
+            (data.subscription?.character_count || 0);
+          return remaining;
+        }
+        return null;
+      }
+
+      case "openai": {
+        // OpenAI doesn't expose credits via the regular API key.
+        // Billing is at organization level via a separate dashboard.
+        return null;
+      }
+
+      case "fal":
+      case "fal.ai": {
+        // fal.ai is pay-as-you-go, no balance endpoint via key.
+        return null;
+      }
+
+      case "runway":
+      case "runwayml": {
+        // Runway is credit-based but no REST balance endpoint.
+        return null;
+      }
+
+      case "minimax": {
+        // MiniMax doesn't expose a balance check endpoint.
+        return null;
+      }
+
+      case "kling": {
+        // Kling doesn't expose a balance check endpoint.
+        return null;
+      }
+
+      default:
+        return null;
+    }
+  } catch {
+    return null;
+  }
+}
+
 async function testProvider(provider: {
   id: number;
   providerName: string;
@@ -11,7 +84,8 @@ async function testProvider(provider: {
   apiKey: string;
   apiSecret: string | null;
   baseUrl: string | null;
-}) {
+  currentBalance: any;
+}): Promise<TestResult> {
   const start = Date.now();
 
   try {
@@ -21,6 +95,8 @@ async function testProvider(provider: {
     let url = "";
     let headers: Record<string, string> = {};
     let method = "GET";
+    // Providers where a non-2xx response still proves auth works
+    let acceptStatus: number[] = [];
 
     switch (provider.providerName.toLowerCase()) {
       case "openai": {
@@ -32,30 +108,33 @@ async function testProvider(provider: {
 
       case "fal":
       case "fal.ai": {
-        // fal.ai doesn't have a dedicated health endpoint — hit the queue
-        // status for a known model. Any non-network-error = connected.
+        // Hit the queue status endpoint. 422 = connected (missing request_id).
         url = "https://queue.fal.run/fal-ai/flux/dev/status";
         headers = { Authorization: `Key ${provider.apiKey}` };
+        acceptStatus = [404, 405, 422];
         break;
       }
 
       case "runway":
       case "runwayml": {
-        // GET /v1/tasks lists recent tasks — lightweight auth check
-        url = `${provider.baseUrl || "https://api.dev.runwayml.com"}/v1/tasks`;
+        // Runway SDK only has GET /v1/tasks/{id} — no list endpoint.
+        // Request a fake task ID: 404 proves auth passed, 401 means bad key.
+        url = `${provider.baseUrl || "https://api.dev.runwayml.com"}/v1/tasks/test-connection-ping`;
         headers = {
           Authorization: `Bearer ${provider.apiKey}`,
           "X-Runway-Version": "2024-11-06",
         };
+        acceptStatus = [404, 422];
         break;
       }
 
       case "minimax": {
-        // Query the video generation status endpoint with a dummy task
-        // to verify auth. A 200 or 400 "invalid task_id" both prove the key works.
+        // Query video status with a dummy task_id.
+        // 400 "invalid task_id" proves the key works.
         const base = provider.baseUrl || "https://api.minimax.io";
         url = `${base}/v1/query/video_generation?task_id=test`;
         headers = { Authorization: `Bearer ${provider.apiKey}` };
+        acceptStatus = [400];
         break;
       }
 
@@ -66,7 +145,7 @@ async function testProvider(provider: {
           return {
             provider: provider.providerName,
             displayName: provider.displayName,
-            status: "error" as const,
+            status: "error",
             latencyMs: null,
             error: "Missing KLING_SECRET_KEY (api_secret)",
           };
@@ -79,10 +158,8 @@ async function testProvider(provider: {
           { algorithm: "HS256", header: { alg: "HS256", typ: "JWT" } }
         );
 
-        // GET a known endpoint — list tasks returns empty array if no tasks
         url = `${provider.baseUrl || "https://api.klingai.com"}/v1/videos/text2video`;
         headers = { Authorization: `Bearer ${token}` };
-        // Kling's list endpoint is GET, so this works
         break;
       }
 
@@ -99,7 +176,7 @@ async function testProvider(provider: {
           return {
             provider: provider.providerName,
             displayName: provider.displayName,
-            status: "error" as const,
+            status: "error",
             latencyMs: null,
             error: "No base URL configured",
           };
@@ -113,26 +190,7 @@ async function testProvider(provider: {
     clearTimeout(timeout);
 
     const latency = Date.now() - start;
-
-    // Any response from the server means connectivity is fine.
-    // 2xx = key works. 401/403 = connected but bad key. 4xx/5xx = connected but issue.
-    if (res.ok) {
-      await prisma.apiProvider.update({
-        where: { id: provider.id },
-        data: {
-          connectionStatus: "CONNECTED",
-          lastBalanceCheck: new Date(),
-          lastSuccessfulCall: new Date(),
-        },
-      });
-
-      return {
-        provider: provider.providerName,
-        displayName: provider.displayName,
-        status: "connected" as const,
-        latencyMs: latency,
-      };
-    }
+    const isConnected = res.ok || acceptStatus.includes(res.status);
 
     if (res.status === 401 || res.status === 403) {
       await prisma.apiProvider.update({
@@ -143,54 +201,43 @@ async function testProvider(provider: {
       return {
         provider: provider.providerName,
         displayName: provider.displayName,
-        status: "error" as const,
+        status: "error",
         latencyMs: latency,
         error: `${res.status} Unauthorized. Check API key.`,
       };
     }
 
-    // For Minimax, a 400 on the query endpoint still proves the key works
-    // (it just means "invalid task_id" which is expected)
-    if (
-      provider.providerName.toLowerCase() === "minimax" &&
-      res.status === 400
-    ) {
-      await prisma.apiProvider.update({
-        where: { id: provider.id },
-        data: {
-          connectionStatus: "CONNECTED",
-          lastBalanceCheck: new Date(),
-          lastSuccessfulCall: new Date(),
-        },
-      });
+    if (isConnected) {
+      // Try to fetch balance from the provider
+      const balance = await fetchBalance(
+        provider.providerName,
+        provider.apiKey,
+        provider.apiSecret,
+        provider.baseUrl
+      );
 
-      return {
-        provider: provider.providerName,
-        displayName: provider.displayName,
-        status: "connected" as const,
-        latencyMs: latency,
+      const updateData: any = {
+        connectionStatus: "CONNECTED",
+        lastBalanceCheck: new Date(),
+        lastSuccessfulCall: new Date(),
       };
-    }
 
-    // fal.ai: 404/405 on the status endpoint still proves connectivity + valid key
-    if (
-      ["fal", "fal.ai"].includes(provider.providerName.toLowerCase()) &&
-      (res.status === 404 || res.status === 405 || res.status === 422)
-    ) {
+      // Only update balance if we got a real value from the API
+      if (balance !== null) {
+        updateData.currentBalance = balance;
+      }
+
       await prisma.apiProvider.update({
         where: { id: provider.id },
-        data: {
-          connectionStatus: "CONNECTED",
-          lastBalanceCheck: new Date(),
-          lastSuccessfulCall: new Date(),
-        },
+        data: updateData,
       });
 
       return {
         provider: provider.providerName,
         displayName: provider.displayName,
-        status: "connected" as const,
+        status: "connected",
         latencyMs: latency,
+        currentBalance: balance ?? Number(provider.currentBalance),
       };
     }
 
@@ -202,7 +249,7 @@ async function testProvider(provider: {
     return {
       provider: provider.providerName,
       displayName: provider.displayName,
-      status: "error" as const,
+      status: "error",
       latencyMs: latency,
       error: `HTTP ${res.status}: ${res.statusText}`,
     };
@@ -216,7 +263,7 @@ async function testProvider(provider: {
     return {
       provider: provider.providerName,
       displayName: provider.displayName,
-      status: "error" as const,
+      status: "error",
       latencyMs: latency > 10000 ? null : latency,
       error:
         err.name === "AbortError"
@@ -247,6 +294,7 @@ export async function POST(req: NextRequest) {
           apiKey: true,
           apiSecret: true,
           baseUrl: true,
+          currentBalance: true,
         },
       });
 
@@ -279,6 +327,7 @@ export async function POST(req: NextRequest) {
         apiKey: true,
         apiSecret: true,
         baseUrl: true,
+        currentBalance: true,
       },
     });
 

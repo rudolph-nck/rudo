@@ -18,6 +18,7 @@ type ProviderFormData = {
   baseUrl: string;
   purpose: string;
   capabilities: { video: boolean; image: boolean; audio: boolean; text: boolean };
+  currentBalance: string;
   monthlyBudget: string;
   alertThreshold: string;
   priorityOrder: string;
@@ -31,6 +32,7 @@ const EMPTY_FORM: ProviderFormData = {
   baseUrl: "",
   purpose: "MULTI_PURPOSE",
   capabilities: { video: false, image: false, audio: false, text: false },
+  currentBalance: "",
   monthlyBudget: "",
   alertThreshold: "",
   priorityOrder: "1",
@@ -62,6 +64,7 @@ export function AddProviderModal({
             audio: false,
             text: false,
           },
+          currentBalance: editingProvider.currentBalance?.toString() || "0",
           monthlyBudget: editingProvider.monthlyBudget?.toString() || "",
           alertThreshold: editingProvider.alertThreshold?.toString() || "",
           priorityOrder: editingProvider.priorityOrder?.toString() || "1",
@@ -109,6 +112,7 @@ export function AddProviderModal({
       displayName: form.displayName,
       purpose: form.purpose,
       capabilities: form.capabilities,
+      currentBalance: form.currentBalance ? parseFloat(form.currentBalance) : undefined,
       monthlyBudget: form.monthlyBudget ? parseFloat(form.monthlyBudget) : undefined,
       alertThreshold: form.alertThreshold ? parseFloat(form.alertThreshold) : undefined,
       priorityOrder: parseInt(form.priorityOrder) || 1,
@@ -288,7 +292,20 @@ export function AddProviderModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
+            <div>
+              <label className="block text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-1.5">
+                Current Balance
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={form.currentBalance}
+                onChange={(e) => setForm({ ...form, currentBalance: e.target.value })}
+                placeholder="$0.00"
+                className="w-full px-3 py-2 text-sm font-outfit bg-white border border-rudo-card-border text-rudo-dark-text focus:border-rudo-blue/40 focus:outline-none"
+              />
+            </div>
             <div>
               <label className="block text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-1.5">
                 Monthly Budget
