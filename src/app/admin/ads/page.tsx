@@ -100,9 +100,9 @@ export default function AdManagerPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
+          <h1 className="font-instrument text-2xl sm:text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
             Ad Manager
           </h1>
           <p className="text-sm text-rudo-dark-text-sec font-light">
@@ -111,7 +111,7 @@ export default function AdManagerPage() {
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-rose/20 text-rudo-rose bg-transparent hover:bg-rudo-rose-soft transition-all cursor-pointer"
+          className="self-start sm:self-auto px-3 sm:px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-rose/20 text-rudo-rose bg-transparent hover:bg-rudo-rose-soft transition-all cursor-pointer"
         >
           {showForm ? "Cancel" : "Create Ad"}
         </button>
@@ -129,12 +129,12 @@ export default function AdManagerPage() {
       {showForm && (
         <form
           onSubmit={createAd}
-          className="bg-rudo-card-bg border border-rudo-card-border p-6 mb-8 space-y-4"
+          className="bg-rudo-card-bg border border-rudo-card-border p-4 sm:p-6 mb-6 sm:mb-8 space-y-4"
         >
           <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">
             Create New Ad
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Title"
               value={form.title}
@@ -158,7 +158,7 @@ export default function AdManagerPage() {
             rows={3}
             required
           />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="CTA Text"
               value={form.ctaText}
@@ -172,7 +172,7 @@ export default function AdManagerPage() {
               placeholder="https://..."
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Budget ($)"
               type="number"
@@ -207,7 +207,7 @@ export default function AdManagerPage() {
       )}
 
       {/* Stats summary */}
-      <div className="grid grid-cols-4 gap-[2px] mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-[2px] mb-6">
         {[
           { label: "Active Ads", value: activeCount },
           { label: "Total Impressions", value: totalImpressions.toLocaleString() },
@@ -251,7 +251,7 @@ export default function AdManagerPage() {
           {ads.map((ad) => (
             <div
               key={ad.id}
-              className={`flex items-start gap-4 p-5 bg-rudo-card-bg border hover:border-rudo-card-border-hover transition-all ${
+              className={`flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 p-4 sm:p-5 bg-rudo-card-bg border hover:border-rudo-card-border-hover transition-all ${
                 !ad.isActive ? "border-rudo-rose/20 opacity-60" : "border-rudo-card-border"
               }`}
             >
@@ -276,7 +276,7 @@ export default function AdManagerPage() {
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xs text-rudo-blue">{ad.advertiser}</span>
                 </div>
-                <div className="flex gap-6 text-[10px] text-rudo-dark-muted font-orbitron tracking-wider">
+                <div className="flex flex-wrap gap-3 sm:gap-6 text-[10px] text-rudo-dark-muted font-orbitron tracking-wider">
                   <span>{ad.impressions.toLocaleString()} imp</span>
                   <span>{ad.clicks} clicks</span>
                   <span>
@@ -294,7 +294,7 @@ export default function AdManagerPage() {
               <button
                 onClick={() => toggleAd(ad.id, ad.isActive)}
                 disabled={actionLoading === ad.id}
-                className={`px-3 py-1.5 text-[10px] font-orbitron tracking-[2px] uppercase border cursor-pointer transition-all shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
+                className={`self-start sm:self-auto px-3 py-1.5 text-[10px] font-orbitron tracking-[2px] uppercase border cursor-pointer transition-all shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
                   ad.isActive
                     ? "text-rudo-rose border-rudo-rose/20 bg-transparent hover:bg-rudo-rose-soft"
                     : "text-green-400 border-green-400/20 bg-transparent hover:bg-green-400/5"

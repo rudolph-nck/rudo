@@ -191,9 +191,9 @@ export default function EffectsPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
+          <h1 className="font-instrument text-2xl sm:text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
             Effects Library
           </h1>
           <p className="text-sm text-rudo-dark-text-sec font-light">
@@ -202,7 +202,7 @@ export default function EffectsPage() {
         </div>
         <button
           onClick={() => { setShowCreate(!showCreate); setEditingId(null); }}
-          className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-rose/20 text-rudo-rose bg-transparent hover:bg-rudo-rose-soft transition-all cursor-pointer"
+          className="self-start sm:self-auto px-3 sm:px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-rose/20 text-rudo-rose bg-transparent hover:bg-rudo-rose-soft transition-all cursor-pointer"
         >
           {showCreate ? "Cancel" : "New Effect"}
         </button>
@@ -226,14 +226,14 @@ export default function EffectsPage() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-[2px] mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-[2px] mb-6">
         {[
           { label: "Total Effects", value: effects.length },
           { label: "Active", value: activeCount },
           { label: "Trending", value: trendingCount },
           { label: "Total Usages", value: totalUsages.toLocaleString() },
         ].map((stat) => (
-          <div key={stat.label} className="bg-rudo-card-bg border border-rudo-card-border p-4">
+          <div key={stat.label} className="bg-rudo-card-bg border border-rudo-card-border p-3 sm:p-4">
             <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-1">
               {stat.label}
             </div>
@@ -243,13 +243,13 @@ export default function EffectsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <input
           type="text"
           placeholder="Search by name or ID..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 min-w-[200px] bg-rudo-content-bg border border-rudo-card-border text-rudo-dark-text px-3 py-2 text-sm font-outfit placeholder:text-rudo-dark-muted outline-none focus:border-rudo-card-border-hover transition-colors"
+          className="flex-1 min-w-0 bg-rudo-content-bg border border-rudo-card-border text-rudo-dark-text px-3 py-2 text-sm font-outfit placeholder:text-rudo-dark-muted outline-none focus:border-rudo-card-border-hover transition-colors"
         />
         <select
           value={filterCategory}
@@ -315,44 +315,54 @@ export default function EffectsPage() {
                   onCancel={() => setEditingId(null)}
                 />
               ) : (
-                <div className={`flex items-center gap-4 p-4 bg-rudo-card-bg border hover:border-rudo-card-border-hover transition-all ${
+                <div className={`p-3 sm:p-4 bg-rudo-card-bg border hover:border-rudo-card-border-hover transition-all ${
                   !fx.isActive ? "border-rudo-rose/20 opacity-60" : "border-rudo-card-border"
                 }`}>
-                  {/* Category icon */}
-                  <div className="text-xl w-8 text-center flex-shrink-0" title={fx.category.name}>
-                    {fx.category.icon}
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    {/* Category icon */}
+                    <div className="text-xl w-8 text-center flex-shrink-0" title={fx.category.name}>
+                      {fx.category.icon}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                        <span className="font-orbitron font-bold text-xs tracking-[1px] text-rudo-dark-text">
+                          {fx.name}
+                        </span>
+                        <span className={`text-[9px] font-orbitron tracking-wider px-2 py-0.5 border ${TIER_COLORS[fx.tierMinimum] || ""}`}>
+                          {fx.tierMinimum.toUpperCase()}
+                        </span>
+                        {fx.isTrending && (
+                          <span className="text-[10px] font-orbitron tracking-wider text-orange-400 border border-orange-400/20 px-2 py-0.5">
+                            TRENDING
+                          </span>
+                        )}
+                        {!fx.isActive && (
+                          <span className="text-[10px] font-orbitron tracking-wider text-rudo-rose border border-rudo-rose/20 px-2 py-0.5">
+                            INACTIVE
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs text-rudo-blue truncate">{fx.id}</span>
+                        <span className="text-[10px] font-orbitron tracking-wider text-rudo-dark-muted border border-rudo-card-border px-2 py-0.5">
+                          {fx.generationType.replace(/_/g, " ").toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Stats — hidden on mobile, shown on larger screens */}
+                    <div className="hidden lg:flex gap-6 text-xs text-rudo-dark-muted font-orbitron tracking-wider shrink-0">
+                      <span>{fx.durationOptions.join("/")}s</span>
+                      <span>{fx._count.posts} posts</span>
+                      <span>{fx._count.usages} usages</span>
+                      {fx.variants && <span>{fx.variants.length} var</span>}
+                    </div>
                   </div>
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="font-orbitron font-bold text-xs tracking-[1px] text-rudo-dark-text">
-                        {fx.name}
-                      </span>
-                      <span className={`text-[9px] font-orbitron tracking-wider px-2 py-0.5 border ${TIER_COLORS[fx.tierMinimum] || ""}`}>
-                        {fx.tierMinimum.toUpperCase()}
-                      </span>
-                      {fx.isTrending && (
-                        <span className="text-[10px] font-orbitron tracking-wider text-orange-400 border border-orange-400/20 px-2 py-0.5">
-                          TRENDING
-                        </span>
-                      )}
-                      {!fx.isActive && (
-                        <span className="text-[10px] font-orbitron tracking-wider text-rudo-rose border border-rudo-rose/20 px-2 py-0.5">
-                          INACTIVE
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-rudo-blue">{fx.id}</span>
-                      <span className="text-[10px] font-orbitron tracking-wider text-rudo-dark-muted border border-rudo-card-border px-2 py-0.5">
-                        {fx.generationType.replace(/_/g, " ").toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="flex gap-6 text-xs text-rudo-dark-muted font-orbitron tracking-wider shrink-0">
+                  {/* Stats row on mobile */}
+                  <div className="flex lg:hidden flex-wrap gap-3 text-[10px] text-rudo-dark-muted font-orbitron tracking-wider mt-2 ml-11">
                     <span>{fx.durationOptions.join("/")}s</span>
                     <span>{fx._count.posts} posts</span>
                     <span>{fx._count.usages} usages</span>
@@ -360,7 +370,7 @@ export default function EffectsPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 mt-3 ml-11 sm:ml-0 sm:mt-3 sm:justify-end">
                     <button
                       onClick={() => toggleField(fx.id, "isActive", fx.isActive)}
                       disabled={actionLoading === `${fx.id}-isActive`}
@@ -483,7 +493,7 @@ function CreateEffectForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-rudo-card-bg border border-rudo-card-border p-6 mb-8 space-y-4">
+    <form onSubmit={handleSubmit} className="bg-rudo-card-bg border border-rudo-card-border p-4 sm:p-6 mb-6 sm:mb-8 space-y-4">
       <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">
         Create New Effect
       </div>
@@ -492,12 +502,12 @@ function CreateEffectForm({
         <div className="text-rudo-rose text-sm bg-rudo-rose/10 border border-rudo-rose/20 px-3 py-2">{error}</div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input label="Name" value={form.name} onChange={(e) => handleNameChange(e.target.value)} placeholder="e.g. Sunset Silhouette" required />
         <Input label="ID (auto)" value={form.id} onChange={(e) => set("id", e.target.value)} placeholder="e.g. sunset_silhouette" required />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
           <label className="font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted block mb-2">Category</label>
           <select value={form.categoryId} onChange={(e) => set("categoryId", e.target.value)} className="w-full px-4 py-3 bg-white border border-rudo-card-border text-rudo-dark-text text-sm font-outfit focus:outline-none focus:border-rudo-card-border-hover cursor-pointer transition-colors">
@@ -521,7 +531,7 @@ function CreateEffectForm({
       <Textarea label="Description" value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="What does this effect look like?" rows={2} />
       <Textarea label="Prompt Template (main)" value={form.promptMain} onChange={(e) => set("promptMain", e.target.value)} placeholder="[SUBJECT] walking through a cinematic scene..." rows={3} />
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input label="Duration Options (comma-separated)" value={form.durationOptions} onChange={(e) => set("durationOptions", e.target.value)} placeholder="10,15,30" />
         <Input label="FPS" type="number" value={form.fps} onChange={(e) => set("fps", e.target.value)} />
       </div>
@@ -654,7 +664,7 @@ function EditEffectForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-rudo-card-bg border-2 border-rudo-blue/30 p-6 space-y-4">
+    <form onSubmit={handleSubmit} className="bg-rudo-card-bg border-2 border-rudo-blue/30 p-4 sm:p-6 space-y-4">
       <div className="flex items-center justify-between">
         <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-blue">
           Editing: {effect.id}
@@ -669,7 +679,7 @@ function EditEffectForm({
       )}
 
       {/* Row 1: Name, Category, Tier, GenType */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <Input label="Name" value={form.name} onChange={(e) => set("name", e.target.value)} required />
         <div>
           <label className="font-orbitron text-[10px] tracking-[2px] uppercase text-rudo-dark-muted block mb-2">Category</label>
@@ -701,7 +711,7 @@ function EditEffectForm({
       )}
 
       {/* Row 4: Camera config */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Input label="Camera Movement" value={form.cameraMovement} onChange={(e) => set("cameraMovement", e.target.value)} placeholder="e.g. dolly_in" />
         <Input label="Start Frame" value={form.cameraStart} onChange={(e) => set("cameraStart", e.target.value)} placeholder="e.g. wide establishing" />
         <Input label="End Frame" value={form.cameraEnd} onChange={(e) => set("cameraEnd", e.target.value)} placeholder="e.g. close-up face" />
@@ -714,7 +724,7 @@ function EditEffectForm({
       </div>
 
       {/* Row 6: Duration, FPS, Cost */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Input label="Durations (csv)" value={form.durationOptions} onChange={(e) => set("durationOptions", e.target.value)} placeholder="10,15,30" />
         <Input label="FPS" type="number" value={form.fps} onChange={(e) => set("fps", e.target.value)} />
         <Input label="Cost Min ($)" type="number" value={form.costEstimateMin} onChange={(e) => set("costEstimateMin", e.target.value)} placeholder="0.05" />

@@ -121,8 +121,8 @@ export default function ModerationQueuePage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="font-instrument text-2xl sm:text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
           Moderation Queue
         </h1>
         <p className="text-sm text-rudo-dark-text-sec font-light">
@@ -212,7 +212,7 @@ export default function ModerationQueuePage() {
           {posts.map((post) => (
             <div
               key={post.id}
-              className="bg-rudo-card-bg border border-rudo-card-border p-6 flex items-start gap-4"
+              className="bg-rudo-card-bg border border-rudo-card-border p-4 sm:p-6 flex flex-col sm:flex-row items-start gap-3 sm:gap-4"
             >
               {/* Checkbox */}
               <input
@@ -279,7 +279,7 @@ export default function ModerationQueuePage() {
               </div>
 
               {/* Actions */}
-              <div className="flex flex-col gap-2 flex-shrink-0">
+              <div className="flex sm:flex-col gap-2 flex-shrink-0 self-end sm:self-start">
                 <button
                   onClick={() => handleAction(post.id, "approve")}
                   disabled={actionLoading === post.id}

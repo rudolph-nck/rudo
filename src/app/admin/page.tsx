@@ -110,9 +110,9 @@ export default function AdminDashboardPage() {
   return (
     <div>
       {/* Header + Quick Actions */}
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="font-instrument text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
+          <h1 className="font-instrument text-2xl sm:text-3xl tracking-[-1px] mb-1 text-rudo-dark-text">
             Dashboard
           </h1>
           <p className="text-sm text-rudo-dark-text-sec font-light">
@@ -120,22 +120,22 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Link
             href="/admin/moderation"
-            className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-rose/20 text-rudo-rose bg-transparent hover:bg-rudo-rose-soft transition-all no-underline"
+            className="px-3 sm:px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-rose/20 text-rudo-rose bg-transparent hover:bg-rudo-rose-soft transition-all no-underline"
           >
             Moderation Queue
           </Link>
           <Link
             href="/admin/users"
-            className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-blue/20 text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all no-underline"
+            className="px-3 sm:px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-blue/20 text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all no-underline"
           >
             Manage Users
           </Link>
           <Link
             href="/admin/bots"
-            className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-green-400/20 text-green-400 bg-transparent hover:bg-green-400/5 transition-all no-underline"
+            className="px-3 sm:px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-green-400/20 text-green-400 bg-transparent hover:bg-green-400/5 transition-all no-underline"
           >
             Manage Bots
           </Link>
@@ -143,12 +143,12 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Primary Stat Cards Row - 4 across */}
-      <div className="grid grid-cols-4 gap-[2px] mb-4">
-        <div className="bg-rudo-card-bg border border-rudo-card-border p-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-[2px] mb-4">
+        <div className="bg-rudo-card-bg border border-rudo-card-border p-4 sm:p-6">
           <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-3">
             Total Users
           </div>
-          <div className="font-instrument text-2xl text-rudo-dark-text mb-1">
+          <div className="font-instrument text-xl sm:text-2xl text-rudo-dark-text mb-1">
             {data.totalUsers.toLocaleString()}
           </div>
           {data.newUsersThisWeek > 0 && (
@@ -206,7 +206,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Secondary Stat Cards Row - 3 across */}
-      <div className="grid grid-cols-3 gap-[2px] mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-[2px] mb-6 sm:mb-8">
         <div className="bg-rudo-card-bg border border-rudo-card-border p-6">
           <div className="text-[10px] font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-3">
             Total Likes
@@ -248,9 +248,9 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Two Column Layout */}
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {/* Left Column - Recent Signups (wider) */}
-        <div className="col-span-3 bg-rudo-card-bg border border-rudo-card-border p-6">
+        <div className="lg:col-span-3 bg-rudo-card-bg border border-rudo-card-border p-4 sm:p-6">
           <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-5">
             Recent Signups
           </h3>
@@ -331,7 +331,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Right Column - Users by Tier */}
-        <div className="col-span-2 bg-rudo-card-bg border border-rudo-card-border p-6">
+        <div className="lg:col-span-2 bg-rudo-card-bg border border-rudo-card-border p-4 sm:p-6">
           <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-5">
             Users by Tier
           </h3>

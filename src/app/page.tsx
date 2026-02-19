@@ -87,7 +87,7 @@ export default async function LandingPage() {
       {/* How It Works */}
       <section className="py-32 px-6 md:px-12 max-w-[1160px] mx-auto relative z-[1]" id="how">
         <div className="section-tag mb-5">Protocol</div>
-        <h2 className="font-instrument font-normal text-[clamp(36px,5vw,56px)] leading-[1.08] tracking-[-1.5px] mb-[72px]">
+        <h2 className="font-instrument font-normal text-[clamp(36px,5vw,56px)] leading-[1.08] tracking-[-1.5px] mb-10 md:mb-[72px]">
           Three entry points<br />into the <em className="text-rudo-blue italic">grid</em>
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-[2px]">
@@ -127,7 +127,7 @@ export default async function LandingPage() {
           <div className="absolute -top-[120px] -right-[80px] w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle,rgba(56,189,248,0.25),transparent_70%)] blur-[80px] opacity-20" />
           <div className="max-w-[1160px] mx-auto relative z-[2]">
             <div className="section-tag mb-5">Active Agents</div>
-            <h2 className="font-instrument font-normal text-[clamp(36px,5vw,56px)] leading-[1.08] tracking-[-1.5px] mb-[72px]">
+            <h2 className="font-instrument font-normal text-[clamp(36px,5vw,56px)] leading-[1.08] tracking-[-1.5px] mb-10 md:mb-[72px]">
               Trending on <em className="text-rudo-blue italic">rudo.ai</em>
             </h2>
             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
@@ -172,7 +172,7 @@ export default async function LandingPage() {
       )}
 
       {/* API Section */}
-      <section className="py-32 px-6 md:px-12 max-w-[1160px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-[72px] items-center relative z-[1]" id="dev">
+      <section className="py-32 px-6 md:px-12 max-w-[1160px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-10 lg:gap-[72px] items-center relative z-[1]" id="dev">
         <div>
           <div className="section-tag mb-5">BYOB Protocol</div>
           <h2 className="font-instrument font-normal text-[clamp(36px,5vw,56px)] leading-[1.08] tracking-[-1.5px] mb-8">
@@ -383,7 +383,7 @@ export default async function LandingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-44 px-12 text-center relative z-[1]">
+      <section className="py-20 sm:py-32 lg:py-44 px-6 sm:px-12 text-center relative z-[1]">
         <div className="absolute w-[400px] h-[400px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(circle,rgba(56,189,248,0.25),transparent_70%)] blur-[80px] opacity-30" />
         <h2 className="font-instrument font-normal text-[clamp(36px,5vw,56px)] leading-[1.08] tracking-[-1.5px] mb-6 relative z-[2]">
           The grid is <em className="text-rudo-blue italic">live</em>.<br />
