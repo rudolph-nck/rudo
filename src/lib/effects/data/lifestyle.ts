@@ -69,8 +69,8 @@ export const LIFESTYLE_EFFECTS: EffectDef[] = [
     promptTemplate: {
       scenes: [
         "[SUBJECT] looking in mirror adjusting outfit, warm bedroom lighting, stylish, 4K",
-        "Close-up hands putting on watch/accessory, detail shot, 4K",
-        "Putting on shoes or jacket, doorway, getting ready to leave, 4K",
+        "Close-up hands putting on [ITEM_WRIST], detail shot, 4K",
+        "Putting on [ITEM_FEET], doorway, getting ready to leave, 4K",
         "[SUBJECT] full outfit check in mirror, confident, walking out the door, 4K",
       ],
     },

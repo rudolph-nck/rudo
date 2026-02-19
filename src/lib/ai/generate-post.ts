@@ -1,8 +1,9 @@
-// Post generation orchestrator — v2
+// Post generation orchestrator — v3
 // Coordinates caption, tags, and media generation into a single post.
 // Creates a ToolContext from the owner's tier and passes it through all modules.
 // Phase 5: Loads BotStrategy to bias format decisions and inject strategy hints.
 // v2: Minimal posts, voice calibration, scenario seeds, conviction-aware.
+// v3: Multi-scene compositing, start/end frame effects, personality-driven items.
 
 import { prisma } from "../prisma";
 import { buildPerformanceContext } from "../learning-loop";
@@ -19,7 +20,14 @@ import { generateVideoContent } from "./video";
 import { calibrateAndPersist } from "./voice-calibration";
 import type { ToolContext } from "./tool-router";
 import { selectEffect } from "../effects/selector";
-import { injectSubject } from "../effects/prompt-builder";
+import {
+  injectSubject,
+  resolveItems,
+  personalizeItems,
+  composeMultiScenePrompt,
+  buildStartFramePrompt,
+  buildStartEndVideoPrompt,
+} from "../effects/prompt-builder";
 import type { SelectedEffect } from "../effects/types";
 
 /**
@@ -193,24 +201,48 @@ React to trending topics through your unique lens. Don't just comment on them �
       }
     }
 
-    // Build the video prompt — use effect prompt if available, else generic
+    // Build the video prompt — route by effect generation type
     let effectPrompt: string | undefined;
+    let startFrameImagePrompt: string | undefined;
+
     if (selectedEffect) {
       const subjectDescription = bot.characterRefDescription
         || `${bot.name}, ${bot.aesthetic || "modern digital"} style ${bot.niche || "content"} creator`;
-      effectPrompt = injectSubject(selectedEffect.builtPrompt, subjectDescription);
+
+      // Resolve personality-driven items for accessory scenes
+      const items = resolveItems(bot.niche || undefined, bot.aesthetic || undefined, bot.personality || undefined);
+      const genType = selectedEffect.effect.generationType;
+
+      if (genType === "multi_scene") {
+        // Compose all scenes into one rich cinematic narrative prompt
+        const composed = composeMultiScenePrompt(selectedEffect.effect, selectedEffect.variant, items);
+        effectPrompt = injectSubject(composed, subjectDescription);
+        console.log(`[Video] @${bot.handle}: multi_scene effect "${selectedEffect.effect.name}" — ${(selectedEffect.effect.promptTemplate as any).scenes?.length || 0} scenes composed`);
+      } else if (genType === "start_end_frame") {
+        // Generate a start frame image, then use image-to-video for transition
+        const sfPrompt = buildStartFramePrompt(selectedEffect.effect, selectedEffect.variant, items);
+        startFrameImagePrompt = injectSubject(sfPrompt, subjectDescription);
+        const videoTransitionPrompt = buildStartEndVideoPrompt(selectedEffect.effect, selectedEffect.variant, items);
+        effectPrompt = injectSubject(videoTransitionPrompt, subjectDescription);
+        console.log(`[Video] @${bot.handle}: start_end_frame effect "${selectedEffect.effect.name}" — generating start frame + transition`);
+      } else {
+        // Standard single-prompt effect (text_to_video, image_to_video)
+        let prompt = selectedEffect.builtPrompt;
+        prompt = personalizeItems(prompt, items);
+        effectPrompt = injectSubject(prompt, subjectDescription);
+      }
     }
 
     // Try video generation with one retry on failure
     let video = await generateVideoContent(
       bot, content, selectedEffect?.duration || videoDuration,
-      caps.premiumModel, ctx, effectPrompt,
+      caps.premiumModel, ctx, effectPrompt, startFrameImagePrompt,
     );
     if (!video.videoUrl) {
       console.warn(`Video gen failed for @${bot.handle}, retrying once...`);
       video = await generateVideoContent(
         bot, content, selectedEffect?.duration || videoDuration,
-        caps.premiumModel, ctx, effectPrompt,
+        caps.premiumModel, ctx, effectPrompt, startFrameImagePrompt,
       );
     }
     thumbnailUrl = video.thumbnailUrl || undefined;
