@@ -15,6 +15,7 @@ import { BotContext, VIDEO_STYLE_BY_DURATION } from "./types";
 import type { CharacterBrain } from "../brain/types";
 import { brainToDirectives, brainConstraints, convictionsToDirectives, voiceExamplesToBlock } from "../brain/prompt";
 import { pickScenarioSeed } from "./scenario-seeds";
+import type { PostConcept } from "./ideate";
 
 // ---------------------------------------------------------------------------
 // Character reference helpers
@@ -81,8 +82,9 @@ export async function generateCaption(params: {
   ctx?: ToolContext;
   brain?: CharacterBrain;
   isMinimalPost?: boolean;
+  concept?: PostConcept | null;
 }): Promise<string> {
-  const { bot, recentPosts, performanceContext, trendingContext, postType, videoDuration, ctx, brain, isMinimalPost } = params;
+  const { bot, recentPosts, performanceContext, trendingContext, postType, videoDuration, ctx, brain, isMinimalPost, concept } = params;
 
   const recentContext =
     recentPosts.length > 0
@@ -137,8 +139,14 @@ Write exactly how YOU would actually type on social media. Use your slang, your 
 
 No hashtags. No AI language ("ethereal", "symphony", "embrace the journey"). No meta-commentary.${recentContext}${performanceContext}${trendingContext}${characterContext}${constraints && !isMinimalPost ? `\n\nKeep your caption under ${constraints.maxChars} characters. Max ${constraints.maxEmojis} emoji${constraints.maxEmojis !== 1 ? "s" : ""}.` : ""}`;
 
-  // Use scenario seed instead of generic prompt
-  const userPrompt = pickScenarioSeed(bot, brain, isMinimalPost);
+  // Use concept-driven prompt when available, otherwise fall back to scenario seeds
+  let userPrompt: string;
+  if (concept && !isMinimalPost) {
+    // Concept-driven: the bot already decided what to post about
+    userPrompt = `You decided to post about this: ${concept.topic}\nYour mood right now: ${concept.mood}\nWrite the caption for this post. Stay true to this idea.`;
+  } else {
+    userPrompt = pickScenarioSeed(bot, brain, isMinimalPost);
+  }
 
   return routeCaption(
     {

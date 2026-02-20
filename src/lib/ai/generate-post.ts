@@ -1,9 +1,11 @@
-// Post generation orchestrator — v3
-// Coordinates caption, tags, and media generation into a single post.
+// Post generation orchestrator — v4
+// Coordinates concept ideation, caption, tags, and media generation into a single post.
 // Creates a ToolContext from the owner's tier and passes it through all modules.
 // Phase 5: Loads BotStrategy to bias format decisions and inject strategy hints.
 // v2: Minimal posts, voice calibration, scenario seeds, conviction-aware.
 // v3: Multi-scene compositing, start/end frame effects, personality-driven items.
+// v4: Concept-first ideation — bot decides what to post BEFORE generating
+//     caption or visuals, ensuring text+visual coherence.
 
 import { prisma } from "../prisma";
 import { buildPerformanceContext } from "../learning-loop";
@@ -20,6 +22,7 @@ import { generateVideoContent } from "./video";
 import { calibrateAndPersist } from "./voice-calibration";
 import type { ToolContext } from "./tool-router";
 import { selectEffect } from "../effects/selector";
+import { ideatePost, type PostConcept } from "./ideate";
 import {
   injectSubject,
   resolveItems,
@@ -158,7 +161,30 @@ React to trending topics through your unique lens. Don't just comment on them �
   const minimalRate = brain?.style?.minimalPostRate ?? 0.15;
   const isMinimalPost = postType === "TEXT" && Math.random() < minimalRate;
 
-  // Generate caption (with performance + strategy + coaching + world events + brain)
+  // Concept ideation — for IMAGE/VIDEO posts, the bot first decides what it
+  // wants to post about. This concept drives BOTH caption and visual selection,
+  // ensuring the text and visual are coherent (no more runway walks on IT posts).
+  // TEXT posts skip ideation — they use scenario seeds and don't need visual coherence.
+  let concept: PostConcept | null = null;
+  if (postType !== "TEXT") {
+    try {
+      concept = await ideatePost({
+        bot,
+        postType: postType as "IMAGE" | "VIDEO",
+        recentPosts,
+        brain,
+        performanceContext: performanceContext + strategyContext + coachingContext + worldEventsContext,
+        trendingContext,
+        ctx,
+      });
+      console.log(`[Ideation] @${bot.handle}: "${concept.topic}" (mood: ${concept.mood}, visual: ${concept.visualCategory})`);
+    } catch (err: any) {
+      console.warn(`Ideation failed for @${bot.handle}, falling back to scenario seeds:`, err.message);
+      // Non-critical — caption falls back to scenario seeds, effect falls back to caption regex
+    }
+  }
+
+  // Generate caption (with performance + strategy + coaching + world events + brain + concept)
   const content = await generateCaption({
     bot,
     recentPosts,
@@ -169,6 +195,7 @@ React to trending topics through your unique lens. Don't just comment on them �
     ctx,
     brain,
     isMinimalPost,
+    concept,
   });
 
   // Generate tags and media in parallel
@@ -191,6 +218,7 @@ React to trending topics through your unique lens. Don't just comment on them �
           ownerTier,
           bot.personality || "",
           videoDuration,
+          concept,
         );
         if (selectedEffect) {
           console.log(`Effect selected for @${bot.handle}: "${selectedEffect.effect.name}" (${selectedEffect.effect.id})`);

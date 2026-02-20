@@ -13,6 +13,7 @@ import { prisma } from "@/lib/prisma";
 import type { EffectRecord, EffectVariant, SelectedEffect } from "./types";
 import { tierMeetsMinimum, mapSubscriptionTier } from "./types";
 import { buildPrompt } from "./prompt-builder";
+import type { PostConcept } from "@/lib/ai/ideate";
 
 // ---------------------------------------------------------------------------
 // Mood keywords → effect music mood mapping
@@ -94,6 +95,7 @@ export async function selectEffect(
   ownerTier: string,
   personality: string = "",
   videoDuration?: number,
+  concept?: PostConcept | null,
 ): Promise<SelectedEffect | null> {
   const effectTier = mapSubscriptionTier(ownerTier);
 
@@ -116,8 +118,8 @@ export async function selectEffect(
   });
   const recentEffectIds = new Set(recentUsages.map((u) => u.effectId));
 
-  // 3. Analyze caption mood
-  const moods = analyzeMood(caption);
+  // 3. Analyze mood — prefer concept mood if available, fall back to caption regex
+  const moods = concept?.mood ? [concept.mood] : analyzeMood(caption);
   const moodMoods = new Set(moods.flatMap((m) => MOOD_MAP[m] || []));
 
   // 4. Score each effect
@@ -126,7 +128,21 @@ export async function selectEffect(
   for (const effect of available) {
     let score = 1.0;
 
-    // Mood match: +0.4 if the effect's music mood matches caption sentiment
+    // Concept category match: +0.8 if the effect's category matches the concept's
+    // visual direction. This is the strongest signal — the bot decided what visual
+    // to show, so effects in that category should be heavily preferred.
+    if (concept?.visualCategory && effect.categoryId === concept.visualCategory) {
+      score += 0.8;
+    }
+
+    // Concept category mismatch penalty: -0.3 if concept specified a category
+    // and this effect is in a completely different one. Prevents runway walks
+    // showing up for tech posts, etc.
+    if (concept?.visualCategory && effect.categoryId !== concept.visualCategory) {
+      score -= 0.3;
+    }
+
+    // Mood match: +0.4 if the effect's music mood matches caption/concept sentiment
     const musicMood = (effect.musicConfig as any)?.mood || "";
     if (moodMoods.has(musicMood)) score += 0.4;
 
@@ -136,8 +152,9 @@ export async function selectEffect(
     // Trending bonus: +0.1
     if (effect.isTrending) score += 0.1;
 
-    // Personality fit: 0.5-1.0 multiplier
-    score *= personalityFit(personality, effect.categoryId);
+    // Personality fit: 0.5-1.0 multiplier (less dominant when concept is present)
+    const pFit = personalityFit(personality, effect.categoryId);
+    score *= concept ? Math.max(0.7, pFit) : pFit;
 
     // Duration fit: slight preference for effects that support the requested duration
     if (videoDuration) {
