@@ -50,10 +50,10 @@ export const FASHION_EFFECTS: EffectDef[] = [
     promptTemplate: {
       scenes: [
         "[SUBJECT] full body establishing shot, stylish outfit, editorial lighting, 4K",
-        "Snap zoom extreme close-up watch/wrist accessory, luxury detail, shallow DOF, 4K",
-        "Snap zoom extreme close-up shoes, detail shot, editorial, 4K",
-        "Snap zoom extreme close-up necklace/chain, light catching, 4K",
-        "Snap zoom extreme close-up sunglasses/face, reflection visible, 4K",
+        "Snap zoom extreme close-up [ITEM_WRIST], luxury detail, shallow DOF, 4K",
+        "Snap zoom extreme close-up [ITEM_FEET], detail shot, editorial, 4K",
+        "Snap zoom extreme close-up [ITEM_NECK], light catching, 4K",
+        "Snap zoom extreme close-up [ITEM_FACE], reflection visible, 4K",
         "[SUBJECT] back to full body, confident pose, editorial, 4K",
       ],
     },

@@ -1,8 +1,9 @@
 // Deterministic Character Brain compiler
 // Maps existing persona fields to numeric traits — NO LLM calls.
 // Uses seeded jitter by bot.id for variety across bots with similar personas.
+// v2: Extracts convictions from personality/personaData, computes minimalPostRate.
 
-import type { CharacterBrain, SentenceLength } from "./types";
+import type { CharacterBrain, Conviction, SentenceLength } from "./types";
 import { BRAIN_VERSION, DEFAULT_SAFEGUARDS } from "./types";
 import { validateBrain } from "./schema";
 
@@ -186,6 +187,160 @@ function deriveSentenceLength(verbosity: number): SentenceLength {
 }
 
 // ---------------------------------------------------------------------------
+// Conviction extraction from persona text
+// ---------------------------------------------------------------------------
+
+// Maps keyword patterns to conviction topics and stances.
+// These are deterministic — parsed from the text the creator wrote.
+const CONVICTION_PATTERNS: { keywords: string[]; topic: string; stanceFn: (text: string) => string }[] = [
+  {
+    keywords: ["trump", "maga", "republican", "conservative", "right-wing", "gop"],
+    topic: "politics",
+    stanceFn: (t) =>
+      has(t, "anti-trump", "against trump", "hate trump", "anti-maga")
+        ? "anti-Trump, progressive-leaning"
+        : "pro-Trump, conservative-leaning",
+  },
+  {
+    keywords: ["liberal", "progressive", "democrat", "left-wing", "socialist"],
+    topic: "politics",
+    stanceFn: () => "progressive, left-leaning",
+  },
+  {
+    keywords: ["vegan", "plant-based", "animal rights"],
+    topic: "animal welfare",
+    stanceFn: () => "vegan, strong animal rights advocate",
+  },
+  {
+    keywords: ["climate", "environment", "green", "renewable", "sustainability"],
+    topic: "environment",
+    stanceFn: (t) =>
+      has(t, "skeptic", "hoax", "overblown")
+        ? "climate skeptic"
+        : "pro-environment, climate advocate",
+  },
+  {
+    keywords: ["crypto", "bitcoin", "web3", "blockchain", "defi"],
+    topic: "technology",
+    stanceFn: (t) =>
+      has(t, "skeptic", "scam", "against")
+        ? "crypto skeptic"
+        : "pro-crypto, blockchain enthusiast",
+  },
+  {
+    keywords: ["faith", "christian", "religious", "spiritual", "god", "church", "pray"],
+    topic: "spirituality",
+    stanceFn: () => "faith-driven, spiritual values guide decisions",
+  },
+  {
+    keywords: ["atheist", "secular", "science-based", "rational"],
+    topic: "spirituality",
+    stanceFn: () => "secular, science-first worldview",
+  },
+  {
+    keywords: ["feminist", "women's rights", "gender equality", "patriarchy"],
+    topic: "gender",
+    stanceFn: () => "feminist, advocates for gender equality",
+  },
+  {
+    keywords: ["gun rights", "2nd amendment", "second amendment", "pro-gun"],
+    topic: "gun policy",
+    stanceFn: () => "pro-gun rights, second amendment advocate",
+  },
+  {
+    keywords: ["gun control", "anti-gun", "gun reform"],
+    topic: "gun policy",
+    stanceFn: () => "pro-gun control, safety advocate",
+  },
+];
+
+/**
+ * Extract convictions from personality text, personaData, and content style.
+ * Deterministic — no LLM calls. Scans for keyword patterns.
+ */
+function extractConvictions(
+  personality: string,
+  personaData: string | null,
+  contentStyle: string,
+  assertiveness: number,
+  botId: string,
+): Conviction[] {
+  const combined = `${personality} ${contentStyle} ${personaData || ""}`.toLowerCase();
+  const convictions: Conviction[] = [];
+  const seenTopics = new Set<string>();
+
+  for (const pattern of CONVICTION_PATTERNS) {
+    if (seenTopics.has(pattern.topic)) continue;
+    if (pattern.keywords.some((kw) => combined.includes(kw))) {
+      seenTopics.add(pattern.topic);
+      const stance = pattern.stanceFn(combined);
+      convictions.push({
+        topic: pattern.topic,
+        stance,
+        intensity: jittered(botId, `conviction:${pattern.topic}:intensity`, 0.7),
+        // willVoice is modulated by assertiveness — shy bots have opinions but don't voice them
+        willVoice: jittered(botId, `conviction:${pattern.topic}:willVoice`,
+          assertiveness > 0.6 ? 0.8 : assertiveness > 0.4 ? 0.5 : 0.2
+        ),
+      });
+    }
+  }
+
+  // Also check personaData JSON for explicit convictions field
+  if (personaData) {
+    try {
+      const parsed = JSON.parse(personaData);
+      if (parsed.convictions && Array.isArray(parsed.convictions)) {
+        for (const c of parsed.convictions) {
+          if (c.topic && c.stance && !seenTopics.has(c.topic)) {
+            seenTopics.add(c.topic);
+            convictions.push({
+              topic: c.topic,
+              stance: c.stance,
+              intensity: clamp(c.intensity ?? 0.7),
+              willVoice: clamp(c.willVoice ?? (assertiveness > 0.5 ? 0.7 : 0.3)),
+            });
+          }
+        }
+      }
+    } catch { /* not JSON or no convictions field */ }
+  }
+
+  return convictions;
+}
+
+// ---------------------------------------------------------------------------
+// Minimal post rate computation
+// ---------------------------------------------------------------------------
+
+/**
+ * Derive how often the bot should make minimal posts (single emoji, one word, etc).
+ * Based on formality (informal = more minimal), verbosity (terse = more minimal),
+ * and content style hints.
+ */
+function deriveMinimalPostRate(
+  formality: number,
+  verbosity: number,
+  contentStyle: string,
+  botId: string,
+): number {
+  const c = contentStyle.toLowerCase();
+
+  // Some content styles strongly suggest minimal posting
+  if (has(c, "minimal", "vibe", "aesthetic", "low-effort", "shitpost")) {
+    return jittered(botId, "minimalPostRate", 0.4);
+  }
+  if (has(c, "essay", "detailed", "long-form", "verbose", "analytical")) {
+    return jittered(botId, "minimalPostRate", 0.05);
+  }
+
+  // Otherwise derive from formality and verbosity
+  // Casual + terse bots are more likely to post "vibes" or "☕️"
+  const base = clamp((1 - formality) * 0.3 + (1 - verbosity) * 0.2);
+  return jittered(botId, "minimalPostRate", base);
+}
+
+// ---------------------------------------------------------------------------
 // Main compiler
 // ---------------------------------------------------------------------------
 
@@ -244,6 +399,24 @@ export function compileCharacterBrain(bot: CompilerInput): CharacterBrain {
   // Visual mood from aesthetic
   const visualMood = aesthetic ? aestheticToVisualMood(aesthetic, bot.id) : jittered(bot.id, "visualMood", 0.5);
 
+  // Minimal post rate
+  const minimalPostRate = deriveMinimalPostRate(
+    toneTraits.formality, verbosity, contentStyle, bot.id,
+  );
+
+  // Extract convictions from persona text
+  const convictions = extractConvictions(
+    personality, bot.personaData, contentStyle,
+    personalityTraits.assertiveness, bot.id,
+  );
+
+  // Adjust safeguards based on convictions
+  const safeguards = { ...DEFAULT_SAFEGUARDS };
+  const hasPolConviction = convictions.some((c) => c.topic === "politics");
+  if (hasPolConviction) {
+    safeguards.politics = "allow"; // Bot was explicitly given political views
+  }
+
   const brain: CharacterBrain = {
     version: BRAIN_VERSION,
     traits: {
@@ -254,13 +427,16 @@ export function compileCharacterBrain(bot: CompilerInput): CharacterBrain {
     style: {
       ...styleTraits,
       sentenceLength: deriveSentenceLength(verbosity),
+      minimalPostRate,
     },
     contentBias: {
       pillars,
       pacing,
       visualMood,
     },
-    safeguards: { ...DEFAULT_SAFEGUARDS },
+    convictions,
+    voiceExamples: [], // Populated later by voice calibration (async LLM call)
+    safeguards,
   };
 
   // Validate + clamp + normalize

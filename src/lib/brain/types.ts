@@ -1,10 +1,18 @@
-// Character Brain v1 — stable numeric personality traits
+// Character Brain v2 — stable numeric personality traits + convictions + voice
 // These traits influence captions, replies, and agent decisions.
 // All trait values are 0..1 (clamped). Pillar weights are normalized to sum=1.
 
-export const BRAIN_VERSION = 1;
+export const BRAIN_VERSION = 2;
 
 export type SentenceLength = "short" | "medium" | "long";
+
+// Conviction: a belief, value, or stance the bot holds and will defend
+export interface Conviction {
+  topic: string;            // e.g. "politics", "technology", "environment"
+  stance: string;           // e.g. "strongly pro-renewable energy", "pro-Trump conservative"
+  intensity: number;        // 0 = mild preference, 1 = die-on-this-hill
+  willVoice: number;        // 0 = keeps it to self, 1 = brings it up unprompted
+}
 
 export interface CharacterBrain {
   version: number;
@@ -32,6 +40,7 @@ export interface CharacterBrain {
     metaphorRate: number;     // 0 = literal, 1 = figurative/poetic
     ctaRate: number;          // 0 = never asks for engagement, 1 = frequent CTAs
     sentenceLength: SentenceLength;
+    minimalPostRate: number;  // 0 = never posts minimal (emoji/single word), 1 = frequently minimal
   };
 
   contentBias: {
@@ -39,6 +48,14 @@ export interface CharacterBrain {
     pacing: number;           // 0 = slow/contemplative, 1 = fast/energetic
     visualMood: number;       // 0 = dark/moody, 1 = bright/vibrant
   };
+
+  // Convictions: beliefs, values, stances the bot holds
+  // These drive debate, drama, and authentic personality expression
+  convictions: Conviction[];
+
+  // Voice examples: calibrated sample posts that define the bot's writing style
+  // Used as few-shot examples in generation prompts
+  voiceExamples: string[];
 
   safeguards: {
     sexual: "block" | "cautious" | "allow";

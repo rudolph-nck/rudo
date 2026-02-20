@@ -1,12 +1,15 @@
-// Post generation orchestrator
+// Post generation orchestrator — v3
 // Coordinates caption, tags, and media generation into a single post.
 // Creates a ToolContext from the owner's tier and passes it through all modules.
 // Phase 5: Loads BotStrategy to bias format decisions and inject strategy hints.
+// v2: Minimal posts, voice calibration, scenario seeds, conviction-aware.
+// v3: Multi-scene compositing, start/end frame effects, personality-driven items.
 
 import { prisma } from "../prisma";
 import { buildPerformanceContext } from "../learning-loop";
 import { loadBotStrategy, buildStrategyContext } from "../strategy";
 import { getTrendingTopics } from "../trending";
+import { buildWorldEventsContext } from "../world-events";
 import { ensureBrain } from "../brain/ensure";
 import { buildCoachingContext } from "../coaching";
 import { BotContext, TIER_CAPABILITIES, decidePostType, pickVideoDuration } from "./types";
@@ -14,14 +17,23 @@ import { generateCaption } from "./caption";
 import { generateTags } from "./tags";
 import { generateImage } from "./image";
 import { generateVideoContent } from "./video";
+import { calibrateAndPersist } from "./voice-calibration";
 import type { ToolContext } from "./tool-router";
 import { selectEffect } from "../effects/selector";
-import { injectSubject } from "../effects/prompt-builder";
+import {
+  injectSubject,
+  resolveItems,
+  personalizeItems,
+  composeMultiScenePrompt,
+  buildStartFramePrompt,
+  buildStartEndVideoPrompt,
+} from "../effects/prompt-builder";
 import type { SelectedEffect } from "../effects/types";
 
 /**
  * Generate a post for a bot.
  * Posts can be TEXT (tweet-style), IMAGE, or VIDEO.
+ * Minimal posts (emoji, single word) are rolled based on brain.style.minimalPostRate.
  * When media generation fails, the post gracefully degrades to TEXT
  * so bots always publish something rather than silently skipping.
  */
@@ -96,12 +108,25 @@ React to trending topics through your unique lens. Don't just comment on them �
   if (bot.id) {
     try {
       brain = await ensureBrain(bot.id);
+
+      // If brain has no voice examples, run voice calibration (one-time async)
+      if (brain && (!brain.voiceExamples || brain.voiceExamples.length === 0)) {
+        try {
+          const examples = await calibrateAndPersist(bot.id, bot, brain, ctx);
+          if (examples.length > 0) {
+            brain = { ...brain, voiceExamples: examples };
+          }
+        } catch {
+          // Non-critical — works without voice examples
+        }
+      }
     } catch {
       // Non-critical — generation works without brain
     }
   }
 
   // Load coaching signals (feedback, themes, missions)
+  // v2: Bot evaluates coaching against personality — may accept or reject
   let coachingContext = "";
   if (bot.id) {
     try {
@@ -111,20 +136,39 @@ React to trending topics through your unique lens. Don't just comment on them �
     }
   }
 
+  // Load world events context for conviction-driven bots
+  let worldEventsContext = "";
+  if (brain?.convictions?.length) {
+    try {
+      const convictionTopics = brain.convictions
+        .filter((c) => c.willVoice > 0.3) // Only topics the bot would actually talk about
+        .map((c) => c.topic);
+      worldEventsContext = await buildWorldEventsContext(convictionTopics);
+    } catch {
+      // Non-critical
+    }
+  }
+
   // Decide post type and video duration (biased by learned format weights)
   let postType = decidePostType(ownerTier, formatWeights);
   const videoDuration = postType === "VIDEO" ? pickVideoDuration(ownerTier, formatWeights) : undefined;
 
-  // Generate caption (with performance + strategy + coaching context + brain)
+  // Roll for minimal post — based on brain.style.minimalPostRate
+  // Minimal posts are TEXT-only (emoji, single word, tiny fragment)
+  const minimalRate = brain?.style?.minimalPostRate ?? 0.15;
+  const isMinimalPost = postType === "TEXT" && Math.random() < minimalRate;
+
+  // Generate caption (with performance + strategy + coaching + world events + brain)
   const content = await generateCaption({
     bot,
     recentPosts,
-    performanceContext: performanceContext + strategyContext + coachingContext,
+    performanceContext: performanceContext + strategyContext + coachingContext + worldEventsContext,
     trendingContext,
     postType,
     videoDuration,
     ctx,
     brain,
+    isMinimalPost,
   });
 
   // Generate tags and media in parallel
@@ -134,7 +178,7 @@ React to trending topics through your unique lens. Don't just comment on them �
   let thumbnailUrl: string | undefined;
   let selectedEffect: SelectedEffect | null = null;
 
-  // TEXT posts skip media generation entirely
+  // TEXT posts (including minimal) skip media generation entirely
   if (postType === "TEXT") {
     // No media needed — just caption + tags
   } else if (postType === "VIDEO" && videoDuration) {
@@ -157,24 +201,48 @@ React to trending topics through your unique lens. Don't just comment on them �
       }
     }
 
-    // Build the video prompt — use effect prompt if available, else generic
+    // Build the video prompt — route by effect generation type
     let effectPrompt: string | undefined;
+    let startFrameImagePrompt: string | undefined;
+
     if (selectedEffect) {
       const subjectDescription = bot.characterRefDescription
         || `${bot.name}, ${bot.aesthetic || "modern digital"} style ${bot.niche || "content"} creator`;
-      effectPrompt = injectSubject(selectedEffect.builtPrompt, subjectDescription);
+
+      // Resolve personality-driven items for accessory scenes
+      const items = resolveItems(bot.niche || undefined, bot.aesthetic || undefined, bot.personality || undefined);
+      const genType = selectedEffect.effect.generationType;
+
+      if (genType === "multi_scene") {
+        // Compose all scenes into one rich cinematic narrative prompt
+        const composed = composeMultiScenePrompt(selectedEffect.effect, selectedEffect.variant, items);
+        effectPrompt = injectSubject(composed, subjectDescription);
+        console.log(`[Video] @${bot.handle}: multi_scene effect "${selectedEffect.effect.name}" — ${(selectedEffect.effect.promptTemplate as any).scenes?.length || 0} scenes composed`);
+      } else if (genType === "start_end_frame") {
+        // Generate a start frame image, then use image-to-video for transition
+        const sfPrompt = buildStartFramePrompt(selectedEffect.effect, selectedEffect.variant, items);
+        startFrameImagePrompt = injectSubject(sfPrompt, subjectDescription);
+        const videoTransitionPrompt = buildStartEndVideoPrompt(selectedEffect.effect, selectedEffect.variant, items);
+        effectPrompt = injectSubject(videoTransitionPrompt, subjectDescription);
+        console.log(`[Video] @${bot.handle}: start_end_frame effect "${selectedEffect.effect.name}" — generating start frame + transition`);
+      } else {
+        // Standard single-prompt effect (text_to_video, image_to_video)
+        let prompt = selectedEffect.builtPrompt;
+        prompt = personalizeItems(prompt, items);
+        effectPrompt = injectSubject(prompt, subjectDescription);
+      }
     }
 
     // Try video generation with one retry on failure
     let video = await generateVideoContent(
       bot, content, selectedEffect?.duration || videoDuration,
-      caps.premiumModel, ctx, effectPrompt,
+      caps.premiumModel, ctx, effectPrompt, startFrameImagePrompt,
     );
     if (!video.videoUrl) {
       console.warn(`Video gen failed for @${bot.handle}, retrying once...`);
       video = await generateVideoContent(
         bot, content, selectedEffect?.duration || videoDuration,
-        caps.premiumModel, ctx, effectPrompt,
+        caps.premiumModel, ctx, effectPrompt, startFrameImagePrompt,
       );
     }
     thumbnailUrl = video.thumbnailUrl || undefined;

@@ -12,9 +12,9 @@ export const ACTION_EFFECTS: EffectDef[] = [
     promptTemplate: {
       scenes: [
         "[SUBJECT] falling through dramatic clouds slow motion, clothing rippling, volumetric god rays, 4K",
-        "Extreme close-up shoes in freefall, clouds background, slow-mo, shallow DOF, 4K",
-        "Extreme close-up watch/wrist accessory in freefall, clouds rushing, luxury detail, 4K",
-        "Extreme close-up necklace/chain floating freefall, sunlight glint, 4K",
+        "Extreme close-up [ITEM_FEET] in freefall, clouds background, slow-mo, shallow DOF, 4K",
+        "Extreme close-up [ITEM_WRIST] in freefall, clouds rushing, luxury detail, 4K",
+        "Extreme close-up [ITEM_NECK] floating in freefall, sunlight glint, 4K",
         "Wide [SUBJECT] freefall, camera pulls back, vast cloudscape, epic scale, 4K",
       ],
     },

@@ -1,12 +1,13 @@
-// Job handler: RESPOND_TO_COMMENT
+// Job handler: RESPOND_TO_COMMENT — v2
 // A bot replies to a comment on one of its posts.
-// Uses the tool router for AI generation and the bot's personality for in-character responses.
+// v2: Conviction-aware replies with voice examples.
 
 import { prisma } from "../../prisma";
 import { moderateContent } from "../../moderation";
 import { generateChat } from "../../ai/tool-router";
 import { ensureBrain } from "../../brain/ensure";
-import { brainToDirectives, brainConstraints } from "../../brain/prompt";
+import { brainToDirectives, brainConstraints, convictionsToDirectives, voiceExamplesToBlock } from "../../brain/prompt";
+import { shouldBotEngage } from "../../brain/rhythm";
 
 export async function handleRespondToComment(
   botId: string,
@@ -60,13 +61,26 @@ export async function handleRespondToComment(
 
   // Load brain for personality-aligned replies
   let brainBlock = "";
+  let convictionBlock = "";
+  let voiceBlock = "";
   let maxReplyChars = 200;
   try {
     const brain = await ensureBrain(botId);
     brainBlock = `\n\n${brainToDirectives(brain)}`;
     const constraints = brainConstraints(brain);
-    // Replies are shorter than posts — cap at 200 but brain can reduce further
     maxReplyChars = Math.min(200, constraints.maxChars);
+
+    if (brain.convictions?.length) {
+      convictionBlock = `\n\n${convictionsToDirectives(brain.convictions)}`;
+    }
+    if (brain.voiceExamples?.length) {
+      voiceBlock = `\n\n${voiceExamplesToBlock(brain.voiceExamples)}`;
+    }
+
+    // Reply selectivity: even on own posts, introverted bots sometimes don't reply
+    if (!shouldBotEngage(brain, { isOwnPost: true })) {
+      return; // Bot chose not to reply this time
+    }
   } catch {
     // Non-critical — reply works without brain
   }
@@ -74,7 +88,7 @@ export async function handleRespondToComment(
   const systemPrompt = `You are ${bot.name} (@${bot.handle}).
 ${bot.personality ? `Personality: ${bot.personality}` : ""}
 ${bot.tone ? `Tone: ${bot.tone}` : ""}
-${bot.niche ? `Niche: ${bot.niche}` : ""}
+${bot.niche ? `Niche: ${bot.niche}` : ""}${voiceBlock}${convictionBlock}${brainBlock}
 
 Someone commented on your post.
 
@@ -88,16 +102,17 @@ Write a short reply (1-2 sentences, max ${maxReplyChars} chars) that:
 - Stays in YOUR character
 - Responds genuinely to the comment
 - Feels natural and human — not robotic or overly grateful
+- If they're challenging your view, stand your ground or engage thoughtfully
 - No hashtags, no meta-commentary, no "thanks for your comment"
 
-Just write the reply directly.${brainBlock}`;
+Just write the reply directly.`;
 
   const content = await generateChat(
     {
       systemPrompt,
       userPrompt: "Write your reply.",
       maxTokens: 150,
-      temperature: 0.9,
+      temperature: 0.85,
     },
     { tier: bot.owner.tier, trustLevel: 1 },
   );

@@ -9,6 +9,13 @@ const unit = z.number().min(0).max(1).transform((v) => Math.max(0, Math.min(1, v
 const safeguardPolicy = z.enum(["block", "cautious", "allow"]);
 const sentenceLength = z.enum(["short", "medium", "long"]);
 
+const convictionSchema = z.object({
+  topic: z.string().min(1).max(100),
+  stance: z.string().min(1).max(300),
+  intensity: unit,
+  willVoice: unit,
+});
+
 const brainSchema = z.object({
   version: z.number().int().positive(),
 
@@ -35,6 +42,7 @@ const brainSchema = z.object({
     metaphorRate: unit,
     ctaRate: unit,
     sentenceLength,
+    minimalPostRate: unit.optional().default(0.15),
   }),
 
   contentBias: z.object({
@@ -42,6 +50,10 @@ const brainSchema = z.object({
     pacing: unit,
     visualMood: unit,
   }),
+
+  convictions: z.array(convictionSchema).max(10).optional().default([]),
+
+  voiceExamples: z.array(z.string().max(500)).max(12).optional().default([]),
 
   safeguards: z.object({
     sexual: safeguardPolicy,
@@ -71,8 +83,19 @@ function normalizePillars(pillars: Record<string, number>): Record<string, numbe
 /**
  * Validate and clamp a brain object.
  * Returns a fully valid CharacterBrain or throws on structural errors.
+ * Handles v1 brains by providing defaults for new v2 fields.
  */
 export function validateBrain(brain: unknown): CharacterBrain {
+  // Handle v1 brains missing new v2 fields
+  const raw = brain as Record<string, any>;
+  if (raw && typeof raw === "object") {
+    if (!raw.convictions) raw.convictions = [];
+    if (!raw.voiceExamples) raw.voiceExamples = [];
+    if (raw.style && raw.style.minimalPostRate === undefined) {
+      raw.style.minimalPostRate = 0.15;
+    }
+  }
+
   const parsed = brainSchema.parse(brain);
 
   // Normalize pillar weights
