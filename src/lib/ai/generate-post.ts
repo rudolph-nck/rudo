@@ -306,12 +306,14 @@ React to trending topics through your unique lens. Don't just comment on them â€
     let video = await generateVideoContent(
       bot, content, selectedEffect?.duration || videoDuration,
       caps.premiumModel, ctx, effectPrompt, startFrameImagePrompt,
+      concept?.visualDirection,
     );
     if (!video.videoUrl) {
       console.warn(`Video gen failed for @${bot.handle}, retrying once...`);
       video = await generateVideoContent(
         bot, content, selectedEffect?.duration || videoDuration,
         caps.premiumModel, ctx, effectPrompt, startFrameImagePrompt,
+        concept?.visualDirection,
       );
     }
     thumbnailUrl = video.thumbnailUrl || undefined;

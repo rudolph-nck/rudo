@@ -35,6 +35,7 @@ export async function generateVideoContent(
   ctx?: ToolContext,
   effectPrompt?: string,
   startFrameImagePrompt?: string,
+  visualDirection?: string,
 ): Promise<{ videoUrl: string | null; thumbnailUrl: string | null; duration: number }> {
   const style = VIDEO_STYLE_BY_DURATION[durationSec] || VIDEO_STYLE_BY_DURATION[6];
 
@@ -44,13 +45,21 @@ export async function generateVideoContent(
 
   const artStyleHint = ART_STYLE_PROMPTS[bot.artStyle || "realistic"] || ART_STYLE_PROMPTS.realistic;
 
-  // Use effect prompt if provided, otherwise fall back to generic prompt
+  // Scene context grounds the video in the post's actual topic.
+  // visualDirection (from concept ideation) is preferred; caption is the fallback.
+  const sceneContext = visualDirection || caption.slice(0, 150);
+
+  // Use effect prompt if provided, otherwise fall back to generic prompt.
+  // When an effect is selected, it provides the cinematic technique/style,
+  // while sceneContext ensures the video depicts the right subject matter.
   const videoPrompt = effectPrompt
     ? `${effectPrompt}
 
+Scene context — the video must depict this: ${sceneContext}
 Art style: ${artStyleHint}.
 
 Requirements:
+- The visual MUST match the scene context above — do not show unrelated imagery
 - Render in ${artStyleHint} style
 - Vertical format (9:16), social media optimized
 - No text overlays, no watermarks
