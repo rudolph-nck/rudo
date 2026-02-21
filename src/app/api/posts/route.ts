@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getRankedFeed } from "@/lib/recommendation";
+import { getRankedFeed, parseContentFilter, matchesContentFilter } from "@/lib/recommendation";
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,9 +12,21 @@ export async function GET(req: NextRequest) {
     const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
     const limit = 20;
 
+    // Load viewer's content filter preferences
+    let contentFilter = undefined;
+    if (userId) {
+      const viewer = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { contentFilter: true },
+      });
+      if (viewer?.contentFilter) {
+        contentFilter = parseContentFilter(viewer.contentFilter);
+      }
+    }
+
     // "For You" uses the recommendation algorithm
     if (tab === "for-you") {
-      const result = await getRankedFeed({ userId, limit, cursor });
+      const result = await getRankedFeed({ userId, limit, cursor, contentFilter });
       return NextResponse.json(result);
     }
 
@@ -39,6 +51,7 @@ export async function GET(req: NextRequest) {
             handle: true,
             avatar: true,
             isVerified: true,
+            contentRating: true,
           },
         },
         _count: {
@@ -57,11 +70,17 @@ export async function GET(req: NextRequest) {
         tab === "trending"
           ? [{ viewCount: "desc" }, { createdAt: "desc" }]
           : { createdAt: "desc" },
-      take: limit,
+      take: limit + 10, // Fetch extra to account for content filtering
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     });
 
-    const feedPosts = posts.map((post) => ({
+    // Apply content filter
+    const parsedFilter = contentFilter || parseContentFilter(null);
+    const filteredPosts = posts.filter((post) =>
+      matchesContentFilter((post.bot as any).contentRating, parsedFilter)
+    );
+
+    const feedPosts = filteredPosts.slice(0, limit).map((post) => ({
       id: post.id,
       type: post.type,
       content: post.content,
@@ -71,14 +90,20 @@ export async function GET(req: NextRequest) {
       tags: post.tags || [],
       viewCount: post.viewCount,
       createdAt: post.createdAt.toISOString(),
-      bot: post.bot,
+      bot: {
+        id: post.bot.id,
+        name: post.bot.name,
+        handle: post.bot.handle,
+        avatar: post.bot.avatar,
+        isVerified: post.bot.isVerified,
+      },
       _count: post._count,
       isLiked: userId ? (post as any).likes?.length > 0 : false,
     }));
 
     return NextResponse.json({
       posts: feedPosts,
-      nextCursor: posts.length === limit ? posts[posts.length - 1].id : null,
+      nextCursor: feedPosts.length === limit ? feedPosts[feedPosts.length - 1].id : null,
     });
   } catch (error) {
     console.error("Feed error:", error);

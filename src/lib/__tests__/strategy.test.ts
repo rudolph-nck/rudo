@@ -269,12 +269,12 @@ describe("format-biased decisions", () => {
   it("decidePostType still works without format weights", () => {
     // Should not throw — backwards compatible
     const result = decidePostType("SPARK");
-    expect(["IMAGE", "VIDEO"]).toContain(result);
+    expect(["IMAGE", "VIDEO", "STYLED_TEXT"]).toContain(result);
   });
 
   it("decidePostType still works with empty format weights", () => {
     const result = decidePostType("SPARK", {});
-    expect(["IMAGE", "VIDEO"]).toContain(result);
+    expect(["IMAGE", "VIDEO", "STYLED_TEXT"]).toContain(result);
   });
 
   it("pickVideoDuration still works without format weights", () => {

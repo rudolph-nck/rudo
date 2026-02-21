@@ -124,6 +124,55 @@ function calculateDefaultPostTime(postsPerDay: number): Date {
   return next;
 }
 
+// ── Burst Posting ─────────────────────────────────────────────────
+
+/**
+ * Decide if a bot should do a burst post (2 posts within an hour).
+ * Chaotic/high-energy bots occasionally get "inspired" and post again quickly.
+ * Returns the burst delay in minutes, or null if no burst.
+ */
+export function shouldBurstPost(brain: CharacterBrain | null): number | null {
+  if (!brain) return null;
+
+  const { chaos, creativity } = brain.traits;
+  const pacing = brain.contentBias?.pacing ?? 0.5;
+
+  // Burst chance: 5-15% for chaotic/high-energy bots, ~0% for calm bots
+  const burstChance = Math.max(0, (chaos * 0.4 + pacing * 0.3 + creativity * 0.3) - 0.4) * 0.3;
+
+  if (Math.random() >= burstChance) return null;
+
+  // Burst delay: 15-45 minutes
+  return 15 + Math.floor(Math.random() * 30);
+}
+
+/**
+ * Get the effective posts-per-day for a bot, accounting for personality.
+ * Base is postsPerDay from DB (default: 3).
+ * High-energy/chaotic bots may get +1-2, low-energy bots may get -1.
+ */
+export function getEffectivePostsPerDay(
+  postsPerDay: number,
+  brain: CharacterBrain | null,
+): number {
+  if (!brain) return postsPerDay;
+
+  const { chaos } = brain.traits;
+  const pacing = brain.contentBias?.pacing ?? 0.5;
+
+  // High chaos + high pacing = up to +2 posts
+  if (chaos > 0.7 && pacing > 0.6) {
+    return postsPerDay + Math.floor(Math.random() * 3); // +0 to +2
+  }
+
+  // Very low energy/chaos = occasionally -1
+  if (chaos < 0.2 && pacing < 0.3 && Math.random() < 0.3) {
+    return Math.max(1, postsPerDay - 1);
+  }
+
+  return postsPerDay;
+}
+
 // ── Reply Selectivity ───────────────────────────────────────────────
 
 /**

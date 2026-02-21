@@ -16,6 +16,22 @@ export type BotContext = {
   characterRefDescription: string | null;
   botType: string | null;
   personaData: string | null;
+  // Character consistency system
+  characterSeedUrl: string | null;
+  characterFaceUrl: string | null;
+  characterRefPack: string[] | unknown | null;
+  // Voice & talking head
+  voiceId: string | null;
+  // Content rating
+  contentRating: string | null;
+  // Effect profile
+  effectProfile: BotEffectProfile | unknown | null;
+};
+
+export type BotEffectProfile = {
+  signatureEffectId: string;
+  rotationEffectIds: string[];
+  explorationRate: number;
 };
 
 // ---------------------------------------------------------------------------
@@ -43,24 +59,27 @@ export type BotContext = {
 // ---------------------------------------------------------------------------
 
 export const TIER_CAPABILITIES: Record<string, {
-  textChance: number;
+  styledTextChance: number;
   videoChance: number;
   videoDurationMix: { duration: number; weight: number }[];
   premiumModel: boolean;
   trendAware: boolean;
   canUploadCharacterRef: boolean;
+  /** @deprecated Use styledTextChance instead. Kept for backward compat. */
+  textChance: number;
 }> = {
   SPARK: {
-    textChance: 0.25,
-    videoChance: 0.30,               // remaining 45% = IMAGE
+    styledTextChance: 0.10,          // 10% styled text
+    videoChance: 0.40,               // 40% video, remaining 50% = IMAGE
     videoDurationMix: [{ duration: 6, weight: 1.0 }],
     premiumModel: false,
     trendAware: false,
     canUploadCharacterRef: false,
+    textChance: 0.10,
   },
   PULSE: {
-    textChance: 0.20,
-    videoChance: 0.40,               // remaining 40% = IMAGE
+    styledTextChance: 0.08,          // 8% styled text
+    videoChance: 0.50,               // 50% video, remaining 42% = IMAGE
     videoDurationMix: [
       { duration: 6, weight: 0.65 },   // 65% quick hooks (cost-efficient)
       { duration: 15, weight: 0.35 },   // 35% short-form (signature format)
@@ -68,10 +87,11 @@ export const TIER_CAPABILITIES: Record<string, {
     premiumModel: false,
     trendAware: true,
     canUploadCharacterRef: false,
+    textChance: 0.08,
   },
   GRID: {
-    textChance: 0.15,
-    videoChance: 0.50,               // remaining 35% = IMAGE
+    styledTextChance: 0.05,          // 5% styled text
+    videoChance: 0.60,               // 60% video, remaining 35% = IMAGE
     videoDurationMix: [
       { duration: 6, weight: 0.45 },    // 45% quick hooks (cost-efficient)
       { duration: 15, weight: 0.47 },   // 47% short-form
@@ -80,10 +100,11 @@ export const TIER_CAPABILITIES: Record<string, {
     premiumModel: true,
     trendAware: true,
     canUploadCharacterRef: true,
+    textChance: 0.05,
   },
   ADMIN: {
-    textChance: 0.15,
-    videoChance: 0.50,
+    styledTextChance: 0.05,
+    videoChance: 0.60,
     videoDurationMix: [
       { duration: 6, weight: 0.45 },
       { duration: 15, weight: 0.47 },
@@ -92,6 +113,7 @@ export const TIER_CAPABILITIES: Record<string, {
     premiumModel: true,
     trendAware: true,
     canUploadCharacterRef: true,
+    textChance: 0.05,
   },
 };
 
@@ -125,21 +147,21 @@ export const ART_STYLE_PROMPTS: Record<string, string> = {
 // ---------------------------------------------------------------------------
 
 /**
- * Decide TEXT, IMAGE, or VIDEO.
- * TEXT posts are Twitter-style captions — cheap, reliable, and add variety.
+ * Decide STYLED_TEXT, IMAGE, or VIDEO.
+ * No plain TEXT posts — STYLED_TEXT = text overlaid on generated background image.
  * If formatWeights from BotStrategy are provided, they bias the decision.
  */
 export function decidePostType(
   tier: string,
   formatWeights?: Record<string, number>
-): "TEXT" | "IMAGE" | "VIDEO" {
+): "STYLED_TEXT" | "IMAGE" | "VIDEO" {
   const caps = TIER_CAPABILITIES[tier] || TIER_CAPABILITIES.SPARK;
-  let textChance = caps.textChance;
+  let styledTextChance = caps.styledTextChance;
   let videoChance = caps.videoChance;
 
   // Apply learned format bias (max ±0.15 swing to keep it bounded).
   if (formatWeights && Object.keys(formatWeights).length > 0) {
-    const textWeight = formatWeights["TEXT"] || 0;
+    const styledTextWeight = formatWeights["STYLED_TEXT"] || formatWeights["TEXT"] || 0;
     const imageWeight = formatWeights["IMAGE"] || 0;
     const videoWeight = Math.max(
       formatWeights["VIDEO_6"] || 0,
@@ -147,16 +169,16 @@ export function decidePostType(
       formatWeights["VIDEO_30"] || 0
     );
 
-    const textBias = Math.max(-0.10, Math.min(0.10, (textWeight - imageWeight) * 0.2));
-    textChance = Math.max(0.05, Math.min(0.40, textChance + textBias));
+    const styledTextBias = Math.max(-0.05, Math.min(0.05, (styledTextWeight - imageWeight) * 0.1));
+    styledTextChance = Math.max(0.02, Math.min(0.20, styledTextChance + styledTextBias));
 
     const videoBias = Math.max(-0.15, Math.min(0.15, (videoWeight - imageWeight) * 0.2));
     videoChance = Math.max(0, Math.min(0.75, videoChance + videoBias));
   }
 
   const roll = Math.random();
-  if (roll < textChance) return "TEXT";
-  if (roll < textChance + videoChance) return "VIDEO";
+  if (roll < styledTextChance) return "STYLED_TEXT";
+  if (roll < styledTextChance + videoChance) return "VIDEO";
   return "IMAGE";
 }
 
