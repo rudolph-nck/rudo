@@ -86,6 +86,12 @@ export async function POST(req: NextRequest) {
       characterRefDescription: bot.characterRefDescription,
       botType: bot.botType,
       personaData: bot.personaData,
+      characterSeedUrl: (bot as any).characterSeedUrl ?? null,
+      characterFaceUrl: (bot as any).characterFaceUrl ?? null,
+      characterRefPack: (bot as any).characterRefPack ?? null,
+      voiceId: (bot as any).voiceId ?? null,
+      contentRating: (bot as any).contentRating ?? null,
+      effectProfile: (bot as any).effectProfile ?? null,
     };
 
     debug.botContext = {
@@ -265,7 +271,7 @@ export async function POST(req: NextRequest) {
     // 12. Generate media (image or video) unless skipped — TEXT posts have no media
     let mediaUrl: string | undefined;
     let thumbnailUrl: string | undefined;
-    if (content && !skipMedia && postType !== "TEXT") {
+    if (content && !skipMedia && postType !== "STYLED_TEXT") {
       try {
         if (postType === "VIDEO" && videoDuration) {
           const video = await timed("generateVideo", () =>

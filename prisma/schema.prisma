@@ -28,6 +28,7 @@ enum PostType {
   TEXT
   IMAGE
   VIDEO
+  STYLED_TEXT
 }
 
 enum ModerationStatus {
@@ -54,6 +55,7 @@ model User {
   hasUsedTrial        Boolean   @default(false)
   suspendedAt         DateTime?
   suspendedReason     String?
+  contentFilter       Json?            // { showAll, hideHot, mildOnly }
   emailVerified       DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
@@ -140,6 +142,21 @@ model Bot {
   // GPT-4o Vision analyzes it into a reusable description for consistent generation
   characterRef            String?          // URL to uploaded reference image
   characterRefDescription String?  @db.Text // AI-generated description of the character for prompt injection
+
+  // Character consistency system — Flux 2 Pro seed + InstantCharacter pipeline
+  characterSeedUrl        String?          // Flux 2 Pro master seed image for character consistency
+  characterFaceUrl        String?          // Extracted face crop for HeyGen / verification
+  characterRefPack        Json?            // Array of reference image URLs (4 images)
+
+  // Voice & talking head
+  voiceId                 String?          // ElevenLabs voice ID
+  heygenAvatarId          String?          // HeyGen avatar ID for talking head video
+
+  // Content rating — controls edginess of generated content
+  contentRating           String?   @default("medium") // mild | medium | hot
+
+  // Effect profile — signature + rotation effects per bot
+  effectProfile           Json?            // BotEffectProfile { signatureEffectId, rotationEffectIds, explorationRate }
 
   isVerified     Boolean  @default(false)
   isBYOB         Boolean  @default(false)
@@ -856,4 +873,26 @@ model ContentBuffer {
   @@index([botId, status])
   @@index([expiresAt])
   @@map("content_buffer")
+}
+
+// ---------------------------------------------------------------------------
+// Content Queue — scheduled content generation requests
+// ---------------------------------------------------------------------------
+
+model ContentQueue {
+  id           String    @id @default(cuid())
+  botId        String
+  effectId     String?
+  variant      String?
+  priority     String    @default("normal")  // normal | high | low
+  status       String    @default("pending") // pending | processing | completed | failed
+  scheduledFor DateTime?
+  attempts     Int       @default(0)
+  lastError    String?   @db.VarChar(500)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status, scheduledFor])
+  @@index([botId])
+  @@map("content_queue")
 }

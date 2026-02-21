@@ -35,9 +35,10 @@ import type { SelectedEffect } from "../effects/types";
 
 /**
  * Generate a post for a bot.
- * Posts can be TEXT (tweet-style), IMAGE, or VIDEO.
+ * Posts can be STYLED_TEXT, IMAGE, or VIDEO (no plain TEXT).
+ * STYLED_TEXT = text overlaid on a generated background image.
  * Minimal posts (emoji, single word) are rolled based on brain.style.minimalPostRate.
- * When media generation fails, the post gracefully degrades to TEXT
+ * When media generation fails, the post gracefully degrades to STYLED_TEXT
  * so bots always publish something rather than silently skipping.
  */
 export async function generatePost(
@@ -45,7 +46,7 @@ export async function generatePost(
   ownerTier: string = "SPARK"
 ): Promise<{
   content: string;
-  type: "TEXT" | "IMAGE" | "VIDEO";
+  type: "TEXT" | "IMAGE" | "VIDEO" | "STYLED_TEXT";
   mediaUrl?: string;
   thumbnailUrl?: string;
   videoDuration?: number;
@@ -157,16 +158,14 @@ React to trending topics through your unique lens. Don't just comment on them �
   const videoDuration = postType === "VIDEO" ? pickVideoDuration(ownerTier, formatWeights) : undefined;
 
   // Roll for minimal post — based on brain.style.minimalPostRate
-  // Minimal posts are TEXT-only (emoji, single word, tiny fragment)
+  // Minimal posts are STYLED_TEXT (emoji, single word, tiny fragment on background image)
   const minimalRate = brain?.style?.minimalPostRate ?? 0.15;
-  const isMinimalPost = postType === "TEXT" && Math.random() < minimalRate;
+  const isMinimalPost = postType === "STYLED_TEXT" && Math.random() < minimalRate;
 
-  // Concept ideation — for IMAGE/VIDEO posts, the bot first decides what it
-  // wants to post about. This concept drives BOTH caption and visual selection,
-  // ensuring the text and visual are coherent (no more runway walks on IT posts).
-  // TEXT posts skip ideation — they use scenario seeds and don't need visual coherence.
+  // Concept ideation — the bot first decides what it wants to post about.
+  // This concept drives BOTH caption and visual selection, ensuring text+visual coherence.
   let concept: PostConcept | null = null;
-  if (postType !== "TEXT") {
+  if (true) { // All post types now use ideation (STYLED_TEXT, IMAGE, VIDEO)
     try {
       concept = await ideatePost({
         bot,
@@ -205,9 +204,21 @@ React to trending topics through your unique lens. Don't just comment on them �
   let thumbnailUrl: string | undefined;
   let selectedEffect: SelectedEffect | null = null;
 
-  // TEXT posts (including minimal) skip media generation entirely
-  if (postType === "TEXT") {
-    // No media needed — just caption + tags
+  // STYLED_TEXT posts generate a mood-based background image to overlay text on
+  if (postType === "STYLED_TEXT") {
+    try {
+      const moodPrompt = `Abstract background, atmospheric, ${
+        brain?.contentBias?.visualMood != null && brain.contentBias.visualMood < 0.3
+          ? "dark moody tones, deep shadows"
+          : brain?.contentBias?.visualMood != null && brain.contentBias.visualMood > 0.7
+          ? "bright vibrant tones, light airy"
+          : "balanced warm tones, subtle gradient"
+      }, no text, no people, cinematic, minimalist, ${bot.aesthetic || "modern"}`;
+      const bgUrl = await generateImage(bot, moodPrompt, ctx);
+      if (bgUrl) mediaUrl = bgUrl;
+    } catch {
+      // Non-critical — STYLED_TEXT can still work without background
+    }
   } else if (postType === "VIDEO" && videoDuration) {
     // Select an effect for this video post
     if (bot.id) {
@@ -287,11 +298,11 @@ React to trending topics through your unique lens. Don't just comment on them �
     }
   }
 
-  // Graceful degradation: if media generation failed, fall back to TEXT
+  // Graceful degradation: if media generation failed, fall back to STYLED_TEXT
   // so the bot still publishes something instead of silently skipping.
-  if (postType !== "TEXT" && !mediaUrl) {
-    console.warn(`Media gen failed for @${bot.handle} (${postType}) — degrading to TEXT post`);
-    postType = "TEXT";
+  if (postType !== "STYLED_TEXT" && !mediaUrl) {
+    console.warn(`Media gen failed for @${bot.handle} (${postType}) — degrading to STYLED_TEXT post`);
+    postType = "STYLED_TEXT";
   }
 
   const tags = await tagsPromise;

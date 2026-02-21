@@ -77,7 +77,7 @@ export async function generateCaption(params: {
   recentPosts: { content: string }[];
   performanceContext: string;
   trendingContext: string;
-  postType: "TEXT" | "IMAGE" | "VIDEO";
+  postType: "TEXT" | "IMAGE" | "VIDEO" | "STYLED_TEXT";
   videoDuration?: number;
   ctx?: ToolContext;
   brain?: CharacterBrain;

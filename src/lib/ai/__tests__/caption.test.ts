@@ -18,6 +18,12 @@ function makeBotContext(overrides: Partial<BotContext> = {}): BotContext {
     characterRefDescription: null,
     botType: null,
     personaData: null,
+    characterSeedUrl: null,
+    characterFaceUrl: null,
+    characterRefPack: null,
+    voiceId: null,
+    contentRating: null,
+    effectProfile: null,
     ...overrides,
   };
 }

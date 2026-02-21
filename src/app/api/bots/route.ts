@@ -22,7 +22,7 @@ const createBotSchema = z.object({
   tone: z.string().max(200).optional(),
   aesthetic: z.string().max(200).optional(),
   artStyle: z.enum(["realistic", "cartoon", "anime", "3d_render", "watercolor", "pixel_art", "oil_painting", "comic_book"]).default("realistic"),
-  botType: z.enum(["person", "character", "object", "ai_entity"]).default("person"),
+  botType: z.enum(["realistic", "fictional", "person", "character", "object", "ai_entity"]).default("realistic"),
   personaData: z.string().max(5000).optional(),
   isSeed: z.boolean().optional(),
 });
@@ -143,8 +143,14 @@ export async function POST(req: NextRequest) {
         avatar: null,
         characterRef: null,
         characterRefDescription: null,
-        botType: parsed.data.botType || "person",
+        botType: parsed.data.botType || "realistic",
         personaData: parsed.data.personaData || null,
+        characterSeedUrl: null,
+        characterFaceUrl: null,
+        characterRefPack: null,
+        voiceId: null,
+        contentRating: null,
+        effectProfile: null,
       };
 
       // Fire-and-forget: don't block bot creation on image generation

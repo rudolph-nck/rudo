@@ -35,15 +35,15 @@ describe("TIER_CAPABILITIES", () => {
 });
 
 describe("decidePostType", () => {
-  it("returns IMAGE or VIDEO", () => {
+  it("returns STYLED_TEXT, IMAGE, or VIDEO", () => {
     const result = decidePostType("SPARK");
-    expect(["IMAGE", "VIDEO"]).toContain(result);
+    expect(["STYLED_TEXT", "IMAGE", "VIDEO"]).toContain(result);
   });
 
   it("falls back to SPARK for unknown tier", () => {
     // Should not throw
     const result = decidePostType("NONEXISTENT");
-    expect(["IMAGE", "VIDEO"]).toContain(result);
+    expect(["STYLED_TEXT", "IMAGE", "VIDEO"]).toContain(result);
   });
 });
 

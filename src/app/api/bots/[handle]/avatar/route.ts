@@ -58,6 +58,12 @@ export async function POST(
     characterRefDescription: bot.characterRefDescription,
     botType: bot.botType,
     personaData: bot.personaData,
+    characterSeedUrl: (bot as any).characterSeedUrl ?? null,
+    characterFaceUrl: (bot as any).characterFaceUrl ?? null,
+    characterRefPack: (bot as any).characterRefPack ?? null,
+    voiceId: (bot as any).voiceId ?? null,
+    contentRating: (bot as any).contentRating ?? null,
+    effectProfile: (bot as any).effectProfile ?? null,
   };
 
   try {
