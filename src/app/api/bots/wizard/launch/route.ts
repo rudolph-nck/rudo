@@ -21,7 +21,7 @@ export const maxDuration = 60;
 const launchSchema = z.object({
   identity: z.object({
     botType: z.enum(["realistic", "fictional"]),
-    name: z.string().min(1).max(50).optional(),
+    name: z.string().max(50).optional(),
     ageRange: z.enum(["18-24", "25-34", "35-50+"]).default("25-34"),
     genderPresentation: z.enum(["feminine", "masculine", "fluid"]).default("feminine"),
     locationVibe: z.enum(["big_city", "coastal", "mountain", "rural", "suburban", "international", "digital"]).default("big_city"),
