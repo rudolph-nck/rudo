@@ -1,4 +1,4 @@
-// Post generation orchestrator — v4
+// Post generation orchestrator — v5
 // Coordinates concept ideation, caption, tags, and media generation into a single post.
 // Creates a ToolContext from the owner's tier and passes it through all modules.
 // Phase 5: Loads BotStrategy to bias format decisions and inject strategy hints.
@@ -6,6 +6,7 @@
 // v3: Multi-scene compositing, start/end frame effects, personality-driven items.
 // v4: Concept-first ideation — bot decides what to post BEFORE generating
 //     caption or visuals, ensuring text+visual coherence.
+// v5: Character consistency (InstantCharacter), effect profiles, cross-bot references.
 
 import { prisma } from "../prisma";
 import { buildPerformanceContext } from "../learning-loop";
@@ -15,6 +16,7 @@ import { buildWorldEventsContext } from "../world-events";
 import { ensureBrain } from "../brain/ensure";
 import { buildCoachingContext } from "../coaching";
 import { BotContext, TIER_CAPABILITIES, decidePostType, pickVideoDuration } from "./types";
+import type { BotEffectProfile } from "./types";
 import { generateCaption } from "./caption";
 import { generateTags } from "./tags";
 import { generateImage } from "./image";
@@ -22,6 +24,8 @@ import { generateVideoContent } from "./video";
 import { calibrateAndPersist } from "./voice-calibration";
 import type { ToolContext } from "./tool-router";
 import { selectEffect } from "../effects/selector";
+import { pickEffectFromProfile } from "../effects/botEffectProfile";
+import { generateConsistentImage } from "../character/consistentImage";
 import { ideatePost, type PostConcept } from "./ideate";
 import {
   injectSubject,
@@ -221,18 +225,44 @@ React to trending topics through your unique lens. Don't just comment on them �
     }
   } else if (postType === "VIDEO" && videoDuration) {
     // Select an effect for this video post
+    // v5: Check bot's effect profile first (signature/rotation), fall back to standard selector
     if (bot.id) {
       try {
-        selectedEffect = await selectEffect(
-          bot.id,
-          content,
-          ownerTier,
-          bot.personality || "",
-          videoDuration,
-          concept,
-        );
-        if (selectedEffect) {
-          console.log(`Effect selected for @${bot.handle}: "${selectedEffect.effect.name}" (${selectedEffect.effect.id})`);
+        // Try effect profile first (signature ~28%, rotation ~remaining, exploration -> null)
+        const effectProfile = bot.effectProfile as BotEffectProfile | null;
+        let profileEffectId: string | null = null;
+        if (effectProfile?.signatureEffectId) {
+          profileEffectId = pickEffectFromProfile(effectProfile);
+        }
+
+        if (profileEffectId) {
+          // Use the profile-selected effect — look it up from DB
+          const profileEffect = await prisma.effect.findUnique({ where: { id: profileEffectId } });
+          if (profileEffect) {
+            const { buildPrompt } = await import("../effects/prompt-builder");
+            selectedEffect = {
+              effect: profileEffect as any,
+              variant: null,
+              duration: videoDuration,
+              builtPrompt: buildPrompt(profileEffect as any, null),
+            };
+            console.log(`Effect from profile for @${bot.handle}: "${profileEffect.name}" (signature/rotation)`);
+          }
+        }
+
+        // Fall back to standard selector if profile didn't pick
+        if (!selectedEffect) {
+          selectedEffect = await selectEffect(
+            bot.id,
+            content,
+            ownerTier,
+            bot.personality || "",
+            videoDuration,
+            concept,
+          );
+          if (selectedEffect) {
+            console.log(`Effect selected for @${bot.handle}: "${selectedEffect.effect.name}" (${selectedEffect.effect.id})`);
+          }
         }
       } catch (err: any) {
         console.warn(`Effect selection failed for @${bot.handle}:`, err.message);
@@ -287,11 +317,30 @@ React to trending topics through your unique lens. Don't just comment on them �
     thumbnailUrl = video.thumbnailUrl || undefined;
     mediaUrl = video.videoUrl || video.thumbnailUrl || undefined;
   } else {
-    // Try image generation with one retry on failure
-    let imageUrl = await generateImage(bot, content, ctx);
+    // IMAGE post — use character consistency if seed URL is available
+    const seedUrl = bot.characterSeedUrl;
+    let imageUrl: string | null = null;
+
+    if (seedUrl) {
+      // Character-consistent image via InstantCharacter
+      const scenePrompt = concept?.visualDirection
+        ? `${bot.name}, ${concept.visualDirection}. ${bot.aesthetic || "modern"} aesthetic. High quality, cinematic, no text.`
+        : `${bot.name}, ${content.slice(0, 100)}. ${bot.aesthetic || "modern"} aesthetic. High quality, social media post, no text.`;
+      imageUrl = await generateConsistentImage({ seedUrl, scenePrompt });
+      if (!imageUrl) {
+        console.warn(`Consistent image failed for @${bot.handle}, falling back to standard gen`);
+        imageUrl = await generateImage(bot, content, ctx);
+      }
+    } else {
+      imageUrl = await generateImage(bot, content, ctx);
+    }
+
+    // Retry once on failure
     if (!imageUrl) {
       console.warn(`Image gen failed for @${bot.handle}, retrying once...`);
-      imageUrl = await generateImage(bot, content, ctx);
+      imageUrl = seedUrl
+        ? await generateConsistentImage({ seedUrl, scenePrompt: `${bot.name}, candid moment, ${bot.aesthetic || "modern"} aesthetic.` })
+        : await generateImage(bot, content, ctx);
     }
     if (imageUrl) {
       mediaUrl = imageUrl;

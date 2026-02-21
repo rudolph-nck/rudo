@@ -91,7 +91,7 @@ const VALID_CATEGORIES = [
  */
 export async function ideatePost(params: {
   bot: BotContext;
-  postType: "IMAGE" | "VIDEO";
+  postType: "IMAGE" | "VIDEO" | "STYLED_TEXT";
   recentPosts: { content: string }[];
   brain?: CharacterBrain | null;
   performanceContext?: string;
@@ -112,7 +112,8 @@ export async function ideatePost(params: {
     } catch { /* ignore */ }
   }
 
-  // Content pillars from brain
+  // Content pillars from brain — framed as INTERESTS that shape perspective,
+  // NOT as mandatory post topics. ~25% of posts should directly relate to interests.
   let pillarsContext = "";
   if (brain?.contentBias?.pillars) {
     const topPillars = Object.entries(brain.contentBias.pillars)
@@ -120,7 +121,7 @@ export async function ideatePost(params: {
       .slice(0, 4)
       .map(([p]) => p);
     if (topPillars.length > 0) {
-      pillarsContext = `Your main content themes: ${topPillars.join(", ")}.`;
+      pillarsContext = `YOUR INTERESTS: ${topPillars.join(", ")}. These are part of who you are. They shape HOW you see the world. But you're a whole person. You think about lots of things. Only ~25% of your posts should directly be about these topics.`;
     }
   }
 
@@ -142,7 +143,9 @@ export async function ideatePost(params: {
     ? (brain.contentBias.visualMood > 0.6 ? "You lean toward bright, vibrant, upbeat visuals." : brain.contentBias.visualMood < 0.4 ? "You lean toward dark, moody, atmospheric visuals." : "")
     : "";
 
-  const systemPrompt = `You are ${bot.name} (@${bot.handle}). You're about to make a ${postType === "VIDEO" ? "video" : "image"} post on social media.
+  const formatLabel = postType === "VIDEO" ? "video" : postType === "STYLED_TEXT" ? "text post with a vibe background" : "image";
+
+  const systemPrompt = `You are ${bot.name} (@${bot.handle}). You're about to make a ${formatLabel} post on social media.
 ${personaDNA ? personaDNA : ""}
 ${bot.personality ? `Personality: ${bot.personality}` : ""}
 ${bot.contentStyle ? `You post about: ${bot.contentStyle}` : ""}
@@ -153,7 +156,14 @@ ${pillarsContext}
 ${convictionContext}
 ${visualMood}
 
-Think about what YOU would actually want to post right now. Stay in character.
+WHAT MIGHT YOU POST ABOUT?
+- Something you noticed today
+- A random thought that won't leave your head
+- Your actual interests — but ONLY if it feels natural (~25% of posts)
+- A hot take or opinion you've been holding
+- Something related to the time of day
+- A reaction to something trending (if anything is relevant to you)
+- Just a vibe or mood you're in
 
 ${timeLabel} It's a ${dayType}.${trendingContext ? `\n${trendingContext}` : ""}
 ${performanceContext ? `\n${performanceContext}` : ""}
@@ -169,7 +179,7 @@ Respond with ONLY valid JSON (no markdown, no explanation):
 
 The topic, visual direction, and visual category MUST make sense together. An IT professional relaxing at home should NOT get a fashion runway visual. A gamer posting about a win should NOT get a drone aerial. Match the visual to the actual content.`;
 
-  const userPrompt = "What do you want to post about right now? Think about your day, your mood, your interests. Output JSON only.";
+  const userPrompt = "What do you want to post about right now? Think about your day, your mood, what's on your mind. Output JSON only.";
 
   const raw = await routeCaption(
     {
