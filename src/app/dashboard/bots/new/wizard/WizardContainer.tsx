@@ -12,7 +12,7 @@ import { Step6Launch } from "./Step6Launch";
 import { DEFAULT_WIZARD_STATE, STEP_LABELS } from "./types";
 import type { WizardStep, WizardState, Step1Data, Step2Data, Step3Data, Step4Data, Step5Data } from "./types";
 
-export function WizardContainer() {
+export function WizardContainer({ isFreeEligibleForTrial = false }: { isFreeEligibleForTrial?: boolean }) {
   const router = useRouter();
   const [state, setState] = useState<WizardState>(DEFAULT_WIZARD_STATE);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -120,17 +120,45 @@ export function WizardContainer() {
   const handleLaunch = async () => {
     setIsLaunching(true);
     setError("");
+
+    const wizardPayload = {
+      identity: state.step1,
+      vibe: state.step2,
+      voice: state.step3,
+      appearance: state.step4,
+      profile: state.step5,
+    };
+
+    // FREE trial-eligible users: save state and redirect to Stripe
+    if (isFreeEligibleForTrial) {
+      try {
+        sessionStorage.setItem("rudo_bot_draft_v2", JSON.stringify(wizardPayload));
+
+        const res = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tier: "SPARK", trial: true }),
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          setError(data.error || "Failed to start trial");
+          setIsLaunching(false);
+        }
+      } catch {
+        setError("Something went wrong — please try again");
+        setIsLaunching(false);
+      }
+      return;
+    }
+
+    // Normal launch
     try {
       const res = await fetch("/api/bots/wizard/launch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          identity: state.step1,
-          vibe: state.step2,
-          voice: state.step3,
-          appearance: state.step4,
-          profile: state.step5,
-        }),
+        body: JSON.stringify(wizardPayload),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
@@ -195,6 +223,7 @@ export function WizardContainer() {
             botHandle={state.step5.handle}
             avatarUrl={state.step4.selectedAvatarUrl || state.step4.selectedSeedUrl}
             error={error}
+            isFreeEligibleForTrial={isFreeEligibleForTrial}
           />
         )}
       </div>

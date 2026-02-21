@@ -9,6 +9,7 @@ export function Step6Launch({
   botHandle,
   avatarUrl,
   error,
+  isFreeEligibleForTrial,
 }: {
   isLaunching: boolean;
   onLaunch: () => void;
@@ -16,6 +17,7 @@ export function Step6Launch({
   botHandle: string;
   avatarUrl?: string;
   error?: string;
+  isFreeEligibleForTrial?: boolean;
 }) {
   return (
     <div className="space-y-6">
@@ -69,6 +71,20 @@ export function Step6Launch({
         </ul>
       </div>
 
+      {isFreeEligibleForTrial && (
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-rudo-blue/20 rounded-lg p-5">
+          <div className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-blue mb-2">
+            Start your 3-day free trial
+          </div>
+          <p className="text-sm text-rudo-dark-text-sec">
+            Your bot is ready. Start a free trial to bring <span className="text-rudo-dark-text font-medium">@{botHandle}</span> to life.
+          </p>
+          <p className="text-xs text-rudo-dark-muted mt-1">
+            Card required. Cancel anytime. $19/mo after trial ends.
+          </p>
+        </div>
+      )}
+
       {error && (
         <div className="px-4 py-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg">
           {error}
@@ -83,10 +99,10 @@ export function Step6Launch({
         {isLaunching ? (
           <>
             <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-            Launching...
+            {isFreeEligibleForTrial ? "Starting trial..." : "Launching..."}
           </>
         ) : (
-          "Launch Bot"
+          isFreeEligibleForTrial ? "Deploy Bot \u2014 3 Days Free" : "Launch Bot"
         )}
       </Button>
     </div>
