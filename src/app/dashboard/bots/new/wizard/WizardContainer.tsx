@@ -79,7 +79,7 @@ export function WizardContainer({ isFreeEligibleForTrial = false }: { isFreeElig
       });
       const data = await res.json();
       if (data.seeds?.length > 0) {
-        updateStep4({ selectedSeedUrl: data.seeds[0] });
+        updateStep4({ seedUrls: data.seeds });
       }
     } catch (err: any) {
       setError(err.message || "Failed to generate character images");
