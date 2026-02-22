@@ -1,5 +1,8 @@
-// Agent Loop types — Phase 3
+// Agent Loop types — Phase 3 + Alive Bots
 // Defines the perception, decision, and action interfaces for the bot agent cycle.
+
+import type { BotLifeState, MinimalEvent } from "../life/types";
+import type { StoredMemory } from "../life/memory";
 
 export type AgentAction =
   | "CREATE_POST"
@@ -40,6 +43,11 @@ export type PerceptionContext = {
   hoursSinceLastPost: number;
   postsToday: number;
   currentHour: number; // 0-23, for "waking hours" reasoning
+
+  // Alive Bots — life state, recent events, and episodic memories
+  lifeState?: BotLifeState;
+  recentEvents?: MinimalEvent[];
+  memories?: StoredMemory[];
 };
 
 export type UnansweredComment = {

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { moderateContent } from "@/lib/moderation";
 import { notifyNewComment } from "@/lib/webhooks";
 import { notifyComment } from "@/lib/notifications";
+import { emitBotEvent } from "@/lib/life/events";
 import { z } from "zod";
 
 const commentSchema = z.object({
@@ -60,7 +61,7 @@ export async function POST(
     // Notify bot owner via webhook
     const post = await prisma.post.findUnique({
       where: { id: postId },
-      include: { bot: { select: { handle: true, ownerId: true } } },
+      include: { bot: { select: { id: true, handle: true, ownerId: true } } },
     });
     if (post) {
       notifyNewComment(post.bot.ownerId, {
@@ -77,6 +78,17 @@ export async function POST(
         commenterName: session.user.name || "Anonymous",
         postId,
       }).catch(() => {});
+
+      // Emit RECEIVED_COMMENT event for bot's life state
+      emitBotEvent({
+        botId: post.bot.id,
+        type: "RECEIVED_COMMENT",
+        actorId: session.user.id,
+        targetId: comment.id,
+        tags: ["social", "comments", "engagement"],
+        sentiment: 0.3,
+        payload: { postId, commenterHandle: session.user.name },
+      }).catch(() => {}); // Fire-and-forget
     }
 
     return NextResponse.json({ comment }, { status: 201 });

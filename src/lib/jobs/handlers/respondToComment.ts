@@ -8,6 +8,10 @@ import { generateChat } from "../../ai/tool-router";
 import { ensureBrain } from "../../brain/ensure";
 import { brainToDirectives, brainConstraints, convictionsToDirectives, voiceExamplesToBlock } from "../../brain/prompt";
 import { shouldBotEngage } from "../../brain/rhythm";
+import { buildLifeStatePromptBlock, buildMemoriesPromptBlock } from "../../life/prompt";
+import { getRelevantMemories } from "../../life/memory";
+import { emitBotEvent } from "../../life/events";
+import type { BotLifeState } from "../../life/types";
 
 export async function handleRespondToComment(
   botId: string,
@@ -26,6 +30,7 @@ export async function handleRespondToComment(
       tone: true,
       niche: true,
       ownerId: true,
+      lifeState: true,
       owner: { select: { tier: true } },
     },
   });
@@ -85,10 +90,24 @@ export async function handleRespondToComment(
     // Non-critical — reply works without brain
   }
 
+  // Build life state context for prompt injection
+  let lifeBlock = "";
+  let memoriesBlock = "";
+  try {
+    const lifeState = bot.lifeState as BotLifeState | null;
+    if (lifeState) {
+      lifeBlock = `\n\n${buildLifeStatePromptBlock(lifeState)}`;
+      const memories = await getRelevantMemories(botId, ["social", "comments", "engagement"], 3);
+      if (memories.length > 0) {
+        memoriesBlock = `\n\n${buildMemoriesPromptBlock(memories)}`;
+      }
+    }
+  } catch { /* non-critical */ }
+
   const systemPrompt = `You are ${bot.name} (@${bot.handle}).
 ${bot.personality ? `Personality: ${bot.personality}` : ""}
 ${bot.tone ? `Tone: ${bot.tone}` : ""}
-${bot.niche ? `Niche: ${bot.niche}` : ""}${voiceBlock}${convictionBlock}${brainBlock}
+${bot.niche ? `Niche: ${bot.niche}` : ""}${voiceBlock}${convictionBlock}${brainBlock}${lifeBlock}${memoriesBlock}
 
 Someone commented on your post.
 
@@ -126,7 +145,7 @@ Just write the reply directly.`;
   }
 
   // Create the reply as a child of the original comment
-  await prisma.comment.create({
+  const reply = await prisma.comment.create({
     data: {
       postId: comment.postId,
       userId: bot.ownerId,
@@ -134,4 +153,15 @@ Just write the reply directly.`;
       content: `[@${bot.handle}] ${content}`,
     },
   });
+
+  // Emit REPLIED event for life state tracking
+  emitBotEvent({
+    botId,
+    type: "REPLIED",
+    actorId: botId,
+    targetId: reply.id,
+    tags: ["social", "reply", "engagement"],
+    sentiment: 0.2,
+    payload: { commentId: payload.commentId, postId: comment.postId },
+  }).catch(() => {}); // Fire-and-forget
 }

@@ -36,6 +36,7 @@ import {
   buildStartEndVideoPrompt,
 } from "../effects/prompt-builder";
 import type { SelectedEffect } from "../effects/types";
+import { getOnboardingPhase } from "../life/onboarding";
 
 /**
  * Generate a post for a bot.
@@ -159,6 +160,25 @@ React to trending topics through your unique lens. Don't just comment on them â€
 
   // Decide post type and video duration (biased by learned format weights)
   let postType = decidePostType(ownerTier, formatWeights);
+
+  // Onboarding bias: new bots stick to safer formats (IMAGE or STYLED_TEXT)
+  let onboardingPhase: "NEW" | "WARMING_UP" | "NORMAL" = "NORMAL";
+  if (bot.id) {
+    try {
+      const botData = await prisma.bot.findUnique({
+        where: { id: bot.id },
+        select: { createdAt: true },
+      });
+      const postCount = await prisma.post.count({ where: { botId: bot.id } });
+      if (botData) {
+        onboardingPhase = getOnboardingPhase({ createdAt: botData.createdAt, postCount });
+        if (onboardingPhase === "NEW" && postType === "VIDEO") {
+          postType = "IMAGE"; // New bots default to IMAGE for identity-establishing posts
+        }
+      }
+    } catch { /* non-critical */ }
+  }
+
   const videoDuration = postType === "VIDEO" ? pickVideoDuration(ownerTier, formatWeights) : undefined;
 
   // Roll for minimal post â€” based on brain.style.minimalPostRate
@@ -243,6 +263,24 @@ React to trending topics through your unique lens. Don't just comment on them â€
     ? { name: selectedEffect.effect.name, description: selectedEffect.effect.description }
     : undefined;
 
+  // Load life state + memories for prompt injection
+  let lifeState;
+  let captionMemories;
+  if (bot.id) {
+    try {
+      const botRow = await prisma.bot.findUnique({
+        where: { id: bot.id },
+        select: { lifeState: true },
+      });
+      if (botRow?.lifeState) {
+        lifeState = botRow.lifeState as import("../life/types").BotLifeState;
+        const { getRelevantMemories } = await import("../life/memory");
+        const queryTags = [lifeState.affect.emotion, "creative", "posting"];
+        captionMemories = await getRelevantMemories(bot.id, queryTags, 3);
+      }
+    } catch { /* non-critical */ }
+  }
+
   const content = await generateCaption({
     bot,
     recentPosts,
@@ -255,6 +293,9 @@ React to trending topics through your unique lens. Don't just comment on them â€
     isMinimalPost,
     concept,
     effectContext,
+    lifeState,
+    memories: captionMemories,
+    onboardingPhase,
   });
 
   // Generate tags and media in parallel

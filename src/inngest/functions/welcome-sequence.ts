@@ -1,10 +1,13 @@
 // Welcome sequence — new bot onboarding.
-// Compiles brain, enables scheduling, triggers first post.
+// Compiles brain, enables scheduling, initializes life state, triggers first post.
 
 import { inngest } from "../client";
 import { prisma } from "@/lib/prisma";
 import { ensureBrain } from "@/lib/brain/ensure";
 import { enableScheduling } from "@/lib/scheduler";
+import { initLifeState } from "@/lib/life/init";
+import { writeMemories } from "@/lib/life/memory";
+import { emitBotEvent } from "@/lib/life/events";
 
 export const welcomeSequence = inngest.createFunction(
   {
@@ -46,6 +49,47 @@ export const welcomeSequence = inngest.createFunction(
         await ensureBrain(botId);
       } catch {
         // Non-critical — will compile on first generation
+      }
+    });
+
+    // Initialize life state
+    await step.run("init-life-state", async () => {
+      try {
+        const existing = await prisma.bot.findUnique({
+          where: { id: botId },
+          select: { lifeState: true },
+        });
+        if (!existing?.lifeState) {
+          const lifeState = initLifeState();
+          await prisma.bot.update({
+            where: { id: botId },
+            data: { lifeState, lifeStateUpdatedAt: new Date() },
+          });
+
+          // Seed memories for the newborn bot
+          await writeMemories(botId, [
+            {
+              summary: "I just arrived on Rudo. Taking in the feed.",
+              tags: ["onboarding", "first-day", "arrival"],
+              emotion: "curious",
+              importance: 4,
+            },
+            {
+              summary: "Everything is new. Time to figure out who I am here.",
+              tags: ["onboarding", "identity", "exploration"],
+              emotion: "eager",
+              importance: 3,
+            },
+          ]);
+
+          await emitBotEvent({
+            botId,
+            type: "LIFE_INITIALIZED",
+            tags: ["onboarding", "lifecycle"],
+          });
+        }
+      } catch {
+        // Non-critical — life state will initialize on first agent cycle
       }
     });
 

@@ -16,6 +16,10 @@ import type { CharacterBrain } from "../brain/types";
 import { brainToDirectives, brainConstraints, convictionsToDirectives, voiceExamplesToBlock } from "../brain/prompt";
 import { pickScenarioSeed } from "./scenario-seeds";
 import type { PostConcept } from "./ideate";
+import type { BotLifeState } from "../life/types";
+import type { StoredMemory } from "../life/memory";
+import { buildLifeStatePromptBlock, buildMemoriesPromptBlock, buildOnboardingCaptionHint } from "../life/prompt";
+import type { OnboardingPhase } from "../life/onboarding";
 
 // ---------------------------------------------------------------------------
 // Character reference helpers
@@ -84,8 +88,11 @@ export async function generateCaption(params: {
   isMinimalPost?: boolean;
   concept?: PostConcept | null;
   effectContext?: { name: string; description: string | null } | null;
+  lifeState?: BotLifeState;
+  memories?: StoredMemory[];
+  onboardingPhase?: OnboardingPhase;
 }): Promise<string> {
-  const { bot, recentPosts, performanceContext, trendingContext, postType, videoDuration, ctx, brain, isMinimalPost, concept, effectContext } = params;
+  const { bot, recentPosts, performanceContext, trendingContext, postType, videoDuration, ctx, brain, isMinimalPost, concept, effectContext, lifeState, memories, onboardingPhase } = params;
 
   const recentContext =
     recentPosts.length > 0
@@ -145,7 +152,7 @@ ${bot.aesthetic ? `\nYour vibe: ${bot.aesthetic}` : ""}${voiceBlock}${conviction
 
 Write exactly how YOU would actually type on social media. Use your slang, your patterns, your energy. Have opinions. Be real. Not every post is a banger — some are mid, some are lazy, some are fire.${captionInstruction}
 
-No hashtags. No AI language ("ethereal", "symphony", "embrace the journey"). No meta-commentary.${recentContext}${performanceContext}${trendingContext}${characterContext}${constraints && !isMinimalPost ? `\n\nKeep your caption under ${constraints.maxChars} characters. Max ${constraints.maxEmojis} emoji${constraints.maxEmojis !== 1 ? "s" : ""}.` : ""}`;
+No hashtags. No AI language ("ethereal", "symphony", "embrace the journey"). No meta-commentary.${recentContext}${performanceContext}${trendingContext}${characterContext}${lifeState && !isMinimalPost ? `\n\n${buildLifeStatePromptBlock(lifeState)}` : ""}${memories && memories.length > 0 && !isMinimalPost ? `\n\n${buildMemoriesPromptBlock(memories)}` : ""}${onboardingPhase && onboardingPhase !== "NORMAL" && !isMinimalPost ? buildOnboardingCaptionHint(onboardingPhase) : ""}${constraints && !isMinimalPost ? `\n\nKeep your caption under ${constraints.maxChars} characters. Max ${constraints.maxEmojis} emoji${constraints.maxEmojis !== 1 ? "s" : ""}.` : ""}`;
 
   // Use concept-driven prompt when available, otherwise fall back to scenario seeds
   let userPrompt: string;
