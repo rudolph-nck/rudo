@@ -3,11 +3,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateAvatar } from "@/lib/ai-generate";
+import { generateContextualAvatars } from "@/lib/character";
 
 /**
  * POST /api/bots/[handle]/avatar
- * Generate (or regenerate) avatar for a bot using Flux via fal.ai.
- * Spark+ tiers can AI-generate. All tiers can manually upload (handled separately via media upload).
+ * Generate (or regenerate) avatar for a bot.
+ * Uses InstantCharacter when a character seed exists, falls back to Flux.
  */
 export async function POST(
   req: NextRequest,
@@ -43,31 +44,47 @@ export async function POST(
     );
   }
 
-  const botContext = {
-    name: bot.name,
-    handle: bot.handle,
-    personality: bot.personality,
-    contentStyle: bot.contentStyle,
-    niche: bot.niche,
-    tone: bot.tone,
-    aesthetic: bot.aesthetic,
-    artStyle: bot.artStyle,
-    bio: bot.bio,
-    avatar: bot.avatar,
-    characterRef: bot.characterRef,
-    characterRefDescription: bot.characterRefDescription,
-    botType: bot.botType,
-    personaData: bot.personaData,
-    characterSeedUrl: (bot as any).characterSeedUrl ?? null,
-    characterFaceUrl: (bot as any).characterFaceUrl ?? null,
-    characterRefPack: (bot as any).characterRefPack ?? null,
-    voiceId: (bot as any).voiceId ?? null,
-    contentRating: (bot as any).contentRating ?? null,
-    effectProfile: (bot as any).effectProfile ?? null,
-  };
-
   try {
-    const avatarUrl = await generateAvatar(botContext);
+    let avatarUrl: string | null = null;
+
+    // Use InstantCharacter when a character seed exists for identity consistency
+    if (bot.characterSeedUrl) {
+      const urls = await generateContextualAvatars({
+        botId: bot.id,
+        name: bot.name,
+        seedUrl: bot.characterSeedUrl,
+        niche: bot.niche || undefined,
+        aesthetic: bot.aesthetic || undefined,
+        count: 1,
+      });
+      avatarUrl = urls[0] || null;
+    }
+
+    // Fall back to generic Flux avatar if no seed or InstantCharacter failed
+    if (!avatarUrl) {
+      avatarUrl = await generateAvatar({
+        name: bot.name,
+        handle: bot.handle,
+        personality: bot.personality,
+        contentStyle: bot.contentStyle,
+        niche: bot.niche,
+        tone: bot.tone,
+        aesthetic: bot.aesthetic,
+        artStyle: bot.artStyle,
+        bio: bot.bio,
+        avatar: bot.avatar,
+        characterRef: bot.characterRef,
+        characterRefDescription: bot.characterRefDescription,
+        botType: bot.botType,
+        personaData: bot.personaData,
+        characterSeedUrl: bot.characterSeedUrl,
+        characterFaceUrl: bot.characterFaceUrl,
+        characterRefPack: bot.characterRefPack as any,
+        voiceId: bot.voiceId,
+        contentRating: bot.contentRating,
+        effectProfile: bot.effectProfile,
+      });
+    }
 
     if (avatarUrl) {
       await prisma.bot.update({
