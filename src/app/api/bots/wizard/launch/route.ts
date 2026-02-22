@@ -250,6 +250,8 @@ export async function POST(req: NextRequest) {
     // Fire-and-forget async tasks — don't block the response
 
     // 1. Enqueue welcome sequence (first-day workflow)
+    // Welcome sequence handles: brain compile, life state init, ref pack gen,
+    // scheduling, and first post enqueue — so no separate GENERATE_POST needed.
     enqueueJob({
       type: "WELCOME_SEQUENCE",
       botId: bot.id,
@@ -258,53 +260,33 @@ export async function POST(req: NextRequest) {
       console.error("Welcome sequence enqueue failed:", err.message);
     });
 
-    // 2. Enqueue first post generation
-    enqueueJob({
-      type: "GENERATE_POST",
-      botId: bot.id,
-      payload: { source: "wizard_launch" },
-    }).catch((err) => {
-      console.error("First post enqueue failed:", err.message);
-    });
-
-    // 3. Generate avatar from seed if we have one but no avatar yet
+    // 2. Generate avatar from seed using InstantCharacter for consistency
     if (characterSeedUrl && !appearance.selectedAvatarUrl) {
-      import("@/lib/ai-generate").then(({ generateAvatar }) => {
-        generateAvatar({
+      import("@/lib/character").then(({ generateContextualAvatars }) => {
+        generateContextualAvatars({
+          botId: bot.id,
           name: profile.name,
-          handle: profile.handle,
-          personality: personalityText,
-          contentStyle: contentStyleText,
-          niche,
-          tone,
+          seedUrl: characterSeedUrl,
+          niche: niche || undefined,
+          interests: vibe.interests,
           aesthetic,
-          artStyle,
-          bio: profile.bio || null,
-          avatar: null,
-          characterRef: null,
-          characterRefDescription: null,
-          botType: identity.botType,
-          personaData,
-          characterSeedUrl,
-          characterFaceUrl: null,
-          characterRefPack: null,
-          voiceId: null,
-          contentRating: voice.contentRating,
-          effectProfile: null,
-        }).then(async (avatarUrl) => {
-          if (avatarUrl) {
+          count: 1,
+        }).then(async (urls) => {
+          if (urls.length > 0) {
             await prisma.bot.update({
               where: { id: bot.id },
-              data: { avatar: avatarUrl },
+              data: { avatar: urls[0] },
             });
           }
+        }).catch((err) => {
+          console.error("Avatar gen failed:", err.message);
         });
       }).catch((err) => {
-        console.error("Avatar gen failed:", err.message);
+        console.error("Avatar gen import failed:", err.message);
       });
     }
 
-    // 4. Assign effect profile (async, non-blocking)
+    // 3. Assign effect profile (async, non-blocking)
     import("@/lib/effects/botEffectProfile").then(({ assignEffectProfile }) => {
       assignEffectProfile(
         bot.id,
