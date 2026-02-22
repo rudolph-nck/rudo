@@ -103,17 +103,20 @@ export async function generateAvatar(
       try { personaDetails = JSON.parse(bot.personaData); } catch { /* ignore */ }
     }
 
-    const isPerson = (bot.botType || "person") === "person";
+    const isPerson = ["person", "realistic"].includes(bot.botType || "person");
 
     let prompt: string;
 
     if (isPerson) {
       // Build a detailed photorealistic portrait prompt from persona data
-      const gender = personaDetails.gender || "";
+      const gender = personaDetails.gender || personaDetails.genderPresentation || "";
       const ageRange = personaDetails.ageRange || "25-34";
-      const appearance = personaDetails.appearance || "";
+      const rawAppearance = personaDetails.appearance || "";
+      const appearance = typeof rawAppearance === "object" && rawAppearance !== null
+        ? Object.entries(rawAppearance).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join(", ")
+        : String(rawAppearance);
       const profession = personaDetails.profession || "";
-      const location = personaDetails.location || "";
+      const location = personaDetails.location || (personaDetails.locationVibe || "").replace(/_/g, " ");
 
       const subjectDesc = [
         gender ? `${gender.toLowerCase()}` : "person",

@@ -83,8 +83,9 @@ export async function generateCaption(params: {
   brain?: CharacterBrain;
   isMinimalPost?: boolean;
   concept?: PostConcept | null;
+  effectContext?: { name: string; description: string | null } | null;
 }): Promise<string> {
-  const { bot, recentPosts, performanceContext, trendingContext, postType, videoDuration, ctx, brain, isMinimalPost, concept } = params;
+  const { bot, recentPosts, performanceContext, trendingContext, postType, videoDuration, ctx, brain, isMinimalPost, concept, effectContext } = params;
 
   const recentContext =
     recentPosts.length > 0
@@ -114,13 +115,20 @@ export async function generateCaption(params: {
     captionInstruction = "\n- This is a TEXT-ONLY post (Twitter/X style). Write a standalone thought, take, or observation (100-280 chars). It should be compelling on its own without any visual — a hot take, a reflection, a question, a life update. Think tweet energy.";
   } else if (postType === "VIDEO" && videoDuration) {
     const videoStyle = VIDEO_STYLE_BY_DURATION[videoDuration] || VIDEO_STYLE_BY_DURATION[6];
-    captionInstruction = `\n- This post is a ${videoStyle.label} VIDEO. Write a compelling caption (50-200 chars) that hooks viewers. ${
-      videoDuration <= 6
-        ? "Ultra-short — punchy, one idea, stop-scroll energy."
-        : videoDuration <= 15
-          ? "Short-form — hook + payoff, Reels/TikTok energy."
-          : "Mini-story — cinematic, atmospheric, worth watching."
-    }`;
+    const durationHint = videoDuration <= 6
+      ? "Ultra-short — punchy, one idea, stop-scroll energy."
+      : videoDuration <= 15
+        ? "Short-form — hook + payoff, Reels/TikTok energy."
+        : "Mini-story — cinematic, atmospheric, worth watching.";
+
+    // When an effect (visual trend) is selected, the caption must complement it.
+    // Effect templates are trend formats (like TikTok trends) that showcase the
+    // bot's avatar — the caption should match what viewers will actually see.
+    const effectHint = effectContext
+      ? `\n- THE VIDEO VISUAL: This post uses the "${effectContext.name}" trend${effectContext.description ? ` — ${effectContext.description}` : ""}. Your caption MUST make sense with this visual. Write something that complements what the viewer sees. Don't describe the visual literally — react to it, hype it, or caption it like a real creator would.`
+      : "";
+
+    captionInstruction = `\n- This post is a ${videoStyle.label} VIDEO. Write a compelling caption (50-200 chars) that hooks viewers. ${durationHint}${effectHint}`;
   } else {
     captionInstruction = "\n- This post is an IMAGE post (Instagram style). Write a caption (50-300 chars) that works WITH a visual, not as standalone text.";
   }
@@ -142,8 +150,14 @@ No hashtags. No AI language ("ethereal", "symphony", "embrace the journey"). No 
   // Use concept-driven prompt when available, otherwise fall back to scenario seeds
   let userPrompt: string;
   if (concept && !isMinimalPost) {
-    // Concept-driven: the bot already decided what to post about
-    userPrompt = `You decided to post about this: ${concept.topic}\nYour mood right now: ${concept.mood}\nWrite the caption for this post. Stay true to this idea.`;
+    // Concept-driven: the bot already decided what to post about.
+    // When an effect is selected, steer the caption toward the visual trend
+    // rather than the original concept topic (the video IS the content).
+    if (effectContext) {
+      userPrompt = `You're posting a video using the "${effectContext.name}" trend. Your vibe: ${concept.mood}.\nWrite a caption that goes with this visual. Think how a real creator captions a trend video — hype it, react to it, or add a vibe. Don't describe what's happening in the video.`;
+    } else {
+      userPrompt = `You decided to post about this: ${concept.topic}\nYour mood right now: ${concept.mood}\nWrite the caption for this post. Stay true to this idea.`;
+    }
   } else {
     userPrompt = pickScenarioSeed(bot, brain, isMinimalPost);
   }

@@ -51,6 +51,7 @@ export interface Step4Data {
     distinguishingFeature?: string;
   };
   uploadedImageUrl?: string;
+  seedUrls?: string[];
   selectedSeedUrl?: string;
   selectedAvatarUrl?: string;
 }

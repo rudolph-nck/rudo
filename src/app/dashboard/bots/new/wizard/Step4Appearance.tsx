@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { Step4Data } from "./types";
@@ -21,8 +20,6 @@ export function Step4Appearance({
   isGenerating: boolean;
   onGenerateSeeds: () => void;
 }) {
-  const [seedImages, setSeedImages] = useState<string[]>([]);
-
   return (
     <div className="space-y-6">
       <div>
@@ -182,7 +179,7 @@ export function Step4Appearance({
             </p>
           </div>
 
-          {!data.selectedSeedUrl && (
+          {!data.seedUrls?.length && (
             <Button
               variant="blue"
               onClick={onGenerateSeeds}
@@ -198,26 +195,47 @@ export function Step4Appearance({
               )}
             </Button>
           )}
-        </div>
-      )}
 
-      {/* Seed image selection (shown after generation) */}
-      {data.selectedSeedUrl && (
-        <div>
-          <label className="block text-xs font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">
-            Selected Character
-          </label>
-          <img
-            src={data.selectedSeedUrl}
-            alt="Selected seed"
-            className="w-40 h-40 object-cover rounded-lg border-2 border-rudo-blue"
-          />
-          <button
-            onClick={() => onChange({ selectedSeedUrl: undefined })}
-            className="text-xs text-rudo-blue mt-1 hover:underline"
-          >
-            Choose different
-          </button>
+          {/* Seed selection grid */}
+          {data.seedUrls && data.seedUrls.length > 0 && (
+            <div>
+              <label className="block text-xs font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">
+                {data.selectedSeedUrl ? "Selected Character" : "Choose Your Character"}
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {data.seedUrls.map((url, i) => (
+                  <button
+                    key={url}
+                    onClick={() => onChange({ selectedSeedUrl: url })}
+                    className={`relative overflow-hidden rounded-lg border-2 transition-all ${
+                      data.selectedSeedUrl === url
+                        ? "border-rudo-blue ring-2 ring-rudo-blue/30"
+                        : "border-rudo-card-border hover:border-gray-300"
+                    }`}
+                  >
+                    <img
+                      src={url}
+                      alt={`Character option ${i + 1}`}
+                      className="w-full aspect-[3/4] object-cover"
+                    />
+                    {data.selectedSeedUrl === url && (
+                      <div className="absolute top-2 right-2 w-6 h-6 bg-rudo-blue rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">&#10003;</span>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => {
+                  onChange({ seedUrls: undefined, selectedSeedUrl: undefined });
+                }}
+                className="text-xs text-rudo-blue mt-3 hover:underline"
+              >
+                Regenerate options
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

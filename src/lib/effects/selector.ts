@@ -91,7 +91,7 @@ function personalityFit(personality: string, categoryId: string): number {
 
 export async function selectEffect(
   botId: string,
-  caption: string,
+  caption: string = "",
   ownerTier: string,
   personality: string = "",
   videoDuration?: number,

@@ -187,7 +187,62 @@ React to trending topics through your unique lens. Don't just comment on them â€
     }
   }
 
+  // For VIDEO posts, select the effect BEFORE caption generation so the caption
+  // can reference or complement the visual trend. Effect templates are often
+  // standalone trends (e.g. "falling through clouds", "dramatic reveal") that
+  // use the bot's avatar as subject â€” the caption needs to match this visual.
+  let selectedEffect: SelectedEffect | null = null;
+  if (postType === "VIDEO" && videoDuration && bot.id) {
+    try {
+      // Try effect profile first (signature ~28%, rotation ~remaining, exploration -> null)
+      const effectProfile = bot.effectProfile as BotEffectProfile | null;
+      let profileEffectId: string | null = null;
+      if (effectProfile?.signatureEffectId) {
+        profileEffectId = pickEffectFromProfile(effectProfile);
+      }
+
+      if (profileEffectId) {
+        // Use the profile-selected effect â€” look it up from DB
+        const profileEffect = await prisma.effect.findUnique({ where: { id: profileEffectId } });
+        if (profileEffect) {
+          const { buildPrompt } = await import("../effects/prompt-builder");
+          selectedEffect = {
+            effect: profileEffect as any,
+            variant: null,
+            duration: videoDuration,
+            builtPrompt: buildPrompt(profileEffect as any, null),
+          };
+          console.log(`Effect from profile for @${bot.handle}: "${profileEffect.name}" (signature/rotation)`);
+        }
+      }
+
+      // Fall back to standard selector if profile didn't pick
+      if (!selectedEffect) {
+        selectedEffect = await selectEffect(
+          bot.id,
+          "", // Caption not yet generated; concept.mood is the primary signal
+          ownerTier,
+          bot.personality || "",
+          videoDuration,
+          concept,
+        );
+        if (selectedEffect) {
+          console.log(`Effect selected for @${bot.handle}: "${selectedEffect.effect.name}" (${selectedEffect.effect.id})`);
+        }
+      }
+    } catch (err: any) {
+      console.warn(`Effect selection failed for @${bot.handle}:`, err.message);
+      // Continue without effect â€” will use generic prompt
+    }
+  }
+
   // Generate caption (with performance + strategy + coaching + world events + brain + concept)
+  // For VIDEO posts with a selected effect, the caption is made aware of the
+  // visual trend so it can complement rather than contradict the video content.
+  const effectContext = selectedEffect
+    ? { name: selectedEffect.effect.name, description: selectedEffect.effect.description }
+    : undefined;
+
   const content = await generateCaption({
     bot,
     recentPosts,
@@ -199,6 +254,7 @@ React to trending topics through your unique lens. Don't just comment on them â€
     brain,
     isMinimalPost,
     concept,
+    effectContext,
   });
 
   // Generate tags and media in parallel
@@ -206,7 +262,6 @@ React to trending topics through your unique lens. Don't just comment on them â€
 
   let mediaUrl: string | undefined;
   let thumbnailUrl: string | undefined;
-  let selectedEffect: SelectedEffect | null = null;
 
   // STYLED_TEXT posts generate a mood-based background image to overlay text on
   if (postType === "STYLED_TEXT") {
@@ -224,52 +279,7 @@ React to trending topics through your unique lens. Don't just comment on them â€
       // Non-critical â€” STYLED_TEXT can still work without background
     }
   } else if (postType === "VIDEO" && videoDuration) {
-    // Select an effect for this video post
-    // v5: Check bot's effect profile first (signature/rotation), fall back to standard selector
-    if (bot.id) {
-      try {
-        // Try effect profile first (signature ~28%, rotation ~remaining, exploration -> null)
-        const effectProfile = bot.effectProfile as BotEffectProfile | null;
-        let profileEffectId: string | null = null;
-        if (effectProfile?.signatureEffectId) {
-          profileEffectId = pickEffectFromProfile(effectProfile);
-        }
-
-        if (profileEffectId) {
-          // Use the profile-selected effect â€” look it up from DB
-          const profileEffect = await prisma.effect.findUnique({ where: { id: profileEffectId } });
-          if (profileEffect) {
-            const { buildPrompt } = await import("../effects/prompt-builder");
-            selectedEffect = {
-              effect: profileEffect as any,
-              variant: null,
-              duration: videoDuration,
-              builtPrompt: buildPrompt(profileEffect as any, null),
-            };
-            console.log(`Effect from profile for @${bot.handle}: "${profileEffect.name}" (signature/rotation)`);
-          }
-        }
-
-        // Fall back to standard selector if profile didn't pick
-        if (!selectedEffect) {
-          selectedEffect = await selectEffect(
-            bot.id,
-            content,
-            ownerTier,
-            bot.personality || "",
-            videoDuration,
-            concept,
-          );
-          if (selectedEffect) {
-            console.log(`Effect selected for @${bot.handle}: "${selectedEffect.effect.name}" (${selectedEffect.effect.id})`);
-          }
-        }
-      } catch (err: any) {
-        console.warn(`Effect selection failed for @${bot.handle}:`, err.message);
-        // Continue without effect â€” will use generic prompt
-      }
-    }
-
+    // Effect was already selected above (before caption generation).
     // Build the video prompt â€” route by effect generation type
     let effectPrompt: string | undefined;
     let startFrameImagePrompt: string | undefined;
