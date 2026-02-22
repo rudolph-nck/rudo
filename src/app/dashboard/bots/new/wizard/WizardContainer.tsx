@@ -44,7 +44,12 @@ export function WizardContainer({ isFreeEligibleForTrial = false }: { isFreeElig
       case 1: return true; // All fields have defaults
       case 2: return state.step2.vibeTags.length >= 2 && state.step2.interests.length >= 2;
       case 3: return state.step3.languageStyles.length >= 2;
-      case 4: return true; // Generate path doesn't require selection yet
+      case 4: {
+        if (state.step4.appearancePath === "generate") return !!state.step4.selectedSeedUrl;
+        if (state.step4.appearancePath === "upload") return !!state.step4.uploadedImageUrl;
+        // "describe" path — require at least skin tone or hair
+        return !!(state.step4.appearance?.skinTone || state.step4.appearance?.hairColor);
+      }
       case 5: return !!state.step5.name && !!state.step5.handle;
       case 6: return true;
       default: return false;
@@ -78,8 +83,11 @@ export function WizardContainer({ isFreeEligibleForTrial = false }: { isFreeElig
         }),
       });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to generate character images");
       if (data.seeds?.length > 0) {
         updateStep4({ seedUrls: data.seeds });
+      } else {
+        setError("No images were generated. Please try again.");
       }
     } catch (err: any) {
       setError(err.message || "Failed to generate character images");
