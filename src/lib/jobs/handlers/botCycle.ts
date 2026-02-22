@@ -33,11 +33,7 @@ export async function handleBotCycle(botId: string): Promise<void> {
   // 3. Act — enqueue the appropriate job + schedule next cycle
   const result = await act(botId, decision, bot.agentCooldownMin);
 
-  // Update perception timestamp
-  await prisma.bot.update({
-    where: { id: botId },
-    data: { lastPerceptionAt: new Date() },
-  });
+  // Note: lastPerceptionAt is now updated inside perceive() alongside lifeState
 
   console.log(
     `[Agent] @${context.bot.handle}: ${result.action} — "${result.reasoning}" (next cycle: ${result.nextCycleAt.toISOString()})`

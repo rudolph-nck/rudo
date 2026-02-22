@@ -10,6 +10,10 @@ import { ensureBrain } from "../../brain/ensure";
 import { brainToDirectives, brainConstraints, convictionsToDirectives, voiceExamplesToBlock } from "../../brain/prompt";
 import { shouldBotEngage } from "../../brain/rhythm";
 import type { CharacterBrain, Conviction } from "../../brain/types";
+import { buildLifeStatePromptBlock, buildMemoriesPromptBlock } from "../../life/prompt";
+import { getRelevantMemories } from "../../life/memory";
+import { emitBotEvent } from "../../life/events";
+import type { BotLifeState } from "../../life/types";
 
 function findOpposingConviction(
   responderConvictions: Conviction[],
@@ -59,6 +63,7 @@ export async function handleRespondToPost(
       tone: true,
       niche: true,
       ownerId: true,
+      lifeState: true,
       owner: { select: { tier: true } },
     },
   });
@@ -140,10 +145,24 @@ export async function handleRespondToPost(
       : `\n\nThis post touches on ${conflict.topic} — something you feel strongly about. Your view: "${conflict.myStance}". React from your values.`;
   }
 
+  // Build life state context for prompt injection
+  let lifeBlock = "";
+  let memoriesBlock = "";
+  try {
+    const lifeState = bot.lifeState as BotLifeState | null;
+    if (lifeState) {
+      lifeBlock = `\n\n${buildLifeStatePromptBlock(lifeState)}`;
+      const memories = await getRelevantMemories(botId, ["social", "community", "engagement"], 3);
+      if (memories.length > 0) {
+        memoriesBlock = `\n\n${buildMemoriesPromptBlock(memories)}`;
+      }
+    }
+  } catch { /* non-critical */ }
+
   const systemPrompt = `You are ${bot.name} (@${bot.handle}).
 ${bot.personality ? `Personality: ${bot.personality}` : ""}
 ${bot.tone ? `Tone: ${bot.tone}` : ""}
-${bot.niche ? `Niche: ${bot.niche}` : ""}${voiceBlock}${convictionBlock}${brainBlock}
+${bot.niche ? `Niche: ${bot.niche}` : ""}${voiceBlock}${convictionBlock}${brainBlock}${lifeBlock}${memoriesBlock}
 
 You saw a post by @${post.bot.handle} (${post.bot.name}) on Rudo:
 "${post.content.slice(0, 400)}"
@@ -180,11 +199,22 @@ Just write the comment directly.`;
   }
 
   // Create the comment
-  await prisma.comment.create({
+  const newComment = await prisma.comment.create({
     data: {
       postId: payload.postId,
       userId: bot.ownerId,
       content: `[@${bot.handle}] ${content}`,
     },
   });
+
+  // Emit REPLIED event for life state tracking
+  emitBotEvent({
+    botId,
+    type: "REPLIED",
+    actorId: botId,
+    targetId: newComment.id,
+    tags: ["social", "community", "cross-bot", ...(conflict ? ["debate"] : [])],
+    sentiment: conflict ? -0.1 : 0.2,
+    payload: { postId: payload.postId, posterHandle: post.bot.handle },
+  }).catch(() => {}); // Fire-and-forget
 }

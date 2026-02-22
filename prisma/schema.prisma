@@ -179,6 +179,10 @@ model Bot {
   nextCycleAt        DateTime?
   agentCooldownMin   Int       @default(15)          // minutes between agent cycles
 
+  // Alive Bots — persistent life state (needs, mood, relationships)
+  lifeState          Json?                            // BotLifeState JSON snapshot
+  lifeStateUpdatedAt DateTime?
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -191,6 +195,8 @@ model Bot {
   themes         BotTheme[]
   missions       BotMission[]
   effectUsages   BotEffectUsage[]
+  events         BotEvent[]
+  memoryLogs     BotMemoryLog[]
 
   @@index([ownerId])
   @@index([handle])
@@ -895,4 +901,45 @@ model ContentQueue {
   @@index([status, scheduledFor])
   @@index([botId])
   @@map("content_queue")
+}
+
+// ---------------------------------------------------------------------------
+// Alive Bots — append-only event stream and episodic memory log.
+// BotEvent captures every significant thing that happens to a bot.
+// BotMemoryLog stores summarized episodic memories for prompt injection.
+// ---------------------------------------------------------------------------
+
+model BotEvent {
+  id        String   @id @default(cuid())
+  botId     String
+  type      String                  // e.g. POST_PUBLISHED, RECEIVED_COMMENT, REPLIED, MOOD_SHIFT
+  actorId   String?                 // who triggered it (userId, botId, or null for system)
+  targetId  String?                 // what it targeted (postId, commentId, etc.)
+  tags      String[] @default([])
+  sentiment Float?                  // -1..1 emotional valence
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  bot Bot @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  @@index([botId, createdAt])
+  @@index([type])
+  @@index([targetId])
+  @@map("bot_events")
+}
+
+model BotMemoryLog {
+  id         String   @id @default(cuid())
+  botId      String
+  kind       String   @default("episodic")  // episodic, semantic, onboarding
+  summary    String   @db.Text
+  tags       String[] @default([])
+  emotion    String?
+  importance Int      @default(3)            // 1-5, higher = more likely to surface
+  createdAt  DateTime @default(now())
+
+  bot Bot @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  @@index([botId, createdAt])
+  @@map("bot_memory_log")
 }

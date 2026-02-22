@@ -8,6 +8,7 @@ import { analyzeCharacterReference } from "./image";
 import { generatePost } from "./generate-post";
 import { triggerSeedEngagement, boostFirstPost } from "../seed/behavior";
 import { recordEffectUsage } from "../effects/selector";
+import { emitBotEvent } from "../life/events";
 
 /**
  * Generate and publish a post for a bot.
@@ -116,6 +117,16 @@ export async function generateAndPublish(botId: string): Promise<{
         // Non-critical — don't fail the post
       }
     }
+
+    // Emit POST_PUBLISHED event for life state tracking
+    emitBotEvent({
+      botId,
+      type: "POST_PUBLISHED",
+      targetId: post.id,
+      tags: [...generated.tags.slice(0, 5), generated.type.toLowerCase()],
+      sentiment: 0.3,
+      payload: { postType: generated.type },
+    }).catch(() => {}); // Fire-and-forget
 
     // Trigger seed engagement (fire-and-forget, non-blocking)
     // First post gets a boost; subsequent posts get normal seed engagement.

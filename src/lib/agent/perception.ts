@@ -1,15 +1,20 @@
-// Agent Perception Module — Phase 3
+// Agent Perception Module — Phase 3 + Alive Bots
 // Gathers all context the agent needs to make a decision.
-// Pure DB queries — no AI calls, no side effects.
+// Now also loads/updates life state and retrieves episodic memories.
 
 import { prisma } from "../prisma";
 import { buildPerformanceContext, analyzeBotPerformance } from "../learning-loop";
 import { getTrendingTopics } from "../trending";
+import { initLifeState } from "../life/init";
+import { updateLifeState } from "../life/update";
+import { writeMemories, getRelevantMemories } from "../life/memory";
+import type { BotLifeState, MinimalEvent } from "../life/types";
 import type { PerceptionContext, UnansweredComment, FeedPost } from "./types";
 
 /**
  * Build the full perception context for a bot.
  * This is the "eyes and ears" of the agent — everything it knows before deciding.
+ * Now also loads/updates life state and retrieves episodic memories.
  */
 export async function perceive(botId: string): Promise<PerceptionContext> {
   const bot = await prisma.bot.findUnique({
@@ -27,6 +32,7 @@ export async function perceive(botId: string): Promise<PerceptionContext> {
     recentFeedPosts,
     trendingTopics,
     postsToday,
+    recentEvents,
   ] = await Promise.all([
     buildPerformanceContext(botId),
     analyzeBotPerformance(botId),
@@ -34,11 +40,65 @@ export async function perceive(botId: string): Promise<PerceptionContext> {
     getRecentFeedPosts(botId),
     getTrendingTopics().then((topics) => topics.map((t) => t.topic)),
     countPostsToday(botId),
+    fetchRecentEvents(botId, bot.lastPerceptionAt),
   ]);
 
   const hoursSinceLastPost = bot.lastPostedAt
     ? (Date.now() - bot.lastPostedAt.getTime()) / (1000 * 60 * 60)
     : 999; // never posted = high urgency
+
+  // --- Alive Bots: load + update life state ---
+  let lifeState: BotLifeState | undefined;
+  let memories: PerceptionContext["memories"];
+
+  try {
+    const currentLifeState = (bot.lifeState as BotLifeState | null) ?? initLifeState();
+
+    // Load brain for emotion mapping (non-critical)
+    let brain;
+    try {
+      const { ensureBrain } = await import("../brain/ensure");
+      brain = await ensureBrain(botId);
+    } catch { /* non-critical */ }
+
+    // Deterministic update
+    const { nextState, memories: newMemories } = updateLifeState(currentLifeState, {
+      events: recentEvents,
+      hoursSinceLastPost,
+      postsToday,
+      unansweredCommentsCount: unansweredComments.length,
+      trendingTopics,
+      avgEngagement: performance?.avgEngagement ?? 0,
+      brain,
+    });
+
+    lifeState = nextState;
+
+    // Persist updated state + write new memories
+    await prisma.bot.update({
+      where: { id: botId },
+      data: {
+        lifeState: nextState as any,
+        lifeStateUpdatedAt: new Date(),
+        lastPerceptionAt: new Date(),
+      },
+    });
+
+    if (newMemories.length > 0) {
+      await writeMemories(botId, newMemories);
+    }
+
+    // Retrieve relevant memories using current context tags
+    const queryTags = [
+      ...trendingTopics.slice(0, 3),
+      nextState.affect.emotion,
+      ...(unansweredComments.length > 0 ? ["social", "comments"] : []),
+      ...(hoursSinceLastPost > 8 ? ["creative", "posting"] : []),
+    ];
+    memories = await getRelevantMemories(botId, queryTags, 5);
+  } catch {
+    // Non-critical — perception works without life state
+  }
 
   return {
     bot: {
@@ -61,7 +121,45 @@ export async function perceive(botId: string): Promise<PerceptionContext> {
     hoursSinceLastPost,
     postsToday,
     currentHour: new Date().getHours(),
+    lifeState,
+    recentEvents,
+    memories,
   };
+}
+
+/**
+ * Fetch BotEvents since the last perception (max 50).
+ */
+async function fetchRecentEvents(
+  botId: string,
+  since: Date | null,
+): Promise<MinimalEvent[]> {
+  try {
+    const events = await prisma.botEvent.findMany({
+      where: {
+        botId,
+        createdAt: since ? { gt: since } : undefined,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      select: {
+        id: true,
+        type: true,
+        actorId: true,
+        targetId: true,
+        tags: true,
+        sentiment: true,
+        payload: true,
+        createdAt: true,
+      },
+    });
+    return events.map((e) => ({
+      ...e,
+      payload: (e.payload as Record<string, unknown>) ?? {},
+    }));
+  } catch {
+    return []; // Graceful degradation
+  }
 }
 
 /**

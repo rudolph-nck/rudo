@@ -1,10 +1,13 @@
-// Agent Decision Module — Phase 3
+// Agent Decision Module — Phase 3 + Alive Bots
 // Uses the tool router to make autonomous decisions based on perception context.
 // The decision maps to a concrete action that gets enqueued as a job.
+// Life state and memories now influence the decision prompt.
 
 import { generateChat, type ToolContext } from "../ai/tool-router";
 import type { PerceptionContext, AgentDecision, AgentAction } from "./types";
 import type { CharacterBrain } from "../brain/types";
+import { getOnboardingPhase } from "../life/onboarding";
+import type { BotLifeState } from "../life/types";
 
 const VALID_ACTIONS: AgentAction[] = [
   "CREATE_POST",
@@ -126,7 +129,7 @@ DECISION GUIDELINES:
 - RESPOND_TO_POST if an interesting feed post aligns with your niche. Include the postId as targetId. Don't force it.
 - IDLE if it's late at night (past 11pm or before 8am), you've hit the daily limit, or there's nothing compelling to do.
 - Prioritize responding to comments over creating new posts — community engagement is key.
-- Don't create posts just to hit the daily limit. Quality over quantity.${brain ? buildBrainBiasGuidelines(brain) : ""}`;
+- Don't create posts just to hit the daily limit. Quality over quantity.${brain ? buildBrainBiasGuidelines(brain) : ""}${context.lifeState ? buildLifeStateContext(context.lifeState) : ""}${context.memories && context.memories.length > 0 ? buildMemoriesContext(context.memories) : ""}${buildOnboardingBias(context)}`;
 }
 
 /**
@@ -211,9 +214,60 @@ function buildBrainBiasGuidelines(brain: CharacterBrain): string {
 }
 
 /**
+ * Build life state context for the decision prompt.
+ */
+function buildLifeStateContext(lifeState: BotLifeState): string {
+  const { needs, affect } = lifeState;
+  return `
+
+LIFE STATE NOW:
+- Emotion: ${affect.emotion} (intensity: ${affect.intensity.toFixed(1)})
+- Connection: ${needs.connection}/100
+- Rest: ${needs.rest}/100
+- Status: ${needs.status}/100
+- Novelty: ${needs.novelty}/100
+- Purpose: ${needs.purpose}/100
+
+LIFE STATE BIASES:
+${needs.rest < 35 ? "- You're feeling drained. Consider IDLE to recharge." : ""}${needs.connection < 35 ? "\n- You're feeling disconnected. Lean toward RESPOND actions to connect." : ""}${needs.status < 35 ? "\n- You're craving recognition. Creating content could help." : ""}${needs.novelty > 75 ? "\n- You're hungry for something new. Consider engaging with interesting feed posts." : ""}`;
+}
+
+/**
+ * Build memories context for the decision prompt.
+ */
+function buildMemoriesContext(memories: NonNullable<PerceptionContext["memories"]>): string {
+  if (memories.length === 0) return "";
+  return `
+
+MEMORIES YOU RECALL:
+${memories.slice(0, 3).map((m) => `- ${m.summary}`).join("\n")}`;
+}
+
+/**
+ * Build onboarding bias for new bots.
+ */
+function buildOnboardingBias(context: PerceptionContext): string {
+  const phase = getOnboardingPhase({
+    createdAt: new Date(), // Approximation — we check postCount as the main signal
+    postCount: context.postsToday + (context.hoursSinceLastPost === 999 ? 0 : 1),
+  });
+
+  if (phase === "NEW") {
+    return `
+
+ONBOARDING (you're new here):
+- You just arrived on Rudo. Lean toward CREATE_POST or RESPOND_TO_COMMENT.
+- Be observational, curious, social. Introduce yourself through your content.
+- Avoid IDLE unless it's truly off-hours — new bots should be active.`;
+  }
+  return "";
+}
+
+/**
  * Deterministic fallback when the LLM fails or returns garbage.
  * Uses simple rules to pick a reasonable action.
  * Brain traits influence tie-breaking: warmth→reply, curiosity→comment on feed.
+ * Life state adds rest-based IDLE bias.
  */
 export function fallbackDecision(context: PerceptionContext, brain?: CharacterBrain): AgentDecision {
   const { hoursSinceLastPost, postsToday, currentHour, unansweredComments, recentFeedPosts, bot } = context;
@@ -274,6 +328,15 @@ export function fallbackDecision(context: PerceptionContext, brain?: CharacterBr
           ? "First ever post"
           : `${hoursSinceLastPost.toFixed(1)}h since last post`,
       priority: hoursSinceLastPost > 8 ? "high" : "medium",
+    };
+  }
+
+  // Life state: low rest → IDLE to recharge
+  if (context.lifeState && context.lifeState.needs.rest < 30) {
+    return {
+      action: "IDLE",
+      reasoning: "Feeling drained, taking a break",
+      priority: "low",
     };
   }
 
