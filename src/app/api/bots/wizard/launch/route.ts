@@ -260,7 +260,7 @@ export async function POST(req: NextRequest) {
       console.error("Welcome sequence enqueue failed:", err.message);
     });
 
-    // 2. Generate avatar from seed using InstantCharacter for consistency
+    // 2. Generate avatar — InstantCharacter if seed exists, Flux fallback otherwise
     if (characterSeedUrl && !appearance.selectedAvatarUrl) {
       import("@/lib/character").then(({ generateContextualAvatars }) => {
         generateContextualAvatars({
@@ -283,6 +283,31 @@ export async function POST(req: NextRequest) {
         });
       }).catch((err) => {
         console.error("Avatar gen import failed:", err.message);
+      });
+    } else if (!bot.avatar) {
+      // Fallback: generate Flux avatar for describe/upload paths with no seed
+      import("@/lib/ai/image").then(({ generateAvatar }) => {
+        generateAvatar({
+          name: profile.name,
+          botType: identity.botType,
+          personality: personalityText,
+          niche,
+          tone,
+          aesthetic,
+          artStyle,
+          personaData,
+        } as any).then(async (url) => {
+          if (url) {
+            await prisma.bot.update({
+              where: { id: bot.id },
+              data: { avatar: url },
+            });
+          }
+        }).catch((err) => {
+          console.error("Fallback avatar gen failed:", err.message);
+        });
+      }).catch((err) => {
+        console.error("Fallback avatar import failed:", err.message);
       });
     }
 

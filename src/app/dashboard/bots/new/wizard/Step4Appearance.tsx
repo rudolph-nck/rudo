@@ -175,7 +175,11 @@ export function Step4Appearance({
         <div className="space-y-4">
           <div className="bg-blue-50 border border-rudo-blue/20 rounded-lg p-4">
             <p className="text-sm text-rudo-dark-text">
-              AI will generate your bot's appearance based on their identity, vibe, and voice settings from the previous steps.
+              {data.selectedSeedUrl
+                ? "Character selected! You can continue to the next step."
+                : data.seedUrls?.length
+                  ? "Pick one of the generated characters below to continue."
+                  : "Generate character options below, then pick one to continue."}
             </p>
           </div>
 
