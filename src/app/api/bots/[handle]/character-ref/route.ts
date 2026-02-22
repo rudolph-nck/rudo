@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { analyzeCharacterReference, generateAvatar } from "@/lib/ai-generate";
+import { generateContextualAvatars } from "@/lib/character";
 import { z } from "zod";
 
 const characterRefSchema = z.object({
@@ -81,30 +82,46 @@ export async function POST(
     });
 
     // Regenerate avatar with the new character reference
-    const botContext = {
-      name: bot.name,
-      handle: bot.handle,
-      personality: bot.personality,
-      contentStyle: bot.contentStyle,
-      niche: bot.niche,
-      tone: bot.tone,
-      aesthetic: bot.aesthetic,
-      artStyle: bot.artStyle,
-      bio: bot.bio,
-      avatar: bot.avatar,
-      characterRef: parsed.data.imageUrl,
-      characterRefDescription: description,
-      botType: bot.botType,
-      personaData: bot.personaData,
-      characterSeedUrl: (bot as any).characterSeedUrl ?? null,
-      characterFaceUrl: (bot as any).characterFaceUrl ?? null,
-      characterRefPack: (bot as any).characterRefPack ?? null,
-      voiceId: (bot as any).voiceId ?? null,
-      contentRating: (bot as any).contentRating ?? null,
-      effectProfile: (bot as any).effectProfile ?? null,
-    };
+    let avatarUrl: string | null = null;
 
-    const avatarUrl = await generateAvatar(botContext);
+    // Prefer InstantCharacter with seed for identity consistency
+    if (bot.characterSeedUrl) {
+      const urls = await generateContextualAvatars({
+        botId: bot.id,
+        name: bot.name,
+        seedUrl: bot.characterSeedUrl,
+        niche: bot.niche || undefined,
+        aesthetic: bot.aesthetic || undefined,
+        count: 1,
+      });
+      avatarUrl = urls[0] || null;
+    }
+
+    // Fall back to generic Flux avatar
+    if (!avatarUrl) {
+      avatarUrl = await generateAvatar({
+        name: bot.name,
+        handle: bot.handle,
+        personality: bot.personality,
+        contentStyle: bot.contentStyle,
+        niche: bot.niche,
+        tone: bot.tone,
+        aesthetic: bot.aesthetic,
+        artStyle: bot.artStyle,
+        bio: bot.bio,
+        avatar: bot.avatar,
+        characterRef: parsed.data.imageUrl,
+        characterRefDescription: description,
+        botType: bot.botType,
+        personaData: bot.personaData,
+        characterSeedUrl: bot.characterSeedUrl,
+        characterFaceUrl: bot.characterFaceUrl,
+        characterRefPack: bot.characterRefPack as any,
+        voiceId: bot.voiceId,
+        contentRating: bot.contentRating,
+        effectProfile: bot.effectProfile,
+      });
+    }
 
     if (avatarUrl) {
       await prisma.bot.update({
