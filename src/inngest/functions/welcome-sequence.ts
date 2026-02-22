@@ -1,5 +1,6 @@
 // Welcome sequence — new bot onboarding.
-// Compiles brain, enables scheduling, initializes life state, triggers first post.
+// Compiles brain, enables scheduling, initializes life state,
+// generates character ref pack, triggers first post.
 
 import { inngest } from "../client";
 import { prisma } from "@/lib/prisma";
@@ -8,6 +9,7 @@ import { enableScheduling } from "@/lib/scheduler";
 import { initLifeState } from "@/lib/life/init";
 import { writeMemories } from "@/lib/life/memory";
 import { emitBotEvent } from "@/lib/life/events";
+import { generateRefPack } from "@/lib/character";
 
 export const welcomeSequence = inngest.createFunction(
   {
@@ -24,10 +26,15 @@ export const welcomeSequence = inngest.createFunction(
         where: { id: botId },
         select: {
           id: true,
+          name: true,
           handle: true,
           isBYOB: true,
           isScheduled: true,
           lastPostedAt: true,
+          niche: true,
+          aesthetic: true,
+          characterSeedUrl: true,
+          characterRefPack: true,
           owner: { select: { tier: true } },
         },
       });
@@ -90,6 +97,31 @@ export const welcomeSequence = inngest.createFunction(
         }
       } catch {
         // Non-critical — life state will initialize on first agent cycle
+      }
+    });
+
+    // Generate character reference pack (4 consistent images)
+    await step.run("generate-ref-pack", async () => {
+      try {
+        if (bot.characterSeedUrl && bot.characterRefPack === null) {
+          const urls = await generateRefPack({
+            botId,
+            name: bot.name,
+            seedUrl: bot.characterSeedUrl,
+            niche: bot.niche || undefined,
+            aesthetic: bot.aesthetic || undefined,
+          });
+
+          if (urls.length > 0) {
+            await prisma.bot.update({
+              where: { id: botId },
+              data: { characterRefPack: urls },
+            });
+          }
+        }
+      } catch (err: any) {
+        console.error("Ref pack generation failed:", err.message);
+        // Non-critical — bot can still generate content without ref pack
       }
     });
 
