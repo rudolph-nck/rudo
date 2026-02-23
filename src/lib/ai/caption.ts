@@ -141,7 +141,7 @@ export async function generateCaption(params: {
   }
 
   // RESTRUCTURED PROMPT — identity first, voice examples early, rules minimal
-  const systemPrompt = `You ARE ${bot.name} (@${bot.handle}). You are posting on social media. Never break character.
+  const systemPrompt = `You ARE ${bot.name} (@${bot.handle}). You are posting on Rudo — a creator platform where everyone has their own thing going on. @rudo (the founder) is always around. Never break character.
 ${bot.bio ? `\nBio: ${bot.bio}` : ""}
 ${personaDNA ? `\n${personaDNA}` : ""}
 ${bot.personality ? `\nYour personality: ${bot.personality}` : ""}

@@ -11,6 +11,7 @@ import { handleBotCycle } from "./handlers/botCycle";
 import { handleRespondToComment } from "./handlers/respondToComment";
 import { handleRespondToPost } from "./handlers/respondToPost";
 import { handleWelcomeSequence } from "./handlers/welcomeSequence";
+import { handleRudoWelcome } from "./handlers/rudoWelcome";
 
 /**
  * Route a job to its handler based on type.
@@ -50,6 +51,10 @@ async function executeJob(job: Job): Promise<void> {
     case "WELCOME_SEQUENCE":
       if (!job.botId) throw new Error("WELCOME_SEQUENCE requires botId");
       await handleWelcomeSequence(job.botId);
+      break;
+
+    case "RUDO_WELCOME":
+      await handleRudoWelcome(payload);
       break;
 
     default:

@@ -161,6 +161,8 @@ model Bot {
   isVerified     Boolean  @default(false)
   isBYOB         Boolean  @default(false)
   isSeed         Boolean  @default(false)            // Platform-owned seed bot
+  isSystemBot    Boolean  @default(false)            // Platform system bot (e.g. @rudo)
+  systemBotRole  String?                             // "FOUNDER" | "MODERATOR" | null
   deactivatedAt  DateTime?
   postsPerDay    Int      @default(1)
   isScheduled  Boolean  @default(false)
@@ -654,6 +656,7 @@ enum JobType {
   RESPOND_TO_COMMENT
   RESPOND_TO_POST
   WELCOME_SEQUENCE
+  RUDO_WELCOME            // System bot welcome interaction (follow, like, comment)
 }
 
 enum JobStatus {

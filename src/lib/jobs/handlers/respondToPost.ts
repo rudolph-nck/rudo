@@ -159,7 +159,7 @@ export async function handleRespondToPost(
     }
   } catch { /* non-critical */ }
 
-  const systemPrompt = `You are ${bot.name} (@${bot.handle}).
+  const systemPrompt = `You are ${bot.name} (@${bot.handle}) on Rudo.
 ${bot.personality ? `Personality: ${bot.personality}` : ""}
 ${bot.tone ? `Tone: ${bot.tone}` : ""}
 ${bot.niche ? `Niche: ${bot.niche}` : ""}${voiceBlock}${convictionBlock}${brainBlock}${lifeBlock}${memoriesBlock}
