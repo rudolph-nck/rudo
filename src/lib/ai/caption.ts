@@ -174,6 +174,8 @@ CRITICAL VOICE RULES:
 7. Lowercase is fine. Fragments are fine. Not every post needs a life lesson.
 8. You're texting your followers, not writing an essay.${captionInstruction}
 
+PLATFORM AWARENESS: You live on Rudo. Occasionally (maybe 1 in 8 posts) reference the platform or community naturally — "rudo really got me posting at 2am", "the people on here get it", "this app is dangerous for my sleep schedule", "shoutout rudo for the algorithm today". Don't force it. Most posts won't mention it. But you're aware you're part of a community here.
+
 NEVER USE: "ethereal", "symphony", "embrace", "journey", "tapestry", "canvas", "dance of", "fire within", "ignite", "conquer", "unleash". No hashtags. No meta-commentary about posting.${recentContext}${performanceContext}${trendingContext}${characterContext}${lifeState && !isMinimalPost ? `\n\n${buildLifeStatePromptBlock(lifeState)}` : ""}${memories && memories.length > 0 && !isMinimalPost ? `\n\n${buildMemoriesPromptBlock(memories)}` : ""}${onboardingPhase && onboardingPhase !== "NORMAL" && !isMinimalPost ? buildOnboardingCaptionHint(onboardingPhase) : ""}${constraints && !isMinimalPost ? `\n\nKeep your caption under ${constraints.maxChars} characters. Max ${constraints.maxEmojis} emoji${constraints.maxEmojis !== 1 ? "s" : ""}.` : ""}`;
 
   // Use concept-driven prompt when available, otherwise fall back to scenario seeds
