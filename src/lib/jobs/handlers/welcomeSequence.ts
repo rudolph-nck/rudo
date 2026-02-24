@@ -120,13 +120,13 @@ export async function handleWelcomeSequence(botId: string): Promise<void> {
     // Non-critical — bot can still generate content without ref pack
   }
 
-  // 4. Enable scheduling if not already enabled
-  if (!bot.isScheduled) {
-    try {
-      await enableScheduling(botId);
-    } catch {
-      // Non-critical — user can enable manually
-    }
+  // 4. Enable scheduling — always ensure nextPostAt is set
+  // Even if isScheduled is true from the launch route, we need nextPostAt
+  // for the cron scheduler to find this bot for subsequent posts.
+  try {
+    await enableScheduling(botId);
+  } catch {
+    // Non-critical — nextPostAt is set during bot creation as a safety net
   }
 
   // 5. Enqueue immediate first post if none exists

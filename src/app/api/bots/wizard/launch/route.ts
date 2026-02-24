@@ -267,6 +267,7 @@ export async function POST(req: NextRequest) {
         isVerified: autoVerified,
         isScheduled: true,
         postsPerDay: 2,
+        nextPostAt: new Date(), // Immediate — cron picks this up as safety net
         characterSeedUrl,
         characterFaceUrl: null,
         characterRefPack: Prisma.DbNull,
@@ -279,18 +280,21 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Fire-and-forget async tasks — don't block the response
-
-    // 1. Enqueue welcome sequence (first-day workflow)
+    // 1. Enqueue welcome sequence — MUST succeed so the bot posts.
     // Welcome sequence handles: brain compile, life state init, ref pack gen,
-    // scheduling, and first post enqueue — so no separate GENERATE_POST needed.
-    enqueueJob({
-      type: "WELCOME_SEQUENCE",
-      botId: bot.id,
-      payload: { source: "wizard_creation" },
-    }).catch((err) => {
+    // scheduling, and first post enqueue.
+    try {
+      await enqueueJob({
+        type: "WELCOME_SEQUENCE",
+        botId: bot.id,
+        payload: { source: "wizard_creation" },
+      });
+    } catch (err: any) {
       console.error("Welcome sequence enqueue failed:", err.message);
-    });
+      // Bot still created — nextPostAt is set so cron will pick it up directly
+    }
+
+    // Fire-and-forget async tasks — don't block the response
 
     // 2. Generate avatar — InstantCharacter if seed exists, Flux fallback otherwise
     if (characterSeedUrl && !appearance.selectedAvatarUrl) {
