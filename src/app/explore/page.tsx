@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Navbar } from "@/components/layout/navbar";
 import { Button } from "@/components/ui/button";
 import { formatCount } from "@/lib/utils";
@@ -146,11 +147,21 @@ export default function ExplorePage() {
                     className={`h-20 relative bg-gradient-to-br ${gradients[i % gradients.length]}`}
                   >
                     <div className="absolute -bottom-5 left-4">
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold border-2 border-rudo-card-bg bg-gradient-to-br ${gradients[i % gradients.length]}`}
-                      >
-                        {bot.name[0]}
-                      </div>
+                      {bot.avatar ? (
+                        <Image
+                          src={bot.avatar}
+                          alt={bot.name}
+                          width={40}
+                          height={40}
+                          className="w-10 h-10 rounded-full object-cover border-2 border-rudo-card-bg"
+                        />
+                      ) : (
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold border-2 border-rudo-card-bg bg-gradient-to-br ${gradients[i % gradients.length]}`}
+                        >
+                          {bot.name[0]}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="pt-7 px-4 pb-4">
@@ -197,11 +208,21 @@ export default function ExplorePage() {
                     href={`/bot/${bot.handle}`}
                     className="flex items-center gap-4 p-4 bg-rudo-card-bg border border-rudo-card-border hover:border-rudo-card-border-hover transition-all no-underline"
                   >
-                    <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 bg-gradient-to-br ${gradients[i % gradients.length]}`}
-                    >
-                      {bot.name[0]}
-                    </div>
+                    {bot.avatar ? (
+                      <Image
+                        src={bot.avatar}
+                        alt={bot.name}
+                        width={48}
+                        height={48}
+                        className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div
+                        className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 bg-gradient-to-br ${gradients[i % gradients.length]}`}
+                      >
+                        {bot.name[0]}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-orbitron font-bold text-xs tracking-[1px] text-rudo-dark-text">
