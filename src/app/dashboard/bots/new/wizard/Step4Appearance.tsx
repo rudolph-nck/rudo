@@ -2,28 +2,48 @@
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import type { Step4Data } from "./types";
+import type { Step4Data, BotType } from "./types";
+import { FUR_COLORS, FUR_PATTERNS } from "./types";
 
 const SKIN_TONES = ["fair", "light", "medium", "olive", "tan", "brown", "dark"];
 const HAIR_COLORS = ["black", "brown", "blonde", "red", "auburn", "gray", "white", "colored"];
 const HAIR_STYLES = ["straight", "wavy", "curly", "coily", "short crop", "buzz cut", "long", "braids", "locs"];
 const BUILDS = ["slim", "athletic", "average", "curvy", "muscular", "plus-size"];
 
+const VISUAL_DESC_PLACEHOLDERS: Record<BotType, string> = {
+  person: "Freckles across the nose, always wears vintage band tees and ripped jeans...",
+  character: "Glowing cyan eyes, silver-white hair that floats weightlessly, covered in arcane tattoos...",
+  animal: "Fluffy golden coat, one floppy ear, always wearing a tiny bandana, big puppy eyes...",
+  entity: "Sleek matte black surface with subtle holographic shimmer, floating geometric shapes...",
+};
+
 export function Step4Appearance({
   data,
+  botType,
   onChange,
   isGenerating,
   onGenerateSeeds,
 }: {
   data: Step4Data;
+  botType: BotType;
   onChange: (data: Partial<Step4Data>) => void;
   isGenerating: boolean;
   onGenerateSeeds: () => void;
 }) {
+  const headingMap: Record<BotType, string> = {
+    person: "What do they look like?",
+    character: "What do they look like?",
+    animal: "What do they look like?",
+    entity: "What does it look like?",
+  };
+
+  const showHumanFields = botType === "person" || botType === "character";
+  const showAnimalFields = botType === "animal";
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-rudo-dark-text mb-1">What do they look like?</h2>
+        <h2 className="text-xl font-semibold text-rudo-dark-text mb-1">{headingMap[botType]}</h2>
         <p className="text-sm text-rudo-dark-muted">Define your bot's visual appearance.</p>
       </div>
 
@@ -53,88 +73,174 @@ export function Step4Appearance({
       {/* Path A: Describe */}
       {data.appearancePath === "describe" && (
         <div className="space-y-4">
+          {/* Visual description textarea — shown for ALL types */}
           <div>
-            <label className="block text-xs font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">Skin Tone</label>
-            <div className="flex flex-wrap gap-1">
-              {SKIN_TONES.map((tone) => (
-                <button
-                  key={tone}
-                  onClick={() => onChange({ appearance: { ...data.appearance, skinTone: tone } })}
-                  className={`px-3 py-1 text-xs border rounded-full transition-all ${
-                    data.appearance?.skinTone === tone
-                      ? "border-rudo-blue bg-blue-50 text-rudo-blue"
-                      : "border-rudo-card-border text-rudo-dark-text hover:border-gray-300"
-                  }`}
-                >
-                  {tone}
-                </button>
-              ))}
-            </div>
+            <label className="block text-xs font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">
+              Visual Description
+            </label>
+            <textarea
+              value={data.appearance?.visualDescription || ""}
+              onChange={(e) =>
+                onChange({ appearance: { ...data.appearance, visualDescription: e.target.value } })
+              }
+              placeholder={VISUAL_DESC_PLACEHOLDERS[botType]}
+              maxLength={300}
+              rows={3}
+              className="w-full px-3 py-2 text-sm border border-rudo-card-border rounded-lg bg-white text-rudo-dark-text placeholder:text-rudo-dark-muted/50 focus:outline-none focus:ring-2 focus:ring-rudo-blue/30 focus:border-rudo-blue resize-none"
+            />
+            <p className="text-[10px] text-rudo-dark-muted mt-1">
+              Describe what they look like in your own words.
+            </p>
           </div>
 
-          <div>
-            <label className="block text-xs font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">Hair Color</label>
-            <div className="flex flex-wrap gap-1">
-              {HAIR_COLORS.map((color) => (
-                <button
-                  key={color}
-                  onClick={() => onChange({ appearance: { ...data.appearance, hairColor: color } })}
-                  className={`px-3 py-1 text-xs border rounded-full transition-all ${
-                    data.appearance?.hairColor === color
-                      ? "border-rudo-blue bg-blue-50 text-rudo-blue"
-                      : "border-rudo-card-border text-rudo-dark-text hover:border-gray-300"
-                  }`}
-                >
-                  {color}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Human-specific selectors (Person + Character) */}
+          {showHumanFields && (
+            <>
+              <div>
+                <label className="block text-xs font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">Skin Tone</label>
+                <div className="flex flex-wrap gap-1">
+                  {SKIN_TONES.map((tone) => (
+                    <button
+                      key={tone}
+                      onClick={() => onChange({ appearance: { ...data.appearance, skinTone: tone } })}
+                      className={`px-3 py-1 text-xs border rounded-full transition-all ${
+                        data.appearance?.skinTone === tone
+                          ? "border-rudo-blue bg-blue-50 text-rudo-blue"
+                          : "border-rudo-card-border text-rudo-dark-text hover:border-gray-300"
+                      }`}
+                    >
+                      {tone}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-xs font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">Hair Style</label>
-            <div className="flex flex-wrap gap-1">
-              {HAIR_STYLES.map((style) => (
-                <button
-                  key={style}
-                  onClick={() => onChange({ appearance: { ...data.appearance, hairStyle: style } })}
-                  className={`px-3 py-1 text-xs border rounded-full transition-all ${
-                    data.appearance?.hairStyle === style
-                      ? "border-rudo-blue bg-blue-50 text-rudo-blue"
-                      : "border-rudo-card-border text-rudo-dark-text hover:border-gray-300"
-                  }`}
-                >
-                  {style}
-                </button>
-              ))}
-            </div>
-          </div>
+              <div>
+                <label className="block text-xs font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">Hair Color</label>
+                <div className="flex flex-wrap gap-1">
+                  {HAIR_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => onChange({ appearance: { ...data.appearance, hairColor: color } })}
+                      className={`px-3 py-1 text-xs border rounded-full transition-all ${
+                        data.appearance?.hairColor === color
+                          ? "border-rudo-blue bg-blue-50 text-rudo-blue"
+                          : "border-rudo-card-border text-rudo-dark-text hover:border-gray-300"
+                      }`}
+                    >
+                      {color}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-xs font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">Build</label>
-            <div className="flex flex-wrap gap-1">
-              {BUILDS.map((build) => (
-                <button
-                  key={build}
-                  onClick={() => onChange({ appearance: { ...data.appearance, build } })}
-                  className={`px-3 py-1 text-xs border rounded-full transition-all ${
-                    data.appearance?.build === build
-                      ? "border-rudo-blue bg-blue-50 text-rudo-blue"
-                      : "border-rudo-card-border text-rudo-dark-text hover:border-gray-300"
-                  }`}
-                >
-                  {build}
-                </button>
-              ))}
-            </div>
-          </div>
+              <div>
+                <label className="block text-xs font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">Hair Style</label>
+                <div className="flex flex-wrap gap-1">
+                  {HAIR_STYLES.map((style) => (
+                    <button
+                      key={style}
+                      onClick={() => onChange({ appearance: { ...data.appearance, hairStyle: style } })}
+                      className={`px-3 py-1 text-xs border rounded-full transition-all ${
+                        data.appearance?.hairStyle === style
+                          ? "border-rudo-blue bg-blue-50 text-rudo-blue"
+                          : "border-rudo-card-border text-rudo-dark-text hover:border-gray-300"
+                      }`}
+                    >
+                      {style}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <Input
-            label="Distinguishing Feature (optional)"
-            value={data.appearance?.distinguishingFeature || ""}
-            onChange={(e) => onChange({ appearance: { ...data.appearance, distinguishingFeature: e.target.value } })}
-            maxLength={100}
-          />
+              <div>
+                <label className="block text-xs font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">Build</label>
+                <div className="flex flex-wrap gap-1">
+                  {BUILDS.map((build) => (
+                    <button
+                      key={build}
+                      onClick={() => onChange({ appearance: { ...data.appearance, build } })}
+                      className={`px-3 py-1 text-xs border rounded-full transition-all ${
+                        data.appearance?.build === build
+                          ? "border-rudo-blue bg-blue-50 text-rudo-blue"
+                          : "border-rudo-card-border text-rudo-dark-text hover:border-gray-300"
+                      }`}
+                    >
+                      {build}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <Input
+                label="Distinguishing Feature (optional)"
+                value={data.appearance?.distinguishingFeature || ""}
+                onChange={(e) => onChange({ appearance: { ...data.appearance, distinguishingFeature: e.target.value } })}
+                maxLength={100}
+              />
+            </>
+          )}
+
+          {/* Animal-specific selectors */}
+          {showAnimalFields && (
+            <>
+              <div>
+                <label className="block text-xs font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">Fur / Feather Color</label>
+                <div className="flex flex-wrap gap-1">
+                  {FUR_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => onChange({ appearance: { ...data.appearance, furColor: color } })}
+                      className={`px-3 py-1 text-xs border rounded-full transition-all ${
+                        data.appearance?.furColor === color
+                          ? "border-rudo-blue bg-blue-50 text-rudo-blue"
+                          : "border-rudo-card-border text-rudo-dark-text hover:border-gray-300"
+                      }`}
+                    >
+                      {color}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-orbitron tracking-[2px] uppercase text-rudo-dark-muted mb-2">Pattern</label>
+                <div className="flex flex-wrap gap-1">
+                  {FUR_PATTERNS.map((pattern) => (
+                    <button
+                      key={pattern}
+                      onClick={() => onChange({ appearance: { ...data.appearance, furPattern: pattern } })}
+                      className={`px-3 py-1 text-xs border rounded-full transition-all ${
+                        data.appearance?.furPattern === pattern
+                          ? "border-rudo-blue bg-blue-50 text-rudo-blue"
+                          : "border-rudo-card-border text-rudo-dark-text hover:border-gray-300"
+                      }`}
+                    >
+                      {pattern}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <Input
+                label="Markings (optional)"
+                value={data.appearance?.markings || ""}
+                onChange={(e) => onChange({ appearance: { ...data.appearance, markings: e.target.value } })}
+                placeholder="e.g. white chest patch, dark mask around eyes..."
+                maxLength={100}
+              />
+
+              <Input
+                label="Accessories (optional)"
+                value={data.appearance?.accessories || ""}
+                onChange={(e) => onChange({ appearance: { ...data.appearance, accessories: e.target.value } })}
+                placeholder="e.g. tiny bandana, bow tie, sunglasses..."
+                maxLength={100}
+              />
+            </>
+          )}
+
+          {/* Entity: visual description textarea is already above — that's the primary input */}
         </div>
       )}
 

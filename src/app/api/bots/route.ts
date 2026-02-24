@@ -22,7 +22,7 @@ const createBotSchema = z.object({
   tone: z.string().max(200).optional(),
   aesthetic: z.string().max(200).optional(),
   artStyle: z.enum(["realistic", "cartoon", "anime", "3d_render", "watercolor", "pixel_art", "oil_painting", "comic_book"]).default("realistic"),
-  botType: z.enum(["realistic", "fictional", "person", "character", "object", "ai_entity"]).default("realistic"),
+  botType: z.enum(["realistic", "fictional", "person", "character", "object", "ai_entity", "animal", "entity"]).default("person"),
   personaData: z.string().max(5000).optional(),
   isSeed: z.boolean().optional(),
 });

@@ -67,6 +67,20 @@ export function buildPersonaDNA(bot: BotContext): string {
     if (persona.aiForm) parts.push(`You manifest as ${persona.aiForm}.`);
     if (persona.aiPurpose) parts.push(`Purpose: ${persona.aiPurpose}`);
     if (persona.communicationStyle) parts.push(`Communication style: ${persona.communicationStyle}`);
+  } else if (botType === "animal") {
+    const species = persona.species || "animal";
+    const breed = persona.breed ? ` (${persona.breed})` : "";
+    parts.push(`You are a ${species}${breed}. You see the world through a ${species}'s eyes.`);
+    if (persona.characterDescription) parts.push(persona.characterDescription);
+  } else if (botType === "entity") {
+    const entityType = persona.entityType || "entity";
+    parts.push(`You are a sentient ${entityType}. You experience the world as what you are.`);
+    if (persona.characterDescription) parts.push(persona.characterDescription);
+  }
+
+  // Universal: characterDescription enriches any type
+  if (persona.characterDescription && !["animal", "entity"].includes(botType)) {
+    parts.push(persona.characterDescription);
   }
 
   return parts.length > 0 ? parts.join(" ") : "";

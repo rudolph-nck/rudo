@@ -20,11 +20,19 @@ export const maxDuration = 60;
 // Validation schema — matches the wizard state shape sent from WizardContainer
 const launchSchema = z.object({
   identity: z.object({
-    botType: z.enum(["realistic", "fictional"]),
+    botType: z.enum(["person", "character", "animal", "entity"]),
     name: z.string().max(50).optional(),
-    ageRange: z.enum(["18-24", "25-34", "35-50+"]).default("25-34"),
-    genderPresentation: z.enum(["feminine", "masculine", "fluid"]).default("feminine"),
-    locationVibe: z.enum(["big_city", "coastal", "mountain", "rural", "suburban", "international", "digital"]).default("big_city"),
+    characterDescription: z.string().max(500).optional().default(""),
+    // Person / Character fields (optional)
+    ageRange: z.enum(["18-24", "25-34", "35-50+"]).optional().default("25-34"),
+    genderPresentation: z.enum(["feminine", "masculine", "fluid"]).optional().default("feminine"),
+    locationVibe: z.enum(["big_city", "coastal", "mountain", "rural", "suburban", "international", "digital"]).optional().default("big_city"),
+    // Animal fields
+    species: z.string().max(50).optional().default(""),
+    breed: z.string().max(50).optional().default(""),
+    animalSize: z.enum(["tiny", "small", "medium", "large", "huge"]).optional().default("medium"),
+    // Entity fields
+    entityType: z.enum(["brand", "food", "object", "place", "concept", "ai_being"]).optional().default("brand"),
   }),
   vibe: z.object({
     vibeTags: z.array(z.string()).min(2).max(3),
@@ -53,6 +61,11 @@ const launchSchema = z.object({
       build: z.string().optional(),
       styleKeywords: z.array(z.string()).optional(),
       distinguishingFeature: z.string().optional(),
+      furColor: z.string().optional(),
+      furPattern: z.string().optional(),
+      markings: z.string().optional(),
+      accessories: z.string().optional(),
+      visualDescription: z.string().max(300).optional(),
     }).optional(),
     uploadedImageUrl: z.string().url().optional(),
     selectedSeedUrl: z.string().url().optional(),
@@ -132,9 +145,14 @@ export async function POST(req: NextRequest) {
       identity: {
         botType: identity.botType,
         name: profile.name,
+        characterDescription: identity.characterDescription,
         ageRange: identity.ageRange,
         genderPresentation: identity.genderPresentation,
         locationVibe: identity.locationVibe,
+        species: identity.species,
+        breed: identity.breed,
+        animalSize: identity.animalSize,
+        entityType: identity.entityType,
       },
       vibe: {
         vibeTags: vibe.vibeTags,
@@ -152,18 +170,32 @@ export async function POST(req: NextRequest) {
 
     const brain = compileFromWizard(wizardData);
 
-    // Build personality text from the wizard selections for the bot record
-    const personalityText = profile.personalitySummary
-      || `${vibe.vibeTags.join(", ")} personality. Interests: ${vibe.interests.join(", ")}. ${voice.contentRating} content.`;
+    // Build personality text — prefer user's own description, then LLM summary, then fallback
+    const basePersonality = identity.characterDescription
+      ? `${identity.characterDescription}. ${vibe.vibeTags.join(", ")} energy.`
+      : `${vibe.vibeTags.join(", ")} personality. Interests: ${vibe.interests.join(", ")}. ${voice.contentRating} content.`;
+    const personalityText = profile.personalitySummary || basePersonality;
 
     // Build content style from interests
-    const contentStyleText = `${vibe.interests.join(", ")} content creator with ${vibe.vibeTags.join(" and ")} energy`;
+    const typeLabel = identity.botType === "animal"
+      ? `${identity.species || "animal"} character`
+      : identity.botType === "entity"
+        ? `${identity.entityType || "entity"} character`
+        : "content creator";
+    const contentStyleText = `${vibe.interests.join(", ")} ${typeLabel} with ${vibe.vibeTags.join(" and ")} energy`;
 
     // Build persona data JSON
     const personaData = JSON.stringify({
+      characterDescription: identity.characterDescription || null,
       ageRange: identity.ageRange,
       genderPresentation: identity.genderPresentation,
       locationVibe: identity.locationVibe,
+      // Animal fields
+      species: identity.species || null,
+      breed: identity.breed || null,
+      animalSize: identity.animalSize || null,
+      // Entity fields
+      entityType: identity.entityType || null,
       appearance: appearance.appearance || null,
       wizardVibeTags: vibe.vibeTags,
       wizardInterests: vibe.interests,
@@ -173,7 +205,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Determine art style
-    const artStyle = profile.artStyle || (identity.botType === "realistic" ? "realistic" : "cartoon");
+    const artStyle = profile.artStyle || (identity.botType === "person" ? "realistic" : "cartoon");
 
     // Determine seed URL — from wizard appearance step
     const characterSeedUrl = appearance.selectedSeedUrl || null;

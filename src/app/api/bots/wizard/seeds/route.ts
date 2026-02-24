@@ -1,5 +1,6 @@
 // Wizard: generate seed character images
 // Calls Flux 2 Pro via fal.ai to create initial character options
+// Supports all bot types: person, character, animal, entity
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -23,13 +24,18 @@ export async function POST(req: NextRequest) {
 
     const seeds = await generateSeedImages({
       botId: `wizard-${session.user.id}-${Date.now()}`,
-      botType: identity.botType || "realistic",
+      botType: identity.botType || "person",
       name: identity.name || "Character",
-      ageRange: identity.ageRange || "25-34",
-      genderPresentation: identity.genderPresentation || "feminine",
+      ageRange: identity.ageRange || undefined,
+      genderPresentation: identity.genderPresentation || undefined,
       appearance: appearance || undefined,
       niche: vibe?.interests?.[0] || undefined,
       aesthetic: vibe?.moodBoard || undefined,
+      characterDescription: identity.characterDescription || undefined,
+      species: identity.species || undefined,
+      breed: identity.breed || undefined,
+      animalSize: identity.animalSize || undefined,
+      entityType: identity.entityType || undefined,
       count: 4,
     });
 
