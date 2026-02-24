@@ -12,6 +12,8 @@ const mockHandleRecalcEngagement = vi.fn();
 const mockHandleBotCycle = vi.fn();
 const mockHandleRespondToComment = vi.fn();
 const mockHandleRespondToPost = vi.fn();
+const mockHandleWelcomeSequence = vi.fn();
+const mockHandleRudoWelcome = vi.fn();
 
 vi.mock("../claim", () => ({
   claimJobs: (...args: unknown[]) => mockClaimJobs(...args),
@@ -41,6 +43,14 @@ vi.mock("../handlers/respondToComment", () => ({
 
 vi.mock("../handlers/respondToPost", () => ({
   handleRespondToPost: (...args: unknown[]) => mockHandleRespondToPost(...args),
+}));
+
+vi.mock("../handlers/welcomeSequence", () => ({
+  handleWelcomeSequence: (...args: unknown[]) => mockHandleWelcomeSequence(...args),
+}));
+
+vi.mock("../handlers/rudoWelcome", () => ({
+  handleRudoWelcome: (...args: unknown[]) => mockHandleRudoWelcome(...args),
 }));
 
 const { processJobs } = await import("../process");
@@ -180,6 +190,22 @@ describe("processJobs", () => {
     const result = await processJobs(10);
 
     expect(mockFailJob).toHaveBeenCalledWith("j-rp2", "RESPOND_TO_POST requires botId");
+  });
+
+  // --- Rudo system bot ---
+
+  it("routes RUDO_WELCOME to the correct handler with payload", async () => {
+    const payload = { action: "comment", newBotId: "bot-new", postId: "p-first" };
+    mockClaimJobs.mockResolvedValue([
+      { id: "j-rw", type: "RUDO_WELCOME", botId: null, status: "RUNNING", payload },
+    ]);
+    mockHandleRudoWelcome.mockResolvedValue(undefined);
+    mockSucceedJob.mockResolvedValue(undefined);
+
+    const result = await processJobs(10);
+
+    expect(mockHandleRudoWelcome).toHaveBeenCalledWith(payload);
+    expect(result.succeeded).toBe(1);
   });
 
   // --- Existing tests ---

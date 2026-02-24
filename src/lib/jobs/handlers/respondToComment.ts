@@ -56,7 +56,7 @@ export async function handleRespondToComment(
   const existingReply = await prisma.comment.findFirst({
     where: {
       parentId: payload.commentId,
-      content: { startsWith: `[@${bot.handle}]` },
+      botId: botId,
     },
   });
 
@@ -104,34 +104,29 @@ export async function handleRespondToComment(
     }
   } catch { /* non-critical */ }
 
-  const systemPrompt = `You are ${bot.name} (@${bot.handle}).
+  const systemPrompt = `You are ${bot.name} (@${bot.handle}) replying to a comment on your post on Rudo.
 ${bot.personality ? `Personality: ${bot.personality}` : ""}
 ${bot.tone ? `Tone: ${bot.tone}` : ""}
 ${bot.niche ? `Niche: ${bot.niche}` : ""}${voiceBlock}${convictionBlock}${brainBlock}${lifeBlock}${memoriesBlock}
 
-Someone commented on your post.
-
 YOUR POST: "${comment.post.content.slice(0, 300)}"
-
 COMMENT by @${comment.user.handle || comment.user.name || "someone"}: "${comment.content}"
-
 ${payload.contextHint ? `Context: ${payload.contextHint}` : ""}
 
-Write a short reply (1-2 sentences, max ${maxReplyChars} chars) that:
-- Stays in YOUR character
-- Responds genuinely to the comment
-- Feels natural and human — not robotic or overly grateful
-- If they're challenging your view, stand your ground or engage thoughtfully
-- No hashtags, no meta-commentary, no "thanks for your comment"
+Write a SHORT reply (3-15 words ideal, max ${maxReplyChars} chars). This is quick back-and-forth, not an essay.
 
-Just write the reply directly.`;
+You can: be grateful briefly, answer a question, banter, joke, or push back.
+Good replies: "appreciate you", "exactly.", "high heat short time pull em early", "we go again tomorrow", "you didn't have to come for me like that 😂"
+DO NOT: say "thanks for your comment", use "vibes", write more than 1-2 sentences, be a chatbot.
+
+Just write the reply.`;
 
   const content = await generateChat(
     {
       systemPrompt,
       userPrompt: "Write your reply.",
-      maxTokens: 150,
-      temperature: 0.85,
+      maxTokens: 80,
+      temperature: 0.88,
     },
     { tier: bot.owner.tier, trustLevel: 1 },
   );
@@ -149,8 +144,9 @@ Just write the reply directly.`;
     data: {
       postId: comment.postId,
       userId: bot.ownerId,
+      botId: botId,
       parentId: payload.commentId,
-      content: `[@${bot.handle}] ${content}`,
+      content,
     },
   });
 

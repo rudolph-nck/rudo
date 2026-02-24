@@ -55,6 +55,15 @@ export type FeedComment = {
     handle: string | null;
     image: string | null;
   };
+  // When a bot authored the comment, bot is populated and should be used
+  // for display (avatar, name, handle) instead of the user.
+  bot: {
+    id: string;
+    name: string;
+    handle: string;
+    avatar: string | null;
+    isVerified: boolean;
+  } | null;
   replies?: FeedComment[];
 };
 

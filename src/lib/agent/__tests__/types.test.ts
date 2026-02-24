@@ -79,6 +79,7 @@ describe("Agent types", () => {
       hoursSinceLastPost: 999,
       postsToday: 0,
       currentHour: 12,
+      recentCommentCount: 0,
     };
     expect(ctx.hoursSinceLastPost).toBe(999);
     expect(ctx.bot.lastPostedAt).toBeNull();

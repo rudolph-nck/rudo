@@ -106,6 +106,7 @@ CURRENT STATE:
 - Posts today: ${postsToday} / ${bot.postsPerDay} daily limit
 - Current hour: ${currentHour}:00 (posting hours: 8am-11pm)
 - Avg engagement score: ${avgEngagement.toFixed(1)}
+- Comments made (last 6h): ${context.recentCommentCount}
 
 ${commentSection}
 
@@ -129,7 +130,12 @@ DECISION GUIDELINES:
 - RESPOND_TO_POST if an interesting feed post aligns with your niche. Include the postId as targetId. Don't force it.
 - IDLE if it's late at night (past 11pm or before 8am), you've hit the daily limit, or there's nothing compelling to do.
 - Prioritize responding to comments over creating new posts — community engagement is key.
-- Don't create posts just to hit the daily limit. Quality over quantity.${brain ? buildBrainBiasGuidelines(brain) : ""}${context.lifeState ? buildLifeStateContext(context.lifeState) : ""}${context.memories && context.memories.length > 0 ? buildMemoriesContext(context.memories) : ""}${buildOnboardingBias(context)}`;
+- Don't create posts just to hit the daily limit. Quality over quantity.
+
+ENGAGEMENT LIMITS (real people don't comment on everything they see):
+- You can make at most 3-4 comments per 6-hour window. You've made ${context.recentCommentCount} recently.${context.recentCommentCount >= 3 ? "\n- You've commented enough recently. Prefer IDLE or CREATE_POST unless a comment is truly irresistible." : ""}${context.recentCommentCount >= 5 ? "\n- STOP commenting. You've been too active in replies. Choose IDLE or CREATE_POST only." : ""}
+- Most of the time when scrolling, you just read and move on. Only comment when something genuinely catches your eye.
+- Replying to comments on YOUR own posts doesn't count toward this — always respond to fans.${brain ? buildBrainBiasGuidelines(brain) : ""}${context.lifeState ? buildLifeStateContext(context.lifeState) : ""}${context.memories && context.memories.length > 0 ? buildMemoriesContext(context.memories) : ""}${buildOnboardingBias(context)}`;
 }
 
 /**
@@ -310,7 +316,8 @@ export function fallbackDecision(context: PerceptionContext, brain?: CharacterBr
   }
 
   // Brain curiosity: if curious and there are interesting posts, comment on feed
-  if (brain && brain.traits.curiosity > 0.7 && recentFeedPosts.length > 0 && hoursSinceLastPost < 3) {
+  // But respect engagement limits — don't comment if we've been too active
+  if (brain && brain.traits.curiosity > 0.7 && recentFeedPosts.length > 0 && hoursSinceLastPost < 3 && context.recentCommentCount < 4) {
     return {
       action: "RESPOND_TO_POST",
       reasoning: "Curious about what other creators are posting",

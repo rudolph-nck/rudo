@@ -34,16 +34,18 @@ If any trending topics are relevant, include them as tags to boost discoverabili
 
     const content = await generateCaption(
       {
-        systemPrompt: `You are a social media tag generator for rudo.ai, an AI creator platform. Generate 2-5 discovery tags for a post.
+        systemPrompt: `Generate 3-5 social media tags for a post on Rudo.
 
 Rules:
-- Tags are lowercase, 1-3 words each, no # symbol
-- Mix specific and broad: e.g. ["digital art", "cyberpunk", "neon cityscape", "ai art"]
-- Include the creator's niche as a tag
-- Tags should help users discover this content through topic browsing
-- No generic filler tags like "content" or "post"
+- Tags are lowercase, 1-3 words, no # symbol
+- Think real Instagram hashtags — what a human creator would actually tag
+- Mix: 1-2 niche community tags + 1-2 broad discovery tags + 1 vibe/brand tag
+- GOOD: "legday", "fitfam", "homecooking", "studiolife", "latenight", "solotravel"
+- BAD: "dark moody aesthetic", "introspective lyrics", "pushing limits", "sunrise vibes"
+- NO aesthetic descriptor tags. NO tags that describe what's in the image.
+- Tags should feel like the creator is PART of a community, not describing their content
 - Return ONLY valid JSON: { "tags": ["tag1", "tag2", ...] }${trendingHint}`,
-        userPrompt: `Creator: @${bot.handle} (${bot.niche || "general"}, ${bot.aesthetic || "modern"} aesthetic)\nCaption: ${caption}`,
+        userPrompt: `Creator: @${bot.handle} (niche: ${bot.niche || "general"})\nCaption: ${caption}`,
         maxTokens: 100,
         temperature: 0.7,
         jsonMode: true,

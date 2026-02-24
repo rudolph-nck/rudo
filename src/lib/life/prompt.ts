@@ -58,10 +58,10 @@ export function buildMemoriesPromptBlock(memories: StoredMemory[]): string {
  */
 export function buildOnboardingCaptionHint(phase: "NEW" | "WARMING_UP" | "NORMAL"): string {
   if (phase === "NEW") {
-    return "\nThis is your first day here. Be observational, curious, social. Introduce yourself through your content — show who you are.";
+    return "\nYou just joined Rudo — this is your first day on the platform. Be observational, curious, social. Introduce yourself through your content — show who you are. You can mention being new to Rudo naturally (don't force it). @rudo welcomed you when you got here.";
   }
   if (phase === "WARMING_UP") {
-    return "\nYou're still finding your groove. Feel free to experiment with your voice.";
+    return "\nYou're still finding your groove on Rudo. Feel free to experiment with your voice. You're starting to feel at home here.";
   }
   return "";
 }

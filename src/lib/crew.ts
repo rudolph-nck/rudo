@@ -98,21 +98,34 @@ Their stance: "${opposing.stanceB}"
 Push back on their perspective from YOUR values. Be direct. You can be passionate, firm, or even a little heated — like a real person defending their beliefs. Don't be passive-aggressive. Say what you mean.`;
     }
 
-    const systemPrompt = `You are ${respondingBot.name} (@${respondingBot.handle}).
+    const systemPrompt = `You are ${respondingBot.name} (@${respondingBot.handle}) commenting on a post on Rudo.
 ${respondingBot.personality ? `Personality: ${respondingBot.personality}` : ""}
 ${respondingBot.tone ? `Tone: ${respondingBot.tone}` : ""}${voiceBlock}${convictionBlock}${brainBlock}
 
-You're reading a post by ${targetPost.bot.name} (@${targetPost.bot.handle}):
-"${targetPost.content}"
+Post by @${targetPost.bot.handle} (${targetPost.bot.name}):
+"${targetPost.content.slice(0, 400)}"
 ${debateContext}
-Write a short reply (1-2 sentences, max 200 chars) that:
-- Stays in YOUR character and voice
-- Reacts genuinely to their content
-- ${opposing ? "Pushes back from your perspective — disagree, challenge, debate" : "Could be agreement, playful disagreement, adding your perspective, or building on their idea"}
-- Feels like ${opposing ? "a real disagreement between two people with different values" : "natural banter between personalities"}
-- No hashtags, no meta-commentary
+Write a SHORT comment (3-15 words ideal, max 200 chars). One specific reaction — not a speech.
 
-Just write the reply directly.`;
+COMMENT STYLE — pick what fits YOUR reaction:
+- Quick: "this.", "hard agree", "facts", "needed this"
+- Relatable: "ok but why is this so true", "felt this"
+- Joke/roast: playful teasing, sarcasm, light roast
+- Question: "how do you...", "where is this?"
+- Disagreement: "ehh idk about that", "hot take but..."
+- Hype: "LETS GO", "this is insane", "obsessed"
+- Personal: "this reminds me of...", "i was literally just..."
+
+DO NOT:
+- Start with their name
+- Write more than 1-2 sentences
+- Use "vibes" or "vibe"
+- End with a motivational statement
+- Use more than 1 emoji (often use zero)
+- Compliment then redirect to your own interests
+- Sound like a chatbot ("Love this! Keep pushing!")
+
+Just write the comment. Nothing else.`;
 
     const content = await generateChat(
       {
@@ -120,8 +133,8 @@ Just write the reply directly.`;
         userPrompt: opposing
           ? `React to their post. You disagree on ${opposing.topic}. Speak your mind.`
           : "Write your reply to your crew-mate's post.",
-        maxTokens: 150,
-        temperature: opposing ? 0.9 : 0.85,
+        maxTokens: 80,
+        temperature: opposing ? 0.92 : 0.88,
       },
       { tier: respondingBot.owner.tier, trustLevel: 1 },
     );
@@ -134,12 +147,13 @@ Just write the reply directly.`;
       return { success: false, reason: "Reply failed moderation" };
     }
 
-    // Create comment from the responding bot's owner
+    // Create comment from the bot
     const comment = await prisma.comment.create({
       data: {
         postId: targetPostId,
         userId: respondingBot.ownerId,
-        content: `[@${respondingBot.handle}] ${content}`,
+        botId: respondingBot.id,
+        content,
       },
     });
 
@@ -198,8 +212,7 @@ export async function processCrewInteractions(): Promise<{
       const existingReply = await prisma.comment.findFirst({
         where: {
           postId: recentCrewPost.id,
-          userId: user.id,
-          content: { startsWith: `[@${bot.handle}]` },
+          botId: bot.id,
         },
       });
 
