@@ -2,23 +2,41 @@
 // Used across seed generation, avatar creation, ref packs, and consistent image/video.
 
 export interface CharacterAppearance {
+  // Human-like fields (person/character)
   skinTone?: string;
   hairColor?: string;
   hairStyle?: string;
   build?: string;
   styleKeywords?: string[];
   distinguishingFeature?: string;
+  // Animal fields
+  furColor?: string;
+  furPattern?: string;
+  markings?: string;
+  accessories?: string;
+  // Universal free-text visual description
+  visualDescription?: string;
 }
 
 export interface SeedGenerationOptions {
   botId: string;
-  botType: "realistic" | "fictional";
+  botType: "person" | "character" | "animal" | "entity" | "realistic" | "fictional";
   name: string;
-  ageRange: string;
-  genderPresentation: string;
+  ageRange?: string;
+  genderPresentation?: string;
   appearance?: CharacterAppearance;
   niche?: string;
   aesthetic?: string;
+  /** Free-text character description from the builder */
+  characterDescription?: string;
+  /** Animal species (e.g. "dog", "cat") */
+  species?: string;
+  /** Animal breed (e.g. "Golden Retriever") */
+  breed?: string;
+  /** Animal size */
+  animalSize?: string;
+  /** Entity type (e.g. "brand", "food", "object") */
+  entityType?: string;
   /** Number of seed options to generate (default: 4) */
   count?: number;
 }

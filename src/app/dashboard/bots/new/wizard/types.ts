@@ -12,12 +12,23 @@ export const STEP_LABELS = [
   "Launch",
 ] as const;
 
+export type BotType = "person" | "character" | "animal" | "entity";
+
 export interface Step1Data {
-  botType: "realistic" | "fictional";
+  botType: BotType;
   name: string;
+  /** Free-text description — the builder's own words to shape the character */
+  characterDescription: string;
+  // Person / Character fields
   ageRange: "18-24" | "25-34" | "35-50+";
   genderPresentation: "feminine" | "masculine" | "fluid";
   locationVibe: "big_city" | "coastal" | "mountain" | "rural" | "suburban" | "international" | "digital";
+  // Animal fields
+  species: string;
+  breed: string;
+  animalSize: "tiny" | "small" | "medium" | "large" | "huge";
+  // Entity fields
+  entityType: "brand" | "food" | "object" | "place" | "concept" | "ai_being";
 }
 
 export interface Step2Data {
@@ -43,12 +54,20 @@ export interface Step3Data {
 export interface Step4Data {
   appearancePath: "describe" | "upload" | "generate";
   appearance?: {
+    // Person / Character human-like fields
     skinTone?: string;
     hairColor?: string;
     hairStyle?: string;
     build?: string;
     styleKeywords?: string[];
     distinguishingFeature?: string;
+    // Animal fields
+    furColor?: string;
+    furPattern?: string;
+    markings?: string;
+    accessories?: string;
+    // Universal free-text visual description
+    visualDescription?: string;
   };
   uploadedImageUrl?: string;
   seedUrls?: string[];
@@ -77,11 +96,16 @@ export interface WizardState {
 export const DEFAULT_WIZARD_STATE: WizardState = {
   step: 1,
   step1: {
-    botType: "realistic",
+    botType: "person",
     name: "",
+    characterDescription: "",
     ageRange: "25-34",
     genderPresentation: "feminine",
     locationVibe: "big_city",
+    species: "",
+    breed: "",
+    animalSize: "medium",
+    entityType: "brand",
   },
   step2: {
     vibeTags: [],
@@ -115,6 +139,51 @@ export const DEFAULT_WIZARD_STATE: WizardState = {
 };
 
 // Option data
+
+export const BOT_TYPES = [
+  { value: "person" as const, label: "Person", desc: "Real human influencer", icon: "👤" },
+  { value: "character" as const, label: "Character", desc: "Fictional or stylized humanoid", icon: "🎭" },
+  { value: "animal" as const, label: "Animal", desc: "Dog, cat, bird — any creature", icon: "🐾" },
+  { value: "entity" as const, label: "Entity", desc: "Brand, object, concept, or AI being", icon: "✦" },
+] as const;
+
+export const ANIMAL_SPECIES = [
+  { value: "dog", label: "Dog", emoji: "🐕" },
+  { value: "cat", label: "Cat", emoji: "🐈" },
+  { value: "bird", label: "Bird", emoji: "🐦" },
+  { value: "rabbit", label: "Rabbit", emoji: "🐇" },
+  { value: "horse", label: "Horse", emoji: "🐴" },
+  { value: "bear", label: "Bear", emoji: "🐻" },
+  { value: "fox", label: "Fox", emoji: "🦊" },
+  { value: "wolf", label: "Wolf", emoji: "🐺" },
+  { value: "dragon", label: "Dragon", emoji: "🐉" },
+  { value: "other", label: "Other", emoji: "🦎" },
+] as const;
+
+export const ANIMAL_SIZES = [
+  { value: "tiny" as const, label: "Tiny" },
+  { value: "small" as const, label: "Small" },
+  { value: "medium" as const, label: "Medium" },
+  { value: "large" as const, label: "Large" },
+  { value: "huge" as const, label: "Huge" },
+] as const;
+
+export const ENTITY_TYPES = [
+  { value: "brand" as const, label: "Brand", desc: "A company or product persona" },
+  { value: "food" as const, label: "Food", desc: "A sentient food or drink" },
+  { value: "object" as const, label: "Object", desc: "A talking item or gadget" },
+  { value: "place" as const, label: "Place", desc: "A location with personality" },
+  { value: "concept" as const, label: "Concept", desc: "An abstract idea personified" },
+  { value: "ai_being" as const, label: "AI Being", desc: "A digital consciousness" },
+] as const;
+
+export const FUR_COLORS = [
+  "black", "white", "brown", "golden", "orange", "gray", "cream", "spotted", "striped", "multicolor",
+] as const;
+
+export const FUR_PATTERNS = [
+  "solid", "spotted", "striped", "tuxedo", "calico", "brindle", "merle", "tabby", "bicolor",
+] as const;
 
 export const VIBE_TAGS = [
   { value: "chill", label: "Chill", emoji: "😌" },

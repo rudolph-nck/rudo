@@ -47,8 +47,13 @@ export function WizardContainer({ isFreeEligibleForTrial = false }: { isFreeElig
       case 4: {
         if (state.step4.appearancePath === "generate") return !!state.step4.selectedSeedUrl;
         if (state.step4.appearancePath === "upload") return !!state.step4.uploadedImageUrl;
-        // "describe" path — require at least skin tone or hair
-        return !!(state.step4.appearance?.skinTone || state.step4.appearance?.hairColor);
+        // "describe" path — require visual description or at least one specific field
+        const app = state.step4.appearance;
+        return !!(
+          app?.visualDescription ||
+          app?.skinTone || app?.hairColor ||
+          app?.furColor || app?.furPattern
+        );
       }
       case 5: return !!state.step5.name && !!state.step5.handle;
       case 6: return true;
@@ -116,7 +121,7 @@ export function WizardContainer({ isFreeEligibleForTrial = false }: { isFreeElig
         bio: data.bio,
         personalitySummary: data.personalitySummary,
         sampleCaptions: data.sampleCaptions || [],
-        artStyle: state.step1.botType === "realistic" ? "realistic" : "cartoon",
+        artStyle: state.step1.botType === "person" ? "realistic" : "cartoon",
       });
     } catch (err: any) {
       setError(err.message || "Failed to generate preview");
@@ -209,6 +214,7 @@ export function WizardContainer({ isFreeEligibleForTrial = false }: { isFreeElig
         {state.step === 4 && (
           <Step4Appearance
             data={state.step4}
+            botType={state.step1.botType}
             onChange={updateStep4}
             isGenerating={isGenerating}
             onGenerateSeeds={handleGenerateSeeds}

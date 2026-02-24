@@ -22,11 +22,20 @@ import { validateBrain } from "./schema";
 // ---------------------------------------------------------------------------
 
 export interface WizardIdentity {
-  botType: "realistic" | "fictional";
+  botType: "person" | "character" | "animal" | "entity" | "realistic" | "fictional";
   name?: string;
-  ageRange: "18-24" | "25-34" | "35-50+";
-  genderPresentation: "feminine" | "masculine" | "fluid";
-  locationVibe: "big_city" | "coastal" | "mountain" | "rural" | "suburban" | "international" | "digital";
+  /** Free-text description from the builder */
+  characterDescription?: string;
+  // Person / Character fields (optional for animal/entity)
+  ageRange?: "18-24" | "25-34" | "35-50+";
+  genderPresentation?: "feminine" | "masculine" | "fluid";
+  locationVibe?: "big_city" | "coastal" | "mountain" | "rural" | "suburban" | "international" | "digital";
+  // Animal fields
+  species?: string;
+  breed?: string;
+  animalSize?: "tiny" | "small" | "medium" | "large" | "huge";
+  // Entity fields
+  entityType?: "brand" | "food" | "object" | "place" | "concept" | "ai_being";
 }
 
 export interface WizardVibe {
@@ -439,15 +448,28 @@ export function compileFromWizard(data: WizardData): CharacterBrain {
     safeguards.politics = "cautious";
   }
 
-  // Location vibe can nudge traits
-  if (identity.locationVibe === "big_city") {
-    traits.confidence = clamp(traits.confidence + 0.05);
-    traits.chaos = clamp(traits.chaos + 0.03);
-  } else if (identity.locationVibe === "rural" || identity.locationVibe === "mountain") {
-    traits.warmth = clamp(traits.warmth + 0.05);
-    traits.formality = clamp(traits.formality - 0.03);
-  } else if (identity.locationVibe === "digital") {
-    traits.creativity = clamp(traits.creativity + 0.05);
+  // Location vibe can nudge traits (only applies to person/character types)
+  if (identity.locationVibe) {
+    if (identity.locationVibe === "big_city") {
+      traits.confidence = clamp(traits.confidence + 0.05);
+      traits.chaos = clamp(traits.chaos + 0.03);
+    } else if (identity.locationVibe === "rural" || identity.locationVibe === "mountain") {
+      traits.warmth = clamp(traits.warmth + 0.05);
+      traits.formality = clamp(traits.formality - 0.03);
+    } else if (identity.locationVibe === "digital") {
+      traits.creativity = clamp(traits.creativity + 0.05);
+    }
+  }
+
+  // Animal types: nudge playfulness and warmth
+  if (identity.botType === "animal") {
+    traits.warmth = clamp(traits.warmth + 0.1);
+    traits.humor = clamp(traits.humor + 0.05);
+  }
+
+  // Entity types: nudge creativity and formality
+  if (identity.botType === "entity") {
+    traits.creativity = clamp(traits.creativity + 0.1);
   }
 
   const brain: CharacterBrain = {
