@@ -1,9 +1,9 @@
 // Deterministic Character Brain compiler
 // Maps existing persona fields to numeric traits — NO LLM calls.
 // Uses seeded jitter by bot.id for variety across bots with similar personas.
-// v2: Extracts convictions from personality/personaData, computes minimalPostRate.
+// v3: Adds vocabulary fingerprints and cognitive archetypes.
 
-import type { CharacterBrain, Conviction, SentenceLength } from "./types";
+import type { CharacterBrain, Conviction, SentenceLength, Vocabulary, CognitiveStyle, CognitiveArchetype } from "./types";
 import { BRAIN_VERSION, DEFAULT_SAFEGUARDS } from "./types";
 import { validateBrain } from "./schema";
 
@@ -341,6 +341,213 @@ function deriveMinimalPostRate(
 }
 
 // ---------------------------------------------------------------------------
+// Vocabulary fingerprint derivation
+// ---------------------------------------------------------------------------
+
+// Age-bracket vocabulary banks — people of different ages use different words
+const VOCAB_BANKS = {
+  genZ: {
+    preferred: ["lowkey", "ngl", "fr", "it's giving", "ate", "slay", "no cap", "bussin", "rent free", "main character", "deadass", "bet", "sus", "valid", "unhinged"],
+    banned: ["wonderful", "marvelous", "good heavens", "indeed", "thus", "hence", "regarding", "furthermore", "delightful", "splendid"],
+    fillers: ["like", "literally", "honestly", "bro", "imo", "idk"],
+  },
+  millennial: {
+    preferred: ["honestly", "I can't", "vibes", "dead", "iconic", "toxic", "manifesting", "chef's kiss", "I'm screaming", "this is everything", "hot take", "big yikes"],
+    banned: ["groovy", "swell", "hence", "thus", "regarding", "furthermore", "indubitably"],
+    fillers: ["honestly", "I mean", "literally", "okay but", "so like"],
+  },
+  genX: {
+    preferred: ["solid", "legit", "rad", "word", "props", "dope", "nailed it", "for real", "clutch"],
+    banned: ["slay", "bussin", "it's giving", "no cap", "ate", "fr", "deadass"],
+    fillers: ["dude", "man", "right", "basically"],
+  },
+  boomer: {
+    preferred: ["wonderful", "appreciate", "fantastic", "goodness", "my word", "outstanding", "tremendous", "terrific", "remarkable"],
+    banned: ["slay", "bussin", "lowkey", "fr", "no cap", "it's giving", "ate", "deadass", "sus", "bet"],
+    fillers: ["well", "you know", "I tell you", "let me tell you"],
+  },
+};
+
+// Niche-specific vocabulary additions
+const NICHE_VOCAB: Record<string, string[]> = {
+  fitness: ["gains", "grind", "PR", "sets", "reps", "clean", "bulk", "shredded", "macros", "pump"],
+  gym: ["gains", "grind", "PR", "sets", "reps", "leg day", "pump", "spotter"],
+  food: ["plating", "season", "al dente", "reduction", "umami", "crispy", "fold", "sear"],
+  cooking: ["mise en place", "deglaze", "emulsify", "render", "blanch", "sauté"],
+  tech: ["ship it", "refactor", "deploy", "stack", "build", "iterate", "push", "merge", "debug"],
+  code: ["ship it", "refactor", "deploy", "bug", "PR", "commit", "lgtm"],
+  gaming: ["GG", "clutch", "nerf", "buff", "carry", "AFK", "RNG", "meta", "grind"],
+  music: ["drop", "beat", "slaps", "banger", "on repeat", "fire", "bars"],
+  fashion: ["fit", "drip", "slay", "serve", "lewk", "styled", "threads", "clean"],
+  art: ["piece", "work", "medium", "palette", "composition", "texture", "study"],
+  crypto: ["HODL", "moon", "rug", "based", "degen", "ape in", "alpha", "ngmi", "wagmi"],
+  finance: ["bull", "bear", "long", "short", "yield", "diversify", "compound"],
+  travel: ["wander", "explore", "hidden gem", "off the beaten path", "locals only"],
+  photography: ["shot", "frame", "light", "exposure", "bokeh", "golden hour", "candid"],
+  yoga: ["flow", "practice", "mat", "breath", "grounded", "center", "namaste"],
+  meditation: ["stillness", "presence", "breath", "center", "grounded", "mindful"],
+};
+
+function parseAgeFromPersona(personaData: string | null): number | null {
+  if (!personaData) return null;
+  try {
+    const parsed = JSON.parse(personaData);
+    const ageRange = parsed.ageRange || parsed.age_range || "";
+    if (!ageRange) return null;
+    // Parse "18-24" → 21, "25-34" → 30, "45+" → 50
+    const match = ageRange.match(/(\d+)/);
+    if (match) {
+      const first = parseInt(match[1], 10);
+      const secondMatch = ageRange.match(/(\d+)\s*[-–]\s*(\d+)/);
+      if (secondMatch) {
+        return Math.round((parseInt(secondMatch[1], 10) + parseInt(secondMatch[2], 10)) / 2);
+      }
+      return first;
+    }
+  } catch { /* not JSON */ }
+  return null;
+}
+
+/**
+ * Derive vocabulary fingerprint from persona, age, tone, niche.
+ * Gives each bot a recognizable word palette.
+ */
+function deriveVocabulary(bot: CompilerInput, formality: number): Vocabulary {
+  const age = parseAgeFromPersona(bot.personaData);
+  const tone = lower(bot.tone);
+  const niche = lower(bot.niche);
+  const personality = lower(bot.personality);
+
+  // Start with age-based vocabulary
+  let preferred: string[] = [];
+  let banned: string[] = [];
+  let fillers: string[] = [];
+  let slangLevel = 0.5;
+
+  if (age !== null) {
+    if (age < 25) {
+      ({ preferred, banned, fillers } = VOCAB_BANKS.genZ);
+      slangLevel = 0.8;
+    } else if (age < 35) {
+      ({ preferred, banned, fillers } = VOCAB_BANKS.millennial);
+      slangLevel = 0.6;
+    } else if (age < 50) {
+      ({ preferred, banned, fillers } = VOCAB_BANKS.genX);
+      slangLevel = 0.45;
+    } else {
+      ({ preferred, banned, fillers } = VOCAB_BANKS.boomer);
+      slangLevel = 0.2;
+    }
+    // Clone arrays so we don't mutate the banks
+    preferred = [...preferred];
+    banned = [...banned];
+    fillers = [...fillers];
+  }
+
+  // Tone overrides slang level
+  if (has(tone, "street", "raw", "slang", "edgy")) slangLevel = Math.max(slangLevel, 0.8);
+  if (has(tone, "formal", "polished", "professional", "elegant")) slangLevel = Math.min(slangLevel, 0.2);
+  if (has(tone, "casual", "chill", "relaxed")) slangLevel = Math.max(slangLevel, 0.55);
+
+  // Formality trait also influences
+  if (formality > 0.7) slangLevel = Math.min(slangLevel, 0.25);
+  if (formality < 0.2) slangLevel = Math.max(slangLevel, 0.65);
+
+  // Niche-specific vocabulary additions
+  if (niche) {
+    const nicheTokens = niche.split(/[\s,/]+/).filter(Boolean);
+    for (const token of nicheTokens) {
+      const nicheWords = NICHE_VOCAB[token];
+      if (nicheWords) {
+        preferred.push(...nicheWords);
+      }
+    }
+  }
+
+  // Personality-based additions
+  if (has(personality, "sarcastic", "dry", "ironic")) {
+    fillers.push("sure", "right", "cool cool", "wow okay");
+  }
+  if (has(personality, "enthusiastic", "excited", "energetic")) {
+    fillers.push("omg", "wait", "okay okay", "YOOO");
+  }
+  if (has(personality, "chill", "laid-back", "mellow")) {
+    fillers.push("yeah", "nah", "idk", "whatever");
+  }
+
+  // Deduplicate
+  preferred = [...new Set(preferred)];
+  banned = [...new Set(banned)];
+  fillers = [...new Set(fillers)];
+
+  // Use jitter on slangLevel for variety
+  slangLevel = jittered(bot.id, "slangLevel", slangLevel);
+
+  return { preferred, banned, fillers, slangLevel };
+}
+
+// ---------------------------------------------------------------------------
+// Cognitive archetype derivation
+// ---------------------------------------------------------------------------
+
+const ARCHETYPE_PATTERNS: Record<CognitiveArchetype, string> = {
+  analytical: "You think in structure. When you react to something, you notice the WHY behind it. You connect dots. Your comments often include a reason or observation, not just a reaction. You break things down.",
+  emotional: "You lead with feelings. Your first reaction IS the content. You don't rationalize — you feel. 'this made me cry' IS the whole comment. Your posts come from mood, not strategy.",
+  impulsive: "You blurt. First thought = final thought. You don't edit yourself. Your comments are raw, unfiltered, sometimes incomplete. You hit send before you think twice. Half-thoughts are fine.",
+  observational: "You notice what others miss. The detail in the background, the specific thing that makes this post different. Your comments zoom in on something specific. You point out the thing no one else mentioned.",
+  storyteller: "Everything reminds you of something. You turn reactions into mini-stories. 'ok this reminds me of...' is your energy. Your posts have a beginning, middle, and point. Even short ones feel like little narratives.",
+  provocateur: "You find the contrarian angle. Not to be mean — because you genuinely see things differently. You poke, you question, you disagree when everyone else agrees. 'hot take but...' is your opening move.",
+};
+
+/**
+ * Derive cognitive archetype from brain traits + personality text.
+ * Determines HOW the bot thinks, not just what it says.
+ */
+function deriveCognitiveStyle(
+  traits: { curiosity: number; chaos: number; formality: number; empathy: number; warmth: number; creativity: number; verbosity: number; humor: number; assertiveness: number; confidence: number; controversyAvoidance: number },
+  personality: string,
+  tone: string,
+): CognitiveStyle {
+  // Score each archetype based on trait combinations
+  const scores: Record<CognitiveArchetype, number> = {
+    analytical: traits.curiosity * 0.4 + (1 - traits.chaos) * 0.3 + traits.formality * 0.3,
+    emotional: traits.empathy * 0.4 + traits.warmth * 0.3 + (1 - traits.formality) * 0.3,
+    impulsive: traits.chaos * 0.4 + (1 - traits.formality) * 0.3 + traits.confidence * 0.3,
+    observational: traits.curiosity * 0.3 + traits.creativity * 0.3 + (1 - traits.verbosity) * 0.2 + (1 - traits.chaos) * 0.2,
+    storyteller: traits.creativity * 0.3 + traits.verbosity * 0.3 + traits.warmth * 0.2 + traits.humor * 0.2,
+    provocateur: traits.assertiveness * 0.3 + (1 - traits.controversyAvoidance) * 0.4 + traits.confidence * 0.3,
+  };
+
+  // Personality keyword overrides — strong signal
+  const p = personality.toLowerCase();
+  const t = tone.toLowerCase();
+  if (has(p, "analytical", "logical", "methodical", "systematic")) scores.analytical += 0.3;
+  if (has(p, "emotional", "sensitive", "feeling", "heart")) scores.emotional += 0.3;
+  if (has(p, "impulsive", "reactive", "spontaneous", "unfiltered")) scores.impulsive += 0.3;
+  if (has(p, "observant", "perceptive", "detail", "noticing")) scores.observational += 0.3;
+  if (has(p, "storyteller", "narrative", "dramatic", "anecdot")) scores.storyteller += 0.3;
+  if (has(p, "provocative", "edgy", "contrarian", "confrontational")) scores.provocateur += 0.3;
+
+  // Tone also contributes
+  if (has(t, "dry", "deadpan", "analytical")) scores.analytical += 0.15;
+  if (has(t, "warm", "heartfelt", "emotional")) scores.emotional += 0.15;
+  if (has(t, "raw", "unfiltered", "chaotic")) scores.impulsive += 0.15;
+  if (has(t, "observant", "subtle", "quiet")) scores.observational += 0.15;
+  if (has(t, "dramatic", "narrative")) scores.storyteller += 0.15;
+  if (has(t, "edgy", "provocative", "bold")) scores.provocateur += 0.15;
+
+  // Pick highest scoring archetype
+  const sorted = (Object.entries(scores) as [CognitiveArchetype, number][])
+    .sort((a, b) => b[1] - a[1]);
+  const archetype = sorted[0][0];
+
+  return {
+    archetype,
+    thinkingPattern: ARCHETYPE_PATTERNS[archetype],
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Main compiler
 // ---------------------------------------------------------------------------
 
@@ -417,6 +624,13 @@ export function compileCharacterBrain(bot: CompilerInput): CharacterBrain {
     safeguards.politics = "allow"; // Bot was explicitly given political views
   }
 
+  // v3: Vocabulary fingerprint
+  const vocabulary = deriveVocabulary(bot, toneTraits.formality);
+
+  // v3: Cognitive archetype — HOW this bot thinks
+  const allTraits = { ...toneTraits, ...personalityTraits, verbosity };
+  const cognitiveStyle = deriveCognitiveStyle(allTraits, personality, tone);
+
   const brain: CharacterBrain = {
     version: BRAIN_VERSION,
     traits: {
@@ -434,6 +648,8 @@ export function compileCharacterBrain(bot: CompilerInput): CharacterBrain {
       pacing,
       visualMood,
     },
+    vocabulary,
+    cognitiveStyle,
     convictions,
     voiceExamples: [], // Populated later by voice calibration (async LLM call)
     safeguards,

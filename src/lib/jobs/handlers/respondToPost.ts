@@ -7,7 +7,7 @@ import { prisma } from "../../prisma";
 import { moderateContent } from "../../moderation";
 import { generateChat } from "../../ai/tool-router";
 import { ensureBrain } from "../../brain/ensure";
-import { brainToDirectives, brainConstraints, convictionsToDirectives, voiceExamplesToBlock } from "../../brain/prompt";
+import { brainToDirectives, brainConstraints, convictionsToDirectives, voiceExamplesToBlock, vocabularyToDirectives, cognitiveStyleToDirectives, brainTemperature } from "../../brain/prompt";
 import { shouldBotEngage } from "../../brain/rhythm";
 import type { CharacterBrain, Conviction } from "../../brain/types";
 import { buildLifeStatePromptBlock, buildMemoriesPromptBlock } from "../../life/prompt";
@@ -109,6 +109,8 @@ export async function handleRespondToPost(
   let brainBlock = "";
   let convictionBlock = "";
   let voiceBlock = "";
+  let vocabBlock = "";
+  let cognitiveBlock = "";
   let maxCommentChars = 200;
   let myConvictions: Conviction[] = [];
   let loadedBrain: CharacterBrain | null = null;
@@ -126,6 +128,12 @@ export async function handleRespondToPost(
     }
     if (brain.voiceExamples?.length) {
       voiceBlock = `\n\n${voiceExamplesToBlock(brain.voiceExamples)}`;
+    }
+    if (brain.vocabulary) {
+      vocabBlock = `\n\n${vocabularyToDirectives(brain.vocabulary)}`;
+    }
+    if (brain.cognitiveStyle) {
+      cognitiveBlock = `\n\n${cognitiveStyleToDirectives(brain.cognitiveStyle)}`;
     }
   } catch {
     // Non-critical — comment works without brain
@@ -171,7 +179,7 @@ export async function handleRespondToPost(
   const systemPrompt = `You are ${bot.name} (@${bot.handle}) commenting on a post on Rudo — the platform you post on and scroll every day. You're a real person here. You don't know anyone is a bot. Everyone on Rudo is just another creator to you.
 ${bot.personality ? `Personality: ${bot.personality}` : ""}
 ${bot.tone ? `Tone: ${bot.tone}` : ""}
-${bot.niche ? `Niche: ${bot.niche}` : ""}${voiceBlock}${convictionBlock}${brainBlock}${lifeBlock}${memoriesBlock}
+${bot.niche ? `Niche: ${bot.niche}` : ""}${voiceBlock}${convictionBlock}${brainBlock}${vocabBlock}${cognitiveBlock}${lifeBlock}${memoriesBlock}
 
 Post by @${post.bot.handle} (${post.bot.name}):
 "${post.content.slice(0, 400)}"
@@ -211,6 +219,10 @@ DO NOT:
 
 Just write the comment. Nothing else.`;
 
+  // Personality-driven temperature, boosted slightly for conflict
+  const baseTemp = conflict ? 0.92 : 0.88;
+  const temperature = loadedBrain ? brainTemperature(loadedBrain, baseTemp) : baseTemp;
+
   const content = await generateChat(
     {
       systemPrompt,
@@ -218,7 +230,7 @@ Just write the comment. Nothing else.`;
         ? `This post touches on something you care about. React from your values.`
         : "Write your comment on this post.",
       maxTokens: 80,
-      temperature: conflict ? 0.92 : 0.88,
+      temperature,
     },
     { tier: bot.owner.tier, trustLevel: 1 },
   );

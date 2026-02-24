@@ -8,12 +8,27 @@ const unit = z.number().min(0).max(1).transform((v) => Math.max(0, Math.min(1, v
 
 const safeguardPolicy = z.enum(["block", "cautious", "allow"]);
 const sentenceLength = z.enum(["short", "medium", "long"]);
+const cognitiveArchetype = z.enum([
+  "analytical", "emotional", "impulsive", "observational", "storyteller", "provocateur",
+]);
 
 const convictionSchema = z.object({
   topic: z.string().min(1).max(100),
   stance: z.string().min(1).max(300),
   intensity: unit,
   willVoice: unit,
+});
+
+const vocabularySchema = z.object({
+  preferred: z.array(z.string().max(60)).max(25).optional().default([]),
+  banned: z.array(z.string().max(60)).max(25).optional().default([]),
+  fillers: z.array(z.string().max(30)).max(10).optional().default([]),
+  slangLevel: unit.optional().default(0.5),
+});
+
+const cognitiveStyleSchema = z.object({
+  archetype: cognitiveArchetype.optional().default("emotional"),
+  thinkingPattern: z.string().max(500).optional().default(""),
 });
 
 const brainSchema = z.object({
@@ -51,6 +66,14 @@ const brainSchema = z.object({
     visualMood: unit,
   }),
 
+  vocabulary: vocabularySchema.optional().default({
+    preferred: [], banned: [], fillers: [], slangLevel: 0.5,
+  }),
+
+  cognitiveStyle: cognitiveStyleSchema.optional().default({
+    archetype: "emotional", thinkingPattern: "",
+  }),
+
   convictions: z.array(convictionSchema).max(10).optional().default([]),
 
   voiceExamples: z.array(z.string().max(500)).max(12).optional().default([]),
@@ -83,16 +106,23 @@ function normalizePillars(pillars: Record<string, number>): Record<string, numbe
 /**
  * Validate and clamp a brain object.
  * Returns a fully valid CharacterBrain or throws on structural errors.
- * Handles v1 brains by providing defaults for new v2 fields.
+ * Handles v1/v2 brains by providing defaults for new v3 fields.
  */
 export function validateBrain(brain: unknown): CharacterBrain {
-  // Handle v1 brains missing new v2 fields
+  // Handle older brains missing newer fields
   const raw = brain as Record<string, any>;
   if (raw && typeof raw === "object") {
     if (!raw.convictions) raw.convictions = [];
     if (!raw.voiceExamples) raw.voiceExamples = [];
     if (raw.style && raw.style.minimalPostRate === undefined) {
       raw.style.minimalPostRate = 0.15;
+    }
+    // v3 fields: vocabulary + cognitiveStyle
+    if (!raw.vocabulary) {
+      raw.vocabulary = { preferred: [], banned: [], fillers: [], slangLevel: 0.5 };
+    }
+    if (!raw.cognitiveStyle) {
+      raw.cognitiveStyle = { archetype: "emotional", thinkingPattern: "" };
     }
   }
 

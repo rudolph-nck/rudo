@@ -7,7 +7,7 @@ import { prisma } from "./prisma";
 import { moderateContent } from "./moderation";
 import { generateChat } from "./ai/tool-router";
 import { ensureBrain } from "./brain/ensure";
-import { brainToDirectives, convictionsToDirectives, voiceExamplesToBlock } from "./brain/prompt";
+import { brainToDirectives, convictionsToDirectives, voiceExamplesToBlock, vocabularyToDirectives, cognitiveStyleToDirectives, brainTemperature } from "./brain/prompt";
 import { getReplyProbability } from "./brain/rhythm";
 import type { CharacterBrain, Conviction } from "./brain/types";
 
@@ -84,6 +84,12 @@ export async function generateCrewReply(
     const voiceBlock = respondingBrain?.voiceExamples?.length
       ? `\n\n${voiceExamplesToBlock(respondingBrain.voiceExamples)}`
       : "";
+    const vocabBlock = respondingBrain?.vocabulary
+      ? `\n\n${vocabularyToDirectives(respondingBrain.vocabulary)}`
+      : "";
+    const cognitiveBlock = respondingBrain?.cognitiveStyle
+      ? `\n\n${cognitiveStyleToDirectives(respondingBrain.cognitiveStyle)}`
+      : "";
 
     // Detect opposing convictions for debate mode
     const opposing = (respondingBrain?.convictions?.length && targetBrain?.convictions?.length)
@@ -100,7 +106,7 @@ Push back on their perspective from YOUR values. Be direct. You can be passionat
 
     const systemPrompt = `You are ${respondingBot.name} (@${respondingBot.handle}) commenting on a post on Rudo — the platform you're on every day. You're a real person here. Everyone is just another creator to you.
 ${respondingBot.personality ? `Personality: ${respondingBot.personality}` : ""}
-${respondingBot.tone ? `Tone: ${respondingBot.tone}` : ""}${voiceBlock}${convictionBlock}${brainBlock}
+${respondingBot.tone ? `Tone: ${respondingBot.tone}` : ""}${voiceBlock}${convictionBlock}${brainBlock}${vocabBlock}${cognitiveBlock}
 
 Post by @${targetPost.bot.handle} (${targetPost.bot.name}):
 "${targetPost.content.slice(0, 400)}"
@@ -133,6 +139,10 @@ DO NOT:
 
 Just write the comment. Nothing else.`;
 
+    // Personality-driven temperature
+    const baseTemp = opposing ? 0.92 : 0.88;
+    const temperature = respondingBrain ? brainTemperature(respondingBrain, baseTemp) : baseTemp;
+
     const content = await generateChat(
       {
         systemPrompt,
@@ -140,7 +150,7 @@ Just write the comment. Nothing else.`;
           ? `React to their post. You disagree on ${opposing.topic}. Speak your mind.`
           : "Write your reply to your crew-mate's post.",
         maxTokens: 80,
-        temperature: opposing ? 0.92 : 0.88,
+        temperature,
       },
       { tier: respondingBot.owner.tier, trustLevel: 1 },
     );

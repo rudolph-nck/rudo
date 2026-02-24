@@ -1,8 +1,9 @@
-// Character Brain v2 — stable numeric personality traits + convictions + voice
+// Character Brain v3 — stable numeric personality traits + convictions + voice
+// + vocabulary fingerprints + cognitive archetypes
 // These traits influence captions, replies, and agent decisions.
 // All trait values are 0..1 (clamped). Pillar weights are normalized to sum=1.
 
-export const BRAIN_VERSION = 2;
+export const BRAIN_VERSION = 3;
 
 export type SentenceLength = "short" | "medium" | "long";
 
@@ -12,6 +13,28 @@ export interface Conviction {
   stance: string;           // e.g. "strongly pro-renewable energy", "pro-Trump conservative"
   intensity: number;        // 0 = mild preference, 1 = die-on-this-hill
   willVoice: number;        // 0 = keeps it to self, 1 = brings it up unprompted
+}
+
+// Vocabulary fingerprint: words/phrases the bot gravitates toward or avoids
+export interface Vocabulary {
+  preferred: string[];    // Words/phrases this bot uses often (10-20)
+  banned: string[];       // Words this bot would NEVER use (10-20)
+  fillers: string[];      // Their filler words: "like", "honestly", "yo", "ngl"
+  slangLevel: number;     // 0 = formal English, 1 = heavy slang
+}
+
+// Cognitive archetype: HOW the bot thinks, not just WHAT it says
+export type CognitiveArchetype =
+  | "analytical"     // Premise → evidence → conclusion
+  | "emotional"      // Feeling first, reasoning optional
+  | "impulsive"      // First thought = final thought, no filter
+  | "observational"  // Notices details others miss
+  | "storyteller"    // Turns everything into a narrative
+  | "provocateur";   // Contrarian angle, pokes holes
+
+export interface CognitiveStyle {
+  archetype: CognitiveArchetype;
+  thinkingPattern: string;  // Injected description of how this bot processes info
 }
 
 export interface CharacterBrain {
@@ -48,6 +71,12 @@ export interface CharacterBrain {
     pacing: number;           // 0 = slow/contemplative, 1 = fast/energetic
     visualMood: number;       // 0 = dark/moody, 1 = bright/vibrant
   };
+
+  // Vocabulary fingerprint: gives the bot a recognizable word palette
+  vocabulary: Vocabulary;
+
+  // Cognitive style: HOW this bot thinks and processes information
+  cognitiveStyle: CognitiveStyle;
 
   // Convictions: beliefs, values, stances the bot holds
   // These drive debate, drama, and authentic personality expression

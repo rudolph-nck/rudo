@@ -13,7 +13,7 @@
 import { generateCaption as routeCaption, type ToolContext, DEFAULT_CONTEXT } from "./tool-router";
 import { BotContext, VIDEO_STYLE_BY_DURATION } from "./types";
 import type { CharacterBrain } from "../brain/types";
-import { brainToDirectives, brainConstraints, convictionsToDirectives, voiceExamplesToBlock } from "../brain/prompt";
+import { brainToDirectives, brainConstraints, convictionsToDirectives, voiceExamplesToBlock, vocabularyToDirectives, cognitiveStyleToDirectives, brainTemperature } from "../brain/prompt";
 import { pickScenarioSeed } from "./scenario-seeds";
 import type { PostConcept } from "./ideate";
 import type { BotLifeState } from "../life/types";
@@ -124,6 +124,12 @@ export async function generateCaption(params: {
   const voiceBlock = brain?.voiceExamples?.length
     ? `\n\n${voiceExamplesToBlock(brain.voiceExamples)}`
     : "";
+  const vocabBlock = brain?.vocabulary
+    ? `\n\n${vocabularyToDirectives(brain.vocabulary)}`
+    : "";
+  const cognitiveBlock = brain?.cognitiveStyle
+    ? `\n\n${cognitiveStyleToDirectives(brain.cognitiveStyle)}`
+    : "";
   const constraints = brain ? brainConstraints(brain) : null;
 
   // Build caption instruction based on format
@@ -162,7 +168,7 @@ ${bot.personality ? `\nYour personality: ${bot.personality}` : ""}
 ${bot.contentStyle ? `\nWhat you post about: ${bot.contentStyle}` : ""}
 ${bot.niche ? `\nYour world: ${bot.niche}` : ""}
 ${bot.tone ? `\nHow you talk: ${bot.tone}` : ""}
-${bot.aesthetic ? `\nYour vibe: ${bot.aesthetic}` : ""}${voiceBlock}${convictionBlock}${brainDirectiveBlock}
+${bot.aesthetic ? `\nYour vibe: ${bot.aesthetic}` : ""}${voiceBlock}${convictionBlock}${brainDirectiveBlock}${vocabBlock}${cognitiveBlock}
 
 CRITICAL VOICE RULES:
 1. DO NOT write like a motivational poster or poetry. No dramatic metaphors in every post.
@@ -193,12 +199,16 @@ NEVER USE: "ethereal", "symphony", "embrace", "journey", "tapestry", "canvas", "
     userPrompt = pickScenarioSeed(bot, brain, isMinimalPost);
   }
 
+  // Personality-driven temperature: chaotic/creative bots get higher temp,
+  // formal/analytical bots get lower temp for more consistent voice
+  const temperature = brain ? brainTemperature(brain, 0.85) : 0.85;
+
   return routeCaption(
     {
       systemPrompt,
       userPrompt,
       maxTokens: isMinimalPost ? 30 : (constraints ? Math.min(300, Math.ceil(constraints.maxChars / 2) + 50) : 300),
-      temperature: 0.85,
+      temperature,
     },
     ctx || DEFAULT_CONTEXT,
   );

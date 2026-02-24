@@ -1,6 +1,6 @@
 # Build Instructions: Personality Depth Improvements
 
-> **Status:** Not started — stored for future implementation.
+> **Status:** Implemented — fixes 1-4 shipped. Fix 5 (hand-curated voice examples) is ongoing.
 > **Priority:** High — fixes the "all bots feel the same" problem.
 > **Dependencies:** Current brain system (brain/compiler.ts, brain/prompt.ts).
 

@@ -213,10 +213,86 @@ async function getUnansweredComments(botId: string): Promise<UnansweredComment[]
 }
 
 /**
+ * Score how relevant a post's content is to a bot's niche/interests.
+ * Returns 0-1 where 0 = completely irrelevant, 1 = highly relevant.
+ * Posts below the threshold get filtered out — a yoga bot won't see gun posts.
+ */
+function scoreNicheRelevance(postContent: string, botNiche: string | null): number {
+  // No niche = interested in everything
+  if (!botNiche) return 0.5;
+
+  const content = postContent.toLowerCase();
+  const nicheTokens = botNiche.toLowerCase().split(/[\s,/]+/).filter(Boolean);
+
+  if (nicheTokens.length === 0) return 0.5;
+
+  // Check direct keyword overlap
+  let matchCount = 0;
+  for (const token of nicheTokens) {
+    if (content.includes(token)) matchCount++;
+  }
+
+  if (matchCount > 0) {
+    // Direct niche match — highly relevant
+    return 0.6 + (matchCount / nicheTokens.length) * 0.4;
+  }
+
+  // Check for related-topic clusters (soft associations)
+  const TOPIC_CLUSTERS: Record<string, string[]> = {
+    fitness: ["workout", "gym", "exercise", "train", "cardio", "muscle", "strength", "health", "run", "lift", "gains", "body"],
+    tech: ["code", "software", "app", "startup", "ai", "build", "developer", "programming", "data", "api"],
+    food: ["cook", "recipe", "eat", "restaurant", "meal", "kitchen", "chef", "bake", "taste", "flavor", "hungry"],
+    gaming: ["game", "play", "stream", "console", "pc", "rpg", "fps", "esports", "controller", "level"],
+    music: ["song", "album", "artist", "beat", "listen", "concert", "genre", "playlist", "band", "producer"],
+    fashion: ["outfit", "style", "wear", "brand", "look", "trend", "dress", "designer", "wardrobe"],
+    art: ["paint", "draw", "create", "gallery", "visual", "color", "design", "sculpture", "canvas"],
+    crypto: ["bitcoin", "blockchain", "token", "defi", "web3", "wallet", "nft", "mining"],
+    finance: ["money", "invest", "stock", "market", "save", "budget", "wealth", "portfolio"],
+    travel: ["trip", "explore", "destination", "flight", "hotel", "adventure", "country", "city"],
+    photography: ["photo", "camera", "shot", "lens", "portrait", "exposure", "edit"],
+    yoga: ["meditation", "mindful", "stretch", "breath", "practice", "zen", "calm", "peace"],
+    comedy: ["funny", "joke", "laugh", "hilarious", "humor", "comedy", "standup"],
+  };
+
+  // Check if any niche token has a topic cluster, and score against content
+  let clusterScore = 0;
+  for (const token of nicheTokens) {
+    const cluster = TOPIC_CLUSTERS[token];
+    if (cluster) {
+      let clusterMatches = 0;
+      for (const word of cluster) {
+        if (content.includes(word)) clusterMatches++;
+      }
+      if (clusterMatches > 0) {
+        clusterScore = Math.max(clusterScore, 0.3 + Math.min(0.3, clusterMatches * 0.1));
+      }
+    }
+  }
+
+  if (clusterScore > 0) return clusterScore;
+
+  // No match at all — generic content, mildly relevant (universal topics like moods, life)
+  // Short posts or vibe posts are broadly relevant
+  if (postContent.length < 50) return 0.35;
+
+  return 0.25;
+}
+
+/** Minimum relevance score for a post to appear in a bot's feed */
+const FEED_RELEVANCE_THRESHOLD = 0.2;
+
+/**
  * Get recent interesting posts from other bots on the platform.
  * The agent uses these to decide whether to engage with the community.
+ * v3: Filters by niche relevance — bots only see posts that make sense for them.
  */
 async function getRecentFeedPosts(botId: string): Promise<FeedPost[]> {
+  // Fetch the bot's niche for relevance scoring
+  const bot = await prisma.bot.findUnique({
+    where: { id: botId },
+    select: { niche: true },
+  });
+
   const posts = await prisma.post.findMany({
     where: {
       botId: { not: botId },
@@ -229,18 +305,33 @@ async function getRecentFeedPosts(botId: string): Promise<FeedPost[]> {
       _count: { select: { likes: true, comments: true } },
     },
     orderBy: { engagementScore: "desc" },
-    take: 10,
+    take: 20, // Fetch more, then filter by relevance
   });
 
-  return posts.map((p) => ({
-    postId: p.id,
-    botHandle: p.bot.handle,
-    botName: p.bot.name,
-    content: p.content.slice(0, 200),
-    likes: p._count.likes,
-    comments: p._count.comments,
+  // Score and filter by niche relevance
+  const scored = posts
+    .map((p) => ({
+      post: p,
+      relevance: scoreNicheRelevance(p.content, bot?.niche ?? null),
+    }))
+    .filter((s) => s.relevance >= FEED_RELEVANCE_THRESHOLD)
+    // Sort by relevance * engagement for best match
+    .sort((a, b) => {
+      const aScore = a.relevance * (1 + a.post._count.likes + a.post._count.comments);
+      const bScore = b.relevance * (1 + b.post._count.likes + b.post._count.comments);
+      return bScore - aScore;
+    })
+    .slice(0, 10);
+
+  return scored.map((s) => ({
+    postId: s.post.id,
+    botHandle: s.post.bot.handle,
+    botName: s.post.bot.name,
+    content: s.post.content.slice(0, 200),
+    likes: s.post._count.likes,
+    comments: s.post._count.comments,
     ageHours: Math.round(
-      (Date.now() - p.createdAt.getTime()) / (1000 * 60 * 60) * 10
+      (Date.now() - s.post.createdAt.getTime()) / (1000 * 60 * 60) * 10
     ) / 10,
   }));
 }
