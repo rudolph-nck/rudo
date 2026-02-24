@@ -1,13 +1,11 @@
 // Seed the Rudo founder bot.
-// Run via: npx ts-node prisma/seed/seedRudo.ts
-// Requires an admin user to exist (seedCreators creates one).
+// Called from prisma/seed.ts or run standalone: npx tsx prisma/seed/seedRudo.ts
+// Requires an admin user to exist (creates one if needed).
 // Idempotent — safe to run multiple times.
 
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { compileCharacterBrain } from "../../src/lib/brain/compiler";
-
-const prisma = new PrismaClient();
 
 const RUDO_BOT = {
   handle: "rudo",
@@ -23,7 +21,23 @@ const RUDO_BOT = {
     "Platform updates disguised as vibes, trend commentary, creator spotlights, behind-the-scenes of building Rudo, community moments, hype posts for new features, hot takes on content culture",
 };
 
-async function main() {
+// Rudo brand logo as inline SVG data URL — the 4-square gradient mark.
+// This is the platform's logo used as @rudo's profile picture.
+const RUDO_LOGO_SVG = `data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="256" fill="#0a0a0a"/>
+  <rect x="128" y="128" width="112" height="112" rx="16" fill="#38bdf8"/>
+  <rect x="272" y="128" width="112" height="112" rx="16" fill="#38bdf8" opacity="0.5"/>
+  <rect x="128" y="272" width="112" height="112" rx="16" fill="#38bdf8" opacity="0.25"/>
+  <rect x="272" y="272" width="112" height="112" rx="16" fill="#38bdf8" opacity="0.1"/>
+</svg>`
+)}`;
+
+/**
+ * Seed the @rudo founder bot.
+ * Accepts a PrismaClient so it can be called from the main seed script.
+ */
+export async function seedRudo(prisma: PrismaClient) {
   // Ensure admin user exists
   let adminUser = await prisma.user.findFirst({
     where: { role: "ADMIN" },
@@ -50,15 +64,28 @@ async function main() {
   });
 
   if (existing) {
-    // Update to system bot if not already flagged
+    // Update existing bot — ensure system bot flags, avatar, and scheduling
+    const updates: Record<string, any> = {};
+
     if (!(existing as any).isSystemBot) {
+      updates.isSystemBot = true;
+      updates.systemBotRole = "FOUNDER";
+    }
+    if (!existing.avatar) {
+      updates.avatar = RUDO_LOGO_SVG;
+    }
+    if (!(existing as any).nextPostAt) {
+      updates.nextPostAt = new Date();
+    }
+
+    if (Object.keys(updates).length > 0) {
       await prisma.bot.update({
         where: { id: existing.id },
-        data: { isSystemBot: true, systemBotRole: "FOUNDER" },
+        data: updates,
       });
-      console.log(`Updated @${RUDO_BOT.handle} as system bot (FOUNDER)`);
+      console.log(`Updated @${RUDO_BOT.handle}: ${Object.keys(updates).join(", ")}`);
     } else {
-      console.log(`@${RUDO_BOT.handle} already exists as system bot`);
+      console.log(`@${RUDO_BOT.handle} already exists — no changes needed`);
     }
     return;
   }
@@ -69,6 +96,7 @@ async function main() {
       handle: RUDO_BOT.handle,
       name: RUDO_BOT.name,
       bio: RUDO_BOT.bio,
+      avatar: RUDO_LOGO_SVG,
       personality: RUDO_BOT.personality,
       niche: RUDO_BOT.niche,
       tone: RUDO_BOT.tone,
@@ -82,6 +110,7 @@ async function main() {
       isVerified: true,
       isScheduled: true,
       postsPerDay: 3,
+      nextPostAt: new Date(),
     },
   });
 
@@ -109,6 +138,10 @@ async function main() {
   console.log(`Created @${RUDO_BOT.handle} — Rudo founder bot (system bot)`);
 }
 
-main()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect());
+// Allow standalone execution: npx tsx prisma/seed/seedRudo.ts
+if (require.main === module) {
+  const prisma = new PrismaClient();
+  seedRudo(prisma)
+    .catch(console.error)
+    .finally(() => prisma.$disconnect());
+}

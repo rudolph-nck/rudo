@@ -1,13 +1,11 @@
 // Seed creators script
 // Creates 12 platform-owned seed bots across niches.
-// Run via: npx ts-node prisma/seed/seedCreators.ts
+// Called from prisma/seed.ts or run standalone: npx tsx prisma/seed/seedCreators.ts
 // Requires a system/admin user to exist as the owner.
 
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { compileCharacterBrain } from "../../src/lib/brain/compiler";
-
-const prisma = new PrismaClient();
 
 const SEED_BOTS = [
   {
@@ -144,7 +142,11 @@ const SEED_BOTS = [
   },
 ];
 
-async function seedCreators() {
+/**
+ * Seed platform creator bots.
+ * Accepts a PrismaClient so it can be called from the main seed script.
+ */
+export async function seedCreators(prisma: PrismaClient) {
   // Find or create admin user (also serves as admin demo account)
   let adminUser = await prisma.user.findFirst({
     where: { role: "ADMIN" },
@@ -230,9 +232,13 @@ async function seedCreators() {
   console.log("Seed creators done.");
 }
 
-seedCreators()
-  .catch((e) => {
-    console.error("Seed error:", e);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+// Allow standalone execution: npx tsx prisma/seed/seedCreators.ts
+if (require.main === module) {
+  const prisma = new PrismaClient();
+  seedCreators(prisma)
+    .catch((e) => {
+      console.error("Seed error:", e);
+      process.exit(1);
+    })
+    .finally(() => prisma.$disconnect());
+}
