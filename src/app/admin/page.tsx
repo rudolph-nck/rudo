@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { timeAgo } from "@/lib/utils";
 
@@ -59,9 +59,19 @@ const TIER_BAR_COLORS: Record<string, string> = {
   ADMIN: "bg-rudo-rose/60",
 };
 
+type SeedResult = {
+  success: boolean;
+  message: string;
+};
+
+type SeedTarget = "all" | "effects" | "rudo" | "creators";
+
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [seedingTarget, setSeedingTarget] = useState<SeedTarget | null>(null);
+  const [seedResults, setSeedResults] = useState<Record<string, SeedResult> | null>(null);
+  const [seedError, setSeedError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadStats() {
@@ -78,6 +88,30 @@ export default function AdminDashboardPage() {
       }
     }
     loadStats();
+  }, []);
+
+  const runSeed = useCallback(async (target: SeedTarget) => {
+    setSeedingTarget(target);
+    setSeedResults(null);
+    setSeedError(null);
+    try {
+      const res = await fetch("/api/admin/seed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setSeedError(data.error || "Seed failed");
+      } else {
+        const data = await res.json();
+        setSeedResults(data.results);
+      }
+    } catch {
+      setSeedError("Seed request failed — check server logs");
+    } finally {
+      setSeedingTarget(null);
+    }
   }, []);
 
   if (loading) {
@@ -380,6 +414,81 @@ export default function AdminDashboardPage() {
               </p>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Platform Seed */}
+      <div className="mt-6 sm:mt-8 bg-rudo-card-bg border border-rudo-card-border p-4 sm:p-6">
+        <h3 className="font-orbitron font-bold text-xs tracking-[2px] uppercase text-rudo-dark-muted mb-1">
+          Platform Seed
+        </h3>
+        <p className="text-sm text-rudo-dark-text-sec font-light mb-5">
+          Initialize platform data — effects library, @rudo founder bot, and seed creators. Safe to run multiple times.
+        </p>
+
+        {/* Seed error */}
+        {seedError && (
+          <div className="bg-rudo-rose/10 border border-rudo-rose/20 text-rudo-rose text-sm px-4 py-3 mb-4">
+            {seedError}
+            <button
+              onClick={() => setSeedError(null)}
+              className="ml-3 underline text-xs cursor-pointer bg-transparent border-none text-rudo-rose"
+            >
+              dismiss
+            </button>
+          </div>
+        )}
+
+        {/* Seed results */}
+        {seedResults && (
+          <div className="mb-4 space-y-1">
+            {Object.entries(seedResults).map(([key, result]) => (
+              <div
+                key={key}
+                className={`text-sm px-4 py-2 border ${
+                  result.success
+                    ? "border-green-400/20 bg-green-400/5 text-green-400"
+                    : "border-rudo-rose/20 bg-rudo-rose/5 text-rudo-rose"
+                }`}
+              >
+                <span className="font-orbitron text-[10px] tracking-[2px] uppercase mr-3">
+                  {key}
+                </span>
+                <span className="font-light">{result.message}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => runSeed("all")}
+            disabled={seedingTarget !== null}
+            className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-rose/20 text-rudo-rose bg-transparent hover:bg-rudo-rose-soft transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {seedingTarget === "all" ? "Seeding..." : "Seed All"}
+          </button>
+          <button
+            onClick={() => runSeed("rudo")}
+            disabled={seedingTarget !== null}
+            className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-blue/20 text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {seedingTarget === "rudo" ? "Seeding..." : "Seed @rudo"}
+          </button>
+          <button
+            onClick={() => runSeed("creators")}
+            disabled={seedingTarget !== null}
+            className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-green-400/20 text-green-400 bg-transparent hover:bg-green-400/5 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {seedingTarget === "creators" ? "Seeding..." : "Seed Creators"}
+          </button>
+          <button
+            onClick={() => runSeed("effects")}
+            disabled={seedingTarget !== null}
+            className="px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-yellow-400/20 text-yellow-400 bg-transparent hover:bg-yellow-400/5 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {seedingTarget === "effects" ? "Seeding..." : "Seed Effects"}
+          </button>
         </div>
       </div>
     </div>
