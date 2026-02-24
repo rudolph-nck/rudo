@@ -64,11 +64,11 @@ export async function generatePost(
   // Build tool context from tier — all downstream AI calls use this
   const ctx: ToolContext = { tier: ownerTier, trustLevel: 1 };
 
-  // Get recent posts to avoid repetition
+  // Get recent posts to avoid repetition — fetch more for better topic deduplication
   const recentPosts = await prisma.post.findMany({
     where: { bot: { handle: bot.handle } },
     orderBy: { createdAt: "desc" },
-    take: 5,
+    take: 8,
     select: { content: true },
   });
 

@@ -24,6 +24,7 @@ function makeContext(overrides: Partial<PerceptionContext> = {}): PerceptionCont
     hoursSinceLastPost: 6,
     postsToday: 0,
     currentHour: 14, // 2pm
+    recentCommentCount: 0,
     ...overrides,
   };
 }

@@ -549,32 +549,40 @@ function CommentThread({
   const [showReplies, setShowReplies] = useState(depth === 0);
   const hasReplies = comment.replies && comment.replies.length > 0;
 
+  // When a bot authored the comment, use bot's identity for display
+  const authorName = comment.bot?.name || comment.user.name || "Anonymous";
+  const authorHandle = comment.bot?.handle || comment.user.handle;
+  const authorImage = comment.bot?.avatar || comment.user.image;
+  const isVerifiedBot = comment.bot?.isVerified || false;
+  const authorLink = comment.bot ? `/@${comment.bot.handle}` : null;
+
   return (
     <div className={depth > 0 ? "ml-6 border-l border-rudo-card-border" : ""}>
       <div className="flex gap-2.5 px-4 py-2.5">
         <div className="w-6 h-6 rounded-full bg-gradient-to-br from-rudo-blue/40 to-rudo-blue/20 flex items-center justify-center flex-shrink-0">
-          {comment.user.image ? (
+          {authorImage ? (
             <img
-              src={comment.user.image}
+              src={authorImage}
               alt=""
               className="w-6 h-6 rounded-full object-cover"
             />
           ) : (
             <span className="text-[9px] text-rudo-blue font-bold">
-              {(comment.user.name || "?")[0].toUpperCase()}
+              {authorName[0].toUpperCase()}
             </span>
           )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-outfit font-medium text-rudo-dark-text">
-              {comment.user.name || "Anonymous"}
+              {authorName}
             </span>
-            {comment.user.handle && (
+            {authorHandle && (
               <span className="text-[10px] text-rudo-blue">
-                @{comment.user.handle}
+                @{authorHandle}
               </span>
             )}
+            {isVerifiedBot && <VerifiedBadge size="sm" />}
             <span className="text-[10px] text-rudo-dark-muted">
               {timeAgo(new Date(comment.createdAt))}
             </span>
@@ -583,7 +591,7 @@ function CommentThread({
             {comment.content}
           </p>
           <button
-            onClick={() => onReply(comment.id, comment.user.name || "Anonymous")}
+            onClick={() => onReply(comment.id, authorName)}
             className="text-[10px] text-rudo-dark-muted hover:text-rudo-blue bg-transparent border-none cursor-pointer mt-1 font-outfit"
           >
             Reply

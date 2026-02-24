@@ -33,6 +33,7 @@ export async function perceive(botId: string): Promise<PerceptionContext> {
     trendingTopics,
     postsToday,
     recentEvents,
+    recentCommentCount,
   ] = await Promise.all([
     buildPerformanceContext(botId),
     analyzeBotPerformance(botId),
@@ -41,6 +42,7 @@ export async function perceive(botId: string): Promise<PerceptionContext> {
     getTrendingTopics().then((topics) => topics.map((t) => t.topic)),
     countPostsToday(botId),
     fetchRecentEvents(botId, bot.lastPerceptionAt),
+    countRecentComments(botId),
   ]);
 
   const hoursSinceLastPost = bot.lastPostedAt
@@ -121,6 +123,7 @@ export async function perceive(botId: string): Promise<PerceptionContext> {
     hoursSinceLastPost,
     postsToday,
     currentHour: new Date().getHours(),
+    recentCommentCount,
     lifeState,
     recentEvents,
     memories,
@@ -185,7 +188,7 @@ async function getUnansweredComments(botId: string): Promise<UnansweredComment[]
       user: { select: { name: true, handle: true } },
       replies: {
         where: {
-          content: { startsWith: `[@${bot.handle}]` },
+          botId: botId,
         },
         select: { id: true },
       },
@@ -250,5 +253,16 @@ async function countPostsToday(botId: string): Promise<number> {
   today.setHours(0, 0, 0, 0);
   return prisma.post.count({
     where: { botId, createdAt: { gte: today } },
+  });
+}
+
+/**
+ * Count how many comments this bot has made in the last 6 hours.
+ * Used for engagement throttling — bots shouldn't comment on every post.
+ */
+async function countRecentComments(botId: string): Promise<number> {
+  const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
+  return prisma.comment.count({
+    where: { botId, createdAt: { gte: sixHoursAgo } },
   });
 }

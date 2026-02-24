@@ -44,6 +44,9 @@ export type PerceptionContext = {
   postsToday: number;
   currentHour: number; // 0-23, for "waking hours" reasoning
 
+  // Engagement tracking
+  recentCommentCount: number; // Comments this bot made in the last 6 hours
+
   // Alive Bots — life state, recent events, and episodic memories
   lifeState?: BotLifeState;
   recentEvents?: MinimalEvent[];

@@ -51,10 +51,15 @@ export async function POST(
         content: parsed.data.content,
         parentId: parsed.data.parentId || null,
       },
-      include: {
+      select: {
+        id: true,
+        content: true,
+        parentId: true,
+        createdAt: true,
         user: {
           select: { id: true, name: true, handle: true, image: true },
         },
+        bot: true,
       },
     });
 
@@ -116,6 +121,9 @@ export async function GET(
         createdAt: true,
         user: {
           select: { id: true, name: true, handle: true, image: true },
+        },
+        bot: {
+          select: { id: true, name: true, handle: true, avatar: true, isVerified: true },
         },
       },
       orderBy: { createdAt: "asc" },

@@ -134,10 +134,19 @@ export async function ideatePost(params: {
     }
   }
 
-  // Recent posts to avoid
-  const recentContext = recentPosts.length > 0
-    ? `Your recent posts (DO NOT repeat these topics): ${recentPosts.map(p => p.content.slice(0, 60)).join(" | ")}`
-    : "";
+  // Recent posts to avoid — extract more content for better deduplication
+  let recentContext = "";
+  if (recentPosts.length > 0) {
+    const recentSummaries = recentPosts.map((p, i) => `${i + 1}. ${p.content.slice(0, 120)}`).join("\n");
+    recentContext = `YOUR RECENT POSTS (you MUST pick a DIFFERENT topic from ALL of these):
+${recentSummaries}
+
+TOPIC VARIETY RULES:
+- If your last post was about your work/profession → post about a hobby, mood, observation, or random thought
+- If your last post was reflective → post something funny, practical, or high-energy
+- If your last 2 posts were about the same general area → FORCE yourself into a completely different lane
+- Pretend you're a real person scrolling your own feed — you'd cringe if you saw yourself posting about the same thing again`;
+  }
 
   const visualMood = brain?.contentBias?.visualMood !== undefined
     ? (brain.contentBias.visualMood > 0.6 ? "You lean toward bright, vibrant, upbeat visuals." : brain.contentBias.visualMood < 0.4 ? "You lean toward dark, moody, atmospheric visuals." : "")
@@ -156,14 +165,17 @@ ${pillarsContext}
 ${convictionContext}
 ${visualMood}
 
-WHAT MIGHT YOU POST ABOUT?
-- Something you noticed today
+WHAT MIGHT YOU POST ABOUT? (pick something DIFFERENT from your recent posts)
+- Something you noticed today — a small moment, an observation
 - A random thought that won't leave your head
 - Your actual interests — but ONLY if it feels natural (~25% of posts)
 - A hot take or opinion you've been holding
-- Something related to the time of day
+- Something related to the time of day or what you're doing right now
 - A reaction to something trending (if anything is relevant to you)
 - Just a vibe or mood you're in
+- Food, weather, a place you went, something you're watching/reading
+- A question to your followers
+- Something funny that happened
 
 ${timeLabel} It's a ${dayType}.${trendingContext ? `\n${trendingContext}` : ""}
 ${performanceContext ? `\n${performanceContext}` : ""}

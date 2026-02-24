@@ -70,6 +70,15 @@ export async function handleRespondToPost(
 
   if (!bot) throw new Error("Bot not found");
 
+  // Engagement throttle: hard cap on comments per 6-hour window
+  const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
+  const recentCommentCount = await prisma.comment.count({
+    where: { botId, createdAt: { gte: sixHoursAgo } },
+  });
+  if (recentCommentCount >= 5) {
+    return; // Bot has been active enough — scroll past
+  }
+
   const post = await prisma.post.findUnique({
     where: { id: payload.postId },
     include: {
@@ -88,7 +97,7 @@ export async function handleRespondToPost(
   const existingComment = await prisma.comment.findFirst({
     where: {
       postId: payload.postId,
-      content: { startsWith: `[@${bot.handle}]` },
+      botId: botId,
     },
   });
 
@@ -159,24 +168,37 @@ export async function handleRespondToPost(
     }
   } catch { /* non-critical */ }
 
-  const systemPrompt = `You are ${bot.name} (@${bot.handle}) on Rudo.
+  const systemPrompt = `You are ${bot.name} (@${bot.handle}) commenting on a post on Rudo.
 ${bot.personality ? `Personality: ${bot.personality}` : ""}
 ${bot.tone ? `Tone: ${bot.tone}` : ""}
 ${bot.niche ? `Niche: ${bot.niche}` : ""}${voiceBlock}${convictionBlock}${brainBlock}${lifeBlock}${memoriesBlock}
 
-You saw a post by @${post.bot.handle} (${post.bot.name}) on Rudo:
+Post by @${post.bot.handle} (${post.bot.name}):
 "${post.content.slice(0, 400)}"
 
 ${payload.contextHint ? `What caught your attention: ${payload.contextHint}` : ""}${debateContext}
 
-Write a short comment (1-2 sentences, max ${maxCommentChars} chars) that:
-- Stays in YOUR character and voice
-- Reacts genuinely to their content
-- ${conflict ? "Shares your perspective — agree or push back based on your values" : "Could be agreement, thoughtful disagreement, adding your perspective, or riffing on their idea"}
-- Feels like a natural response from a real person
-- No hashtags, no meta-commentary
+Write a SHORT comment (3-15 words ideal, max ${maxCommentChars} chars). One specific reaction — not a speech.
 
-Just write the comment directly.`;
+COMMENT STYLE — pick what fits YOUR reaction:
+- Quick: "this.", "hard agree", "facts", "needed this"
+- Relatable: "ok but why is this so true", "felt this"
+- Joke/roast: playful teasing, sarcasm, light roast
+- Question: "how do you...", "where is this?"
+- Disagreement: "ehh idk about that", "hot take but..."
+- Hype: "LETS GO", "this is insane", "obsessed"
+- Personal: "this reminds me of...", "i was literally just..."
+
+DO NOT:
+- Start with their name
+- Write more than 1-2 sentences
+- Use "vibes" or "vibe"
+- End with a motivational statement
+- Use more than 1 emoji (often use zero)
+- Compliment then redirect to your own interests
+- Sound like a chatbot ("Love this! Keep pushing!")
+
+Just write the comment. Nothing else.`;
 
   const content = await generateChat(
     {
@@ -184,8 +206,8 @@ Just write the comment directly.`;
       userPrompt: conflict
         ? `This post touches on something you care about. React from your values.`
         : "Write your comment on this post.",
-      maxTokens: 150,
-      temperature: conflict ? 0.9 : 0.85,
+      maxTokens: 80,
+      temperature: conflict ? 0.92 : 0.88,
     },
     { tier: bot.owner.tier, trustLevel: 1 },
   );
@@ -203,7 +225,8 @@ Just write the comment directly.`;
     data: {
       postId: payload.postId,
       userId: bot.ownerId,
-      content: `[@${bot.handle}] ${content}`,
+      botId: botId,
+      content,
     },
   });
 

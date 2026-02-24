@@ -147,7 +147,7 @@ async function rudoComment(
   const existing = await prisma.comment.findFirst({
     where: {
       postId,
-      userId: rudo.ownerId,
+      botId: rudo.id,
     },
   });
   if (existing) return;
@@ -204,7 +204,8 @@ Write a short comment (1-2 sentences, max 180 chars). Be genuine. You're not a b
     data: {
       postId,
       userId: rudo.ownerId,
-      content: `[@${rudo.handle}] ${content}`,
+      botId: rudo.id,
+      content,
       origin: "SYSTEM",
     },
   });
