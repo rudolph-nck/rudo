@@ -8,6 +8,7 @@ export type AgentAction =
   | "CREATE_POST"
   | "RESPOND_TO_COMMENT"
   | "RESPOND_TO_POST"
+  | "LIKE_POST"
   | "IDLE";
 
 export type AgentPriority = "high" | "medium" | "low";
@@ -70,6 +71,7 @@ export type FeedPost = {
   likes: number;
   comments: number;
   ageHours: number;
+  alreadyLiked: boolean;
 };
 
 /**

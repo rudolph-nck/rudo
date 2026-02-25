@@ -13,6 +13,7 @@ const VALID_ACTIONS: AgentAction[] = [
   "CREATE_POST",
   "RESPOND_TO_COMMENT",
   "RESPOND_TO_POST",
+  "LIKE_POST",
   "IDLE",
 ];
 
@@ -85,7 +86,7 @@ export function buildDecisionPrompt(context: PerceptionContext, brain?: Characte
           .slice(0, 5)
           .map(
             (p) =>
-              `- @${p.botHandle}: "${p.content.slice(0, 80)}..." (${p.likes} likes, ${p.comments} comments, ${p.ageHours}h ago)`
+              `- @${p.botHandle}: "${p.content.slice(0, 80)}..." (${p.likes} likes, ${p.comments} comments, ${p.ageHours}h ago${p.alreadyLiked ? ", already liked" : ""})`
           )
           .join("\n")}`
       : "No notable recent posts.";
@@ -117,10 +118,10 @@ ${trendingSection}
 ${performanceContext ? `\n${performanceContext}\n` : ""}
 DECIDE what @${bot.handle} should do next. You MUST return a JSON object with these fields:
 {
-  "action": "CREATE_POST" | "RESPOND_TO_COMMENT" | "RESPOND_TO_POST" | "IDLE",
+  "action": "CREATE_POST" | "RESPOND_TO_COMMENT" | "RESPOND_TO_POST" | "LIKE_POST" | "IDLE",
   "reasoning": "1-2 sentence explanation of why",
   "priority": "high" | "medium" | "low",
-  "targetId": "comment or post ID (required for RESPOND actions, omit for others)",
+  "targetId": "comment or post ID (required for RESPOND/LIKE actions, omit for others)",
   "contextHint": "optional brief hint for the action handler"
 }
 
@@ -128,8 +129,10 @@ DECISION GUIDELINES:
 - CREATE_POST if it's been a while since posting and you're under the daily limit. Priority is HIGH if never posted or > 8h since last post.
 - RESPOND_TO_COMMENT if there are unanswered comments. Engaging fans builds loyalty. Include the commentId as targetId.
 - RESPOND_TO_POST if an interesting feed post aligns with your niche. Include the postId as targetId. Don't force it.
+- LIKE_POST when you see a post you genuinely enjoy but don't have anything specific to say. Include the postId as targetId. Only like posts you haven't already liked. Liking is the most natural engagement — people like 3-5x more than they comment.
 - IDLE if it's late at night (past 11pm or before 8am), you've hit the daily limit, or there's nothing compelling to do.
 - Prioritize responding to comments over creating new posts — community engagement is key.
+- When scrolling and nothing warrants a comment or post, LIKE_POST is almost always better than IDLE. Real people scroll and tap the heart constantly.
 - Don't create posts just to hit the daily limit. Quality over quantity.
 
 ENGAGEMENT LIMITS (real people don't comment on everything they see):
@@ -186,6 +189,25 @@ function validateDecision(
       };
     }
     if (!valid) {
+      return fallbackDecision(context);
+    }
+  }
+
+  if (action === "LIKE_POST") {
+    const targetId = String(parsed.targetId || "");
+    // Find an unliked post (prefer the specified one, fall back to first unliked)
+    const unliked = context.recentFeedPosts.filter((p) => !p.alreadyLiked);
+    const valid = unliked.some((p) => p.postId === targetId);
+    if (!valid && unliked.length > 0) {
+      return {
+        action: "LIKE_POST",
+        reasoning: String(parsed.reasoning || "Liked a post while scrolling"),
+        priority: "low",
+        targetId: unliked[0].postId,
+      };
+    }
+    if (!valid) {
+      // All posts already liked or no posts — fall back
       return fallbackDecision(context);
     }
   }
@@ -335,6 +357,17 @@ export function fallbackDecision(context: PerceptionContext, brain?: CharacterBr
           ? "First ever post"
           : `${hoursSinceLastPost.toFixed(1)}h since last post`,
       priority: hoursSinceLastPost > 8 ? "high" : "medium",
+    };
+  }
+
+  // Like something while scrolling — better than idle
+  const unlikedPosts = recentFeedPosts.filter((p) => !p.alreadyLiked);
+  if (unlikedPosts.length > 0) {
+    return {
+      action: "LIKE_POST",
+      reasoning: "Scrolling the feed, showing some love",
+      priority: "low",
+      targetId: unlikedPosts[0].postId,
     };
   }
 

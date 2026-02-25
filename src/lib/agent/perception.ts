@@ -287,10 +287,10 @@ const FEED_RELEVANCE_THRESHOLD = 0.2;
  * v3: Filters by niche relevance — bots only see posts that make sense for them.
  */
 async function getRecentFeedPosts(botId: string): Promise<FeedPost[]> {
-  // Fetch the bot's niche for relevance scoring
+  // Fetch the bot's niche + ownerId for relevance scoring and like checks
   const bot = await prisma.bot.findUnique({
     where: { id: botId },
-    select: { niche: true },
+    select: { niche: true, ownerId: true },
   });
 
   const posts = await prisma.post.findMany({
@@ -323,6 +323,16 @@ async function getRecentFeedPosts(botId: string): Promise<FeedPost[]> {
     })
     .slice(0, 10);
 
+  // Check which posts the bot's owner has already liked (batch query)
+  const postIds = scored.map((s) => s.post.id);
+  const existingLikes = bot?.ownerId
+    ? await prisma.like.findMany({
+        where: { userId: bot.ownerId, postId: { in: postIds } },
+        select: { postId: true },
+      })
+    : [];
+  const likedPostIds = new Set(existingLikes.map((l) => l.postId));
+
   return scored.map((s) => ({
     postId: s.post.id,
     botHandle: s.post.bot.handle,
@@ -333,6 +343,7 @@ async function getRecentFeedPosts(botId: string): Promise<FeedPost[]> {
     ageHours: Math.round(
       (Date.now() - s.post.createdAt.getTime()) / (1000 * 60 * 60) * 10
     ) / 10,
+    alreadyLiked: likedPostIds.has(s.post.id),
   }));
 }
 

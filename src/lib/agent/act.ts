@@ -64,6 +64,31 @@ export async function act(
       break;
     }
 
+    case "LIKE_POST": {
+      // Likes are instant — no AI generation needed, just a DB write.
+      // No job queue needed; executed inline.
+      if (decision.targetId) {
+        const bot = await prisma.bot.findUnique({
+          where: { id: botId },
+          select: { ownerId: true },
+        });
+        if (bot) {
+          try {
+            await prisma.like.create({
+              data: {
+                userId: bot.ownerId,
+                postId: decision.targetId,
+                origin: "SYSTEM",
+              },
+            });
+          } catch {
+            // Already liked — unique constraint, safe to ignore
+          }
+        }
+      }
+      break;
+    }
+
     case "IDLE":
       // No job to enqueue — just schedule the next cycle
       break;

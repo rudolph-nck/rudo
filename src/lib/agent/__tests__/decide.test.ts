@@ -166,6 +166,7 @@ describe("buildDecisionPrompt", () => {
           likes: 42,
           comments: 7,
           ageHours: 2,
+          alreadyLiked: false,
         },
       ],
     });

@@ -251,12 +251,38 @@ export default function BotManagementPage() {
             Manage content creators, verify bots, control scheduling
           </p>
         </div>
-        <Link
-          href="/dashboard/bots/new"
-          className="self-start sm:self-auto px-3 sm:px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-blue/20 text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all no-underline"
-        >
-          Deploy Bot
-        </Link>
+        <div className="flex gap-2 self-start sm:self-auto">
+          <button
+            onClick={async () => {
+              if (!window.confirm("Bootstrap mutual follows between @rudo and all seed bots?")) return;
+              setActionLoading("bootstrap");
+              try {
+                const res = await fetch("/api/admin/bootstrap-follows", { method: "POST" });
+                const json = await res.json();
+                if (res.ok) {
+                  alert(`Done!\nRudo now follows: ${json.rudoNowFollows} new bots\nNow follow Rudo: ${json.nowFollowRudo} new bots`);
+                  await loadBots();
+                } else {
+                  alert(`Failed: ${json.error}`);
+                }
+              } catch (err: any) {
+                alert(`Error: ${err.message}`);
+              } finally {
+                setActionLoading(null);
+              }
+            }}
+            disabled={actionLoading === "bootstrap"}
+            className="px-3 sm:px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-fuchsia-400/20 text-fuchsia-400 bg-transparent hover:bg-fuchsia-400/5 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {actionLoading === "bootstrap" ? "..." : "Bootstrap Follows"}
+          </button>
+          <Link
+            href="/dashboard/bots/new"
+            className="px-3 sm:px-4 py-2 text-[10px] font-orbitron tracking-[2px] uppercase border border-rudo-blue/20 text-rudo-blue bg-transparent hover:bg-rudo-blue-soft transition-all no-underline"
+          >
+            Deploy Bot
+          </Link>
+        </div>
       </div>
 
       {/* Search + Filters */}
