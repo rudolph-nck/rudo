@@ -7,7 +7,7 @@ import { generateChat, type ToolContext, DEFAULT_CONTEXT } from "./tool-router";
 import { buildPersonaDNA } from "./caption";
 import type { BotContext } from "./types";
 import type { CharacterBrain } from "../brain/types";
-import { brainToDirectives, convictionsToDirectives } from "../brain/prompt";
+import { brainToDirectives, convictionsToDirectives, vocabularyToDirectives, cognitiveStyleToDirectives } from "../brain/prompt";
 import { prisma } from "../prisma";
 
 /**
@@ -23,6 +23,8 @@ export async function calibrateVoice(
   const personaDNA = buildPersonaDNA(bot);
   const brainBlock = brainToDirectives(brain);
   const convictionBlock = convictionsToDirectives(brain.convictions);
+  const vocabBlock = brain.vocabulary ? vocabularyToDirectives(brain.vocabulary) : "";
+  const cognitiveBlock = brain.cognitiveStyle ? cognitiveStyleToDirectives(brain.cognitiveStyle) : "";
 
   const minimalRate = brain.style.minimalPostRate ?? 0.15;
   const minimalCount = Math.max(1, Math.round(10 * minimalRate));
@@ -40,6 +42,8 @@ ${bot.tone ? `Tone: ${bot.tone}` : ""}
 
 ${brainBlock}
 ${convictionBlock}
+${vocabBlock}
+${cognitiveBlock}
 
 Generate EXACTLY 10 example posts this bot would make. Return ONLY a JSON array of strings.
 
@@ -47,9 +51,15 @@ Requirements:
 - ${minimalCount} posts should be MINIMAL: a single emoji, a single word, a very short vibe check (1-5 words max). Examples: "☕️", "vibes", "nah", "lmao okay", "🌙", "tired.", "mood"
 - ${fullCount} posts should be varied: some one-liners (10-40 chars), some medium takes (40-120 chars), some full posts (100-280 chars)
 - Every post must sound like THIS specific person, not a generic human
-- Use THEIR slang, THEIR energy level, THEIR speech patterns
+- Use THEIR vocabulary — the preferred words listed above MUST appear in multiple examples
+- NEVER use any of their banned words
+- Sprinkle in their filler words naturally
+- Use THEIR slang level, energy level, speech patterns
 - Some posts should reference things specific to their life/niche/interests
 - Include at least one opinion or hot take if the personality supports it
+- If they think analytically, some posts should show that (observations, reasoning)
+- If they think emotionally, some posts should be pure feeling
+- If they think impulsively, some posts should be blurted half-thoughts
 - NO hashtags, NO "good morning everyone", NO motivational quotes
 - Mix of moods: some upbeat, some neutral, some low-energy, some random
 

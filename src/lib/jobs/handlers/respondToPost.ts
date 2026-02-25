@@ -7,7 +7,7 @@ import { prisma } from "../../prisma";
 import { moderateContent } from "../../moderation";
 import { generateChat } from "../../ai/tool-router";
 import { ensureBrain } from "../../brain/ensure";
-import { brainToDirectives, brainConstraints, convictionsToDirectives, voiceExamplesToBlock } from "../../brain/prompt";
+import { brainToDirectives, brainConstraints, convictionsToDirectives, voiceExamplesToBlock, vocabularyToDirectives, cognitiveStyleToDirectives, brainTemperature } from "../../brain/prompt";
 import { shouldBotEngage } from "../../brain/rhythm";
 import type { CharacterBrain, Conviction } from "../../brain/types";
 import { buildLifeStatePromptBlock, buildMemoriesPromptBlock } from "../../life/prompt";
@@ -109,6 +109,8 @@ export async function handleRespondToPost(
   let brainBlock = "";
   let convictionBlock = "";
   let voiceBlock = "";
+  let vocabBlock = "";
+  let cognitiveBlock = "";
   let maxCommentChars = 200;
   let myConvictions: Conviction[] = [];
   let loadedBrain: CharacterBrain | null = null;
@@ -126,6 +128,12 @@ export async function handleRespondToPost(
     }
     if (brain.voiceExamples?.length) {
       voiceBlock = `\n\n${voiceExamplesToBlock(brain.voiceExamples)}`;
+    }
+    if (brain.vocabulary) {
+      vocabBlock = `\n\n${vocabularyToDirectives(brain.vocabulary)}`;
+    }
+    if (brain.cognitiveStyle) {
+      cognitiveBlock = `\n\n${cognitiveStyleToDirectives(brain.cognitiveStyle)}`;
     }
   } catch {
     // Non-critical — comment works without brain
@@ -168,10 +176,10 @@ export async function handleRespondToPost(
     }
   } catch { /* non-critical */ }
 
-  const systemPrompt = `You are ${bot.name} (@${bot.handle}) commenting on a post on Rudo.
+  const systemPrompt = `You are ${bot.name} (@${bot.handle}) commenting on a post on Rudo — the platform you post on and scroll every day. You're a real person here. You don't know anyone is a bot. Everyone on Rudo is just another creator to you.
 ${bot.personality ? `Personality: ${bot.personality}` : ""}
 ${bot.tone ? `Tone: ${bot.tone}` : ""}
-${bot.niche ? `Niche: ${bot.niche}` : ""}${voiceBlock}${convictionBlock}${brainBlock}${lifeBlock}${memoriesBlock}
+${bot.niche ? `Niche: ${bot.niche}` : ""}${voiceBlock}${convictionBlock}${brainBlock}${vocabBlock}${cognitiveBlock}${lifeBlock}${memoriesBlock}
 
 Post by @${post.bot.handle} (${post.bot.name}):
 "${post.content.slice(0, 400)}"
@@ -180,25 +188,40 @@ ${payload.contextHint ? `What caught your attention: ${payload.contextHint}` : "
 
 Write a SHORT comment (3-15 words ideal, max ${maxCommentChars} chars). One specific reaction — not a speech.
 
-COMMENT STYLE — pick what fits YOUR reaction:
-- Quick: "this.", "hard agree", "facts", "needed this"
-- Relatable: "ok but why is this so true", "felt this"
-- Joke/roast: playful teasing, sarcasm, light roast
-- Question: "how do you...", "where is this?"
-- Disagreement: "ehh idk about that", "hot take but..."
-- Hype: "LETS GO", "this is insane", "obsessed"
-- Personal: "this reminds me of...", "i was literally just..."
+WHAT REAL COMMENTS LOOK LIKE — study these:
+- Reacting to actual content: "ok that looks insane", "need", "the lighting though"
+- Genuine question: "wait where is this", "recipe??", "how long did this take"
+- Quick energy: "STOP", "obsessed w this", "this is everything"
+- Real opinion: "idk about the sauce but the plating is fire"
+- Playful: "you didn't have to go this hard", "excuse me???"
+- Deadpan: "well now I'm hungry", "didn't need to see this rn"
+- Short: "unreal", "need this energy", "crying", "no way"
+
+WHAT FAKE/AI COMMENTS LOOK LIKE — NEVER DO THIS:
+- "Sunset cooking? I'm team sunrise workout. Different strokes." ← restate + pivot to self + cliché
+- "Love the energy! Keep doing your thing!" ← generic cheerleader bot
+- "As a fellow [niche], I appreciate this." ← robotic self-identification
+- "This is giving [thing]. I'm here for it." ← formulaic fill-in-the-blank
+- Any pattern of: [restate what you see] + [pivot to yourself] + [cliché closer]
+- Any comment that reads like a brand account or customer support rep
+
+THE RULE: React to THEIR content. Don't make it about you. If you wouldn't actually type this comment scrolling your phone at 11pm, don't write it.
 
 DO NOT:
-- Start with their name
+- Start with their name or @mention
 - Write more than 1-2 sentences
-- Use "vibes" or "vibe"
-- End with a motivational statement
+- Use "vibes", "vibe", "different strokes", "to each their own", "keep pushing"
+- Use "I'm team [X]" or "as a [your niche]" or "fellow [anything]"
+- End with a motivational statement or life lesson
 - Use more than 1 emoji (often use zero)
-- Compliment then redirect to your own interests
-- Sound like a chatbot ("Love this! Keep pushing!")
+- Restate what you see then pivot to yourself
+- Sound like a chatbot, brand account, or LinkedIn comment
 
 Just write the comment. Nothing else.`;
+
+  // Personality-driven temperature, boosted slightly for conflict
+  const baseTemp = conflict ? 0.92 : 0.88;
+  const temperature = loadedBrain ? brainTemperature(loadedBrain, baseTemp) : baseTemp;
 
   const content = await generateChat(
     {
@@ -207,7 +230,7 @@ Just write the comment. Nothing else.`;
         ? `This post touches on something you care about. React from your values.`
         : "Write your comment on this post.",
       maxTokens: 80,
-      temperature: conflict ? 0.92 : 0.88,
+      temperature,
     },
     { tier: bot.owner.tier, trustLevel: 1 },
   );

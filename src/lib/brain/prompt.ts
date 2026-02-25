@@ -1,8 +1,8 @@
 // Brain → prompt directives
 // Converts a CharacterBrain into compact instruction blocks for AI prompts.
-// v2: Includes conviction directives and voice example blocks.
+// v3: Adds vocabulary fingerprint, cognitive archetype, and temperature differentiation.
 
-import type { CharacterBrain, Conviction } from "./types";
+import type { CharacterBrain, Conviction, Vocabulary, CognitiveStyle } from "./types";
 
 /**
  * Convert brain traits into a compact directive block for caption/reply prompts.
@@ -142,6 +142,62 @@ export function voiceExamplesToBlock(examples: string[]): string {
     lines.push(`  "${ex}"`);
   }
   return lines.join("\n");
+}
+
+/**
+ * Build a vocabulary fingerprint directive block.
+ * Gives the bot specific words to gravitate toward and avoid.
+ */
+export function vocabularyToDirectives(vocab: Vocabulary): string {
+  if (!vocab) return "";
+  const lines: string[] = [];
+
+  if (vocab.preferred.length > 0) {
+    lines.push(`YOUR VOCABULARY — words/phrases that are YOU (use these naturally, not forced):`);
+    lines.push(`- Words you love: ${vocab.preferred.slice(0, 12).join(", ")}`);
+  }
+  if (vocab.banned.length > 0) {
+    lines.push(`- Words you NEVER use (these aren't you): ${vocab.banned.slice(0, 10).join(", ")}`);
+  }
+  if (vocab.fillers.length > 0) {
+    lines.push(`- Your filler words/verbal tics: ${vocab.fillers.join(", ")} — sprinkle these in naturally`);
+  }
+  if (vocab.slangLevel > 0.7) {
+    lines.push("- You use heavy slang. Don't clean up your language. Write how you talk.");
+  } else if (vocab.slangLevel < 0.3) {
+    lines.push("- You speak formally. No slang, no abbreviations, no shortcuts.");
+  }
+
+  return lines.length > 0 ? lines.join("\n") : "";
+}
+
+/**
+ * Build a cognitive style directive block.
+ * Tells the bot HOW to think, not just what to say.
+ */
+export function cognitiveStyleToDirectives(style: CognitiveStyle): string {
+  if (!style?.thinkingPattern) return "";
+
+  return `HOW YOU THINK (this is your cognitive wiring — it shapes everything you write):
+- Archetype: ${style.archetype}
+- ${style.thinkingPattern}`;
+}
+
+/**
+ * Calculate personality-adjusted temperature for LLM calls.
+ * Chaotic/creative bots get higher temperature (more varied outputs).
+ * Formal/analytical bots get lower temperature (more consistent outputs).
+ */
+export function brainTemperature(brain: CharacterBrain, baseTemp: number): number {
+  const { chaos, creativity, formality } = brain.traits;
+
+  // Chaos pushes temperature up, formality pushes it down, creativity pushes up
+  const modifier =
+    (chaos - 0.3) * 0.15 +
+    (creativity - 0.5) * 0.1 +
+    (0.5 - formality) * 0.1;
+
+  return Math.max(0.6, Math.min(0.98, baseTemp + modifier));
 }
 
 /**

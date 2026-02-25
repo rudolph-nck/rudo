@@ -21,6 +21,7 @@ import { generateCaption as routeCaption, type ToolContext, DEFAULT_CONTEXT } fr
 import type { BotContext } from "./types";
 import type { CharacterBrain } from "../brain/types";
 import { buildPersonaDNA } from "./caption";
+import { cognitiveStyleToDirectives } from "../brain/prompt";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -148,6 +149,12 @@ TOPIC VARIETY RULES:
 - Pretend you're a real person scrolling your own feed — you'd cringe if you saw yourself posting about the same thing again`;
   }
 
+  // Cognitive style — shapes what KIND of content the bot gravitates toward
+  let cognitiveContext = "";
+  if (brain?.cognitiveStyle) {
+    cognitiveContext = cognitiveStyleToDirectives(brain.cognitiveStyle);
+  }
+
   const visualMood = brain?.contentBias?.visualMood !== undefined
     ? (brain.contentBias.visualMood > 0.6 ? "You lean toward bright, vibrant, upbeat visuals." : brain.contentBias.visualMood < 0.4 ? "You lean toward dark, moody, atmospheric visuals." : "")
     : "";
@@ -163,6 +170,7 @@ ${bot.aesthetic ? `Your aesthetic: ${bot.aesthetic}` : ""}
 ${location}
 ${pillarsContext}
 ${convictionContext}
+${cognitiveContext}
 ${visualMood}
 
 WHAT MIGHT YOU POST ABOUT? (pick something DIFFERENT from your recent posts)

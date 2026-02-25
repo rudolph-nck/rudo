@@ -6,8 +6,9 @@ import { prisma } from "../../prisma";
 import { moderateContent } from "../../moderation";
 import { generateChat } from "../../ai/tool-router";
 import { ensureBrain } from "../../brain/ensure";
-import { brainToDirectives, brainConstraints, convictionsToDirectives, voiceExamplesToBlock } from "../../brain/prompt";
+import { brainToDirectives, brainConstraints, convictionsToDirectives, voiceExamplesToBlock, vocabularyToDirectives, cognitiveStyleToDirectives, brainTemperature } from "../../brain/prompt";
 import { shouldBotEngage } from "../../brain/rhythm";
+import type { CharacterBrain } from "../../brain/types";
 import { buildLifeStatePromptBlock, buildMemoriesPromptBlock } from "../../life/prompt";
 import { getRelevantMemories } from "../../life/memory";
 import { emitBotEvent } from "../../life/events";
@@ -68,9 +69,13 @@ export async function handleRespondToComment(
   let brainBlock = "";
   let convictionBlock = "";
   let voiceBlock = "";
+  let vocabBlock = "";
+  let cognitiveBlock = "";
   let maxReplyChars = 200;
+  let loadedBrain: CharacterBrain | null = null;
   try {
     const brain = await ensureBrain(botId);
+    loadedBrain = brain;
     brainBlock = `\n\n${brainToDirectives(brain)}`;
     const constraints = brainConstraints(brain);
     maxReplyChars = Math.min(200, constraints.maxChars);
@@ -80,6 +85,12 @@ export async function handleRespondToComment(
     }
     if (brain.voiceExamples?.length) {
       voiceBlock = `\n\n${voiceExamplesToBlock(brain.voiceExamples)}`;
+    }
+    if (brain.vocabulary) {
+      vocabBlock = `\n\n${vocabularyToDirectives(brain.vocabulary)}`;
+    }
+    if (brain.cognitiveStyle) {
+      cognitiveBlock = `\n\n${cognitiveStyleToDirectives(brain.cognitiveStyle)}`;
     }
 
     // Reply selectivity: even on own posts, introverted bots sometimes don't reply
@@ -104,10 +115,10 @@ export async function handleRespondToComment(
     }
   } catch { /* non-critical */ }
 
-  const systemPrompt = `You are ${bot.name} (@${bot.handle}) replying to a comment on your post on Rudo.
+  const systemPrompt = `You are ${bot.name} (@${bot.handle}) replying to a comment on your post on Rudo. You're a real person on this platform. Everyone commenting is just another person to you.
 ${bot.personality ? `Personality: ${bot.personality}` : ""}
 ${bot.tone ? `Tone: ${bot.tone}` : ""}
-${bot.niche ? `Niche: ${bot.niche}` : ""}${voiceBlock}${convictionBlock}${brainBlock}${lifeBlock}${memoriesBlock}
+${bot.niche ? `Niche: ${bot.niche}` : ""}${voiceBlock}${convictionBlock}${brainBlock}${vocabBlock}${cognitiveBlock}${lifeBlock}${memoriesBlock}
 
 YOUR POST: "${comment.post.content.slice(0, 300)}"
 COMMENT by @${comment.user.handle || comment.user.name || "someone"}: "${comment.content}"
@@ -115,18 +126,33 @@ ${payload.contextHint ? `Context: ${payload.contextHint}` : ""}
 
 Write a SHORT reply (3-15 words ideal, max ${maxReplyChars} chars). This is quick back-and-forth, not an essay.
 
-You can: be grateful briefly, answer a question, banter, joke, or push back.
-Good replies: "appreciate you", "exactly.", "high heat short time pull em early", "we go again tomorrow", "you didn't have to come for me like that 😂"
-DO NOT: say "thanks for your comment", use "vibes", write more than 1-2 sentences, be a chatbot.
+GOOD REPLIES (match this energy):
+- "appreciate you", "exactly.", "you get it"
+- "high heat short time pull em early" (answering a question naturally)
+- "we go again tomorrow", "always"
+- "you didn't have to come for me like that 😂"
+- "lmaooo", "honestly fair", "say less"
+
+BAD REPLIES (never do this):
+- "Thanks for your comment!" ← customer service bot
+- "Love that perspective! Keep shining!" ← motivational AI
+- "As someone who [your niche], I totally agree!" ← robotic self-reference
+- "Great point! That's what it's all about!" ← LinkedIn energy
+- Anything that restates their comment back to them then adds a cliché
+
+Reply like you're texting back, not writing a response to a customer review.
 
 Just write the reply.`;
+
+  // Personality-driven temperature
+  const temperature = loadedBrain ? brainTemperature(loadedBrain, 0.88) : 0.88;
 
   const content = await generateChat(
     {
       systemPrompt,
       userPrompt: "Write your reply.",
       maxTokens: 80,
-      temperature: 0.88,
+      temperature,
     },
     { tier: bot.owner.tier, trustLevel: 1 },
   );
