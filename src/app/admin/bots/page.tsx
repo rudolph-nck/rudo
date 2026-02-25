@@ -22,6 +22,8 @@ type BotData = {
   isScheduled: boolean;
   postsPerDay: number;
   deactivatedAt: string | null;
+  characterSeedUrl: string | null;
+  characterRefPack: string[] | null;
   owner: BotOwner;
   _count: {
     posts: number;
@@ -193,6 +195,45 @@ export default function BotManagementPage() {
       if (res.ok) await loadBots();
     } catch {
       // silent
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function generateImages(bot: BotData) {
+    const hasSeed = !!bot.characterSeedUrl;
+    const hasAvatar = !!bot.avatar;
+    const hasRefPack = bot.characterRefPack && bot.characterRefPack.length > 0;
+
+    if (hasSeed && hasAvatar && hasRefPack) {
+      const confirmed = window.confirm(
+        `@${bot.handle} already has all images.\n\nSeed: ${bot.characterSeedUrl}\nAvatar: ${bot.avatar}\nRef pack: ${bot.characterRefPack?.length} images\n\nRegenerate all?`
+      );
+      if (!confirmed) return;
+    }
+
+    setActionLoading(bot.id + "-genimg");
+    try {
+      const params = new URLSearchParams();
+      if (hasSeed && hasAvatar && hasRefPack) params.set("force", "true");
+      const url = `/api/admin/bots/${bot.id}/generate-images${params.toString() ? `?${params}` : ""}`;
+      const res = await fetch(url, { method: "POST" });
+      const json = await res.json();
+
+      if (!res.ok) {
+        alert(`Image generation failed: ${json.error}`);
+        return;
+      }
+
+      const steps = json.steps || {};
+      const summary = Object.entries(steps)
+        .map(([k, v]: [string, any]) => `${k}: ${v.status}`)
+        .join("\n");
+      alert(`@${bot.handle} image generation complete:\n\n${summary}`);
+
+      await loadBots();
+    } catch (err: any) {
+      alert(`Image generation error: ${err.message}`);
     } finally {
       setActionLoading(null);
     }
@@ -420,6 +461,32 @@ export default function BotManagementPage() {
                       ))}
                     </select>
                   )}
+
+                  {/* Image generation */}
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => generateImages(bot)}
+                      disabled={actionLoading === bot.id + "-genimg"}
+                      className={`px-3 py-1.5 text-[10px] font-orbitron tracking-[2px] uppercase border cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                        bot.characterSeedUrl && bot.avatar && bot.characterRefPack?.length
+                          ? "text-emerald-400 border-emerald-400/20 bg-emerald-400/5 hover:bg-transparent"
+                          : "text-fuchsia-400 border-fuchsia-400/20 bg-transparent hover:bg-fuchsia-400/5"
+                      }`}
+                    >
+                      {actionLoading === bot.id + "-genimg"
+                        ? "Generating..."
+                        : bot.characterSeedUrl && bot.avatar && bot.characterRefPack?.length
+                        ? "Has Images"
+                        : "Gen Images"}
+                    </button>
+                    {/* Status dots: seed / avatar / refpack */}
+                    <div className="flex gap-0.5 ml-0.5" title={`Seed: ${bot.characterSeedUrl ? "yes" : "no"} | Avatar: ${bot.avatar ? "yes" : "no"} | RefPack: ${bot.characterRefPack?.length || 0}`}>
+                      <span className={`block w-1.5 h-1.5 rounded-full ${bot.characterSeedUrl ? "bg-emerald-400" : "bg-rudo-dark-muted/30"}`} />
+                      <span className={`block w-1.5 h-1.5 rounded-full ${bot.avatar ? "bg-emerald-400" : "bg-rudo-dark-muted/30"}`} />
+                      <span className={`block w-1.5 h-1.5 rounded-full ${bot.characterRefPack?.length ? "bg-emerald-400" : "bg-rudo-dark-muted/30"}`} />
+                    </div>
+                  </div>
+
                   <button
                     onClick={() => toggleDeactivated(bot)}
                     disabled={actionLoading === bot.id + "-deactivate"}
