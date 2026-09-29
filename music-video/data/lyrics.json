@@ -1,0 +1,3898 @@
+{
+ "fps": 30,
+ "source": "authoritative lyric sheet; timing from Suno highlight events + beat snap",
+ "lines": [
+  {
+   "words": [
+    {
+     "w": "Yeah…",
+     "t": 4.8
+    }
+   ],
+   "hold": 7.2,
+   "id": "yeah",
+   "text": "Yeah…",
+   "section": "intro",
+   "hero": "Yeah",
+   "start": 4.8,
+   "rawStart": 4.8,
+   "snapped": false,
+   "end": 8.1,
+   "startFrame": 144
+  },
+  {
+   "words": [
+    {
+     "w": "2026.",
+     "t": 8.1
+    }
+   ],
+   "hold": 9.9,
+   "id": "y2026",
+   "text": "2026.",
+   "section": "intro",
+   "hero": "2026",
+   "start": 8.1,
+   "rawStart": 8.1,
+   "snapped": false,
+   "end": 9.9,
+   "startFrame": 243
+  },
+  {
+   "words": [
+    {
+     "w": "(What",
+     "t": 9.9
+    },
+    {
+     "w": "a",
+     "t": 10.16
+    },
+    {
+     "w": "year!)",
+     "t": 10.32
+    }
+   ],
+   "hold": 11.1,
+   "id": "whatayear",
+   "text": "(What a year!)",
+   "section": "intro",
+   "hero": "What a year",
+   "start": 9.9,
+   "rawStart": 9.9,
+   "snapped": false,
+   "end": 11.1,
+   "startFrame": 297
+  },
+  {
+   "words": [
+    {
+     "w": "Different",
+     "t": 11.1
+    },
+    {
+     "w": "roads.",
+     "t": 11.44
+    }
+   ],
+   "hold": 13.3,
+   "id": "roads0",
+   "text": "Different roads.",
+   "section": "intro",
+   "hero": "roads",
+   "start": 11.1,
+   "rawStart": 11.1,
+   "snapped": false,
+   "end": 13.3,
+   "startFrame": 333
+  },
+  {
+   "words": [
+    {
+     "w": "Different",
+     "t": 13.3
+    },
+    {
+     "w": "stories.",
+     "t": 13.6
+    }
+   ],
+   "hold": 14.6,
+   "id": "stories0",
+   "text": "Different stories.",
+   "section": "intro",
+   "hero": "stories",
+   "start": 13.3,
+   "rawStart": 13.3,
+   "snapped": false,
+   "end": 14.6,
+   "startFrame": 399
+  },
+  {
+   "words": [
+    {
+     "w": "One",
+     "t": 14.6
+    },
+    {
+     "w": "destination.",
+     "t": 14.96
+    }
+   ],
+   "hold": 16.3,
+   "id": "destination",
+   "text": "One destination.",
+   "section": "intro",
+   "hero": "One",
+   "start": 14.6,
+   "rawStart": 14.6,
+   "snapped": false,
+   "end": 16.3,
+   "startFrame": 438
+  },
+  {
+   "words": [
+    {
+     "w": "Addition",
+     "t": 16.3
+    },
+    {
+     "w": "Financial",
+     "t": 18.0
+    },
+    {
+     "w": "Credit",
+     "t": 18.96
+    },
+    {
+     "w": "Union…",
+     "t": 19.52
+    }
+   ],
+   "hold": 21.92,
+   "id": "acu0",
+   "text": "Addition Financial Credit Union…",
+   "section": "intro",
+   "hero": "Addition",
+   "start": 16.3,
+   "rawStart": 16.3,
+   "snapped": false,
+   "end": 38.5,
+   "startFrame": 489
+  },
+  {
+   "words": [
+    {
+     "w": "Started",
+     "t": 38.5
+    },
+    {
+     "w": "the",
+     "t": 38.96
+    },
+    {
+     "w": "year",
+     "t": 39.12
+    },
+    {
+     "w": "with",
+     "t": 39.28
+    },
+    {
+     "w": "a",
+     "t": 39.52
+    },
+    {
+     "w": "whole",
+     "t": 39.68
+    },
+    {
+     "w": "lot",
+     "t": 39.84
+    },
+    {
+     "w": "changin’,",
+     "t": 40.16
+    }
+   ],
+   "hold": 40.8,
+   "id": "changin",
+   "text": "Started the year with a whole lot changin’,",
+   "section": "verse",
+   "hero": "changin’",
+   "start": 38.5,
+   "rawStart": 38.5,
+   "snapped": false,
+   "end": 40.8,
+   "startFrame": 1155
+  },
+  {
+   "words": [
+    {
+     "w": "Two",
+     "t": 40.8
+    },
+    {
+     "w": "teams",
+     "t": 41.04
+    },
+    {
+     "w": "movin’,",
+     "t": 41.36
+    },
+    {
+     "w": "one",
+     "t": 41.68
+    },
+    {
+     "w": "future",
+     "t": 41.92
+    },
+    {
+     "w": "waitin’,",
+     "t": 42.48
+    }
+   ],
+   "hold": 43.0,
+   "id": "twoteams",
+   "text": "Two teams movin’, one future waitin’,",
+   "section": "verse",
+   "hero": "Two teams",
+   "start": 40.8,
+   "rawStart": 40.8,
+   "snapped": false,
+   "end": 43.0,
+   "startFrame": 1224
+  },
+  {
+   "words": [
+    {
+     "w": "Envision",
+     "t": 43.0
+    },
+    {
+     "w": "came",
+     "t": 43.44
+    },
+    {
+     "w": "in,",
+     "t": 43.76
+    },
+    {
+     "w": "Addition",
+     "t": 44.107
+    },
+    {
+     "w": "stood",
+     "t": 44.453
+    },
+    {
+     "w": "tall,",
+     "t": 44.8
+    }
+   ],
+   "hold": 45.2,
+   "id": "envision",
+   "text": "Envision came in, Addition stood tall,",
+   "section": "verse",
+   "hero": "stood tall",
+   "start": 43.0,
+   "rawStart": 43.0,
+   "snapped": false,
+   "end": 45.2,
+   "startFrame": 1290
+  },
+  {
+   "words": [
+    {
+     "w": "Different",
+     "t": 45.2
+    },
+    {
+     "w": "sides",
+     "t": 45.44
+    },
+    {
+     "w": "of",
+     "t": 45.68
+    },
+    {
+     "w": "the",
+     "t": 45.76
+    },
+    {
+     "w": "map—now",
+     "t": 45.84
+    },
+    {
+     "w": "we",
+     "t": 46.32
+    },
+    {
+     "w": "answer",
+     "t": 46.49
+    },
+    {
+     "w": "one",
+     "t": 46.66
+    },
+    {
+     "w": "call!",
+     "t": 46.83
+    }
+   ],
+   "hold": 47.3,
+   "id": "sides",
+   "text": "Different sides of the map—now we answer one call!",
+   "section": "verse",
+   "hero": "one call",
+   "start": 45.2,
+   "rawStart": 45.2,
+   "snapped": false,
+   "end": 47.3,
+   "startFrame": 1356
+  },
+  {
+   "words": [
+    {
+     "w": "March",
+     "t": 47.3
+    },
+    {
+     "w": "came",
+     "t": 47.3
+    },
+    {
+     "w": "quick,",
+     "t": 47.46
+    },
+    {
+     "w": "conversion",
+     "t": 47.8
+    },
+    {
+     "w": "on",
+     "t": 48.14
+    },
+    {
+     "w": "deck,",
+     "t": 48.48
+    }
+   ],
+   "hold": 49.8,
+   "id": "march",
+   "text": "March came quick, conversion on deck,",
+   "section": "verse",
+   "hero": "conversion",
+   "start": 47.3,
+   "rawStart": 47.3,
+   "snapped": false,
+   "end": 49.8,
+   "startFrame": 1419
+  },
+  {
+   "words": [
+    {
+     "w": "Long",
+     "t": 49.8
+    },
+    {
+     "w": "days,",
+     "t": 50.0
+    },
+    {
+     "w": "late",
+     "t": 50.24
+    },
+    {
+     "w": "nights—what’d",
+     "t": 50.48
+    },
+    {
+     "w": "you",
+     "t": 51.28
+    },
+    {
+     "w": "expect?",
+     "t": 51.44
+    }
+   ],
+   "hold": 52.2,
+   "id": "longdays",
+   "text": "Long days, late nights—what’d you expect?",
+   "section": "verse",
+   "hero": "Long days",
+   "start": 49.8,
+   "rawStart": 49.8,
+   "snapped": false,
+   "end": 52.2,
+   "startFrame": 1494
+  },
+  {
+   "words": [
+    {
+     "w": "We",
+     "t": 52.2
+    },
+    {
+     "w": "learned",
+     "t": 52.32
+    },
+    {
+     "w": "it,",
+     "t": 52.56
+    },
+    {
+     "w": "taught",
+     "t": 52.848
+    },
+    {
+     "w": "it,",
+     "t": 53.136
+    },
+    {
+     "w": "found",
+     "t": 53.424
+    },
+    {
+     "w": "our",
+     "t": 53.712
+    },
+    {
+     "w": "groove,",
+     "t": 54.0
+    }
+   ],
+   "hold": 54.6,
+   "id": "groove",
+   "text": "We learned it, taught it, found our groove,",
+   "section": "verse",
+   "hero": "groove",
+   "start": 52.2,
+   "rawStart": 52.2,
+   "snapped": false,
+   "end": 54.6,
+   "startFrame": 1566
+  },
+  {
+   "words": [
+    {
+     "w": "Took",
+     "t": 54.6
+    },
+    {
+     "w": "what",
+     "t": 54.88
+    },
+    {
+     "w": "was",
+     "t": 55.04
+    },
+    {
+     "w": "different",
+     "t": 55.2
+    },
+    {
+     "w": "and",
+     "t": 55.52
+    },
+    {
+     "w": "made",
+     "t": 55.68
+    },
+    {
+     "w": "it",
+     "t": 55.92
+    },
+    {
+     "w": "improve!",
+     "t": 56.08
+    }
+   ],
+   "hold": 57.5,
+   "id": "improve",
+   "text": "Took what was different and made it improve!",
+   "section": "verse",
+   "hero": "improve",
+   "start": 54.6,
+   "rawStart": 54.6,
+   "snapped": false,
+   "end": 57.5,
+   "startFrame": 1638
+  },
+  {
+   "words": [
+    {
+     "w": "ONE",
+     "t": 57.5
+    },
+    {
+     "w": "TEAM!",
+     "t": 58.4
+    },
+    {
+     "w": "ONE",
+     "t": 58.48
+    },
+    {
+     "w": "RHYTHM!",
+     "t": 58.56
+    }
+   ],
+   "hold": 59.3,
+   "id": "otor1",
+   "text": "ONE TEAM! ONE RHYTHM!",
+   "section": "chorus",
+   "hero": "ONE TEAM",
+   "start": 57.5,
+   "rawStart": 57.5,
+   "snapped": false,
+   "end": 59.3,
+   "startFrame": 1725
+  },
+  {
+   "words": [
+    {
+     "w": "Everybody",
+     "t": 59.3
+    },
+    {
+     "w": "move",
+     "t": 59.92
+    },
+    {
+     "w": "with",
+     "t": 60.26
+    },
+    {
+     "w": "us!",
+     "t": 60.6
+    }
+   ],
+   "hold": 61.8,
+   "id": "everybody",
+   "text": "Everybody move with us!",
+   "section": "chorus",
+   "hero": "move",
+   "start": 59.3,
+   "rawStart": 59.3,
+   "snapped": false,
+   "end": 61.8,
+   "startFrame": 1779
+  },
+  {
+   "words": [
+    {
+     "w": "ONE",
+     "t": 61.8
+    },
+    {
+     "w": "TEAM!",
+     "t": 62.32
+    },
+    {
+     "w": "ONE",
+     "t": 62.88
+    },
+    {
+     "w": "RHYTHM!",
+     "t": 63.12
+    }
+   ],
+   "hold": 63.6,
+   "id": "otor2",
+   "text": "ONE TEAM! ONE RHYTHM!",
+   "section": "chorus",
+   "hero": "ONE RHYTHM",
+   "start": 61.8,
+   "rawStart": 61.8,
+   "snapped": false,
+   "end": 63.6,
+   "startFrame": 1854
+  },
+  {
+   "words": [
+    {
+     "w": "Look",
+     "t": 63.6
+    },
+    {
+     "w": "at",
+     "t": 63.76
+    },
+    {
+     "w": "everything",
+     "t": 63.92
+    },
+    {
+     "w": "we",
+     "t": 64.24
+    },
+    {
+     "w": "did",
+     "t": 64.84
+    },
+    {
+     "w": "with",
+     "t": 65.44
+    },
+    {
+     "w": "it!",
+     "t": 65.68
+    }
+   ],
+   "hold": 66.2,
+   "id": "lookdid",
+   "text": "Look at everything we did with it!",
+   "section": "chorus",
+   "hero": "everything",
+   "start": 63.6,
+   "rawStart": 63.6,
+   "snapped": false,
+   "end": 66.2,
+   "startFrame": 1908
+  },
+  {
+   "words": [
+    {
+     "w": "Different",
+     "t": 66.2
+    },
+    {
+     "w": "roads",
+     "t": 66.53
+    },
+    {
+     "w": "brought",
+     "t": 66.86
+    },
+    {
+     "w": "us",
+     "t": 67.19
+    },
+    {
+     "w": "together,",
+     "t": 67.52
+    }
+   ],
+   "hold": 68.6,
+   "id": "roads1",
+   "text": "Different roads brought us together,",
+   "section": "chorus",
+   "hero": "roads",
+   "start": 66.2,
+   "rawStart": 66.2,
+   "snapped": false,
+   "end": 68.6,
+   "startFrame": 1986
+  },
+  {
+   "words": [
+    {
+     "w": "now",
+     "t": 68.6
+    },
+    {
+     "w": "we’re",
+     "t": 68.6
+    },
+    {
+     "w": "standing",
+     "t": 68.8
+    },
+    {
+     "w": "here",
+     "t": 69.44
+    },
+    {
+     "w": "as",
+     "t": 69.72
+    },
+    {
+     "w": "one.",
+     "t": 70.0
+    }
+   ],
+   "hold": 70.4,
+   "id": "asone",
+   "text": "now we’re standing here as one.",
+   "section": "chorus",
+   "hero": "as one",
+   "start": 68.6,
+   "rawStart": 68.6,
+   "snapped": false,
+   "end": 70.4,
+   "startFrame": 2058
+  },
+  {
+   "words": [
+    {
+     "w": "We",
+     "t": 70.4
+    },
+    {
+     "w": "learned!",
+     "t": 70.5
+    }
+   ],
+   "hold": 70.9,
+   "id": "learned1",
+   "text": "We learned!",
+   "section": "chorus",
+   "hero": "learned",
+   "start": 70.4,
+   "rawStart": 70.4,
+   "snapped": false,
+   "end": 70.9,
+   "startFrame": 2112
+  },
+  {
+   "words": [
+    {
+     "w": "We",
+     "t": 70.9
+    },
+    {
+     "w": "taught!",
+     "t": 70.99
+    }
+   ],
+   "hold": 71.4,
+   "id": "taught1",
+   "text": "We taught!",
+   "section": "chorus",
+   "hero": "taught",
+   "start": 70.9,
+   "rawStart": 70.9,
+   "snapped": false,
+   "end": 71.4,
+   "startFrame": 2127
+  },
+  {
+   "words": [
+    {
+     "w": "We",
+     "t": 71.4
+    },
+    {
+     "w": "changed!",
+     "t": 71.57
+    }
+   ],
+   "hold": 72.0,
+   "id": "changed1",
+   "text": "We changed!",
+   "section": "chorus",
+   "hero": "changed",
+   "start": 71.4,
+   "rawStart": 71.4,
+   "snapped": false,
+   "end": 72.0,
+   "startFrame": 2142
+  },
+  {
+   "words": [
+    {
+     "w": "We",
+     "t": 72.0
+    },
+    {
+     "w": "grew!",
+     "t": 72.42
+    }
+   ],
+   "hold": 73.8,
+   "id": "grew1",
+   "text": "We grew!",
+   "section": "chorus",
+   "hero": "grew",
+   "start": 72.0,
+   "rawStart": 72.0,
+   "snapped": false,
+   "end": 73.8,
+   "startFrame": 2160
+  },
+  {
+   "words": [
+    {
+     "w": "THAT’S",
+     "t": 73.8
+    },
+    {
+     "w": "HOW",
+     "t": 74.16
+    },
+    {
+     "w": "WE",
+     "t": 74.4
+    },
+    {
+     "w": "MOVE!",
+     "t": 74.64
+    }
+   ],
+   "hold": 76.9,
+   "id": "howwemove",
+   "text": "THAT’S HOW WE MOVE!",
+   "section": "chorus",
+   "hero": "MOVE",
+   "start": 73.8,
+   "rawStart": 73.8,
+   "snapped": false,
+   "end": 76.9,
+   "startFrame": 2214
+  },
+  {
+   "words": [
+    {
+     "w": "Hold",
+     "t": 76.9
+    },
+    {
+     "w": "up…",
+     "t": 77.24
+    }
+   ],
+   "hold": 79.0,
+   "id": "holdup",
+   "text": "Hold up…",
+   "section": "branches",
+   "hero": "Hold up",
+   "start": 76.9,
+   "rawStart": 76.9,
+   "snapped": false,
+   "end": 79.0,
+   "startFrame": 2307
+  },
+  {
+   "words": [
+    {
+     "w": "Branches—LET’S",
+     "t": 79.0
+    },
+    {
+     "w": "ROLL!",
+     "t": 79.76
+    }
+   ],
+   "hold": 80.1,
+   "id": "letsroll",
+   "text": "Branches—LET’S ROLL!",
+   "section": "branches",
+   "hero": "LET’S ROLL",
+   "start": 79.0,
+   "rawStart": 79.0,
+   "snapped": false,
+   "end": 80.1,
+   "startFrame": 2370
+  },
+  {
+   "words": [
+    {
+     "w": "Altamonte,",
+     "t": 80.1
+    },
+    {
+     "w": "Longwood,",
+     "t": 80.8
+    },
+    {
+     "w": "Lake",
+     "t": 81.28
+    },
+    {
+     "w": "Mary",
+     "t": 81.52
+    },
+    {
+     "w": "too,",
+     "t": 81.92
+    }
+   ],
+   "hold": 82.3,
+   "id": "b01",
+   "text": "Altamonte, Longwood, Lake Mary too,",
+   "section": "branches",
+   "hero": "",
+   "start": 80.1,
+   "rawStart": 80.1,
+   "snapped": false,
+   "end": 82.3,
+   "startFrame": 2403
+  },
+  {
+   "words": [
+    {
+     "w": "Fern",
+     "t": 82.3
+    },
+    {
+     "w": "Park,",
+     "t": 82.72
+    },
+    {
+     "w": "Sanford—yeah,",
+     "t": 82.96
+    },
+    {
+     "w": "that’s",
+     "t": 83.84
+    },
+    {
+     "w": "the",
+     "t": 84.0
+    },
+    {
+     "w": "crew!",
+     "t": 84.08
+    }
+   ],
+   "hold": 84.7,
+   "id": "b02",
+   "text": "Fern Park, Sanford—yeah, that’s the crew!",
+   "section": "branches",
+   "hero": "the crew",
+   "start": 82.3,
+   "rawStart": 82.3,
+   "snapped": false,
+   "end": 84.7,
+   "startFrame": 2469
+  },
+  {
+   "words": [
+    {
+     "w": "Appleyard,",
+     "t": 84.7
+    },
+    {
+     "w": "Hansell,",
+     "t": 85.28
+    },
+    {
+     "w": "Quincy",
+     "t": 85.84
+    },
+    {
+     "w": "in",
+     "t": 86.24
+    },
+    {
+     "w": "the",
+     "t": 86.32
+    },
+    {
+     "w": "mix,",
+     "t": 86.4
+    }
+   ],
+   "hold": 86.7,
+   "id": "b03",
+   "text": "Appleyard, Hansell, Quincy in the mix,",
+   "section": "branches",
+   "hero": "",
+   "start": 84.7,
+   "rawStart": 84.7,
+   "snapped": false,
+   "end": 86.7,
+   "startFrame": 2541
+  },
+  {
+   "words": [
+    {
+     "w": "Bainbridge,",
+     "t": 86.7
+    },
+    {
+     "w": "Chattahoochee—you",
+     "t": 87.28
+    },
+    {
+     "w": "know",
+     "t": 88.24
+    },
+    {
+     "w": "what",
+     "t": 88.4
+    },
+    {
+     "w": "this",
+     "t": 88.48
+    },
+    {
+     "w": "is!",
+     "t": 88.64
+    }
+   ],
+   "hold": 89.0,
+   "id": "b04",
+   "text": "Bainbridge, Chattahoochee—you know what this is!",
+   "section": "branches",
+   "hero": "",
+   "start": 86.7,
+   "rawStart": 86.7,
+   "snapped": false,
+   "end": 89.0,
+   "startFrame": 2601
+  },
+  {
+   "words": [
+    {
+     "w": "Clermont,",
+     "t": 89.0
+    },
+    {
+     "w": "Four",
+     "t": 89.6
+    },
+    {
+     "w": "Corners,",
+     "t": 89.84
+    },
+    {
+     "w": "Kissimmee,",
+     "t": 90.24
+    },
+    {
+     "w": "The",
+     "t": 90.64
+    },
+    {
+     "w": "Loop,",
+     "t": 90.72
+    }
+   ],
+   "hold": 91.0,
+   "id": "b05",
+   "text": "Clermont, Four Corners, Kissimmee, The Loop,",
+   "section": "branches",
+   "hero": "",
+   "start": 89.0,
+   "rawStart": 89.0,
+   "snapped": false,
+   "end": 91.0,
+   "startFrame": 2670
+  },
+  {
+   "words": [
+    {
+     "w": "Poinciana,",
+     "t": 91.0
+    },
+    {
+     "w": "St.",
+     "t": 91.6
+    },
+    {
+     "w": "Cloud—now",
+     "t": 91.84
+    },
+    {
+     "w": "THAT’S",
+     "t": 92.64
+    },
+    {
+     "w": "a",
+     "t": 92.8
+    },
+    {
+     "w": "group!",
+     "t": 92.88
+    }
+   ],
+   "hold": 93.3,
+   "id": "b06",
+   "text": "Poinciana, St. Cloud—now THAT’S a group!",
+   "section": "branches",
+   "hero": "THAT’S a group",
+   "start": 91.0,
+   "rawStart": 91.0,
+   "snapped": false,
+   "end": 93.3,
+   "startFrame": 2730
+  },
+  {
+   "words": [
+    {
+     "w": "Winter",
+     "t": 93.3
+    },
+    {
+     "w": "Garden,",
+     "t": 93.61
+    },
+    {
+     "w": "Metro",
+     "t": 93.92
+    },
+    {
+     "w": "West,",
+     "t": 94.16
+    },
+    {
+     "w": "South",
+     "t": 94.4
+    },
+    {
+     "w": "Orlando",
+     "t": 94.64
+    },
+    {
+     "w": "too,",
+     "t": 94.87
+    }
+   ],
+   "hold": 95.4,
+   "id": "b07",
+   "text": "Winter Garden, Metro West, South Orlando too,",
+   "section": "branches",
+   "hero": "",
+   "start": 93.3,
+   "rawStart": 93.3,
+   "snapped": false,
+   "end": 95.4,
+   "startFrame": 2799
+  },
+  {
+   "words": [
+    {
+     "w": "Different",
+     "t": 95.4
+    },
+    {
+     "w": "spots",
+     "t": 95.84
+    },
+    {
+     "w": "on",
+     "t": 96.16
+    },
+    {
+     "w": "the",
+     "t": 96.24
+    },
+    {
+     "w": "map—we",
+     "t": 96.32
+    },
+    {
+     "w": "move",
+     "t": 96.96
+    },
+    {
+     "w": "as",
+     "t": 97.12
+    },
+    {
+     "w": "one",
+     "t": 97.28
+    },
+    {
+     "w": "crew!",
+     "t": 97.29
+    }
+   ],
+   "hold": 97.6,
+   "id": "b08",
+   "text": "Different spots on the map—we move as one crew!",
+   "section": "branches",
+   "hero": "one crew",
+   "start": 95.4,
+   "rawStart": 95.4,
+   "snapped": false,
+   "end": 97.6,
+   "startFrame": 2862
+  },
+  {
+   "words": [
+    {
+     "w": "Apopka,",
+     "t": 97.6
+    },
+    {
+     "w": "Eustis,",
+     "t": 97.6
+    },
+    {
+     "w": "Leesburg",
+     "t": 97.6
+    },
+    {
+     "w": "in",
+     "t": 97.6
+    },
+    {
+     "w": "the",
+     "t": 97.62
+    },
+    {
+     "w": "flow,",
+     "t": 97.96
+    }
+   ],
+   "hold": 100.3,
+   "id": "b09",
+   "text": "Apopka, Eustis, Leesburg in the flow,",
+   "section": "branches",
+   "hero": "",
+   "start": 97.6,
+   "rawStart": 97.6,
+   "snapped": false,
+   "end": 100.3,
+   "startFrame": 2928
+  },
+  {
+   "words": [
+    {
+     "w": "Oviedo,",
+     "t": 100.3
+    },
+    {
+     "w": "Mills",
+     "t": 101.2
+    },
+    {
+     "w": "Ave—you",
+     "t": 101.68
+    },
+    {
+     "w": "already",
+     "t": 101.92
+    },
+    {
+     "w": "know!",
+     "t": 102.16
+    }
+   ],
+   "hold": 102.7,
+   "id": "b10",
+   "text": "Oviedo, Mills Ave—you already know!",
+   "section": "branches",
+   "hero": "",
+   "start": 100.3,
+   "rawStart": 100.3,
+   "snapped": false,
+   "end": 102.7,
+   "startFrame": 3009
+  },
+  {
+   "words": [
+    {
+     "w": "Pine",
+     "t": 102.7
+    },
+    {
+     "w": "Hills,",
+     "t": 103.15
+    },
+    {
+     "w": "Parkway,",
+     "t": 103.6
+    },
+    {
+     "w": "East",
+     "t": 104.08
+    },
+    {
+     "w": "Orlando",
+     "t": 104.32
+    },
+    {
+     "w": "came",
+     "t": 104.513
+    },
+    {
+     "w": "through,",
+     "t": 104.707
+    }
+   ],
+   "hold": 105.2,
+   "id": "b11",
+   "text": "Pine Hills, Parkway, East Orlando came through,",
+   "section": "branches",
+   "hero": "",
+   "start": 102.7,
+   "rawStart": 102.7,
+   "snapped": false,
+   "end": 105.2,
+   "startFrame": 3081
+  },
+  {
+   "words": [
+    {
+     "w": "Lake",
+     "t": 105.2
+    },
+    {
+     "w": "Nona,",
+     "t": 105.6
+    },
+    {
+     "w": "Killearn—yeah,",
+     "t": 105.84
+    },
+    {
+     "w": "we",
+     "t": 106.132
+    },
+    {
+     "w": "see",
+     "t": 106.424
+    },
+    {
+     "w": "you",
+     "t": 106.716
+    },
+    {
+     "w": "too!",
+     "t": 107.008
+    }
+   ],
+   "hold": 107.6,
+   "id": "b12",
+   "text": "Lake Nona, Killearn—yeah, we see you too!",
+   "section": "branches",
+   "hero": "",
+   "start": 105.2,
+   "rawStart": 105.2,
+   "snapped": false,
+   "end": 107.6,
+   "startFrame": 3156
+  },
+  {
+   "words": [
+    {
+     "w": "Liberty,",
+     "t": 107.6
+    },
+    {
+     "w": "Marianna—come",
+     "t": 108.16
+    },
+    {
+     "w": "on,",
+     "t": 108.72
+    },
+    {
+     "w": "bring",
+     "t": 109.28
+    },
+    {
+     "w": "it",
+     "t": 109.44
+    },
+    {
+     "w": "home!",
+     "t": 109.52
+    }
+   ],
+   "hold": 109.8,
+   "id": "b13",
+   "text": "Liberty, Marianna—come on, bring it home!",
+   "section": "branches",
+   "hero": "bring it home",
+   "start": 107.6,
+   "rawStart": 107.6,
+   "snapped": false,
+   "end": 109.8,
+   "startFrame": 3228
+  },
+  {
+   "words": [
+    {
+     "w": "Orange",
+     "t": 109.8
+    },
+    {
+     "w": "City,",
+     "t": 110.267
+    },
+    {
+     "w": "Tallahassee",
+     "t": 110.693
+    },
+    {
+     "w": "Downtown",
+     "t": 111.12
+    },
+    {
+     "w": "strong!",
+     "t": 111.46
+    }
+   ],
+   "hold": 112.1,
+   "id": "b14",
+   "text": "Orange City, Tallahassee Downtown strong!",
+   "section": "branches",
+   "hero": "",
+   "start": 109.8,
+   "rawStart": 109.8,
+   "snapped": false,
+   "end": 112.1,
+   "startFrame": 3294
+  },
+  {
+   "words": [
+    {
+     "w": "UCF,",
+     "t": 112.1
+    },
+    {
+     "w": "Seminole",
+     "t": 112.57
+    },
+    {
+     "w": "State,",
+     "t": 113.04
+    },
+    {
+     "w": "Downtown",
+     "t": 113.36
+    },
+    {
+     "w": "Campus",
+     "t": 113.84
+    },
+    {
+     "w": "too,",
+     "t": 113.97
+    }
+   ],
+   "hold": 114.4,
+   "id": "b15",
+   "text": "UCF, Seminole State, Downtown Campus too,",
+   "section": "branches",
+   "hero": "",
+   "start": 112.1,
+   "rawStart": 112.1,
+   "snapped": false,
+   "end": 114.4,
+   "startFrame": 3363
+  },
+  {
+   "words": [
+    {
+     "w": "High",
+     "t": 114.4
+    },
+    {
+     "w": "School",
+     "t": 114.96
+    },
+    {
+     "w": "Branches—LOOK",
+     "t": 115.2
+    },
+    {
+     "w": "AT",
+     "t": 116.0
+    },
+    {
+     "w": "THIS",
+     "t": 116.16
+    },
+    {
+     "w": "CREW!",
+     "t": 116.32
+    }
+   ],
+   "hold": 117.9,
+   "id": "b16",
+   "text": "High School Branches—LOOK AT THIS CREW!",
+   "section": "branches",
+   "hero": "LOOK AT THIS CREW",
+   "start": 114.4,
+   "rawStart": 114.4,
+   "snapped": false,
+   "end": 117.9,
+   "startFrame": 3432
+  },
+  {
+   "words": [
+    {
+     "w": "Departments—LET’S",
+     "t": 117.9
+    },
+    {
+     "w": "GOOOO!",
+     "t": 118.24
+    }
+   ],
+   "hold": 120.64,
+   "id": "departments",
+   "text": "Departments—LET’S GOOOO!",
+   "section": "departments",
+   "hero": "Departments",
+   "start": 117.9,
+   "rawStart": 117.9,
+   "snapped": false,
+   "end": 120.8,
+   "startFrame": 3537
+  },
+  {
+   "words": [
+    {
+     "w": "Accounting",
+     "t": 120.8
+    },
+    {
+     "w": "and",
+     "t": 121.2
+    },
+    {
+     "w": "Finance",
+     "t": 121.36
+    },
+    {
+     "w": "keeping",
+     "t": 121.84
+    },
+    {
+     "w": "numbers",
+     "t": 122.16
+    },
+    {
+     "w": "aligned,",
+     "t": 122.56
+    }
+   ],
+   "hold": 123.2,
+   "id": "d01",
+   "text": "Accounting and Finance keeping numbers aligned,",
+   "section": "departments",
+   "hero": "aligned",
+   "start": 120.8,
+   "rawStart": 120.8,
+   "snapped": false,
+   "end": 123.2,
+   "startFrame": 3624
+  },
+  {
+   "words": [
+    {
+     "w": "Payments",
+     "t": 123.2
+    },
+    {
+     "w": "and",
+     "t": 123.52
+    },
+    {
+     "w": "Collections",
+     "t": 123.68
+    },
+    {
+     "w": "keeping",
+     "t": 124.08
+    },
+    {
+     "w": "money",
+     "t": 124.4
+    },
+    {
+     "w": "moving",
+     "t": 124.64
+    },
+    {
+     "w": "right!",
+     "t": 124.96
+    }
+   ],
+   "hold": 125.4,
+   "id": "d02",
+   "text": "Payments and Collections keeping money moving right!",
+   "section": "departments",
+   "hero": "moving right",
+   "start": 123.2,
+   "rawStart": 123.2,
+   "snapped": false,
+   "end": 125.4,
+   "startFrame": 3696
+  },
+  {
+   "words": [
+    {
+     "w": "Business",
+     "t": 125.4
+    },
+    {
+     "w": "Intelligence",
+     "t": 125.92
+    },
+    {
+     "w": "turning",
+     "t": 126.4
+    },
+    {
+     "w": "data",
+     "t": 126.64
+    },
+    {
+     "w": "into",
+     "t": 126.96
+    },
+    {
+     "w": "drive!",
+     "t": 127.2
+    }
+   ],
+   "hold": 127.8,
+   "id": "d03",
+   "text": "Business Intelligence turning data into drive!",
+   "section": "departments",
+   "hero": "data into drive",
+   "start": 125.4,
+   "rawStart": 125.4,
+   "snapped": false,
+   "end": 127.8,
+   "startFrame": 3762
+  },
+  {
+   "words": [
+    {
+     "w": "Project",
+     "t": 127.8
+    },
+    {
+     "w": "Management",
+     "t": 128.08
+    },
+    {
+     "w": "keeps",
+     "t": 128.56
+    },
+    {
+     "w": "the",
+     "t": 128.8
+    },
+    {
+     "w": "mission",
+     "t": 128.96
+    },
+    {
+     "w": "on",
+     "t": 129.36
+    },
+    {
+     "w": "time!",
+     "t": 129.52
+    }
+   ],
+   "hold": 130.0,
+   "id": "d04",
+   "text": "Project Management keeps the mission on time!",
+   "section": "departments",
+   "hero": "on time",
+   "start": 127.8,
+   "rawStart": 127.8,
+   "snapped": false,
+   "end": 130.0,
+   "startFrame": 3834
+  },
+  {
+   "words": [
+    {
+     "w": "Fraud",
+     "t": 130.0
+    },
+    {
+     "w": "Prevention,",
+     "t": 130.4
+    },
+    {
+     "w": "B-S-A",
+     "t": 130.96
+    },
+    {
+     "w": "on",
+     "t": 131.6
+    },
+    {
+     "w": "guard,",
+     "t": 131.76
+    }
+   ],
+   "hold": 132.3,
+   "id": "d05",
+   "text": "Fraud Prevention, B-S-A on guard,",
+   "section": "departments",
+   "hero": "on guard",
+   "start": 130.0,
+   "rawStart": 130.0,
+   "snapped": false,
+   "end": 132.3,
+   "startFrame": 3900
+  },
+  {
+   "words": [
+    {
+     "w": "Compliance",
+     "t": 132.3
+    },
+    {
+     "w": "and",
+     "t": 132.56
+    },
+    {
+     "w": "Legal",
+     "t": 132.8
+    },
+    {
+     "w": "keeping",
+     "t": 133.2
+    },
+    {
+     "w": "standards",
+     "t": 133.6
+    },
+    {
+     "w": "strong!",
+     "t": 134.0
+    }
+   ],
+   "hold": 134.6,
+   "id": "d06",
+   "text": "Compliance and Legal keeping standards strong!",
+   "section": "departments",
+   "hero": "standards strong",
+   "start": 132.3,
+   "rawStart": 132.3,
+   "snapped": false,
+   "end": 134.6,
+   "startFrame": 3969
+  },
+  {
+   "words": [
+    {
+     "w": "Enterprise",
+     "t": 134.6
+    },
+    {
+     "w": "Risk",
+     "t": 135.2
+    },
+    {
+     "w": "watching",
+     "t": 135.52
+    },
+    {
+     "w": "what’s",
+     "t": 135.84
+    },
+    {
+     "w": "ahead,",
+     "t": 136.08
+    }
+   ],
+   "hold": 136.6,
+   "id": "d07",
+   "text": "Enterprise Risk watching what’s ahead,",
+   "section": "departments",
+   "hero": "what’s ahead",
+   "start": 134.6,
+   "rawStart": 134.6,
+   "snapped": false,
+   "end": 136.6,
+   "startFrame": 4038
+  },
+  {
+   "words": [
+    {
+     "w": "Quality",
+     "t": 136.6
+    },
+    {
+     "w": "Control",
+     "t": 137.04
+    },
+    {
+     "w": "making",
+     "t": 137.44
+    },
+    {
+     "w": "sure",
+     "t": 137.68
+    },
+    {
+     "w": "we",
+     "t": 137.84
+    },
+    {
+     "w": "get",
+     "t": 138.0
+    },
+    {
+     "w": "it",
+     "t": 138.16
+    },
+    {
+     "w": "right",
+     "t": 138.24
+    },
+    {
+     "w": "instead!",
+     "t": 138.4
+    }
+   ],
+   "hold": 138.9,
+   "id": "d08",
+   "text": "Quality Control making sure we get it right instead!",
+   "section": "departments",
+   "hero": "right",
+   "start": 136.6,
+   "rawStart": 136.6,
+   "snapped": false,
+   "end": 138.9,
+   "startFrame": 4098
+  },
+  {
+   "words": [
+    {
+     "w": "Loss",
+     "t": 138.9
+    },
+    {
+     "w": "Prevention,",
+     "t": 139.547
+    },
+    {
+     "w": "Loss",
+     "t": 139.653
+    },
+    {
+     "w": "Mitigation",
+     "t": 139.76
+    },
+    {
+     "w": "seeing",
+     "t": 140.4
+    },
+    {
+     "w": "it",
+     "t": 140.64
+    },
+    {
+     "w": "through,",
+     "t": 140.72
+    }
+   ],
+   "hold": 141.0,
+   "id": "d09",
+   "text": "Loss Prevention, Loss Mitigation seeing it through,",
+   "section": "departments",
+   "hero": "seeing it through",
+   "start": 138.9,
+   "rawStart": 138.9,
+   "snapped": false,
+   "end": 141.0,
+   "startFrame": 4167
+  },
+  {
+   "words": [
+    {
+     "w": "Consumer",
+     "t": 141.0
+    },
+    {
+     "w": "and",
+     "t": 141.6
+    },
+    {
+     "w": "Residential",
+     "t": 141.76
+    },
+    {
+     "w": "making",
+     "t": 142.32
+    },
+    {
+     "w": "dreams",
+     "t": 142.56
+    },
+    {
+     "w": "come",
+     "t": 142.88
+    },
+    {
+     "w": "true!",
+     "t": 143.04
+    }
+   ],
+   "hold": 143.4,
+   "id": "d10",
+   "text": "Consumer and Residential making dreams come true!",
+   "section": "departments",
+   "hero": "dreams",
+   "start": 141.0,
+   "rawStart": 141.0,
+   "snapped": false,
+   "end": 143.4,
+   "startFrame": 4230
+  },
+  {
+   "words": [
+    {
+     "w": "Business",
+     "t": 143.4
+    },
+    {
+     "w": "Lending",
+     "t": 143.68
+    },
+    {
+     "w": "opening",
+     "t": 144.0
+    },
+    {
+     "w": "doors",
+     "t": 144.48
+    },
+    {
+     "w": "to",
+     "t": 145.04
+    },
+    {
+     "w": "something",
+     "t": 145.2
+    },
+    {
+     "w": "new,",
+     "t": 145.36
+    }
+   ],
+   "hold": 145.7,
+   "id": "d11",
+   "text": "Business Lending opening doors to something new,",
+   "section": "departments",
+   "hero": "doors",
+   "start": 143.4,
+   "rawStart": 143.4,
+   "snapped": false,
+   "end": 145.7,
+   "startFrame": 4302
+  },
+  {
+   "words": [
+    {
+     "w": "Business",
+     "t": 145.7
+    },
+    {
+     "w": "Ops",
+     "t": 145.98
+    },
+    {
+     "w": "&",
+     "t": 146.28
+    },
+    {
+     "w": "Servicing",
+     "t": 146.58
+    },
+    {
+     "w": "keeping",
+     "t": 146.88
+    },
+    {
+     "w": "business",
+     "t": 147.12
+    },
+    {
+     "w": "moving",
+     "t": 147.36
+    },
+    {
+     "w": "too!",
+     "t": 147.68
+    }
+   ],
+   "hold": 148.0,
+   "id": "d12",
+   "text": "Business Ops & Servicing keeping business moving too!",
+   "section": "departments",
+   "hero": "moving",
+   "start": 145.7,
+   "rawStart": 145.7,
+   "snapped": false,
+   "end": 148.0,
+   "startFrame": 4371
+  },
+  {
+   "words": [
+    {
+     "w": "IT",
+     "t": 148.0
+    },
+    {
+     "w": "keeps",
+     "t": 148.48
+    },
+    {
+     "w": "the",
+     "t": 148.64
+    },
+    {
+     "w": "systems",
+     "t": 148.8
+    },
+    {
+     "w": "running",
+     "t": 149.2
+    },
+    {
+     "w": "day",
+     "t": 149.52
+    },
+    {
+     "w": "and",
+     "t": 149.68
+    },
+    {
+     "w": "night,",
+     "t": 149.84
+    }
+   ],
+   "hold": 150.3,
+   "id": "d13",
+   "text": "IT keeps the systems running day and night,",
+   "section": "departments",
+   "hero": "day and night",
+   "start": 148.0,
+   "rawStart": 148.0,
+   "snapped": false,
+   "end": 150.3,
+   "startFrame": 4440
+  },
+  {
+   "words": [
+    {
+     "w": "Facilities",
+     "t": 150.3
+    },
+    {
+     "w": "keeps",
+     "t": 150.96
+    },
+    {
+     "w": "our",
+     "t": 151.2
+    },
+    {
+     "w": "spaces",
+     "t": 151.36
+    },
+    {
+     "w": "working",
+     "t": 151.76
+    },
+    {
+     "w": "right!",
+     "t": 152.16
+    }
+   ],
+   "hold": 152.7,
+   "id": "d14",
+   "text": "Facilities keeps our spaces working right!",
+   "section": "departments",
+   "hero": "spaces",
+   "start": 150.3,
+   "rawStart": 150.3,
+   "snapped": false,
+   "end": 152.7,
+   "startFrame": 4509
+  },
+  {
+   "words": [
+    {
+     "w": "Brokerage",
+     "t": 152.7
+    },
+    {
+     "w": "Services",
+     "t": 153.28
+    },
+    {
+     "w": "helping",
+     "t": 153.84
+    },
+    {
+     "w": "futures",
+     "t": 154.16
+    },
+    {
+     "w": "grow,",
+     "t": 154.48
+    }
+   ],
+   "hold": 154.8,
+   "id": "d15",
+   "text": "Brokerage Services helping futures grow,",
+   "section": "departments",
+   "hero": "futures grow",
+   "start": 152.7,
+   "rawStart": 152.7,
+   "snapped": false,
+   "end": 154.8,
+   "startFrame": 4581
+  },
+  {
+   "words": [
+    {
+     "w": "Different",
+     "t": 154.8
+    },
+    {
+     "w": "teams",
+     "t": 155.12
+    },
+    {
+     "w": "behind",
+     "t": 155.44
+    },
+    {
+     "w": "it—making",
+     "t": 155.92
+    },
+    {
+     "w": "Addition",
+     "t": 156.32
+    },
+    {
+     "w": "go!",
+     "t": 156.61
+    }
+   ],
+   "hold": 157.2,
+   "id": "d16",
+   "text": "Different teams behind it—making Addition go!",
+   "section": "departments",
+   "hero": "Addition go",
+   "start": 154.8,
+   "rawStart": 154.8,
+   "snapped": false,
+   "end": 157.2,
+   "startFrame": 4644
+  },
+  {
+   "words": [
+    {
+     "w": "Retail",
+     "t": 157.2
+    },
+    {
+     "w": "Banking,",
+     "t": 157.52
+    },
+    {
+     "w": "Retail",
+     "t": 157.84
+    },
+    {
+     "w": "Ops",
+     "t": 158.16
+    },
+    {
+     "w": "holding",
+     "t": 158.48
+    },
+    {
+     "w": "it",
+     "t": 158.8
+    },
+    {
+     "w": "down,",
+     "t": 158.96
+    }
+   ],
+   "hold": 159.3,
+   "id": "d17",
+   "text": "Retail Banking, Retail Ops holding it down,",
+   "section": "departments",
+   "hero": "holding it down",
+   "start": 157.2,
+   "rawStart": 157.2,
+   "snapped": false,
+   "end": 159.3,
+   "startFrame": 4716
+  },
+  {
+   "words": [
+    {
+     "w": "Contact",
+     "t": 159.3
+    },
+    {
+     "w": "Center",
+     "t": 159.69
+    },
+    {
+     "w": "answering",
+     "t": 160.08
+    },
+    {
+     "w": "when",
+     "t": 160.56
+    },
+    {
+     "w": "members",
+     "t": 160.72
+    },
+    {
+     "w": "come",
+     "t": 160.96
+    },
+    {
+     "w": "around!",
+     "t": 161.12
+    }
+   ],
+   "hold": 161.5,
+   "id": "d18",
+   "text": "Contact Center answering when members come around!",
+   "section": "departments",
+   "hero": "answering",
+   "start": 159.3,
+   "rawStart": 159.3,
+   "snapped": false,
+   "end": 161.5,
+   "startFrame": 4779
+  },
+  {
+   "words": [
+    {
+     "w": "Virtual",
+     "t": 161.5
+    },
+    {
+     "w": "Services",
+     "t": 162.0
+    },
+    {
+     "w": "meeting",
+     "t": 162.427
+    },
+    {
+     "w": "members",
+     "t": 162.853
+    },
+    {
+     "w": "where",
+     "t": 163.28
+    },
+    {
+     "w": "they",
+     "t": 163.44
+    },
+    {
+     "w": "are,",
+     "t": 163.44
+    }
+   ],
+   "hold": 163.7,
+   "id": "d19",
+   "text": "Virtual Services meeting members where they are,",
+   "section": "departments",
+   "hero": "where they are",
+   "start": 161.5,
+   "rawStart": 161.5,
+   "snapped": false,
+   "end": 163.7,
+   "startFrame": 4845
+  },
+  {
+   "words": [
+    {
+     "w": "Digital",
+     "t": 163.7
+    },
+    {
+     "w": "Member",
+     "t": 164.017
+    },
+    {
+     "w": "Experience",
+     "t": 164.333
+    },
+    {
+     "w": "taking",
+     "t": 164.65
+    },
+    {
+     "w": "service",
+     "t": 164.967
+    },
+    {
+     "w": "far!",
+     "t": 165.283
+    }
+   ],
+   "hold": 165.9,
+   "id": "d20",
+   "text": "Digital Member Experience taking service far!",
+   "section": "departments",
+   "hero": "far",
+   "start": 163.7,
+   "rawStart": 163.7,
+   "snapped": false,
+   "end": 165.9,
+   "startFrame": 4911
+  },
+  {
+   "words": [
+    {
+     "w": "Member",
+     "t": 165.9
+    },
+    {
+     "w": "Experience",
+     "t": 166.125
+    },
+    {
+     "w": "keeps",
+     "t": 166.35
+    },
+    {
+     "w": "the",
+     "t": 166.575
+    },
+    {
+     "w": "member",
+     "t": 166.8
+    },
+    {
+     "w": "at",
+     "t": 167.025
+    },
+    {
+     "w": "the",
+     "t": 167.25
+    },
+    {
+     "w": "heart,",
+     "t": 167.475
+    }
+   ],
+   "hold": 168.0,
+   "id": "d21",
+   "text": "Member Experience keeps the member at the heart,",
+   "section": "departments",
+   "hero": "heart",
+   "start": 165.9,
+   "rawStart": 165.9,
+   "snapped": false,
+   "end": 168.0,
+   "startFrame": 4977
+  },
+  {
+   "words": [
+    {
+     "w": "Community",
+     "t": 168.0
+    },
+    {
+     "w": "Development",
+     "t": 168.693
+    },
+    {
+     "w": "making",
+     "t": 169.387
+    },
+    {
+     "w": "an",
+     "t": 170.08
+    },
+    {
+     "w": "impact",
+     "t": 170.107
+    },
+    {
+     "w": "from",
+     "t": 170.133
+    },
+    {
+     "w": "the",
+     "t": 170.16
+    },
+    {
+     "w": "start!",
+     "t": 170.24
+    }
+   ],
+   "hold": 170.6,
+   "id": "d22",
+   "text": "Community Development making an impact from the start!",
+   "section": "departments",
+   "hero": "impact",
+   "start": 168.0,
+   "rawStart": 168.0,
+   "snapped": false,
+   "end": 170.6,
+   "startFrame": 5040
+  },
+  {
+   "words": [
+    {
+     "w": "Marketing",
+     "t": 170.6
+    },
+    {
+     "w": "and",
+     "t": 171.013
+    },
+    {
+     "w": "PR",
+     "t": 171.387
+    },
+    {
+     "w": "tell",
+     "t": 171.76
+    },
+    {
+     "w": "the",
+     "t": 171.92
+    },
+    {
+     "w": "story,",
+     "t": 172.0
+    },
+    {
+     "w": "make",
+     "t": 172.32
+    },
+    {
+     "w": "it",
+     "t": 172.48
+    },
+    {
+     "w": "loud,",
+     "t": 172.64
+    }
+   ],
+   "hold": 173.1,
+   "id": "d23",
+   "text": "Marketing and PR tell the story, make it loud,",
+   "section": "departments",
+   "hero": "loud",
+   "start": 170.6,
+   "rawStart": 170.6,
+   "snapped": false,
+   "end": 173.1,
+   "startFrame": 5118
+  },
+  {
+   "words": [
+    {
+     "w": "High",
+     "t": 173.1
+    },
+    {
+     "w": "School",
+     "t": 173.293
+    },
+    {
+     "w": "Branches",
+     "t": 173.487
+    },
+    {
+     "w": "building",
+     "t": 173.68
+    },
+    {
+     "w": "futures—make",
+     "t": 174.0
+    },
+    {
+     "w": "us",
+     "t": 174.4
+    },
+    {
+     "w": "proud!",
+     "t": 174.8
+    }
+   ],
+   "hold": 175.4,
+   "id": "d24",
+   "text": "High School Branches building futures—make us proud!",
+   "section": "departments",
+   "hero": "proud",
+   "start": 173.1,
+   "rawStart": 173.1,
+   "snapped": false,
+   "end": 175.4,
+   "startFrame": 5193
+  },
+  {
+   "words": [
+    {
+     "w": "Human",
+     "t": 175.4
+    },
+    {
+     "w": "Resources,",
+     "t": 175.76
+    },
+    {
+     "w": "People",
+     "t": 176.32
+    },
+    {
+     "w": "Ops",
+     "t": 176.68
+    },
+    {
+     "w": "supporting",
+     "t": 177.04
+    },
+    {
+     "w": "the",
+     "t": 177.44
+    },
+    {
+     "w": "crew,",
+     "t": 177.52
+    }
+   ],
+   "hold": 177.9,
+   "id": "d25",
+   "text": "Human Resources, People Ops supporting the crew,",
+   "section": "departments",
+   "hero": "supporting",
+   "start": 175.4,
+   "rawStart": 175.4,
+   "snapped": false,
+   "end": 177.9,
+   "startFrame": 5262
+  },
+  {
+   "words": [
+    {
+     "w": "Learning",
+     "t": 177.9
+    },
+    {
+     "w": "and",
+     "t": 178.32
+    },
+    {
+     "w": "Development",
+     "t": 178.4
+    },
+    {
+     "w": "helping",
+     "t": 178.7
+    },
+    {
+     "w": "talent",
+     "t": 179.0
+    },
+    {
+     "w": "break",
+     "t": 179.3
+    },
+    {
+     "w": "through!",
+     "t": 179.6
+    }
+   ],
+   "hold": 180.2,
+   "id": "d26",
+   "text": "Learning and Development helping talent break through!",
+   "section": "departments",
+   "hero": "break through",
+   "start": 177.9,
+   "rawStart": 177.9,
+   "snapped": false,
+   "end": 180.2,
+   "startFrame": 5337
+  },
+  {
+   "words": [
+    {
+     "w": "Executive",
+     "t": 180.2
+    },
+    {
+     "w": "Office",
+     "t": 180.667
+    },
+    {
+     "w": "setting",
+     "t": 181.013
+    },
+    {
+     "w": "vision,",
+     "t": 181.36
+    },
+    {
+     "w": "leading",
+     "t": 181.68
+    },
+    {
+     "w": "the",
+     "t": 182.0
+    },
+    {
+     "w": "way—",
+     "t": 182.08
+    }
+   ],
+   "hold": 182.5,
+   "id": "d27",
+   "text": "Executive Office setting vision, leading the way—",
+   "section": "departments",
+   "hero": "leading the way",
+   "start": 180.2,
+   "rawStart": 180.2,
+   "snapped": false,
+   "end": 182.5,
+   "startFrame": 5406
+  },
+  {
+   "words": [
+    {
+     "w": "Different",
+     "t": 182.5
+    },
+    {
+     "w": "roles,",
+     "t": 182.72
+    },
+    {
+     "w": "ONE",
+     "t": 183.12
+    },
+    {
+     "w": "ADDITION",
+     "t": 183.28
+    },
+    {
+     "w": "every",
+     "t": 183.84
+    },
+    {
+     "w": "day!",
+     "t": 184.16
+    }
+   ],
+   "hold": 186.56,
+   "id": "oneaddition",
+   "text": "Different roles, ONE ADDITION every day!",
+   "section": "departments",
+   "hero": "ONE ADDITION",
+   "start": 182.5,
+   "rawStart": 182.5,
+   "snapped": false,
+   "end": 188.6,
+   "startFrame": 5475
+  },
+  {
+   "words": [
+    {
+     "w": "Front",
+     "t": 188.6
+    },
+    {
+     "w": "line.",
+     "t": 188.96
+    }
+   ],
+   "hold": 190.7,
+   "id": "frontline",
+   "text": "Front line.",
+   "section": "beatcut",
+   "hero": "Front line",
+   "start": 188.6,
+   "rawStart": 188.6,
+   "snapped": false,
+   "end": 190.7,
+   "startFrame": 5658
+  },
+  {
+   "words": [
+    {
+     "w": "Back",
+     "t": 190.7
+    },
+    {
+     "w": "office.",
+     "t": 191.04
+    }
+   ],
+   "hold": 192.7,
+   "id": "backoffice",
+   "text": "Back office.",
+   "section": "beatcut",
+   "hero": "Back office",
+   "start": 190.7,
+   "rawStart": 190.7,
+   "snapped": false,
+   "end": 192.7,
+   "startFrame": 5721
+  },
+  {
+   "words": [
+    {
+     "w": "Every",
+     "t": 192.7
+    },
+    {
+     "w": "team",
+     "t": 192.95
+    },
+    {
+     "w": "in",
+     "t": 193.2
+    },
+    {
+     "w": "the",
+     "t": 193.36
+    },
+    {
+     "w": "mix.",
+     "t": 193.43
+    }
+   ],
+   "hold": 193.8,
+   "id": "mix",
+   "text": "Every team in the mix.",
+   "section": "beatcut",
+   "hero": "mix",
+   "start": 192.7,
+   "rawStart": 192.7,
+   "snapped": false,
+   "end": 193.8,
+   "startFrame": 5781
+  },
+  {
+   "words": [
+    {
+     "w": "Different",
+     "t": 193.8
+    },
+    {
+     "w": "names.",
+     "t": 194.08
+    }
+   ],
+   "hold": 195.0,
+   "id": "names",
+   "text": "Different names.",
+   "section": "beatcut",
+   "hero": "names",
+   "start": 193.8,
+   "rawStart": 193.8,
+   "snapped": false,
+   "end": 195.0,
+   "startFrame": 5814
+  },
+  {
+   "words": [
+    {
+     "w": "Different",
+     "t": 195.0
+    },
+    {
+     "w": "roles.",
+     "t": 195.2
+    }
+   ],
+   "hold": 197.2,
+   "id": "roles",
+   "text": "Different roles.",
+   "section": "beatcut",
+   "hero": "roles",
+   "start": 195.0,
+   "rawStart": 195.0,
+   "snapped": false,
+   "end": 197.2,
+   "startFrame": 5850
+  },
+  {
+   "words": [
+    {
+     "w": "Every",
+     "t": 197.2
+    },
+    {
+     "w": "piece",
+     "t": 197.44
+    },
+    {
+     "w": "matters.",
+     "t": 197.76
+    }
+   ],
+   "hold": 198.3,
+   "id": "piece",
+   "text": "Every piece matters.",
+   "section": "beatcut",
+   "hero": "piece",
+   "start": 197.2,
+   "rawStart": 197.2,
+   "snapped": false,
+   "end": 198.3,
+   "startFrame": 5916
+  },
+  {
+   "words": [
+    {
+     "w": "THAT’S",
+     "t": 198.3
+    },
+    {
+     "w": "ADDITION.",
+     "t": 198.64
+    }
+   ],
+   "hold": 199.3,
+   "id": "thatsaddition",
+   "text": "THAT’S ADDITION.",
+   "section": "beatcut",
+   "hero": "ADDITION",
+   "start": 198.3,
+   "rawStart": 198.3,
+   "snapped": false,
+   "end": 199.3,
+   "startFrame": 5949
+  },
+  {
+   "words": [
+    {
+     "w": "Learn…",
+     "t": 199.3
+    }
+   ],
+   "hold": 200.6,
+   "id": "learn",
+   "text": "Learn…",
+   "section": "bridge",
+   "hero": "Learn",
+   "start": 199.3,
+   "rawStart": 199.3,
+   "snapped": false,
+   "end": 200.6,
+   "startFrame": 5979
+  },
+  {
+   "words": [
+    {
+     "w": "There’s",
+     "t": 200.6
+    },
+    {
+     "w": "always",
+     "t": 201.2
+    },
+    {
+     "w": "more",
+     "t": 202.0
+    },
+    {
+     "w": "to",
+     "t": 202.34
+    },
+    {
+     "w": "know.",
+     "t": 202.68
+    }
+   ],
+   "hold": 203.4,
+   "id": "learn2",
+   "text": "There’s always more to know.",
+   "section": "bridge",
+   "hero": "more to know",
+   "start": 200.6,
+   "rawStart": 200.6,
+   "snapped": false,
+   "end": 203.4,
+   "startFrame": 6018
+  },
+  {
+   "words": [
+    {
+     "w": "Teach…",
+     "t": 203.4
+    }
+   ],
+   "hold": 205.0,
+   "id": "teach",
+   "text": "Teach…",
+   "section": "bridge",
+   "hero": "Teach",
+   "start": 203.4,
+   "rawStart": 203.4,
+   "snapped": false,
+   "end": 205.0,
+   "startFrame": 6102
+  },
+  {
+   "words": [
+    {
+     "w": "Because",
+     "t": 205.0
+    },
+    {
+     "w": "someone",
+     "t": 205.68
+    },
+    {
+     "w": "helped",
+     "t": 206.56
+    },
+    {
+     "w": "us",
+     "t": 207.04
+    },
+    {
+     "w": "grow.",
+     "t": 207.44
+    }
+   ],
+   "hold": 208.2,
+   "id": "teach2",
+   "text": "Because someone helped us grow.",
+   "section": "bridge",
+   "hero": "grow",
+   "start": 205.0,
+   "rawStart": 205.0,
+   "snapped": false,
+   "end": 208.2,
+   "startFrame": 6150
+  },
+  {
+   "words": [
+    {
+     "w": "Improve…",
+     "t": 208.2
+    }
+   ],
+   "hold": 209.4,
+   "id": "improve2",
+   "text": "Improve…",
+   "section": "bridge",
+   "hero": "Improve",
+   "start": 208.2,
+   "rawStart": 208.2,
+   "snapped": false,
+   "end": 209.4,
+   "startFrame": 6246
+  },
+  {
+   "words": [
+    {
+     "w": "Good",
+     "t": 209.4
+    },
+    {
+     "w": "enough",
+     "t": 209.76
+    },
+    {
+     "w": "ain’t",
+     "t": 210.08
+    },
+    {
+     "w": "where",
+     "t": 210.4
+    },
+    {
+     "w": "we",
+     "t": 210.96
+    },
+    {
+     "w": "stay.",
+     "t": 211.2
+    }
+   ],
+   "hold": 212.4,
+   "id": "improve3",
+   "text": "Good enough ain’t where we stay.",
+   "section": "bridge",
+   "hero": "ain’t where we stay",
+   "start": 209.4,
+   "rawStart": 209.4,
+   "snapped": false,
+   "end": 212.4,
+   "startFrame": 6282
+  },
+  {
+   "words": [
+    {
+     "w": "Absolute",
+     "t": 212.4
+    },
+    {
+     "w": "Integrity…",
+     "t": 213.12
+    }
+   ],
+   "hold": 214.3,
+   "id": "integrity",
+   "text": "Absolute Integrity…",
+   "section": "bridge",
+   "hero": "Integrity",
+   "start": 212.4,
+   "rawStart": 212.4,
+   "snapped": false,
+   "end": 214.3,
+   "startFrame": 6372
+  },
+  {
+   "words": [
+    {
+     "w": "That’s",
+     "t": 214.3
+    },
+    {
+     "w": "how",
+     "t": 214.8
+    },
+    {
+     "w": "we",
+     "t": 215.12
+    },
+    {
+     "w": "lead",
+     "t": 215.415
+    },
+    {
+     "w": "the",
+     "t": 215.71
+    },
+    {
+     "w": "way.",
+     "t": 216.005
+    }
+   ],
+   "hold": 216.6,
+   "id": "integrity2",
+   "text": "That’s how we lead the way.",
+   "section": "bridge",
+   "hero": "lead the way",
+   "start": 214.3,
+   "rawStart": 214.3,
+   "snapped": false,
+   "end": 216.6,
+   "startFrame": 6429
+  },
+  {
+   "words": [
+    {
+     "w": "Different",
+     "t": 216.6
+    },
+    {
+     "w": "offices.",
+     "t": 217.06
+    }
+   ],
+   "hold": 217.8,
+   "id": "offices",
+   "text": "Different offices.",
+   "section": "build",
+   "hero": "offices",
+   "start": 216.6,
+   "rawStart": 216.6,
+   "snapped": false,
+   "end": 217.8,
+   "startFrame": 6498
+  },
+  {
+   "words": [
+    {
+     "w": "Different",
+     "t": 217.8
+    },
+    {
+     "w": "roles.",
+     "t": 218.14
+    }
+   ],
+   "hold": 219.0,
+   "id": "roles2",
+   "text": "Different roles.",
+   "section": "build",
+   "hero": "roles",
+   "start": 217.8,
+   "rawStart": 217.8,
+   "snapped": false,
+   "end": 219.0,
+   "startFrame": 6534
+  },
+  {
+   "words": [
+    {
+     "w": "Different",
+     "t": 219.0
+    },
+    {
+     "w": "stories.",
+     "t": 219.2
+    }
+   ],
+   "hold": 219.9,
+   "id": "stories2",
+   "text": "Different stories.",
+   "section": "build",
+   "hero": "stories",
+   "start": 219.0,
+   "rawStart": 219.0,
+   "snapped": false,
+   "end": 219.9,
+   "startFrame": 6570
+  },
+  {
+   "words": [
+    {
+     "w": "Different",
+     "t": 219.9
+    },
+    {
+     "w": "roads.",
+     "t": 220.24
+    }
+   ],
+   "hold": 221.0,
+   "id": "roads2",
+   "text": "Different roads.",
+   "section": "build",
+   "hero": "roads",
+   "start": 219.9,
+   "rawStart": 219.9,
+   "snapped": false,
+   "end": 221.0,
+   "startFrame": 6597
+  },
+  {
+   "words": [
+    {
+     "w": "But",
+     "t": 221.0
+    },
+    {
+     "w": "when",
+     "t": 221.12
+    },
+    {
+     "w": "the",
+     "t": 221.28
+    },
+    {
+     "w": "rhythm",
+     "t": 221.36
+    },
+    {
+     "w": "starts…",
+     "t": 221.76
+    }
+   ],
+   "hold": 222.3,
+   "id": "rhythmstarts",
+   "text": "But when the rhythm starts…",
+   "section": "build",
+   "hero": "rhythm",
+   "start": 221.0,
+   "rawStart": 221.0,
+   "snapped": false,
+   "end": 222.3,
+   "startFrame": 6630
+  },
+  {
+   "words": [
+    {
+     "w": "WE",
+     "t": 222.3
+    },
+    {
+     "w": "MOVE",
+     "t": 222.56
+    },
+    {
+     "w": "AS",
+     "t": 223.2
+    },
+    {
+     "w": "ONE.",
+     "t": 223.68
+    }
+   ],
+   "hold": 225.7,
+   "id": "moveasone",
+   "text": "WE MOVE AS ONE.",
+   "section": "build",
+   "hero": "AS ONE",
+   "start": 222.3,
+   "rawStart": 222.3,
+   "snapped": false,
+   "end": 225.7,
+   "startFrame": 6669
+  },
+  {
+   "words": [
+    {
+     "w": "ONE",
+     "t": 225.7
+    },
+    {
+     "w": "TEAM!",
+     "t": 226.0
+    },
+    {
+     "w": "ONE",
+     "t": 226.52
+    },
+    {
+     "w": "RHYTHM!",
+     "t": 227.04
+    }
+   ],
+   "hold": 228.5,
+   "id": "drop1",
+   "text": "ONE TEAM! ONE RHYTHM!",
+   "section": "finalchorus",
+   "hero": "ONE TEAM",
+   "start": 225.7,
+   "rawStart": 225.7,
+   "snapped": false,
+   "end": 228.5,
+   "startFrame": 6771
+  },
+  {
+   "words": [
+    {
+     "w": "Let’s",
+     "t": 228.5
+    },
+    {
+     "w": "show",
+     "t": 228.867
+    },
+    {
+     "w": "’em",
+     "t": 229.233
+    },
+    {
+     "w": "how",
+     "t": 229.6
+    },
+    {
+     "w": "we",
+     "t": 229.76
+    },
+    {
+     "w": "move!",
+     "t": 229.88
+    }
+   ],
+   "hold": 230.3,
+   "id": "showem",
+   "text": "Let’s show ’em how we move!",
+   "section": "finalchorus",
+   "hero": "move",
+   "start": 228.5,
+   "rawStart": 228.5,
+   "snapped": false,
+   "end": 230.3,
+   "startFrame": 6855
+  },
+  {
+   "words": [
+    {
+     "w": "ONE",
+     "t": 230.3
+    },
+    {
+     "w": "TEAM!",
+     "t": 230.56
+    },
+    {
+     "w": "ONE",
+     "t": 231.2
+    },
+    {
+     "w": "RHYTHM!",
+     "t": 231.44
+    }
+   ],
+   "hold": 233.6,
+   "id": "otor3",
+   "text": "ONE TEAM! ONE RHYTHM!",
+   "section": "finalchorus",
+   "hero": "ONE TEAM",
+   "start": 230.3,
+   "rawStart": 230.3,
+   "snapped": false,
+   "end": 233.6,
+   "startFrame": 6909
+  },
+  {
+   "words": [
+    {
+     "w": "ONE",
+     "t": 233.6
+    },
+    {
+     "w": "TEAM!",
+     "t": 233.76
+    },
+    {
+     "w": "ONE",
+     "t": 234.08
+    },
+    {
+     "w": "RHYTHM!",
+     "t": 234.32
+    }
+   ],
+   "hold": 234.8,
+   "id": "otor3b",
+   "text": "ONE TEAM! ONE RHYTHM!",
+   "section": "finalchorus",
+   "hero": "ONE RHYTHM",
+   "start": 233.6,
+   "rawStart": 233.6,
+   "snapped": false,
+   "end": 234.8,
+   "startFrame": 7008
+  },
+  {
+   "words": [
+    {
+     "w": "ONE",
+     "t": 234.8
+    },
+    {
+     "w": "TEAM!",
+     "t": 235.04
+    },
+    {
+     "w": "ONE",
+     "t": 235.68
+    },
+    {
+     "w": "RHYTHM!",
+     "t": 236.0
+    }
+   ],
+   "hold": 236.6,
+   "id": "otor3c",
+   "text": "ONE TEAM! ONE RHYTHM!",
+   "section": "finalchorus",
+   "hero": "ONE TEAM",
+   "start": 234.8,
+   "rawStart": 234.8,
+   "snapped": false,
+   "end": 236.6,
+   "startFrame": 7044
+  },
+  {
+   "words": [
+    {
+     "w": "This",
+     "t": 236.6
+    },
+    {
+     "w": "is",
+     "t": 236.96
+    },
+    {
+     "w": "how",
+     "t": 237.2
+    },
+    {
+     "w": "we",
+     "t": 237.84
+    },
+    {
+     "w": "move!",
+     "t": 238.18
+    }
+   ],
+   "hold": 239.1,
+   "id": "thisishow",
+   "text": "This is how we move!",
+   "section": "finalchorus",
+   "hero": "move",
+   "start": 236.6,
+   "rawStart": 236.6,
+   "snapped": false,
+   "end": 239.1,
+   "startFrame": 7098
+  },
+  {
+   "words": [
+    {
+     "w": "ONE",
+     "t": 239.1
+    },
+    {
+     "w": "TEAM!",
+     "t": 239.68
+    },
+    {
+     "w": "ONE",
+     "t": 240.24
+    },
+    {
+     "w": "RHYTHM!",
+     "t": 240.48
+    }
+   ],
+   "hold": 240.9,
+   "id": "otor4",
+   "text": "ONE TEAM! ONE RHYTHM!",
+   "section": "finalchorus",
+   "hero": "ONE RHYTHM",
+   "start": 239.1,
+   "rawStart": 239.1,
+   "snapped": false,
+   "end": 240.9,
+   "startFrame": 7173
+  },
+  {
+   "words": [
+    {
+     "w": "Look",
+     "t": 240.9
+    },
+    {
+     "w": "at",
+     "t": 241.04
+    },
+    {
+     "w": "everything",
+     "t": 241.28
+    },
+    {
+     "w": "we’ve",
+     "t": 241.62
+    },
+    {
+     "w": "been",
+     "t": 241.96
+    },
+    {
+     "w": "through!",
+     "t": 242.3
+    }
+   ],
+   "hold": 243.5,
+   "id": "beenthrough",
+   "text": "Look at everything we’ve been through!",
+   "section": "finalchorus",
+   "hero": "been through",
+   "start": 240.9,
+   "rawStart": 240.9,
+   "snapped": false,
+   "end": 243.5,
+   "startFrame": 7227
+  },
+  {
+   "words": [
+    {
+     "w": "From",
+     "t": 243.5
+    },
+    {
+     "w": "the",
+     "t": 243.76
+    },
+    {
+     "w": "branches",
+     "t": 244.04
+    },
+    {
+     "w": "to",
+     "t": 244.32
+    },
+    {
+     "w": "the",
+     "t": 244.4
+    },
+    {
+     "w": "back",
+     "t": 244.48
+    },
+    {
+     "w": "office,",
+     "t": 244.8
+    }
+   ],
+   "hold": 245.9,
+   "id": "branchesback",
+   "text": "From the branches to the back office,",
+   "section": "finalchorus",
+   "hero": "branches",
+   "start": 243.5,
+   "rawStart": 243.5,
+   "snapped": false,
+   "end": 245.9,
+   "startFrame": 7305
+  },
+  {
+   "words": [
+    {
+     "w": "every",
+     "t": 245.9
+    },
+    {
+     "w": "team",
+     "t": 246.16
+    },
+    {
+     "w": "and",
+     "t": 246.48
+    },
+    {
+     "w": "every",
+     "t": 246.8
+    },
+    {
+     "w": "crew,",
+     "t": 247.04
+    }
+   ],
+   "hold": 247.5,
+   "id": "everycrew",
+   "text": "every team and every crew,",
+   "section": "finalchorus",
+   "hero": "every crew",
+   "start": 245.9,
+   "rawStart": 245.9,
+   "snapped": false,
+   "end": 247.5,
+   "startFrame": 7377
+  },
+  {
+   "words": [
+    {
+     "w": "2026",
+     "t": 247.5
+    },
+    {
+     "w": "put",
+     "t": 248.48
+    },
+    {
+     "w": "us",
+     "t": 248.64
+    },
+    {
+     "w": "to",
+     "t": 248.72
+    },
+    {
+     "w": "the",
+     "t": 248.88
+    },
+    {
+     "w": "test—",
+     "t": 248.96
+    }
+   ],
+   "hold": 249.5,
+   "id": "test",
+   "text": "2026 put us to the test—",
+   "section": "climax",
+   "hero": "2026",
+   "start": 247.5,
+   "rawStart": 247.5,
+   "snapped": false,
+   "end": 249.5,
+   "startFrame": 7425
+  },
+  {
+   "words": [
+    {
+     "w": "LOOK",
+     "t": 249.5
+    },
+    {
+     "w": "WHAT",
+     "t": 250.08
+    },
+    {
+     "w": "TOGETHER",
+     "t": 250.48
+    },
+    {
+     "w": "CAN",
+     "t": 251.2
+    },
+    {
+     "w": "DO!",
+     "t": 251.68
+    }
+   ],
+   "hold": 252.1,
+   "id": "together",
+   "text": "LOOK WHAT TOGETHER CAN DO!",
+   "section": "climax",
+   "hero": "TOGETHER",
+   "start": 249.5,
+   "rawStart": 249.5,
+   "snapped": false,
+   "end": 252.1,
+   "startFrame": 7485
+  },
+  {
+   "words": [
+    {
+     "w": "We",
+     "t": 252.1
+    },
+    {
+     "w": "learned!",
+     "t": 252.19
+    }
+   ],
+   "hold": 252.6,
+   "id": "learned2",
+   "text": "We learned!",
+   "section": "climax",
+   "hero": "learned",
+   "start": 252.1,
+   "rawStart": 252.1,
+   "snapped": false,
+   "end": 252.6,
+   "startFrame": 7563
+  },
+  {
+   "words": [
+    {
+     "w": "We",
+     "t": 252.6
+    },
+    {
+     "w": "taught!",
+     "t": 252.7
+    }
+   ],
+   "hold": 253.1,
+   "id": "taught2",
+   "text": "We taught!",
+   "section": "climax",
+   "hero": "taught",
+   "start": 252.6,
+   "rawStart": 252.6,
+   "snapped": false,
+   "end": 253.1,
+   "startFrame": 7578
+  },
+  {
+   "words": [
+    {
+     "w": "We",
+     "t": 253.1
+    },
+    {
+     "w": "changed!",
+     "t": 253.28
+    }
+   ],
+   "hold": 253.7,
+   "id": "changed2",
+   "text": "We changed!",
+   "section": "climax",
+   "hero": "changed",
+   "start": 253.1,
+   "rawStart": 253.1,
+   "snapped": false,
+   "end": 253.7,
+   "startFrame": 7593
+  },
+  {
+   "words": [
+    {
+     "w": "We",
+     "t": 253.7
+    },
+    {
+     "w": "grew!",
+     "t": 253.92
+    }
+   ],
+   "hold": 256.32,
+   "id": "grew2",
+   "text": "We grew!",
+   "section": "climax",
+   "hero": "grew",
+   "start": 253.7,
+   "rawStart": 253.7,
+   "snapped": false,
+   "end": 257.0,
+   "startFrame": 7611
+  },
+  {
+   "words": [
+    {
+     "w": "ONE",
+     "t": 257.0
+    },
+    {
+     "w": "TEAM!",
+     "t": 257.28
+    }
+   ],
+   "hold": 258.1,
+   "id": "oneteam5",
+   "text": "ONE TEAM!",
+   "section": "climax",
+   "hero": "ONE TEAM",
+   "start": 257.0,
+   "rawStart": 257.0,
+   "snapped": false,
+   "end": 258.1,
+   "startFrame": 7710
+  },
+  {
+   "words": [
+    {
+     "w": "ONE",
+     "t": 258.1
+    },
+    {
+     "w": "RHYTHM!",
+     "t": 258.4
+    }
+   ],
+   "hold": 259.8,
+   "id": "onerhythm5",
+   "text": "ONE RHYTHM!",
+   "section": "climax",
+   "hero": "ONE RHYTHM",
+   "start": 258.1,
+   "rawStart": 258.1,
+   "snapped": false,
+   "end": 259.8,
+   "startFrame": 7743
+  },
+  {
+   "words": [
+    {
+     "w": "ADDITION",
+     "t": 259.8
+    },
+    {
+     "w": "FINANCIAL",
+     "t": 260.48
+    },
+    {
+     "w": "CREDIT",
+     "t": 261.12
+    },
+    {
+     "w": "UNION!",
+     "t": 261.52
+    }
+   ],
+   "hold": 263.8,
+   "id": "acu1",
+   "text": "ADDITION FINANCIAL CREDIT UNION!",
+   "section": "climax",
+   "hero": "ADDITION",
+   "start": 259.8,
+   "rawStart": 259.8,
+   "snapped": false,
+   "end": 263.8,
+   "startFrame": 7794
+  },
+  {
+   "words": [
+    {
+     "w": "One",
+     "t": 263.8
+    },
+    {
+     "w": "team.",
+     "t": 264.08
+    }
+   ],
+   "hold": 266.0,
+   "id": "oneteam6",
+   "text": "One team.",
+   "section": "outro",
+   "hero": "team",
+   "start": 263.8,
+   "rawStart": 263.8,
+   "snapped": false,
+   "end": 266.0,
+   "startFrame": 7914
+  },
+  {
+   "words": [
+    {
+     "w": "One",
+     "t": 266.0
+    },
+    {
+     "w": "mission.",
+     "t": 266.24
+    }
+   ],
+   "hold": 268.0,
+   "id": "onemission",
+   "text": "One mission.",
+   "section": "outro",
+   "hero": "mission",
+   "start": 266.0,
+   "rawStart": 266.0,
+   "snapped": false,
+   "end": 268.0,
+   "startFrame": 7980
+  },
+  {
+   "words": [
+    {
+     "w": "One",
+     "t": 268.0
+    },
+    {
+     "w": "rhythm.",
+     "t": 268.58
+    }
+   ],
+   "hold": 269.3,
+   "id": "onerhythm6",
+   "text": "One rhythm.",
+   "section": "outro",
+   "hero": "rhythm",
+   "start": 268.0,
+   "rawStart": 268.0,
+   "snapped": false,
+   "end": 269.3,
+   "startFrame": 8040
+  },
+  {
+   "words": [
+    {
+     "w": "Welcome",
+     "t": 269.3
+    },
+    {
+     "w": "to",
+     "t": 269.68
+    },
+    {
+     "w": "Addapalooza.",
+     "t": 269.84
+    }
+   ],
+   "hold": 272.24,
+   "id": "welcome",
+   "text": "Welcome to Addapalooza.",
+   "section": "outro",
+   "hero": "Addapalooza",
+   "start": 269.3,
+   "rawStart": 269.3,
+   "snapped": false,
+   "end": 272.8,
+   "startFrame": 8079
+  },
+  {
+   "words": [
+    {
+     "w": "Summit",
+     "t": 272.8
+    },
+    {
+     "w": "2026,",
+     "t": 273.76
+    },
+    {
+     "w": "y’all!",
+     "t": 274.1
+    }
+   ],
+   "hold": 276.5,
+   "id": "summit",
+   "text": "Summit 2026, y’all!",
+   "section": "outro",
+   "hero": "Summit 2026",
+   "start": 272.8,
+   "rawStart": 272.8,
+   "snapped": false,
+   "end": 282.0,
+   "startFrame": 8184
+  }
+ ]
+}
