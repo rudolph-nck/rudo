@@ -101,3 +101,16 @@ Warm white, serif, stillness, dust in a single light pool, a thin vertical line 
 | 269.8 | "Summit 2026, y'all!" | **SUMMIT 2026** and the tagline ONE TEAM. ONE RHYTHM.; the DJ's helmet appears small, the visor lit. |
 | 273.0 | final hit | Full lockup: Addapalooza mark, tagline, Addition logo lockup. |
 | 280.8 | mic drop | Everything retracts into the line; the line retracts to a point; the point goes out. Black. |
+
+---
+## Revision log (client notes → what changed)
+| Note | Change |
+|---|---|
+| "Lyric timing is off" | Re-timed from the sung vocal: Spleeter vocal stem + word-level ASR, per-word onsets |
+| "All lyrics should appear as they're sung" / "no small captions" | Kinetic `LyricBand`: every line large, word-by-word, words act out their meaning |
+| "Not a fan of the 3D spinning plus" | Removed; the DJ carries the final drop |
+| "DJ needs to be rendered better / in motion" | Layered 2× DJ with smooth beat-grid groove and emissive LEDs |
+| "Zoom in on the helmet, lyrics on the helmet" | Final chorus: push into a helmet close-up, lyrics as LED text on the visor |
+| "Departments getting cut off" | Stations = centred glyph + bigger name under the rail; lyrics below the graphics |
+| "Heart ripple for Member Experience" | Glyph is now hearts rippling from a beating centre |
+| "Clustered yeahs → DJ + big crowd for the beat drop" | 29.9–38.5 s is a concert shot: DJ on stage, four-row crowd jumping on the beat, strobes on each "yeah" |

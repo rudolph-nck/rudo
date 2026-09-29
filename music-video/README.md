@@ -62,14 +62,31 @@ python3 scripts/build_scenes.py   # scenes.json
 ```
 
 ## How the timing was made
-No timing JSON was supplied, so the lyric highlight in the Suno export (`One_Team_One_Rhythm.mp4`) was
-detected with an edge-difference scroll detector (`scripts/lyr2.py`, 193 events), read line by line,
-matched to the authoritative lyric sheet and snapped to the nearest beat when within 0.22 s. Beats
-come from librosa; the downbeat phase was measured from kick energy.
+1. The vocal was isolated from the master with Spleeter (2-stem model), see `scripts/sep.py`.
+2. Word-level speech recognition ran on the vocal stem with sherpa-onnx (NeMo Parakeet TDT 0.6B), in
+   30 s and 12 s windows (`scripts/asr.py`, raw output in `data/asr/`).
+3. `scripts/build_data.py` fuzzy-aligns every word of the lyric sheet to the recognised words, so each
+   line **and each word** in `data/lyrics.json` carries its sung onset. Unrecognised words are
+   interpolated between their matched neighbours.
+4. The chopped "yeah" vocals on the beat drop were located as onsets in the vocal stem (`data/chops.json`).
 
-**Note for the client:** the sheet's "JAX… / YOU READY?" (222.6 s / 226.0 s) differs from the Suno
-export's on-screen lyric ("ONE TEAM! / ONE RHYTHM!"). The film follows the sheet. Edit those two
-lines in `data/lyrics.json` / `scenes.json` if the audio says otherwise.
+Where the recording differs from the lyric sheet, the film follows **what is sung**. For example,
+the final drop sings "ONE TEAM! ONE RHYTHM!" where the sheet has "JAX… YOU READY?".
+
+## How lyrics are shown
+- `src/typography/LyricBand.tsx` is the main lyric display. Every line appears as large type at the
+  top (under the graphics in the departments chapter), word by word at its sung time. Words act out
+  their meaning: *down* sinks, *grow/improve/proud* rise, *loud* swells, *far* recedes, *move/roll*
+  push forward, *changin'/conversion* scramble, *aligned* snaps into line, *together/one* converge.
+- Lines a world already sets as hero type (chorus, bridge, climax, outro…) are flagged
+  `caption: false` in `data/scenes.json` and are not duplicated.
+- In the final chorus the lyrics play on the DJ's helmet visor as LED text (`src/components/Helmet.tsx`).
+
+## The DJ
+`public/images/dj/` holds the supplied DJ image cut into booth / body / head layers (2× upscaled,
+sharpened, with emissive-glow passes). `src/components/DJ.tsx` animates them on the beat grid with a
+smooth groove. `ConcertDrop.tsx` + `Crowd.tsx` stage him for the beat drop in front of a crowd that
+jumps on the beat.
 
 ## Brand compliance
 Colours measured from the PDF (Vivid Blue `#00B2E3`, Anchor Gray `#53575A`, Lunar Gray `#CFD3D3`);

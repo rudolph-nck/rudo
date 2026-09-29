@@ -41,15 +41,15 @@ often than centred. Hero words may bleed out of frame.
 
 ## Depth
 CSS-3D stage with a real perspective camera (shared projection math with the canvas particle layer), so
-type, grids, roads and maps sit on genuine planes in one space. Three.js (via `@remotion/three`) is
-used where lit, sculptural geometry is the point: the extruded plus monument in the final drop.
+type, grids, roads and maps sit on genuine planes in one space. Canvas layers (particles, roads,
+map graticule, crowd) are projected through the same camera, so everything parallaxes together.
 
 Layers per frame (back → front): field gradient · atmosphere/particles · grid/geo planes · the line ·
 hero type · narrative/technical type · light (pools, sweeps) · grain + vignette.
 
 ## Imagery
 Supplied images are *fragments*, never slides:
-- DJ helmet: emerges from black lit only by its own A+ visor ("JAX… YOU READY?").
+- DJ: performs the beat drop in front of a crowd, and the final drop, where the camera pushes into his helmet and the visor becomes an LED lyric screen.
 - DJ booth: framed in a brand notch (bottom-right), graded down, the line passing behind the DJ.
 - Addapalooza logo: revealed by a light sweep and a mask at the welcome; the line runs through its
   "THE SUMMIT" bar.
