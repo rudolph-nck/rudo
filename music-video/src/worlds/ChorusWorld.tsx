@@ -5,7 +5,6 @@ import { Lines3D, Seg3 } from "../three/Lines3D";
 import { ParticleField } from "../three/Particles";
 import { Obj, Stage3D } from "../three/Stage3D";
 import { C } from "../theme";
-import { Caption } from "../typography/Caption";
 import { Hero, Mono } from "../typography/Type";
 import { baseCam, Cam, camPath } from "../utils/camera";
 import { cubicInOut, expoIn, expoInOut, expoOut, mix, ramp, sineInOut } from "../utils/ease";
@@ -28,7 +27,7 @@ const TUNNEL = [
 ];
 
 export const ChorusWorld: React.FC = () => {
-  const { f, L, abs } = useWorld("chorus");
+  const { f, L, W, abs } = useWorld("chorus");
   const off = chapter("chorus").startFrame;
   const O1 = L("otor1"),
     O2 = L("otor2"),
@@ -135,7 +134,7 @@ export const ChorusWorld: React.FC = () => {
             </Obj>
             <Obj x={-820} y={240} anchor="bottom-left" opacity={1 - typeOut * 0.2}>
               <div style={{ transform: `scale(${heroScale})`, transformOrigin: "0 100%" }}>
-                <Hero text="ONE RHYTHM" size={250} t={f - O1 - 14} dur={12} stagger={1.3} tracking={-0.035} color={C.blue} />
+                <Hero text="ONE RHYTHM" size={250} t={f - (f >= O2 ? W("otor2", 2) : W("otor1", 2))} dur={12} stagger={1.3} tracking={-0.035} color={C.blue} />
               </div>
             </Obj>
             {/* beat meter — the line keeps time */}
@@ -200,9 +199,6 @@ export const ChorusWorld: React.FC = () => {
           </div>
         </AbsoluteFill>
       )}
-
-      <Caption f={f} offset={off} ids={["otor1", "everybody", "otor2", "lookdid", "roads1", "asone", "learned1", "taught1", "changed1", "grew1", "howwemove"]}
-        hide={["otor1", "otor2", "learned1", "taught1", "changed1", "grew1", "howwemove"]} prefix="C" y={930} />
       <Flash at={O1} peak={0.35} />
       <Vignette strength={0.62} />
     </AbsoluteFill>

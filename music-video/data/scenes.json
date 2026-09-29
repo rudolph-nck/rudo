@@ -31,10 +31,10 @@
   {
    "id": "chorus",
    "world": "ChorusWorld",
-   "start": 57.5,
-   "end": 74.4,
-   "startFrame": 1725,
-   "endFrame": 2232,
+   "start": 57.4,
+   "end": 77.1,
+   "startFrame": 1722,
+   "endFrame": 2313,
    "transitionIn": "hard cut on downbeat",
    "transitionOut": "freeze → vanishing point",
    "background": "ink",
@@ -43,10 +43,10 @@
   {
    "id": "branches",
    "world": "MapWorld",
-   "start": 74.1,
-   "end": 116.4,
-   "startFrame": 2223,
-   "endFrame": 3492,
+   "start": 76.8,
+   "end": 118.1,
+   "startFrame": 2304,
+   "endFrame": 3543,
    "transitionIn": "point → map tilt",
    "transitionOut": "nodes slide into one line",
    "background": "ink",
@@ -55,10 +55,10 @@
   {
    "id": "departments",
    "world": "RailWorld",
-   "start": 116.1,
-   "end": 183.6,
-   "startFrame": 3483,
-   "endFrame": 5508,
+   "start": 117.8,
+   "end": 185.0,
+   "startFrame": 3534,
+   "endFrame": 5550,
    "transitionIn": "nodes → rail",
    "transitionOut": "rail bends into ring → snap to black",
    "background": "ink",
@@ -67,10 +67,10 @@
   {
    "id": "beatcut",
    "world": "MosaicWorld",
-   "start": 183.4,
-   "end": 198.8,
-   "startFrame": 5502,
-   "endFrame": 5964,
+   "start": 184.8,
+   "end": 199.5,
+   "startFrame": 5544,
+   "endFrame": 5985,
    "transitionIn": "black",
    "transitionOut": "plus of names → dissolve to warm dark",
    "background": "ink",
@@ -79,10 +79,10 @@
   {
    "id": "bridge",
    "world": "BridgeWorld",
-   "start": 198.6,
-   "end": 214.6,
-   "startFrame": 5958,
-   "endFrame": 6438,
+   "start": 199.2,
+   "end": 216.8,
+   "startFrame": 5976,
+   "endFrame": 6504,
    "transitionIn": "warm fade",
    "transitionOut": "line rotates horizontal",
    "background": "warm dark",
@@ -91,34 +91,34 @@
   {
    "id": "build",
    "world": "BuildWorld",
-   "start": 214.4,
-   "end": 222.7,
-   "startFrame": 6432,
-   "endFrame": 6681,
+   "start": 216.5,
+   "end": 225.9,
+   "startFrame": 6495,
+   "endFrame": 6777,
    "transitionIn": "line continues",
-   "transitionOut": "line locks → darkness",
+   "transitionOut": "line holds → the drop",
    "background": "ink",
    "accent": "one line"
   },
   {
    "id": "finale",
    "world": "FinaleWorld",
-   "start": 222.6,
-   "end": 246.3,
-   "startFrame": 6678,
-   "endFrame": 7389,
-   "transitionIn": "darkness → visor light",
+   "start": 225.6,
+   "end": 247.6,
+   "startFrame": 6768,
+   "endFrame": 7428,
+   "transitionIn": "the drop — DJ lights up",
    "transitionOut": "everything collapses to one line",
    "background": "ink",
-   "accent": "plus monument"
+   "accent": "the DJ"
   },
   {
    "id": "climax",
    "world": "ClimaxWorld",
-   "start": 246.2,
-   "end": 261.4,
-   "startFrame": 7386,
-   "endFrame": 7842,
+   "start": 247.4,
+   "end": 263.9,
+   "startFrame": 7422,
+   "endFrame": 7917,
    "transitionIn": "line under tension",
    "transitionOut": "logo holds → dissolve",
    "background": "ink",
@@ -127,9 +127,9 @@
   {
    "id": "outro",
    "world": "OutroWorld",
-   "start": 261.3,
+   "start": 263.7,
    "end": 282.0,
-   "startFrame": 7839,
+   "startFrame": 7911,
    "endFrame": 8460,
    "transitionIn": "line",
    "transitionOut": "line → point → black",
@@ -141,8 +141,8 @@
   {
    "scene": "yeah",
    "chapter": "signal",
-   "startFrame": 145,
-   "endFrame": 301,
+   "startFrame": 144,
+   "endFrame": 243,
    "lyric": "Yeah…",
    "display": "Yeah…",
    "heroWord": "Yeah",
@@ -155,16 +155,16 @@
    "assetReferences": [],
    "beatMarkers": [
     145,
-    214,
-    284
+    214
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "y2026",
    "chapter": "signal",
-   "startFrame": 301,
-   "endFrame": 318,
+   "startFrame": 243,
+   "endFrame": 297,
    "lyric": "2026.",
    "display": "2026.",
    "heroWord": "2026",
@@ -175,14 +175,17 @@
    "transitionIn": "ticks cascade",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [],
+   "beatMarkers": [
+    284
+   ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "whatayear",
    "chapter": "signal",
-   "startFrame": 318,
-   "endFrame": 344,
+   "startFrame": 297,
+   "endFrame": 333,
    "lyric": "(What a year!)",
    "display": "(What a year!)",
    "heroWord": "What a year",
@@ -194,13 +197,14 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "roads0",
    "chapter": "signal",
-   "startFrame": 344,
-   "endFrame": 378,
+   "startFrame": 333,
+   "endFrame": 399,
    "lyric": "Different roads.",
    "display": "Different roads.",
    "heroWord": "roads",
@@ -214,13 +218,14 @@
    "beatMarkers": [
     352
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "stories0",
    "chapter": "signal",
-   "startFrame": 378,
-   "endFrame": 417,
+   "startFrame": 399,
+   "endFrame": 438,
    "lyric": "Different stories.",
    "display": "Different stories.",
    "heroWord": "stories",
@@ -231,14 +236,17 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [],
+   "beatMarkers": [
+    417
+   ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "destination",
    "chapter": "signal",
-   "startFrame": 417,
-   "endFrame": 448,
+   "startFrame": 438,
+   "endFrame": 489,
    "lyric": "One destination.",
    "display": "One destination.",
    "heroWord": "One",
@@ -250,15 +258,16 @@
    "transitionOut": "point",
    "assetReferences": [],
    "beatMarkers": [
-    417
+    482
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "acu0",
    "chapter": "signal",
-   "startFrame": 448,
-   "endFrame": 897,
+   "startFrame": 489,
+   "endFrame": 885,
    "lyric": "Addition Financial Credit Union…",
    "display": "Addition Financial Credit Union…",
    "heroWord": "Addition",
@@ -272,20 +281,64 @@
     "logos/logo-reverse.svg"
    ],
    "beatMarkers": [
-    482,
     551,
     620,
     689,
     759,
     828
    ],
+   "caption": true,
+   "notes": ""
+  },
+  {
+   "scene": "chant1",
+   "chapter": "signal",
+   "startFrame": 885,
+   "endFrame": 1024,
+   "lyric": "ONE TEAM! ONE RHYTHM!",
+   "display": "ONE TEAM! ONE RHYTHM!",
+   "heroWord": "ONE TEAM",
+   "visualConcept": "",
+   "cameraBehavior": "",
+   "background": "ink",
+   "accent": "#00B2E3",
+   "transitionIn": "",
+   "transitionOut": "",
+   "assetReferences": [],
+   "beatMarkers": [
+    897,
+    965
+   ],
+   "caption": true,
+   "notes": ""
+  },
+  {
+   "scene": "chant2",
+   "chapter": "verse",
+   "startFrame": 1024,
+   "endFrame": 1155,
+   "lyric": "ONE TEAM! ONE RHYTHM!",
+   "display": "ONE TEAM! ONE RHYTHM!",
+   "heroWord": "ONE RHYTHM",
+   "visualConcept": "",
+   "cameraBehavior": "",
+   "background": "ink",
+   "accent": "#00B2E3",
+   "transitionIn": "",
+   "transitionOut": "",
+   "assetReferences": [],
+   "beatMarkers": [
+    1034,
+    1104
+   ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "changin",
-   "chapter": "signal",
-   "startFrame": 897,
-   "endFrame": 1104,
+   "chapter": "verse",
+   "startFrame": 1155,
+   "endFrame": 1224,
    "lyric": "Started the year with a whole lot changin’,",
    "display": "Started the year with a whole lot changin’,",
    "heroWord": "changin’",
@@ -297,17 +350,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    897,
-    965,
-    1034
+    1173
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "twoteams",
    "chapter": "verse",
-   "startFrame": 1104,
-   "endFrame": 1269,
+   "startFrame": 1224,
+   "endFrame": 1290,
    "lyric": "Two teams movin’, one future waitin’,",
    "display": "Two teams movin’, one future waitin’,",
    "heroWord": "Two teams",
@@ -319,17 +371,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    1104,
-    1173,
     1242
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "envision",
    "chapter": "verse",
-   "startFrame": 1269,
-   "endFrame": 1346,
+   "startFrame": 1290,
+   "endFrame": 1356,
    "lyric": "Envision came in, Addition stood tall,",
    "display": "Envision came in, Addition stood tall,",
    "heroWord": "stood tall",
@@ -343,13 +394,14 @@
    "beatMarkers": [
     1311
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "sides",
    "chapter": "verse",
-   "startFrame": 1346,
-   "endFrame": 1389,
+   "startFrame": 1356,
+   "endFrame": 1419,
    "lyric": "Different sides of the map—now we answer one call!",
    "display": "Different sides of the map—now we answer one call!",
    "heroWord": "one call",
@@ -363,13 +415,14 @@
    "beatMarkers": [
     1380
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "march",
    "chapter": "verse",
-   "startFrame": 1389,
-   "endFrame": 1466,
+   "startFrame": 1419,
+   "endFrame": 1494,
    "lyric": "March came quick, conversion on deck,",
    "display": "March came quick, conversion on deck,",
    "heroWord": "conversion",
@@ -383,13 +436,14 @@
    "beatMarkers": [
     1449
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "longdays",
    "chapter": "verse",
-   "startFrame": 1466,
-   "endFrame": 1535,
+   "startFrame": 1494,
+   "endFrame": 1566,
    "lyric": "Long days, late nights—what’d you expect?",
    "display": "Long days, late nights—what’d you expect?",
    "heroWord": "Long days",
@@ -403,13 +457,14 @@
    "beatMarkers": [
     1518
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "groove",
    "chapter": "verse",
-   "startFrame": 1535,
-   "endFrame": 1604,
+   "startFrame": 1566,
+   "endFrame": 1638,
    "lyric": "We learned it, taught it, found our groove,",
    "display": "We learned it, taught it, found our groove,",
    "heroWord": "groove",
@@ -423,12 +478,13 @@
    "beatMarkers": [
     1587
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "improve",
    "chapter": "verse",
-   "startFrame": 1604,
+   "startFrame": 1638,
    "endFrame": 1725,
    "lyric": "Took what was different and made it improve!",
    "display": "Took what was different and made it improve!",
@@ -443,13 +499,14 @@
    "beatMarkers": [
     1657
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "otor1",
    "chapter": "chorus",
    "startFrame": 1725,
-   "endFrame": 1760,
+   "endFrame": 1779,
    "lyric": "ONE TEAM! ONE RHYTHM!",
    "display": "ONE TEAM! ONE RHYTHM!",
    "heroWord": "ONE TEAM",
@@ -463,13 +520,14 @@
    "beatMarkers": [
     1725
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "everybody",
    "chapter": "chorus",
-   "startFrame": 1760,
-   "endFrame": 1794,
+   "startFrame": 1779,
+   "endFrame": 1854,
    "lyric": "Everybody move with us!",
    "display": "Everybody move with us!",
    "heroWord": "move",
@@ -480,14 +538,17 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [],
+   "beatMarkers": [
+    1794
+   ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "otor2",
    "chapter": "chorus",
-   "startFrame": 1794,
-   "endFrame": 1863,
+   "startFrame": 1854,
+   "endFrame": 1908,
    "lyric": "ONE TEAM! ONE RHYTHM!",
    "display": "ONE TEAM! ONE RHYTHM!",
    "heroWord": "ONE RHYTHM",
@@ -499,15 +560,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    1794
+    1863
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "lookdid",
    "chapter": "chorus",
-   "startFrame": 1863,
-   "endFrame": 1949,
+   "startFrame": 1908,
+   "endFrame": 1986,
    "lyric": "Look at everything we did with it!",
    "display": "Look at everything we did with it!",
    "heroWord": "everything",
@@ -519,16 +581,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    1863,
     1932
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "roads1",
    "chapter": "chorus",
-   "startFrame": 1949,
-   "endFrame": 2001,
+   "startFrame": 1986,
+   "endFrame": 2058,
    "lyric": "Different roads brought us together,",
    "display": "Different roads brought us together,",
    "heroWord": "roads",
@@ -539,14 +601,17 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [],
+   "beatMarkers": [
+    2001
+   ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "asone",
    "chapter": "chorus",
-   "startFrame": 2001,
-   "endFrame": 2053,
+   "startFrame": 2058,
+   "endFrame": 2112,
    "lyric": "now we’re standing here as one.",
    "display": "now we’re standing here as one.",
    "heroWord": "as one",
@@ -558,15 +623,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    2001
+    2070
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "learned1",
    "chapter": "chorus",
-   "startFrame": 2053,
-   "endFrame": 2070,
+   "startFrame": 2112,
+   "endFrame": 2127,
    "lyric": "We learned!",
    "display": "We learned!",
    "heroWord": "learned",
@@ -578,13 +644,14 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "taught1",
    "chapter": "chorus",
-   "startFrame": 2070,
-   "endFrame": 2104,
+   "startFrame": 2127,
+   "endFrame": 2142,
    "lyric": "We taught!",
    "display": "We taught!",
    "heroWord": "taught",
@@ -596,15 +663,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    2070
+    2139
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "changed1",
    "chapter": "chorus",
-   "startFrame": 2104,
-   "endFrame": 2121,
+   "startFrame": 2142,
+   "endFrame": 2160,
    "lyric": "We changed!",
    "display": "We changed!",
    "heroWord": "changed",
@@ -616,13 +684,14 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "grew1",
    "chapter": "chorus",
-   "startFrame": 2121,
-   "endFrame": 2156,
+   "startFrame": 2160,
+   "endFrame": 2214,
    "lyric": "We grew!",
    "display": "We grew!",
    "heroWord": "grew",
@@ -634,15 +703,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    2139
+    2208
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "howwemove",
    "chapter": "chorus",
-   "startFrame": 2156,
-   "endFrame": 2225,
+   "startFrame": 2214,
+   "endFrame": 2307,
    "lyric": "THAT’S HOW WE MOVE!",
    "display": "THAT’S HOW WE MOVE!",
    "heroWord": "MOVE",
@@ -654,15 +724,16 @@
    "transitionOut": "freeze",
    "assetReferences": [],
    "beatMarkers": [
-    2208
+    2276
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "holdup",
    "chapter": "branches",
-   "startFrame": 2225,
-   "endFrame": 2276,
+   "startFrame": 2307,
+   "endFrame": 2370,
    "lyric": "Hold up…",
    "display": "Hold up…",
    "heroWord": "Hold up",
@@ -673,14 +744,17 @@
    "transitionIn": "",
    "transitionOut": "point",
    "assetReferences": [],
-   "beatMarkers": [],
+   "beatMarkers": [
+    2345
+   ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "letsroll",
    "chapter": "branches",
-   "startFrame": 2276,
-   "endFrame": 2379,
+   "startFrame": 2370,
+   "endFrame": 2403,
    "lyric": "Branches—LET’S ROLL!",
    "display": "Branches—LET’S ROLL!",
    "heroWord": "LET’S ROLL",
@@ -691,17 +765,15 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [
-    2276,
-    2345
-   ],
+   "beatMarkers": [],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "b01",
    "chapter": "branches",
-   "startFrame": 2379,
-   "endFrame": 2449,
+   "startFrame": 2403,
+   "endFrame": 2469,
    "lyric": "Altamonte, Longwood, Lake Mary too,",
    "display": "Altamonte, Longwood, Lake Mary too,",
    "heroWord": "",
@@ -715,13 +787,14 @@
    "beatMarkers": [
     2414
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "b02",
    "chapter": "branches",
-   "startFrame": 2449,
-   "endFrame": 2518,
+   "startFrame": 2469,
+   "endFrame": 2541,
    "lyric": "Fern Park, Sanford—yeah, that’s the crew!",
    "display": "Fern Park, Sanford—yeah, that’s the crew!",
    "heroWord": "the crew",
@@ -735,13 +808,14 @@
    "beatMarkers": [
     2483
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "b03",
    "chapter": "branches",
-   "startFrame": 2518,
-   "endFrame": 2586,
+   "startFrame": 2541,
+   "endFrame": 2601,
    "lyric": "Appleyard, Hansell, Quincy in the mix,",
    "display": "Appleyard, Hansell, Quincy in the mix,",
    "heroWord": "",
@@ -755,13 +829,14 @@
    "beatMarkers": [
     2551
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "b04",
    "chapter": "branches",
-   "startFrame": 2586,
-   "endFrame": 2637,
+   "startFrame": 2601,
+   "endFrame": 2670,
    "lyric": "Bainbridge, Chattahoochee—you know what this is!",
    "display": "Bainbridge, Chattahoochee—you know what this is!",
    "heroWord": "",
@@ -775,13 +850,14 @@
    "beatMarkers": [
     2620
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "b05",
    "chapter": "branches",
-   "startFrame": 2637,
-   "endFrame": 2706,
+   "startFrame": 2670,
+   "endFrame": 2730,
    "lyric": "Clermont, Four Corners, Kissimmee, The Loop,",
    "display": "Clermont, Four Corners, Kissimmee, The Loop,",
    "heroWord": "",
@@ -795,13 +871,14 @@
    "beatMarkers": [
     2689
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "b06",
    "chapter": "branches",
-   "startFrame": 2706,
-   "endFrame": 2775,
+   "startFrame": 2730,
+   "endFrame": 2799,
    "lyric": "Poinciana, St. Cloud—now THAT’S a group!",
    "display": "Poinciana, St. Cloud—now THAT’S a group!",
    "heroWord": "THAT’S a group",
@@ -815,13 +892,14 @@
    "beatMarkers": [
     2756
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "b07",
    "chapter": "branches",
-   "startFrame": 2775,
-   "endFrame": 2826,
+   "startFrame": 2799,
+   "endFrame": 2862,
    "lyric": "Winter Garden, Metro West, South Orlando too,",
    "display": "Winter Garden, Metro West, South Orlando too,",
    "heroWord": "",
@@ -832,14 +910,17 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [],
+   "beatMarkers": [
+    2826
+   ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "b08",
    "chapter": "branches",
-   "startFrame": 2826,
-   "endFrame": 2904,
+   "startFrame": 2862,
+   "endFrame": 2928,
    "lyric": "Different spots on the map—we move as one crew!",
    "display": "Different spots on the map—we move as one crew!",
    "heroWord": "one crew",
@@ -851,16 +932,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    2826,
     2894
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "b09",
    "chapter": "branches",
-   "startFrame": 2904,
-   "endFrame": 2997,
+   "startFrame": 2928,
+   "endFrame": 3009,
    "lyric": "Apopka, Eustis, Leesburg in the flow,",
    "display": "Apopka, Eustis, Leesburg in the flow,",
    "heroWord": "",
@@ -874,13 +955,14 @@
    "beatMarkers": [
     2963
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "b10",
    "chapter": "branches",
-   "startFrame": 2997,
-   "endFrame": 3083,
+   "startFrame": 3009,
+   "endFrame": 3081,
    "lyric": "Oviedo, Mills Ave—you already know!",
    "display": "Oviedo, Mills Ave—you already know!",
    "heroWord": "",
@@ -894,13 +976,14 @@
    "beatMarkers": [
     3032
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "b11",
    "chapter": "branches",
-   "startFrame": 3083,
-   "endFrame": 3134,
+   "startFrame": 3081,
+   "endFrame": 3156,
    "lyric": "Pine Hills, Parkway, East Orlando came through,",
    "display": "Pine Hills, Parkway, East Orlando came through,",
    "heroWord": "",
@@ -914,13 +997,14 @@
    "beatMarkers": [
     3100
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "b12",
    "chapter": "branches",
-   "startFrame": 3134,
-   "endFrame": 3203,
+   "startFrame": 3156,
+   "endFrame": 3228,
    "lyric": "Lake Nona, Killearn—yeah, we see you too!",
    "display": "Lake Nona, Killearn—yeah, we see you too!",
    "heroWord": "",
@@ -934,13 +1018,14 @@
    "beatMarkers": [
     3168
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "b13",
    "chapter": "branches",
-   "startFrame": 3203,
-   "endFrame": 3271,
+   "startFrame": 3228,
+   "endFrame": 3294,
    "lyric": "Liberty, Marianna—come on, bring it home!",
    "display": "Liberty, Marianna—come on, bring it home!",
    "heroWord": "bring it home",
@@ -954,13 +1039,14 @@
    "beatMarkers": [
     3237
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "b14",
    "chapter": "branches",
-   "startFrame": 3271,
-   "endFrame": 3330,
+   "startFrame": 3294,
+   "endFrame": 3363,
    "lyric": "Orange City, Tallahassee Downtown strong!",
    "display": "Orange City, Tallahassee Downtown strong!",
    "heroWord": "",
@@ -974,13 +1060,14 @@
    "beatMarkers": [
     3305
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "b15",
    "chapter": "branches",
-   "startFrame": 3330,
-   "endFrame": 3408,
+   "startFrame": 3363,
+   "endFrame": 3432,
    "lyric": "UCF, Seminole State, Downtown Campus too,",
    "display": "UCF, Seminole State, Downtown Campus too,",
    "heroWord": "",
@@ -994,13 +1081,14 @@
    "beatMarkers": [
     3374
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "b16",
    "chapter": "branches",
-   "startFrame": 3408,
-   "endFrame": 3483,
+   "startFrame": 3432,
+   "endFrame": 3537,
    "lyric": "High School Branches—LOOK AT THIS CREW!",
    "display": "High School Branches—LOOK AT THIS CREW!",
    "heroWord": "LOOK AT THIS CREW",
@@ -1012,15 +1100,17 @@
    "transitionOut": "nodes",
    "assetReferences": [],
    "beatMarkers": [
-    3442
+    3442,
+    3509
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "departments",
    "chapter": "departments",
-   "startFrame": 3483,
-   "endFrame": 3561,
+   "startFrame": 3537,
+   "endFrame": 3624,
    "lyric": "Departments—LET’S GOOOO!",
    "display": "Departments—LET’S GOOOO!",
    "heroWord": "Departments",
@@ -1032,15 +1122,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    3509
+    3578
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "d01",
    "chapter": "departments",
-   "startFrame": 3561,
-   "endFrame": 3664,
+   "startFrame": 3624,
+   "endFrame": 3696,
    "lyric": "Accounting and Finance keeping numbers aligned,",
    "display": "Accounting and Finance keeping numbers aligned,",
    "heroWord": "aligned",
@@ -1052,16 +1143,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    3578,
     3647
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d02",
    "chapter": "departments",
-   "startFrame": 3664,
-   "endFrame": 3766,
+   "startFrame": 3696,
+   "endFrame": 3762,
    "lyric": "Payments and Collections keeping money moving right!",
    "display": "Payments and Collections keeping money moving right!",
    "heroWord": "moving right",
@@ -1075,13 +1166,14 @@
    "beatMarkers": [
     3715
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d03",
    "chapter": "departments",
-   "startFrame": 3766,
-   "endFrame": 3801,
+   "startFrame": 3762,
+   "endFrame": 3834,
    "lyric": "Business Intelligence turning data into drive!",
    "display": "Business Intelligence turning data into drive!",
    "heroWord": "data into drive",
@@ -1095,13 +1187,14 @@
    "beatMarkers": [
     3783
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d04",
    "chapter": "departments",
-   "startFrame": 3801,
-   "endFrame": 3868,
+   "startFrame": 3834,
+   "endFrame": 3900,
    "lyric": "Project Management keeps the mission on time!",
    "display": "Project Management keeps the mission on time!",
    "heroWord": "on time",
@@ -1115,13 +1208,14 @@
    "beatMarkers": [
     3851
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d05",
    "chapter": "departments",
-   "startFrame": 3868,
-   "endFrame": 3937,
+   "startFrame": 3900,
+   "endFrame": 3969,
    "lyric": "Fraud Prevention, B-S-A on guard,",
    "display": "Fraud Prevention, B-S-A on guard,",
    "heroWord": "on guard",
@@ -1135,13 +1229,14 @@
    "beatMarkers": [
     3920
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d06",
    "chapter": "departments",
-   "startFrame": 3937,
-   "endFrame": 4005,
+   "startFrame": 3969,
+   "endFrame": 4038,
    "lyric": "Compliance and Legal keeping standards strong!",
    "display": "Compliance and Legal keeping standards strong!",
    "heroWord": "standards strong",
@@ -1155,13 +1250,14 @@
    "beatMarkers": [
     3988
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d07",
    "chapter": "departments",
-   "startFrame": 4005,
-   "endFrame": 4073,
+   "startFrame": 4038,
+   "endFrame": 4098,
    "lyric": "Enterprise Risk watching what’s ahead,",
    "display": "Enterprise Risk watching what’s ahead,",
    "heroWord": "what’s ahead",
@@ -1175,12 +1271,13 @@
    "beatMarkers": [
     4056
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d08",
    "chapter": "departments",
-   "startFrame": 4073,
+   "startFrame": 4098,
    "endFrame": 4167,
    "lyric": "Quality Control making sure we get it right instead!",
    "display": "Quality Control making sure we get it right instead!",
@@ -1195,13 +1292,14 @@
    "beatMarkers": [
     4125
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d09",
    "chapter": "departments",
    "startFrame": 4167,
-   "endFrame": 4227,
+   "endFrame": 4230,
    "lyric": "Loss Prevention, Loss Mitigation seeing it through,",
    "display": "Loss Prevention, Loss Mitigation seeing it through,",
    "heroWord": "seeing it through",
@@ -1215,12 +1313,13 @@
    "beatMarkers": [
     4193
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d10",
    "chapter": "departments",
-   "startFrame": 4227,
+   "startFrame": 4230,
    "endFrame": 4302,
    "lyric": "Consumer and Residential making dreams come true!",
    "display": "Consumer and Residential making dreams come true!",
@@ -1235,13 +1334,14 @@
    "beatMarkers": [
     4261
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d11",
    "chapter": "departments",
    "startFrame": 4302,
-   "endFrame": 4346,
+   "endFrame": 4371,
    "lyric": "Business Lending opening doors to something new,",
    "display": "Business Lending opening doors to something new,",
    "heroWord": "doors",
@@ -1255,13 +1355,14 @@
    "beatMarkers": [
     4329
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d12",
    "chapter": "departments",
-   "startFrame": 4346,
-   "endFrame": 4431,
+   "startFrame": 4371,
+   "endFrame": 4440,
    "lyric": "Business Ops & Servicing keeping business moving too!",
    "display": "Business Ops & Servicing keeping business moving too!",
    "heroWord": "moving",
@@ -1275,13 +1376,14 @@
    "beatMarkers": [
     4397
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d13",
    "chapter": "departments",
-   "startFrame": 4431,
-   "endFrame": 4482,
+   "startFrame": 4440,
+   "endFrame": 4509,
    "lyric": "IT keeps the systems running day and night,",
    "display": "IT keeps the systems running day and night,",
    "heroWord": "day and night",
@@ -1295,13 +1397,14 @@
    "beatMarkers": [
     4465
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d14",
    "chapter": "departments",
-   "startFrame": 4482,
-   "endFrame": 4550,
+   "startFrame": 4509,
+   "endFrame": 4581,
    "lyric": "Facilities keeps our spaces working right!",
    "display": "Facilities keeps our spaces working right!",
    "heroWord": "spaces",
@@ -1315,13 +1418,14 @@
    "beatMarkers": [
     4533
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d15",
    "chapter": "departments",
-   "startFrame": 4550,
-   "endFrame": 4626,
+   "startFrame": 4581,
+   "endFrame": 4644,
    "lyric": "Brokerage Services helping futures grow,",
    "display": "Brokerage Services helping futures grow,",
    "heroWord": "futures grow",
@@ -1335,13 +1439,14 @@
    "beatMarkers": [
     4601
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d16",
    "chapter": "departments",
-   "startFrame": 4626,
-   "endFrame": 4686,
+   "startFrame": 4644,
+   "endFrame": 4716,
    "lyric": "Different teams behind it—making Addition go!",
    "display": "Different teams behind it—making Addition go!",
    "heroWord": "Addition go",
@@ -1355,13 +1460,14 @@
    "beatMarkers": [
     4669
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d17",
    "chapter": "departments",
-   "startFrame": 4686,
-   "endFrame": 4754,
+   "startFrame": 4716,
+   "endFrame": 4779,
    "lyric": "Retail Banking, Retail Ops holding it down,",
    "display": "Retail Banking, Retail Ops holding it down,",
    "heroWord": "holding it down",
@@ -1375,13 +1481,14 @@
    "beatMarkers": [
     4737
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d18",
    "chapter": "departments",
-   "startFrame": 4754,
-   "endFrame": 4839,
+   "startFrame": 4779,
+   "endFrame": 4845,
    "lyric": "Contact Center answering when members come around!",
    "display": "Contact Center answering when members come around!",
    "heroWord": "answering",
@@ -1395,13 +1502,14 @@
    "beatMarkers": [
     4805
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d19",
    "chapter": "departments",
-   "startFrame": 4839,
-   "endFrame": 4890,
+   "startFrame": 4845,
+   "endFrame": 4911,
    "lyric": "Virtual Services meeting members where they are,",
    "display": "Virtual Services meeting members where they are,",
    "heroWord": "where they are",
@@ -1415,13 +1523,14 @@
    "beatMarkers": [
     4873
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d20",
    "chapter": "departments",
-   "startFrame": 4890,
-   "endFrame": 4958,
+   "startFrame": 4911,
+   "endFrame": 4977,
    "lyric": "Digital Member Experience taking service far!",
    "display": "Digital Member Experience taking service far!",
    "heroWord": "far",
@@ -1435,13 +1544,14 @@
    "beatMarkers": [
     4941
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d21",
    "chapter": "departments",
-   "startFrame": 4958,
-   "endFrame": 5026,
+   "startFrame": 4977,
+   "endFrame": 5040,
    "lyric": "Member Experience keeps the member at the heart,",
    "display": "Member Experience keeps the member at the heart,",
    "heroWord": "heart",
@@ -1455,13 +1565,14 @@
    "beatMarkers": [
     5009
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d22",
    "chapter": "departments",
-   "startFrame": 5026,
-   "endFrame": 5112,
+   "startFrame": 5040,
+   "endFrame": 5118,
    "lyric": "Community Development making an impact from the start!",
    "display": "Community Development making an impact from the start!",
    "heroWord": "impact",
@@ -1475,16 +1586,17 @@
    "beatMarkers": [
     5077
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d23",
    "chapter": "departments",
-   "startFrame": 5112,
-   "endFrame": 5162,
+   "startFrame": 5118,
+   "endFrame": 5193,
    "lyric": "Marketing and PR tell the story, make it loud,",
    "display": "Marketing and PR tell the story, make it loud,",
-   "heroWord": "LOUD",
+   "heroWord": "loud",
    "visualConcept": "LOUD full-bleed",
    "cameraBehavior": "",
    "background": "ink",
@@ -1495,13 +1607,14 @@
    "beatMarkers": [
     5145
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d24",
    "chapter": "departments",
-   "startFrame": 5162,
-   "endFrame": 5223,
+   "startFrame": 5193,
+   "endFrame": 5262,
    "lyric": "High School Branches building futures—make us proud!",
    "display": "High School Branches building futures—make us proud!",
    "heroWord": "proud",
@@ -1515,13 +1628,14 @@
    "beatMarkers": [
     5213
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d25",
    "chapter": "departments",
-   "startFrame": 5223,
-   "endFrame": 5298,
+   "startFrame": 5262,
+   "endFrame": 5337,
    "lyric": "Human Resources, People Ops supporting the crew,",
    "display": "Human Resources, People Ops supporting the crew,",
    "heroWord": "supporting",
@@ -1535,13 +1649,14 @@
    "beatMarkers": [
     5281
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d26",
    "chapter": "departments",
-   "startFrame": 5298,
-   "endFrame": 5367,
+   "startFrame": 5337,
+   "endFrame": 5406,
    "lyric": "Learning and Development helping talent break through!",
    "display": "Learning and Development helping talent break through!",
    "heroWord": "break through",
@@ -1555,13 +1670,14 @@
    "beatMarkers": [
     5349
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "d27",
    "chapter": "departments",
-   "startFrame": 5367,
-   "endFrame": 5452,
+   "startFrame": 5406,
+   "endFrame": 5475,
    "lyric": "Executive Office setting vision, leading the way—",
    "display": "Executive Office setting vision, leading the way—",
    "heroWord": "leading the way",
@@ -1575,13 +1691,14 @@
    "beatMarkers": [
     5417
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "oneaddition",
    "chapter": "departments",
-   "startFrame": 5452,
-   "endFrame": 5536,
+   "startFrame": 5475,
+   "endFrame": 5658,
    "lyric": "Different roles, ONE ADDITION every day!",
    "display": "Different roles, ONE ADDITION every day!",
    "heroWord": "ONE ADDITION",
@@ -1593,15 +1710,18 @@
    "transitionOut": "ring",
    "assetReferences": [],
    "beatMarkers": [
-    5485
+    5485,
+    5553,
+    5621
    ],
+   "caption": true,
    "notes": ""
   },
   {
    "scene": "frontline",
    "chapter": "beatcut",
-   "startFrame": 5536,
-   "endFrame": 5621,
+   "startFrame": 5658,
+   "endFrame": 5721,
    "lyric": "Front line.",
    "display": "Front line.",
    "heroWord": "Front line",
@@ -1613,15 +1733,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    5553
+    5688
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "backoffice",
    "chapter": "beatcut",
-   "startFrame": 5621,
-   "endFrame": 5688,
+   "startFrame": 5721,
+   "endFrame": 5781,
    "lyric": "Back office.",
    "display": "Back office.",
    "heroWord": "Back office",
@@ -1633,15 +1754,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    5621
+    5756
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "mix",
    "chapter": "beatcut",
-   "startFrame": 5688,
-   "endFrame": 5790,
+   "startFrame": 5781,
+   "endFrame": 5814,
    "lyric": "Every team in the mix.",
    "display": "Every team in the mix.",
    "heroWord": "mix",
@@ -1652,17 +1774,15 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [
-    5688,
-    5756
-   ],
+   "beatMarkers": [],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "names",
    "chapter": "beatcut",
-   "startFrame": 5790,
-   "endFrame": 5824,
+   "startFrame": 5814,
+   "endFrame": 5850,
    "lyric": "Different names.",
    "display": "Different names.",
    "heroWord": "names",
@@ -1673,14 +1793,17 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [],
+   "beatMarkers": [
+    5824
+   ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "roles",
    "chapter": "beatcut",
-   "startFrame": 5824,
-   "endFrame": 5858,
+   "startFrame": 5850,
+   "endFrame": 5916,
    "lyric": "Different roles.",
    "display": "Different roles.",
    "heroWord": "roles",
@@ -1692,15 +1815,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    5824
+    5891
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "piece",
    "chapter": "beatcut",
-   "startFrame": 5858,
-   "endFrame": 5925,
+   "startFrame": 5916,
+   "endFrame": 5949,
    "lyric": "Every piece matters.",
    "display": "Every piece matters.",
    "heroWord": "piece",
@@ -1711,16 +1835,15 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [
-    5891
-   ],
+   "beatMarkers": [],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "thatsaddition",
    "chapter": "beatcut",
-   "startFrame": 5925,
-   "endFrame": 5959,
+   "startFrame": 5949,
+   "endFrame": 5979,
    "lyric": "THAT’S ADDITION.",
    "display": "THAT’S ADDITION.",
    "heroWord": "ADDITION",
@@ -1731,13 +1854,16 @@
    "transitionIn": "",
    "transitionOut": "plus",
    "assetReferences": [],
-   "beatMarkers": [],
+   "beatMarkers": [
+    5959
+   ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "learn",
    "chapter": "bridge",
-   "startFrame": 5959,
+   "startFrame": 5979,
    "endFrame": 6018,
    "lyric": "Learn…",
    "display": "Learn…",
@@ -1749,16 +1875,15 @@
    "transitionIn": "warm fade",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [
-    5959
-   ],
+   "beatMarkers": [],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "learn2",
    "chapter": "bridge",
    "startFrame": 6018,
-   "endFrame": 6096,
+   "endFrame": 6102,
    "lyric": "There’s always more to know.",
    "display": "There’s always more to know.",
    "heroWord": "more to know",
@@ -1770,15 +1895,17 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    6027
+    6027,
+    6096
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "teach",
    "chapter": "bridge",
-   "startFrame": 6096,
-   "endFrame": 6131,
+   "startFrame": 6102,
+   "endFrame": 6150,
    "lyric": "Teach…",
    "display": "Teach…",
    "heroWord": "Teach",
@@ -1789,16 +1916,15 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [
-    6096
-   ],
+   "beatMarkers": [],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "teach2",
    "chapter": "bridge",
-   "startFrame": 6131,
-   "endFrame": 6216,
+   "startFrame": 6150,
+   "endFrame": 6246,
    "lyric": "Because someone helped us grow.",
    "display": "Because someone helped us grow.",
    "heroWord": "grow",
@@ -1810,15 +1936,17 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    6166
+    6166,
+    6233
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "improve2",
    "chapter": "bridge",
-   "startFrame": 6216,
-   "endFrame": 6251,
+   "startFrame": 6246,
+   "endFrame": 6282,
    "lyric": "Improve…",
    "display": "Improve…",
    "heroWord": "Improve",
@@ -1829,16 +1957,15 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [
-    6233
-   ],
+   "beatMarkers": [],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "improve3",
    "chapter": "bridge",
-   "startFrame": 6251,
-   "endFrame": 6337,
+   "startFrame": 6282,
+   "endFrame": 6372,
    "lyric": "Good enough ain’t where we stay.",
    "display": "Good enough ain’t where we stay.",
    "heroWord": "ain’t where we stay",
@@ -1850,15 +1977,17 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    6303
+    6303,
+    6370
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "integrity",
    "chapter": "bridge",
-   "startFrame": 6337,
-   "endFrame": 6388,
+   "startFrame": 6372,
+   "endFrame": 6429,
    "lyric": "Absolute Integrity…",
    "display": "Absolute Integrity…",
    "heroWord": "Integrity",
@@ -1869,16 +1998,15 @@
    "transitionIn": "",
    "transitionOut": "line",
    "assetReferences": [],
-   "beatMarkers": [
-    6370
-   ],
+   "beatMarkers": [],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "integrity2",
    "chapter": "bridge",
-   "startFrame": 6388,
-   "endFrame": 6432,
+   "startFrame": 6429,
+   "endFrame": 6498,
    "lyric": "That’s how we lead the way.",
    "display": "That’s how we lead the way.",
    "heroWord": "lead the way",
@@ -1889,14 +2017,17 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [],
+   "beatMarkers": [
+    6439
+   ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "offices",
    "chapter": "build",
-   "startFrame": 6432,
-   "endFrame": 6501,
+   "startFrame": 6498,
+   "endFrame": 6534,
    "lyric": "Different offices.",
    "display": "Different offices.",
    "heroWord": "offices",
@@ -1908,15 +2039,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    6439
+    6508
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "roles2",
    "chapter": "build",
-   "startFrame": 6501,
-   "endFrame": 6542,
+   "startFrame": 6534,
+   "endFrame": 6570,
    "lyric": "Different roles.",
    "display": "Different roles.",
    "heroWord": "roles",
@@ -1927,16 +2059,15 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [
-    6508
-   ],
+   "beatMarkers": [],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "stories2",
    "chapter": "build",
-   "startFrame": 6542,
-   "endFrame": 6576,
+   "startFrame": 6570,
+   "endFrame": 6597,
    "lyric": "Different stories.",
    "display": "Different stories.",
    "heroWord": "stories",
@@ -1947,14 +2078,17 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [],
+   "beatMarkers": [
+    6576
+   ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "roads2",
    "chapter": "build",
-   "startFrame": 6576,
-   "endFrame": 6609,
+   "startFrame": 6597,
+   "endFrame": 6630,
    "lyric": "Different roads.",
    "display": "Different roads.",
    "heroWord": "roads",
@@ -1965,16 +2099,15 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [
-    6576
-   ],
+   "beatMarkers": [],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "rhythmstarts",
    "chapter": "build",
-   "startFrame": 6609,
-   "endFrame": 6643,
+   "startFrame": 6630,
+   "endFrame": 6669,
    "lyric": "But when the rhythm starts…",
    "display": "But when the rhythm starts…",
    "heroWord": "rhythm",
@@ -1985,14 +2118,17 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [],
+   "beatMarkers": [
+    6643
+   ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "moveasone",
    "chapter": "build",
-   "startFrame": 6643,
-   "endFrame": 6678,
+   "startFrame": 6669,
+   "endFrame": 6771,
    "lyric": "WE MOVE AS ONE.",
    "display": "WE MOVE AS ONE.",
    "heroWord": "AS ONE",
@@ -2004,61 +2140,40 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    6643
-   ],
-   "notes": ""
-  },
-  {
-   "scene": "jax",
-   "chapter": "build",
-   "startFrame": 6678,
-   "endFrame": 6779,
-   "lyric": "JAX…",
-   "display": "JAX…",
-   "heroWord": "JAX",
-   "visualConcept": "helmet emerges lit by A+ visor",
-   "cameraBehavior": "slow push",
-   "background": "ink",
-   "accent": "#00B2E3",
-   "transitionIn": "darkness",
-   "transitionOut": "",
-   "assetReferences": [
-    "images/dj-helmet-front.png"
-   ],
-   "beatMarkers": [
     6712
    ],
+   "caption": false,
    "notes": ""
   },
   {
-   "scene": "ready",
+   "scene": "drop1",
    "chapter": "finale",
-   "startFrame": 6779,
-   "endFrame": 6813,
-   "lyric": "YOU READY?",
-   "display": "YOU READY?",
-   "heroWord": "READY",
-   "visualConcept": "visor flare; YOU READY?",
+   "startFrame": 6771,
+   "endFrame": 6855,
+   "lyric": "ONE TEAM! ONE RHYTHM!",
+   "display": "ONE TEAM! ONE RHYTHM!",
+   "heroWord": "ONE TEAM",
+   "visualConcept": "",
    "cameraBehavior": "",
    "background": "ink",
    "accent": "#00B2E3",
    "transitionIn": "",
-   "transitionOut": "flash",
-   "assetReferences": [
-    "images/dj-helmet-front.png"
-   ],
+   "transitionOut": "",
+   "assetReferences": [],
    "beatMarkers": [
-    6779
+    6779,
+    6847
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "showem",
    "chapter": "finale",
-   "startFrame": 6813,
-   "endFrame": 6881,
-   "lyric": "Let’s show ’em how we move.",
-   "display": "Let’s show ’em how we move.",
+   "startFrame": 6855,
+   "endFrame": 6909,
+   "lyric": "Let’s show ’em how we move!",
+   "display": "Let’s show ’em how we move!",
    "heroWord": "move",
    "visualConcept": "lit extruded 3D plus monument",
    "cameraBehavior": "orbit",
@@ -2067,16 +2182,15 @@
    "transitionIn": "flash",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [
-    6847
-   ],
+   "beatMarkers": [],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "otor3",
    "chapter": "finale",
-   "startFrame": 6881,
-   "endFrame": 7032,
+   "startFrame": 6909,
+   "endFrame": 7008,
    "lyric": "ONE TEAM! ONE RHYTHM!",
    "display": "ONE TEAM! ONE RHYTHM!",
    "heroWord": "ONE TEAM",
@@ -2091,13 +2205,54 @@
     6914,
     6981
    ],
+   "caption": false,
+   "notes": ""
+  },
+  {
+   "scene": "otor3b",
+   "chapter": "finale",
+   "startFrame": 7008,
+   "endFrame": 7044,
+   "lyric": "ONE TEAM! ONE RHYTHM!",
+   "display": "ONE TEAM! ONE RHYTHM!",
+   "heroWord": "ONE RHYTHM",
+   "visualConcept": "",
+   "cameraBehavior": "",
+   "background": "ink",
+   "accent": "#00B2E3",
+   "transitionIn": "",
+   "transitionOut": "",
+   "assetReferences": [],
+   "beatMarkers": [],
+   "caption": false,
+   "notes": ""
+  },
+  {
+   "scene": "otor3c",
+   "chapter": "finale",
+   "startFrame": 7044,
+   "endFrame": 7098,
+   "lyric": "ONE TEAM! ONE RHYTHM!",
+   "display": "ONE TEAM! ONE RHYTHM!",
+   "heroWord": "ONE TEAM",
+   "visualConcept": "",
+   "cameraBehavior": "",
+   "background": "ink",
+   "accent": "#00B2E3",
+   "transitionIn": "",
+   "transitionOut": "",
+   "assetReferences": [],
+   "beatMarkers": [
+    7049
+   ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "thisishow",
    "chapter": "finale",
-   "startFrame": 7032,
-   "endFrame": 7100,
+   "startFrame": 7098,
+   "endFrame": 7173,
    "lyric": "This is how we move!",
    "display": "This is how we move!",
    "heroWord": "move",
@@ -2111,15 +2266,16 @@
     "images/dj-booth.png"
    ],
    "beatMarkers": [
-    7049
+    7116
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "otor4",
    "chapter": "finale",
-   "startFrame": 7100,
-   "endFrame": 7184,
+   "startFrame": 7173,
+   "endFrame": 7227,
    "lyric": "ONE TEAM! ONE RHYTHM!",
    "display": "ONE TEAM! ONE RHYTHM!",
    "heroWord": "ONE RHYTHM",
@@ -2131,15 +2287,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    7116
+    7184
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "beenthrough",
    "chapter": "finale",
-   "startFrame": 7184,
-   "endFrame": 7268,
+   "startFrame": 7227,
+   "endFrame": 7305,
    "lyric": "Look at everything we’ve been through!",
    "display": "Look at everything we’ve been through!",
    "heroWord": "been through",
@@ -2151,16 +2308,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    7184,
     7252
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "branchesback",
    "chapter": "finale",
-   "startFrame": 7268,
-   "endFrame": 7336,
+   "startFrame": 7305,
+   "endFrame": 7377,
    "lyric": "From the branches to the back office,",
    "display": "From the branches to the back office,",
    "heroWord": "branches",
@@ -2174,13 +2331,14 @@
    "beatMarkers": [
     7318
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "everycrew",
    "chapter": "finale",
-   "startFrame": 7336,
-   "endFrame": 7385,
+   "startFrame": 7377,
+   "endFrame": 7425,
    "lyric": "every team and every crew,",
    "display": "every team and every crew,",
    "heroWord": "every crew",
@@ -2191,14 +2349,17 @@
    "transitionIn": "",
    "transitionOut": "line",
    "assetReferences": [],
-   "beatMarkers": [],
+   "beatMarkers": [
+    7385
+   ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "test",
-   "chapter": "finale",
-   "startFrame": 7385,
-   "endFrame": 7419,
+   "chapter": "climax",
+   "startFrame": 7425,
+   "endFrame": 7485,
    "lyric": "2026 put us to the test—",
    "display": "2026 put us to the test—",
    "heroWord": "2026",
@@ -2210,15 +2371,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    7385
+    7453
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "together",
    "chapter": "climax",
-   "startFrame": 7419,
-   "endFrame": 7554,
+   "startFrame": 7485,
+   "endFrame": 7563,
    "lyric": "LOOK WHAT TOGETHER CAN DO!",
    "display": "LOOK WHAT TOGETHER CAN DO!",
    "heroWord": "TOGETHER",
@@ -2230,16 +2392,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    7453,
     7520
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "learned2",
    "chapter": "climax",
-   "startFrame": 7554,
-   "endFrame": 7587,
+   "startFrame": 7563,
+   "endFrame": 7578,
    "lyric": "We learned!",
    "display": "We learned!",
    "heroWord": "learned",
@@ -2251,13 +2413,14 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "taught2",
    "chapter": "climax",
-   "startFrame": 7587,
-   "endFrame": 7604,
+   "startFrame": 7578,
+   "endFrame": 7593,
    "lyric": "We taught!",
    "display": "We taught!",
    "heroWord": "taught",
@@ -2271,13 +2434,14 @@
    "beatMarkers": [
     7587
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "changed2",
    "chapter": "climax",
-   "startFrame": 7604,
-   "endFrame": 7622,
+   "startFrame": 7593,
+   "endFrame": 7611,
    "lyric": "We changed!",
    "display": "We changed!",
    "heroWord": "changed",
@@ -2289,13 +2453,14 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "grew2",
    "chapter": "climax",
-   "startFrame": 7622,
-   "endFrame": 7655,
+   "startFrame": 7611,
+   "endFrame": 7710,
    "lyric": "We grew!",
    "display": "We grew!",
    "heroWord": "grew",
@@ -2306,14 +2471,17 @@
    "transitionIn": "",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [],
+   "beatMarkers": [
+    7655
+   ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "oneteam5",
    "chapter": "climax",
-   "startFrame": 7655,
-   "endFrame": 7722,
+   "startFrame": 7710,
+   "endFrame": 7743,
    "lyric": "ONE TEAM!",
    "display": "ONE TEAM!",
    "heroWord": "ONE TEAM",
@@ -2325,15 +2493,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    7655
+    7722
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "onerhythm5",
    "chapter": "climax",
-   "startFrame": 7722,
-   "endFrame": 7756,
+   "startFrame": 7743,
+   "endFrame": 7794,
    "lyric": "ONE RHYTHM!",
    "display": "ONE RHYTHM!",
    "heroWord": "ONE RHYTHM",
@@ -2345,15 +2514,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    7722
+    7789
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "acu1",
    "chapter": "climax",
-   "startFrame": 7756,
-   "endFrame": 7840,
+   "startFrame": 7794,
+   "endFrame": 7914,
    "lyric": "ADDITION FINANCIAL CREDIT UNION!",
    "display": "ADDITION FINANCIAL CREDIT UNION!",
    "heroWord": "ADDITION",
@@ -2367,15 +2537,16 @@
     "logos/logo-reverse.svg"
    ],
    "beatMarkers": [
-    7789
+    7856
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "oneteam6",
    "chapter": "outro",
-   "startFrame": 7840,
-   "endFrame": 7924,
+   "startFrame": 7914,
+   "endFrame": 7980,
    "lyric": "One team.",
    "display": "One team.",
    "heroWord": "team",
@@ -2387,15 +2558,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    7856
+    7924
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "onemission",
    "chapter": "outro",
-   "startFrame": 7924,
-   "endFrame": 7991,
+   "startFrame": 7980,
+   "endFrame": 8040,
    "lyric": "One mission.",
    "display": "One mission.",
    "heroWord": "mission",
@@ -2407,15 +2579,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    7924
+    7991
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "onerhythm6",
    "chapter": "outro",
-   "startFrame": 7991,
-   "endFrame": 8058,
+   "startFrame": 8040,
+   "endFrame": 8079,
    "lyric": "One rhythm.",
    "display": "One rhythm.",
    "heroWord": "rhythm",
@@ -2427,15 +2600,16 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
-    7991
+    8058
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "welcome",
    "chapter": "outro",
-   "startFrame": 8058,
-   "endFrame": 8091,
+   "startFrame": 8079,
+   "endFrame": 8184,
    "lyric": "Welcome to Addapalooza.",
    "display": "Welcome to Addapalooza.",
    "heroWord": "Addapalooza",
@@ -2449,14 +2623,15 @@
     "images/addapalooza-logo.png"
    ],
    "beatMarkers": [
-    8058
+    8124
    ],
+   "caption": false,
    "notes": ""
   },
   {
    "scene": "summit",
    "chapter": "outro",
-   "startFrame": 8091,
+   "startFrame": 8184,
    "endFrame": 8460,
    "lyric": "Summit 2026, y’all!",
    "display": "Summit 2026, y’all!",
@@ -2471,11 +2646,11 @@
     "images/dj-helmet-3q.png"
    ],
    "beatMarkers": [
-    8124,
     8191,
     8258,
     8325
    ],
+   "caption": false,
    "notes": ""
   }
  ]

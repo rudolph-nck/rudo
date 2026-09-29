@@ -7,7 +7,7 @@ import { Field, Flash, LightPool, Vignette } from "../effects/Finish";
 import { ParticleField } from "../three/Particles";
 import { Obj, Stage3D } from "../three/Stage3D";
 import { C, F, glow } from "../theme";
-import { Hero, Mono, Narrative } from "../typography/Type";
+import { Hero, Mono } from "../typography/Type";
 import { baseCam, Cam } from "../utils/camera";
 import { clamp01, cubicInOut, expoInOut, expoOut, mix, ramp } from "../utils/ease";
 import { rng } from "../utils/random";
@@ -124,9 +124,6 @@ export const RailWorld: React.FC = () => {
                     <div style={{ height: 14 }} />
                     <Hero text={d.name.toUpperCase()} size={104} t={isCur ? t : 999} dur={12} stagger={0.7} tracking={-0.03} lineHeight={0.95} />
                   </div>
-                </Obj>
-                <Obj x={x - 780} y={48} anchor="top-left" opacity={op}>
-                  <Narrative text={d.action} hero={""} t={isCur ? t - 8 : 999} size={46} width={1100} color={C.lunar} />
                 </Obj>
                 <Obj x={x + 470} y={-230} anchor="center" opacity={isCur ? 1 : 0.15}>
                   <Glyph kind={d.glyph} t={isCur ? t : 60} size={300} />

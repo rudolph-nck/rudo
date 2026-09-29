@@ -6,7 +6,6 @@ import { Field, LightPool, Vignette } from "../effects/Finish";
 import { ParticleField } from "../three/Particles";
 import { Stage3D } from "../three/Stage3D";
 import { C, F, glow } from "../theme";
-import { Caption } from "../typography/Caption";
 import { Counter, Hero, Mono, Scramble } from "../typography/Type";
 import { baseCam, camPath } from "../utils/camera";
 import { clamp01, cubicInOut, expoIn, expoInOut, expoOut, mix, quintOut, ramp, sineInOut } from "../utils/ease";
@@ -320,14 +319,6 @@ export const VerseWorld: React.FC = () => {
           )}
         </AbsoluteFill>
       )}
-
-      <Caption
-        f={f}
-        offset={off}
-        ids={["changin", "twoteams", "envision", "sides", "march", "longdays", "groove", "improve"]}
-        prefix="V"
-        hide={["sides"]}
-      />
       <Vignette />
     </AbsoluteFill>
   );

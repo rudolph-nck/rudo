@@ -1,6 +1,7 @@
 import scenesData from "../../data/scenes.json";
 import { useCurrentFrame } from "remotion";
 import { clamp01, cubicInOut } from "./ease";
+import { lyric } from "./time";
 
 export type Chapter = (typeof scenesData.chapters)[number];
 export type Scene = (typeof scenesData.scenes)[number];
@@ -37,6 +38,11 @@ export const useWorld = (chapterId: string) => {
     T: (s: number) => Math.round(s * 30) - o,
     L: (id: string) => scene(id).startFrame - o,
     E: (id: string) => scene(id).endFrame - o,
+    /** local frame at which word k of a lyric is sung (negative k counts from the end) */
+    W: (id: string, k: number) => {
+      const ws = lyric(id).words;
+      return Math.round(ws[(k + ws.length) % ws.length].t * 30) - o;
+    },
     txt: (id: string) => scene(id).display,
     hero: (id: string) => scene(id).heroWord,
     /** chapter edge fade (in over `a` frames, out over `b` frames) */

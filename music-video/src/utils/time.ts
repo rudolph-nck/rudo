@@ -16,6 +16,8 @@ export type LyricLine = {
   start: number;
   end: number;
   startFrame: number;
+  hold: number;
+  words: Array<{ w: string; t: number }>;
 };
 
 const lines = lyricsData.lines as LyricLine[];

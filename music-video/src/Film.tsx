@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, Audio, Sequence, staticFile } from "remotion";
 import { FilmGrain } from "./effects/Finish";
+import { Lyrics } from "./typography/Lyrics";
 import { chapters } from "./utils/scenes";
 import { ensureFonts } from "./utils/fonts";
 import { WORLDS } from "./worlds";
@@ -23,6 +24,7 @@ export const Film: React.FC<{ muted?: boolean }> = ({ muted = false }) => (
         </Sequence>
       );
     })}
+    <Lyrics />
     <FilmGrain />
     {!muted && <Audio src={staticFile("audio/one-team-one-rhythm.m4a")} />}
   </AbsoluteFill>

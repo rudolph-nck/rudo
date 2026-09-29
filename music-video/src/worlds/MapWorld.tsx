@@ -6,7 +6,6 @@ import { Lines3D, Seg3 } from "../three/Lines3D";
 import { ParticleField } from "../three/Particles";
 import { Obj, Stage3D } from "../three/Stage3D";
 import { C, F, glow } from "../theme";
-import { Caption } from "../typography/Caption";
 import { Hero, Mono } from "../typography/Type";
 import { Cam, H, project, W } from "../utils/camera";
 import { clamp01, expoInOut, expoOut, mix, ramp } from "../utils/ease";
@@ -292,8 +291,6 @@ export const MapWorld: React.FC = () => {
           )}
         </AbsoluteFill>
       )}
-
-      <Caption f={f} offset={off} ids={LINES} prefix="B" y={930} hide={["b16"]} />
       <Flash at={LR} peak={0.3} />
       <Vignette strength={0.6} />
     </AbsoluteFill>
