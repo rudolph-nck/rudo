@@ -9,19 +9,20 @@ node scripts/stills.mjs renders/styleframes 1 10.7 32.5 43.9 69.5 95.8 131.7 183
 
 | # | Time | Moment | Establishes |
 |---|---|---|---|
-| 01 | 10.7 s | Opening — **2026** rising behind the line | The line is born; the line cuts behind subjects; hero type scale; HUD mono |
-| 02 | 43.9 s | Early verse — **Envision + Addition cross into the plus** | The film's thesis: the plus is two lines crossing |
-| 03 | 66.9 s | Chorus — **AS ONE** on the merged road | Line → road; 3D camera language; restraint in colour |
-| 04 | 94.9 s | First major build — **ONE CREW.** over the two regions | Real geography as constellation; one blue bridge between regions |
-| 05 | 131.7 s | Departments — a Rail station | Type + line-drawn glyph system; A+ lattice texture |
-| 06 | 181.9 s | **ONE ADDITION** — the rail closed into a ring | Line → orbit → plus |
-| 07 | 197.9 s | **THAT'S ADDITION.** — the plus made of every name | Recognition; every piece matters |
-| 08 | 205.5 s | Intimate — **Teach.** | Warm editorial register: serif, dust, a single margin line |
-| 09 | 222.1 s | Tension — **WE MOVE AS ONE.** | Everything collapsed to one line |
-| 10 | 231.9 s | Largest climax — the helmet visor as an LED lyric screen | The DJ as the film's performer |
-| 11 | 248.3 s | **TOGETHER** | Lines from every direction lock into the plus |
-| 12 | 259.5 s | Logo lockup | Brand lines at exact plus weight |
-| 13 | 274.8 s | Ending — Addapalooza + tagline + logo | Arrival |
+| 01 | 10.7 s | Opening — **2026** rising behind the line | The line is born; the line cuts behind subjects; hero type scale |
+| 02 | 32.5 s | Beat drop — the DJ on stage, the crowd jumping | The event itself; the line as the stage edge |
+| 03 | 43.9 s | Verse — **Envision + Addition cross into the plus** | The film's thesis: the plus is two lines crossing |
+| 04 | 69.5 s | Chorus — **AS ONE** on the merged road | Line → road; kinetic lyric band |
+| 05 | 95.8 s | Roll call — **one crew** across both regions | Real geography as constellation; one bridge between regions |
+| 06 | 131.7 s | Departments — a Rail station | Glyph system; name under the rail; lyrics below |
+| 07 | 183.6 s | **ONE ADDITION** — the rail closed into a ring | Line → orbit → plus |
+| 08 | 198.6 s | **THAT'S ADDITION.** — the plus made of every name | Recognition; every piece matters |
+| 09 | 205.5 s | Intimate — **Teach.** | Warm editorial register: serif, dust, a single margin line |
+| 10 | 224.0 s | Tension — **WE MOVE AS ONE.** | Everything collapsed to one line |
+| 11 | 231.9 s | Final chorus — the helmet visor as an LED lyric screen | The DJ as the film's performer |
+| 12 | 250.3 s | **TOGETHER** | Lines from every direction lock into the plus |
+| 13 | 260.8 s | Logo lockup | Brand lines at exact plus weight |
+| 14 | 275.0 s | Ending — Addapalooza + tagline + logo | Arrival |
 
 ## Design notes from review
 - The first draft of the map joined places in the order they were sung, and the zig-zags read as noise.
