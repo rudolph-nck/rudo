@@ -157,68 +157,8 @@
    "start": 16.3,
    "rawStart": 16.3,
    "snapped": false,
-   "end": 29.5,
-   "startFrame": 489
-  },
-  {
-   "words": [
-    {
-     "w": "ONE",
-     "t": 29.5
-    },
-    {
-     "w": "TEAM!",
-     "t": 30.08
-    },
-    {
-     "w": "ONE",
-     "t": 30.64
-    },
-    {
-     "w": "RHYTHM!",
-     "t": 30.98
-    }
-   ],
-   "hold": 33.38,
-   "id": "chant1",
-   "text": "ONE TEAM! ONE RHYTHM!",
-   "section": "rise",
-   "hero": "ONE TEAM",
-   "start": 29.5,
-   "rawStart": 29.5,
-   "snapped": false,
-   "end": 34.15,
-   "startFrame": 885
-  },
-  {
-   "words": [
-    {
-     "w": "ONE",
-     "t": 34.15
-    },
-    {
-     "w": "TEAM!",
-     "t": 34.48
-    },
-    {
-     "w": "ONE",
-     "t": 35.28
-    },
-    {
-     "w": "RHYTHM!",
-     "t": 35.62
-    }
-   ],
-   "hold": 38.02,
-   "id": "chant2",
-   "text": "ONE TEAM! ONE RHYTHM!",
-   "section": "rise",
-   "hero": "ONE RHYTHM",
-   "start": 34.15,
-   "rawStart": 34.15,
-   "snapped": false,
    "end": 38.5,
-   "startFrame": 1024
+   "startFrame": 489
   },
   {
    "words": [

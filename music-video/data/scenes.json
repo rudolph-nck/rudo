@@ -267,7 +267,7 @@
    "scene": "acu0",
    "chapter": "signal",
    "startFrame": 489,
-   "endFrame": 885,
+   "endFrame": 1155,
    "lyric": "Addition Financial Credit Union…",
    "display": "Addition Financial Credit Union…",
    "heroWord": "Addition",
@@ -285,53 +285,13 @@
     620,
     689,
     759,
-    828
-   ],
-   "caption": true,
-   "notes": ""
-  },
-  {
-   "scene": "chant1",
-   "chapter": "signal",
-   "startFrame": 885,
-   "endFrame": 1024,
-   "lyric": "ONE TEAM! ONE RHYTHM!",
-   "display": "ONE TEAM! ONE RHYTHM!",
-   "heroWord": "ONE TEAM",
-   "visualConcept": "",
-   "cameraBehavior": "",
-   "background": "ink",
-   "accent": "#00B2E3",
-   "transitionIn": "",
-   "transitionOut": "",
-   "assetReferences": [],
-   "beatMarkers": [
+    828,
     897,
-    965
-   ],
-   "caption": false,
-   "notes": ""
-  },
-  {
-   "scene": "chant2",
-   "chapter": "verse",
-   "startFrame": 1024,
-   "endFrame": 1155,
-   "lyric": "ONE TEAM! ONE RHYTHM!",
-   "display": "ONE TEAM! ONE RHYTHM!",
-   "heroWord": "ONE RHYTHM",
-   "visualConcept": "",
-   "cameraBehavior": "",
-   "background": "ink",
-   "accent": "#00B2E3",
-   "transitionIn": "",
-   "transitionOut": "",
-   "assetReferences": [],
-   "beatMarkers": [
+    965,
     1034,
     1104
    ],
-   "caption": false,
+   "caption": true,
    "notes": ""
   },
   {
@@ -644,7 +604,7 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [],
-   "caption": true,
+   "caption": false,
    "notes": ""
   },
   {
@@ -665,7 +625,7 @@
    "beatMarkers": [
     2139
    ],
-   "caption": true,
+   "caption": false,
    "notes": ""
   },
   {
@@ -684,7 +644,7 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [],
-   "caption": true,
+   "caption": false,
    "notes": ""
   },
   {
@@ -705,7 +665,7 @@
    "beatMarkers": [
     2208
    ],
-   "caption": true,
+   "caption": false,
    "notes": ""
   },
   {
@@ -1714,7 +1674,7 @@
     5553,
     5621
    ],
-   "caption": true,
+   "caption": false,
    "notes": ""
   },
   {

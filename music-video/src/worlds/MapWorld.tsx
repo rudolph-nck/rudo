@@ -262,29 +262,16 @@ export const MapWorld: React.FC = () => {
         </AbsoluteFill>
       )}
 
-      {/* punchlines */}
-      {Object.entries(HEROES).map(([id, text]) => {
-        const s = L(id),
-          e = scene(id).endFrame - off;
-        if (f < s || f > e + 6) return null;
-        const hs = id === "b08" || id === "b16" ? s + 4 : s + 30;
-        return (
-          <div key={id} style={{ position: "absolute", left: 110, top: 140, opacity: 1 - ramp(f, e - 6, 10) }}>
-            <Hero text={text} size={id === "b16" ? 190 : 150} t={f - hs} dur={12} stagger={1} tracking={-0.03} lineHeight={0.95} />
-          </div>
-        );
-      })}
-
       {/* HUD */}
       {f >= LR && (
         <AbsoluteFill style={{ opacity: ramp(f, LR + 20, 20) }}>
-          <div style={{ position: "absolute", right: 110, top: 80, textAlign: "right" }}>
+          <div style={{ position: "absolute", right: 110, bottom: 80, textAlign: "right" }}>
             <Mono text={`NAMES CALLED  ${String(lit.length).padStart(3, "0")} / 036`} t={999} size={15} opacity={0.55} />
             <div style={{ height: 8 }} />
             <Mono text={`${(-view.z / K + LAT0).toFixed(3)}°N  ${Math.abs(view.x / K + LON0).toFixed(3)}°W  ALT ${Math.round(-cam.y / 10)}M`} t={999} size={13} opacity={0.35} />
           </div>
           {f >= B16 + 10 && (
-            <div style={{ position: "absolute", right: 110, bottom: 110, textAlign: "right" }}>
+            <div style={{ position: "absolute", right: 110, bottom: 150, textAlign: "right" }}>
               <div style={{ fontFamily: F.hero, fontWeight: 800, fontSize: 200, color: C.blue, lineHeight: 0.9, opacity: ramp(f, B16 + 10, 14) }}>36</div>
               <Mono text="PLACES · ONE CREW" t={f - B16 - 16} size={16} opacity={0.7} />
             </div>

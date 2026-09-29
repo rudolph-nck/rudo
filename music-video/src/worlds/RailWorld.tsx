@@ -49,7 +49,7 @@ export const RailWorld: React.FC = () => {
     const m = i < 0 ? MOVES[0] : moveOf(i);
     const z = base.z * m.zk;
     // keep the station framed when the camera yaws: shift x by depth·tan(yaw)
-    return { x: i < 0 ? 300 : sx(i) - 170 + z * Math.tan((m.ry * Math.PI) / 180), y: m.y, ry: m.ry, rx: m.rx, z };
+    return { x: i < 0 ? 300 : sx(i) + z * Math.tan((m.ry * Math.PI) / 180), y: m.y, ry: m.ry, rx: m.rx, z };
   };
   const a = camFor(cur - 1),
     b = camFor(cur);
@@ -114,21 +114,20 @@ export const RailWorld: React.FC = () => {
             const t = f - starts[i];
             const isCur = i === cur;
             const op = isCur ? 1 : 0.22;
-            const loud = d.glyph === "loud" && isCur && t > 18;
-            return (
+                        return (
               <React.Fragment key={d.id}>
-                <Obj x={x - 780} y={0} anchor="center">
-                  <div style={{ width: 14, height: 14, borderRadius: 7, background: isCur ? C.white : C.blue, boxShadow: `0 0 18px rgba(${C.blueRGB},0.9)` }} />
+                <Obj x={x} y={0} anchor="center">
+                  <div style={{ width: 16, height: 16, borderRadius: 8, background: isCur ? C.white : C.blue, boxShadow: `0 0 18px rgba(${C.blueRGB},0.9)` }} />
                 </Obj>
-                <Obj x={x - 780} y={-40} anchor="bottom-left" opacity={op * (loud ? 0.25 : 1)}>
-                  <div>
-                    <Mono text={`D.${String(i + 1).padStart(2, "0")} / 27`} t={isCur ? t : 999} size={20} opacity={0.6} color={isCur ? C.blue : C.white} />
-                    <div style={{ height: 14 }} />
-                    <Hero text={d.name.toUpperCase()} size={104} t={isCur ? t : 999} dur={12} stagger={0.7} tracking={-0.03} lineHeight={0.95} />
+                <Obj x={x} y={44} anchor="top" opacity={op}>
+                  <div style={{ textAlign: "center", whiteSpace: "nowrap" }}>
+                    <Mono text={`D.${String(i + 1).padStart(2, "0")} / 27`} t={isCur ? t : 999} size={20} opacity={0.7} color={C.blue} />
+                    <div style={{ height: 8 }} />
+                    <Mono text={d.name.replace("\n", " ")} t={isCur ? t - 4 : 999} size={22} opacity={0.75} weight={500} cps={80} />
                   </div>
                 </Obj>
-                <Obj x={x + 470} y={-230} anchor="center" opacity={isCur ? 1 : 0.15}>
-                  <Glyph kind={d.glyph} t={isCur ? t : 60} size={300} />
+                <Obj x={x} y={-250} anchor="center" opacity={isCur ? 1 : 0.15}>
+                  <Glyph kind={d.glyph} t={isCur ? t : 60} size={380} />
                 </Obj>
               </React.Fragment>
             );
@@ -168,20 +167,6 @@ export const RailWorld: React.FC = () => {
           </div>
         </AbsoluteFill>
       )}
-
-      {/* LOUD */}
-      {(() => {
-        const i = DEPTS.findIndex((d) => d.glyph === "loud");
-        const t = f - starts[i];
-        if (t < 16 || f >= starts[i + 1]) return null;
-        return (
-          <AbsoluteFill style={{ display: "flex", alignItems: "center", justifyContent: "center", opacity: 1 - ramp(f, starts[i + 1] - 6, 6) }}>
-            <div style={{ transform: `scale(${1 + 0.04 * beatPulse(abs, 5)})` }}>
-              <Hero text="LOUD" size={560} t={t - 16} dur={8} stagger={1} tracking={-0.05} color={C.white} />
-            </div>
-          </AbsoluteFill>
-        );
-      })()}
 
       {/* the rail closes into a ring — ONE ADDITION */}
       {f >= RING - 4 && (

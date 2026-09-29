@@ -2,7 +2,7 @@ import React from "react";
 import { Img, staticFile } from "remotion";
 import { C } from "../theme";
 import { clamp01 } from "../utils/ease";
-import { beatIndex, beatPulse, BEATS, downbeatPulse, FPS } from "../utils/time";
+import { beatIndex, beatPulse, BEATS, FPS } from "../utils/time";
 
 /** Source layer geometry (image px of the keyed booth, 1118×669). */
 const IW = 1118,
@@ -27,23 +27,22 @@ const Layer: React.FC<{ name: string; style?: React.CSSProperties; glow?: number
  */
 export const DJ: React.FC<{ abs: number; width: number; lights?: number; energy?: number }> = ({ abs, width, lights = 1, energy = 1 }) => {
   const h = (width * IH) / IW;
-  const bp = beatPulse(abs, 7) * energy;
-  const db = downbeatPulse(abs, 5) * energy;
-  const bi = beatIndex(abs);
   const t = abs / FPS;
-  // continuous phase across the bar for sway
-  const b0 = BEATS[Math.max(0, bi)] ?? 0;
-  const b1 = BEATS[Math.max(0, bi) + 1] ?? b0 + 0.557;
+  // continuous beat phase → smooth, human groove (no per-beat snapping)
+  const bi = Math.max(0, beatIndex(abs));
+  const b0 = BEATS[bi] ?? 0;
+  const b1 = BEATS[bi + 1] ?? b0 + 0.557;
   const beatPhase = clamp01((t - b0) / (b1 - b0));
-  const barPhase = (((bi - 2) % 4) + 4) % 4 + beatPhase; // 0..4
-  const sway = Math.sin((barPhase / 4) * Math.PI * 2) * energy;
-  const side = bi % 2 === 0 ? 1 : -1;
-
-  const bodyY = bp * 0.012 * h;
-  const bodyRot = sway * 1.1;
-  const headY = bodyY + bp * 0.012 * h;
-  const headRot = bodyRot * 0.6 - bp * 5 + side * 1.6 * energy;
-  const glowBase = lights * (0.25 + 0.75 * Math.max(bp, db * 0.8));
+  const beatsFromBar = (((bi - 2) % 8) + 8) % 8 + beatPhase; // 0..8 across two bars
+  const bob = (1 - Math.cos(beatPhase * Math.PI * 2)) / 2; // 0 on the beat → 1 mid → 0
+  const dip = 1 - bob; // head lowest on the beat
+  const sway = Math.sin((beatsFromBar / 8) * Math.PI * 2) * energy;
+  const bodyY = dip * 0.006 * h * energy;
+  const bodyRot = sway * 0.8;
+  const headY = bodyY + dip * 0.006 * h * energy;
+  const headRot = bodyRot * 0.5 + (dip - 0.5) * 3.2 * energy;
+  const kick = beatPulse(abs, 4) * energy;
+  const glowBase = lights * (0.45 + 0.4 * kick + 0.1 * Math.sin(t * 2.1));
 
   return (
     <div style={{ position: "relative", width, height: h }}>

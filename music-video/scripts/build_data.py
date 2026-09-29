@@ -33,8 +33,6 @@ LINES = [
     ("stories0",   13.30, "Different stories.",                                     "intro",  "stories"),
     ("destination",14.60, "One destination.",                                       "intro",  "One"),
     ("acu0",       16.30, "Addition Financial Credit Union…",                       "intro",  "Addition"),
-    ("chant1",     29.50, "ONE TEAM! ONE RHYTHM!",                                  "rise",   "ONE TEAM"),
-    ("chant2",     34.15, "ONE TEAM! ONE RHYTHM!",                                  "rise",   "ONE RHYTHM"),
 
     ("changin",    38.50, "Started the year with a whole lot changin’,",            "verse",  "changin’"),
     ("twoteams",   40.80, "Two teams movin’, one future waitin’,",                  "verse",  "Two teams"),

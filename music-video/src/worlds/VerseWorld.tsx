@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
 import { PlusMark, Segment } from "../components/Brand";
+import { YeahPile } from "../components/YeahPile";
 import { monthX, TimelineRuler } from "../components/Timeline";
 import { Field, LightPool, Vignette } from "../effects/Finish";
 import { ParticleField } from "../three/Particles";
@@ -137,32 +138,9 @@ export const VerseWorld: React.FC = () => {
         </AbsoluteFill>
       )}
 
-      {/* the background chant before the verse: ONE TEAM! ONE RHYTHM! */}
-      {(["chant1", "chant2"] as const).map((id, i) => {
-        const s = L(id);
-        const e = i === 0 ? L("chant2") - 4 : CH - 6;
-        if (f < s - 2 || f > e + 8) return null;
-        return (
-          <div key={id} style={{ position: "absolute", left: 120, top: 150, opacity: 1 - ramp(f, e - 4, 10) }}>
-            <Mono text={`CHANT · 0${i + 1}`} t={f - s} size={15} opacity={0.5} />
-            <div style={{ height: 12 }} />
-            <Hero text="ONE TEAM!" size={170} t={f - s} dur={10} stagger={1} tracking={-0.035} />
-            <Hero text="ONE RHYTHM!" size={170} t={f - W(id, 2)} dur={10} stagger={1} tracking={-0.035} color={C.blue} />
-          </div>
-        );
-      })}
+      {/* the chopped "yeah"s on the beat drop pile up, then collapse into the line */}
+      {f < CH + 6 && <YeahPile abs={abs} collapseAt={CH / 30 + chapter("verse").start - 0.35} lineY={700} />}
 
-      {/* CHANGIN' */}
-      {f < TW + 10 && (
-        <AbsoluteFill style={{ opacity: 1 - ramp(f, TW - 6, 14) }}>
-          <div style={{ position: "absolute", left: 120, top: 150 }}>
-            <Mono text="Q1 · JAN 2026 · 01" t={f - CH} size={15} opacity={0.5} />
-          </div>
-          <div style={{ position: "absolute", left: 112, top: 210 }}>
-            <Scramble text="CHANGIN’" size={250} t={f - CH - 20} lockEvery={5} />
-          </div>
-        </AbsoluteFill>
-      )}
 
       {/* two teams → the plus → the map */}
       {inPlusScene && (
@@ -195,7 +173,7 @@ export const VerseWorld: React.FC = () => {
             <div style={{ position: "absolute", left: 960 - 150, top: 540 - 16, transform: "translate(-100%,-100%)", opacity: 1 - pull }}>
               <Hero text="ENVISION" size={92} t={f - EN - 4} dur={14} stagger={1.2} />
             </div>
-            <div style={{ position: "absolute", left: 960 + 22, top: 420, transform: "rotate(-90deg)", transformOrigin: "0 0", opacity: 1 - pull }}>
+            <div style={{ position: "absolute", left: 960 + 22, top: 1010, transform: "rotate(-90deg)", transformOrigin: "0 0", opacity: 1 - pull }}>
               <Hero text="ADDITION" size={64} t={f - EN - 16} dur={14} stagger={1.2} color={C.blue} />
             </div>
           </AbsoluteFill>
@@ -232,9 +210,6 @@ export const VerseWorld: React.FC = () => {
                       border: `2px solid rgba(${C.blueRGB},${0.8 * (1 - t)})`, transform: `scale(${quintOut(t)})` }} />
                   );
                 })}
-              <div style={{ position: "absolute", left: 960, top: 190, transform: "translateX(-50%)" }}>
-                <Hero text="ONE CALL" size={150} t={f - SD - 20} dur={12} stagger={1} />
-              </div>
             </AbsoluteFill>
           )}
         </AbsoluteFill>
@@ -300,9 +275,6 @@ export const VerseWorld: React.FC = () => {
             <Counter from={61} to={89} dur={GR - LD - 6} t={f - LD - 4} pad={3} size={18} opacity={0.7} style={{ textAlign: "center" }} />
             <Mono text="DAY" t={999} size={12} opacity={0.4} style={{ textAlign: "center", marginTop: 6 }} />
           </div>
-          <div style={{ position: "absolute", left: 1330, top: 200 }}>
-            <Hero text={"LONG DAYS.\nLATE NIGHTS."} size={64} t={f - LD - 8} dur={12} stagger={0.8} color={C.white} lineHeight={1.05} />
-          </div>
         </AbsoluteFill>
       )}
 
@@ -324,14 +296,6 @@ export const VerseWorld: React.FC = () => {
               style={{ filter: glow(0.8) }}
             />
           </svg>
-          <div style={{ position: "absolute", left: 120, top: 190, opacity: 1 - ramp(f, IM - 6, 12) }}>
-            <Hero text="GROOVE" size={240} t={f - GR - 6} mode="track" dur={16} />
-          </div>
-          {f >= IM && (
-            <div style={{ position: "absolute", left: 1150, top: 470 - 380 * settle + 0, opacity: ramp(f, IM + 10, 14) }}>
-              <Hero text="IMPROVE" size={150} t={f - IM - 10} dur={16} stagger={1.4} color={C.white} />
-            </div>
-          )}
         </AbsoluteFill>
       )}
       <Vignette />

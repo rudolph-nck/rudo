@@ -161,32 +161,6 @@ export const SignalWorld: React.FC = () => {
                 </div>
               </Obj>
             )}
-            {f >= WY && f < RD + 24 && (
-              <Obj x={430} y={-260} anchor="bottom-left" opacity={1 - numOut}>
-                <div style={{ position: "relative" }}>
-                  <div
-                    style={{
-                      clipPath: `inset(0 ${100 - ramp(f, WY, 22, cubicInOut) * 100}% 0 0)`,
-                    }}
-                  >
-                    <Serif text="what a year!" size={62} italic t={f - WY} dur={10} />
-                  </div>
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: -34,
-                      top: 70,
-                      width: 60 * ramp(f, WY, 14),
-                      height: 1,
-                      background: C.warm,
-                      opacity: 0.6,
-                      transform: "rotate(-38deg)",
-                      transformOrigin: "0 0",
-                    }}
-                  />
-                </div>
-              </Obj>
-            )}
 
             {/* different roads / different stories / one destination */}
             {f >= RD && f < DS + 44 && (
@@ -328,10 +302,10 @@ export const SignalWorld: React.FC = () => {
           )}
           {/* HUD */}
           <AbsoluteFill style={{ opacity: ramp(f, 30, 40) * (1 - ramp(f, RISE - 20, 30)) }}>
-            <div style={{ position: "absolute", left: 96, top: 72 }}>
+            <div style={{ position: "absolute", left: 96, bottom: 92 }}>
               <Mono text="ADDAPALOOZA — THE SUMMIT 2026" t={f - 30} size={14} opacity={0.42} />
             </div>
-            <div style={{ position: "absolute", right: 96, top: 72, textAlign: "right" }}>
+            <div style={{ position: "absolute", right: 96, bottom: 92, textAlign: "right" }}>
               <Mono text="ONE TEAM / ONE RHYTHM" t={f - 44} size={14} opacity={0.42} />
             </div>
             <div style={{ position: "absolute", left: 96, bottom: 66 }}>

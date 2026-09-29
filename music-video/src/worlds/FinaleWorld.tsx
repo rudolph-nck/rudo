@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { AbsoluteFill } from "remotion";
 import deptData from "../../data/departments.json";
 import { DJ, DJStage } from "../components/DJ";
+import { Helmet } from "../components/Helmet";
 import { monthX, TimelineRuler } from "../components/Timeline";
 import { Field, Flash, Vignette } from "../effects/Finish";
 import { ParticleField } from "../three/Particles";
@@ -53,11 +54,15 @@ export const FinaleWorld: React.FC = () => {
 
   const lights = ramp(f, D1 - 1, 5, expoOut);
   // camera: wide on the drop → closer through the chorus → close-up on "this is how we move"
-  const zoom = mix(1, 1.12, ramp(f, D1, O3 - D1, cubicInOut)) * mix(1, 1.08, ramp(f, O3, TH - O3, cubicInOut)) * mix(1, 1.55, ramp(f, TH - 4, 26, expoInOut));
+  // wide on the drop → fast push into the helmet → cut to the visor close-up
   const djW = 1180;
-  const djX = mix(1140, 1060, ramp(f, TH - 4, 26, expoInOut));
-  const djY = mix(1050, 1300, ramp(f, TH - 4, 26, expoInOut)); // booth bottom edge
+  const djX = 1140;
+  const djY = 1050; // booth bottom edge
   const djH = (djW * 669) / 1118;
+  const push = ramp(f, SH - 26, 26, (x) => x * x * x);
+  const zoom = mix(1, 1.08, ramp(f, D1, SH - D1, cubicInOut)) * mix(1, 4.2, push);
+  const HC = SH - 1; // cut to the helmet close-up
+  const helmetIn = ramp(f, HC, 8, expoOut);
   const textOut = ramp(f, O4 - 6, 8);
   const tlCam = { ...baseCam(40), x: mix(monthX(11) + 400, monthX(0) - 600, expoInOut(ramp(f, BT, BB - BT))), y: -150, ry: -30, rx: 6 };
 
@@ -70,48 +75,43 @@ export const FinaleWorld: React.FC = () => {
     <AbsoluteFill>
       <Field />
 
-      {phDJ && (
-        <AbsoluteFill style={{ opacity: 1 - ramp(f, O4 - 2, 6) }}>
+      {phDJ && f < HC + 2 && (
+        <AbsoluteFill>
           <DJStage abs={abs} lights={lights} cx={djX} cy={djY - djH * 0.9} />
           <ParticleField cam={baseCam(40, { z: 1483 - f * 2 })} frame={f} count={320} opacity={0.45 * lights} size={1.9} seed={226}
             box={{ x: [-2600, 2600], y: [-1500, 1500], z: [-5000, 900] }} drift={[0, -0.6, 0]} />
-          {/* the line passes behind him */}
-          <div style={{ position: "absolute", left: 0, top: djY - djH * 0.6, width: 1920, height: 4, background: C.blue, filter: glow(0.8), opacity: lights,
+          <div style={{ position: "absolute", left: 0, top: djY - djH * 0.6, width: 1920, height: 4, background: C.blue, filter: glow(0.8), opacity: lights * (1 - push),
             transform: `scaleX(${ramp(f, D1, 18, expoOut)})`, transformOrigin: "0 50%" }} />
-          <div style={{ position: "absolute", left: djX, top: djY, transform: `translate(-50%,-100%) scale(${zoom})`, transformOrigin: "50% 30%" }}>
+          {/* push toward the helmet: transform origin sits on his head */}
+          <div style={{ position: "absolute", left: djX, top: djY, transform: `translate(-50%,-100%) scale(${zoom})`, transformOrigin: "51.4% 9%" }}>
             <DJ abs={abs} width={djW} lights={0.15 + 0.85 * lights} energy={f < D1 ? 0 : 1} />
           </div>
-          {/* type */}
-          <div style={{ position: "absolute", left: 110, top: 150, opacity: 1 - textOut }}>
-            {f >= D1 && f < SH && (
-              <>
-                <Hero text="ONE TEAM!" size={130} t={f - D1} dur={8} stagger={1} tracking={-0.035} />
-                <Hero text="ONE RHYTHM!" size={130} t={f - W("drop1", 2)} dur={8} stagger={1} tracking={-0.035} color={C.blue} />
-              </>
-            )}
-            {f >= SH && f < O3 && (
-              <Hero text={"LET’S SHOW ’EM\nHOW WE MOVE!"} size={110} t={f - SH} dur={10} stagger={0.6} tracking={-0.03} lineHeight={0.95} />
-            )}
-            {f >= O3 && f < TH && (
-              <div key={hitIdx} style={{ transform: `scale(${1 + 0.03 * db})`, transformOrigin: "0 50%" }}>
-                <Mono text={`${String(hitIdx).padStart(2, "0")} / 03`} t={999} size={16} opacity={0.5} />
-                <div style={{ height: 10 }} />
-                <Hero text="ONE TEAM!" size={130} t={f - lastHit} dur={7} stagger={0.8} tracking={-0.035} />
-                <Hero text="ONE RHYTHM!" size={130} t={f - W(["otor3", "otor3b", "otor3c"][Math.max(0, hitIdx - 1)], 2)} dur={7} stagger={0.8} tracking={-0.035} color={C.blue} />
-                <div style={{ display: "flex", gap: 14, marginTop: 26 }}>
-                  {[0, 1, 2, 3].map((k) => (
-                    <div key={k} style={{ width: 150, height: 5, background: k === inBar ? C.blue : "rgba(255,255,255,0.16)", boxShadow: k === inBar ? `0 0 14px rgba(${C.blueRGB},0.8)` : undefined }} />
-                  ))}
-                </div>
-              </div>
-            )}
-            {f >= TH && (
-              <>
-                <Mono text="ADDAPALOOZA · LIVE" t={f - TH} size={16} opacity={0.6} />
-                <div style={{ height: 14 }} />
-                <Hero text={"THIS IS HOW\nWE MOVE!"} size={130} t={f - TH} dur={10} stagger={0.8} tracking={-0.035} lineHeight={0.95} />
-              </>
-            )}
+          {f >= D1 && (
+            <div style={{ position: "absolute", left: 110, top: 150, opacity: 1 - ramp(f, SH - 20, 10) }}>
+              <Hero text="ONE TEAM!" size={130} t={f - D1} dur={8} stagger={1} tracking={-0.035} />
+              <Hero text="ONE RHYTHM!" size={130} t={f - W("drop1", 2)} dur={8} stagger={1} tracking={-0.035} color={C.blue} />
+            </div>
+          )}
+        </AbsoluteFill>
+      )}
+
+      {/* the helmet: lyrics on the visor */}
+      {phDJ && f >= HC && (
+        <AbsoluteFill style={{ opacity: 1 - ramp(f, O4 - 4, 6) }}>
+          <DJStage abs={abs} lights={1} cx={960} cy={140} />
+          <ParticleField cam={baseCam(40, { z: 1483 - f * 1.5 })} frame={f} count={260} opacity={0.4} size={1.8} seed={229}
+            box={{ x: [-2600, 2600], y: [-1500, 1500], z: [-5000, 900] }} drift={[0, -0.5, 0]} />
+          <div style={{ position: "absolute", left: 960, top: 1100,
+            transform: `translate(-50%,-100%) scale(${mix(1.25, 1, helmetIn) * mix(1, 1.07, ramp(f, HC, O4 - HC, cubicInOut))})`, transformOrigin: "50% 60%" }}>
+            <Helmet abs={abs} height={1140} ids={["showem", "otor3", "otor3b", "otor3c", "thisishow"]} />
+          </div>
+          <div style={{ position: "absolute", left: 110, top: 96 }}>
+            <Mono text="ADDAPALOOZA · LIVE" t={f - HC} size={16} opacity={0.6} />
+          </div>
+          <div style={{ position: "absolute", left: 110, bottom: 96, display: "flex", gap: 12 }}>
+            {[0, 1, 2, 3].map((k) => (
+              <div key={k} style={{ width: 110, height: 5, background: k === inBar ? C.blue : "rgba(255,255,255,0.16)", boxShadow: k === inBar ? `0 0 14px rgba(${C.blueRGB},0.8)` : undefined }} />
+            ))}
           </div>
         </AbsoluteFill>
       )}
@@ -201,7 +201,7 @@ export const FinaleWorld: React.FC = () => {
       )}
 
       <Flash at={D1} peak={0.6} dur={10} />
-      <Flash at={TH} peak={0.18} />
+      <Flash at={SH - 1} peak={0.35} dur={8} />
       <Vignette strength={0.62} />
     </AbsoluteFill>
   );
