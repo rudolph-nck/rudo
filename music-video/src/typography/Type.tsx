@@ -29,6 +29,8 @@ export const Hero: React.FC<
     lineHeight?: number;
     align?: "left" | "center" | "right";
     ease?: Ease;
+    /** per-word start frames (relative to t = 0) so each word lands as it is sung */
+    wordTimes?: number[];
   }
 > = ({
   text,
@@ -46,9 +48,13 @@ export const Hero: React.FC<
   align = "left",
   ease = expoOut,
   style,
+  wordTimes,
 }) => {
   const lines = text.split("\n");
   let idx = 0;
+  let word = -1; // running word index across lines
+  let inWord = false;
+  let wordStart = 0;
   const o = clamp01(out);
   return (
     <div
@@ -71,7 +77,14 @@ export const Hero: React.FC<
         <div key={li} style={{ overflow: mode === "rise" ? "hidden" : "visible", paddingBottom: size * 0.06, marginBottom: -size * 0.06 }}>
           {Array.from(ln).map((ch, ci) => {
             const i = idx++;
-            const p = ease(clamp01((t - i * stagger) / dur));
+            if (ci === 0) inWord = false;
+            if (ch !== " " && !inWord) {
+              word++;
+              wordStart = i;
+            }
+            inWord = ch !== " ";
+            const start = wordTimes ? (wordTimes[Math.max(0, word)] ?? 0) + (i - wordStart) * stagger : i * stagger;
+            const p = ease(clamp01((t - start) / dur));
             let tr = "none";
             let op = 1;
             if (mode === "rise") tr = `translateY(${(1 - p) * 105 + o * -105}%)`;

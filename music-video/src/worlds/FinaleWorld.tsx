@@ -36,6 +36,10 @@ export const FinaleWorld: React.FC = () => {
     BT = L("beenthrough"),
     BB = L("branchesback"),
     EC = L("everycrew");
+  // word k of a line, in frames from the line's start (type lands on the sung word)
+  const wt = (id: string, from: number) => Array.from({ length: 8 }, (_, k) => W(id, k) - from);
+  const BR = W("branchesback", 2), // "branches"
+    BO = W("branchesback", 5); // "back office"
   const db = downbeatPulse(abs, 5);
   const bi = beatIndex(abs);
   const inBar = (((bi - 2) % 4) + 4) % 4;
@@ -141,7 +145,7 @@ export const FinaleWorld: React.FC = () => {
             <TimelineRuler labelSize={34} active={Math.max(0, Math.min(11, Math.round((tlCam.x + 300 - monthX(0)) / 700)))} />
           </Stage3D>
           <div style={{ position: "absolute", left: 110, top: 130 }}>
-            <Hero text={"LOOK AT EVERYTHING\nWE’VE BEEN THROUGH!"} size={104} t={f - BT} dur={10} stagger={0.5} tracking={-0.03} lineHeight={0.95} />
+            <Hero text={"LOOK AT EVERYTHING\nWE’VE BEEN THROUGH!"} size={104} t={f - BT} dur={8} stagger={0.4} wordTimes={wt("beenthrough", BT)} tracking={-0.03} lineHeight={0.95} />
           </div>
         </AbsoluteFill>
       )}
@@ -161,21 +165,21 @@ export const FinaleWorld: React.FC = () => {
                   j = k;
                 }
               }
-              const t = clamp01((f - BB - i * 0.6) / 8);
+              const t = clamp01((f - BR + 2 - i * 0.6) / 8);
               return <line key={i} x1={nodes[j].x} y1={nodes[j].y} x2={mix(nodes[j].x, n.x, t)} y2={mix(nodes[j].y, n.y, t)} stroke={C.blue} strokeWidth={1.6} opacity={0.8} />;
             })}
             {nodes.map((n, i) => (
-              <circle key={`c${i}`} cx={n.x} cy={n.y} r={4.5} fill={C.white} opacity={clamp01((f - BB - i * 0.6) / 4)} />
+              <circle key={`c${i}`} cx={n.x} cy={n.y} r={4.5} fill={C.white} opacity={clamp01((f - BR + 2 - i * 0.6) / 4)} />
             ))}
           </svg>
-          <div style={{ position: "absolute", left: 0, top: 950, width: 1920, height: 4, background: C.blue, filter: glow(0.8), transform: `scaleX(${ramp(f, BB + 26, 20, expoOut)})`, transformOrigin: "0 50%" }} />
+          <div style={{ position: "absolute", left: 0, top: 950, width: 1920, height: 4, background: C.blue, filter: glow(0.8), transform: `scaleX(${ramp(f, BO - 2, 20, expoOut)})`, transformOrigin: "0 50%" }} />
           {deptData.departments.slice(0, 12).map((d, i) => (
-            <div key={d.id} style={{ position: "absolute", top: 966, left: 110 + i * 150 - (f - BB) * 3, opacity: clamp01((f - BB - 26 - i) / 6) }}>
+            <div key={d.id} style={{ position: "absolute", top: 966, left: 110 + i * 150 - (f - BB) * 3, opacity: clamp01((f - BO + 2 - i) / 6) }}>
               <Mono text={d.name.split("\n")[0]} t={999} size={12} opacity={0.6} />
             </div>
           ))}
           <div style={{ position: "absolute", left: 110, top: 600 }}>
-            <Hero text={"FROM THE BRANCHES\nTO THE BACK OFFICE,"} size={96} t={f - BB} dur={10} stagger={0.5} tracking={-0.03} lineHeight={0.95} />
+            <Hero text={"FROM THE BRANCHES\nTO THE BACK OFFICE,"} size={96} t={f - BB} dur={8} stagger={0.4} wordTimes={wt("branchesback", BB)} tracking={-0.03} lineHeight={0.95} />
           </div>
         </AbsoluteFill>
       )}
@@ -195,7 +199,7 @@ export const FinaleWorld: React.FC = () => {
             })}
           </svg>
           <div style={{ position: "absolute", left: 110, top: 190, opacity: 1 - ramp(f, dur - 16, 10) }}>
-            <Hero text={"EVERY TEAM\nAND EVERY CREW,"} size={110} t={f - EC} dur={10} stagger={0.6} tracking={-0.03} lineHeight={0.95} />
+            <Hero text={"EVERY TEAM\nAND EVERY CREW,"} size={110} t={f - EC} dur={8} stagger={0.4} wordTimes={wt("everycrew", EC)} tracking={-0.03} lineHeight={0.95} />
           </div>
         </AbsoluteFill>
       )}
