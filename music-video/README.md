@@ -34,7 +34,7 @@ src/
   worlds/           one component per visual chapter (Signal, Verse, Chorus, Map, Rail, Mosaic,
                     Bridge, Build, Finale, Climax, Outro)
   three/            Stage3D (CSS-3D perspective stage), Lines3D (canvas lines with near-clip),
-                    Particles, PlusMonument (Three.js extruded plus)
+                    Particles, Lines3D
   components/       Brand (PlusMark, BrandLine, Logo, Segment), Timeline, Glyphs (27 line diagrams)
   typography/       Hero, Narrative, Mono, Serif, Scramble, Counter, Caption
   effects/          FilmGrain, Vignette, LightPool, Flash, Field

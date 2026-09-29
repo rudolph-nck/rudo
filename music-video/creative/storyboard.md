@@ -80,8 +80,9 @@ Warm white, serif, stillness, dust in a single light pool, a thin vertical line 
 | 225.95 | "YOU READY?" | Visor flares. **YOU READY?** White flash on the drop. |
 
 ## CH 11 · FINAL CHORUS (226.0 – 246.2) · `FinaleWorld`
-| 226.0 | drop / "Let's show 'em how we move." | A lit, extruded 3D **plus monument** (Three.js) turns in space; the line orbits it. |
-| 229.2 | "ONE TEAM! ONE RHYTHM!" | Hero type orbits the monument; its emissive edge pulses on beats. |
+| 225.7 | drop / "ONE TEAM! ONE RHYTHM!" | The booth lights up: the DJ performs, beams sweep, the line passes behind him. |
+| 228.5 | "Let's show 'em how we move!" | Fast push into his head, cut to the helmet close-up. The visor becomes an LED screen and the lyrics light up word by word. |
+| 230.3–236.6 | "ONE TEAM! ONE RHYTHM!" ×3 / "This is how we move!" | Lyrics play on the visor; the helmet nods smoothly on the beat. |
 | 234.2 | "This is how we move!" | The DJ at the Addapalooza booth, inside a notched frame, graded dark, the line behind him. |
 | 236.5 | "ONE TEAM! ONE RHYTHM!" | Chorus type returns bigger, with the beat meter (call-back to CH 4). |
 | 239.5 | "Look at everything we've been through!" | The 2026 timeline rushes past with its months (call-back to CH 2–3). |

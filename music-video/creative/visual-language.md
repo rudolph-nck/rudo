@@ -10,7 +10,7 @@ names has been drawn onto it.
    into the plus whenever the lyric says *addition / together / one*.
 3. **Transitions are transformations.** Each chapter's final state *is* the next chapter's first state:
    point → line → ruler → plus → map → timeline → dial → waveform → curve → type → road → vanishing point
-   → constellation → rail → ring → depth planes → mosaic plus → margin → line → helmet visor → monument
+   → constellation → rail → ring → depth planes → mosaic plus → margin → line → crowd → helmet visor
    → logo → point.
 4. **Darkness is composition.** Field is near-black; light pools define space.
 5. **Blue means something.** Vivid Blue marks the line, the plus, the current word, and live nodes.

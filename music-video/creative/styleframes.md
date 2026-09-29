@@ -4,7 +4,7 @@ Full-resolution stills rendered straight from the final composition (`renders/st
 key moment. Regenerate with:
 
 ```bash
-node scripts/stills.mjs renders/styleframes 1 10.7 43.9 66.9 94.9 131.7 181.9 197.9 205.5 222.1 226.7 248.3 259.5 274.8
+node scripts/stills.mjs renders/styleframes 1 10.7 32.5 43.9 69.5 95.8 131.7 183.6 198.6 205.5 224.0 231.9 250.3 260.8 275.0
 ```
 
 | # | Time | Moment | Establishes |
@@ -18,7 +18,7 @@ node scripts/stills.mjs renders/styleframes 1 10.7 43.9 66.9 94.9 131.7 181.9 19
 | 07 | 197.9 s | **THAT'S ADDITION.** — the plus made of every name | Recognition; every piece matters |
 | 08 | 205.5 s | Intimate — **Teach.** | Warm editorial register: serif, dust, a single margin line |
 | 09 | 222.1 s | Tension — **WE MOVE AS ONE.** | Everything collapsed to one line |
-| 10 | 226.7 s | Largest climax — **YOU READY?** + the plus monument | Genuine 3D sculptural brand object, lit |
+| 10 | 231.9 s | Largest climax — the helmet visor as an LED lyric screen | The DJ as the film's performer |
 | 11 | 248.3 s | **TOGETHER** | Lines from every direction lock into the plus |
 | 12 | 259.5 s | Logo lockup | Brand lines at exact plus weight |
 | 13 | 274.8 s | Ending — Addapalooza + tagline + logo | Arrival |
@@ -32,4 +32,4 @@ node scripts/stills.mjs renders/styleframes 1 10.7 43.9 66.9 94.9 131.7 181.9 19
 - Old labels are hidden in wide shots so the constellation reads as light, not text.
 - The ENVISION / ADDITION words were moved off the plus so the thesis frame stays clean.
 - The chorus hero type was resized so "ONE RHYTHM" never touches the frame edge.
-- The monument was scaled down and moved right to clear the type; its orbit line was tightened.
+- The 3D plus monument was removed at the client's request; the DJ now carries the final drop.
