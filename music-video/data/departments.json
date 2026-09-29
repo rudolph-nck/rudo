@@ -1,0 +1,167 @@
+{
+ "note": "Each department line = name (hero) + action (narrative) + a line-drawn glyph. name + action reproduce the lyric.",
+ "departments": [
+  {
+   "id": "d01",
+   "name": "Accounting\nand Finance",
+   "action": "keeping numbers aligned,",
+   "glyph": "aligned"
+  },
+  {
+   "id": "d02",
+   "name": "Payments and\nCollections",
+   "action": "keeping money moving right!",
+   "glyph": "moving"
+  },
+  {
+   "id": "d03",
+   "name": "Business\nIntelligence",
+   "action": "turning data into drive!",
+   "glyph": "data"
+  },
+  {
+   "id": "d04",
+   "name": "Project\nManagement",
+   "action": "keeps the mission on time!",
+   "glyph": "time"
+  },
+  {
+   "id": "d05",
+   "name": "Fraud Prevention,\nB-S-A",
+   "action": "on guard,",
+   "glyph": "guard"
+  },
+  {
+   "id": "d06",
+   "name": "Compliance\nand Legal",
+   "action": "keeping standards strong!",
+   "glyph": "standards"
+  },
+  {
+   "id": "d07",
+   "name": "Enterprise\nRisk",
+   "action": "watching what’s ahead,",
+   "glyph": "ahead"
+  },
+  {
+   "id": "d08",
+   "name": "Quality\nControl",
+   "action": "making sure we get it right instead!",
+   "glyph": "right"
+  },
+  {
+   "id": "d09",
+   "name": "Loss Prevention,\nLoss Mitigation",
+   "action": "seeing it through,",
+   "glyph": "through"
+  },
+  {
+   "id": "d10",
+   "name": "Consumer and\nResidential",
+   "action": "making dreams come true!",
+   "glyph": "dreams"
+  },
+  {
+   "id": "d11",
+   "name": "Business\nLending",
+   "action": "opening doors to something new,",
+   "glyph": "doors"
+  },
+  {
+   "id": "d12",
+   "name": "Business Ops\n& Servicing",
+   "action": "keeping business moving too!",
+   "glyph": "gears"
+  },
+  {
+   "id": "d13",
+   "name": "IT",
+   "action": "keeps the systems running day and night,",
+   "glyph": "daynight"
+  },
+  {
+   "id": "d14",
+   "name": "Facilities",
+   "action": "keeps our spaces working right!",
+   "glyph": "spaces"
+  },
+  {
+   "id": "d15",
+   "name": "Brokerage\nServices",
+   "action": "helping futures grow,",
+   "glyph": "grow"
+  },
+  {
+   "id": "d16",
+   "name": "Different teams\nbehind it",
+   "action": "—making Addition go!",
+   "glyph": "plus"
+  },
+  {
+   "id": "d17",
+   "name": "Retail Banking,\nRetail Ops",
+   "action": "holding it down,",
+   "glyph": "holding"
+  },
+  {
+   "id": "d18",
+   "name": "Contact\nCenter",
+   "action": "answering when members come around!",
+   "glyph": "answering"
+  },
+  {
+   "id": "d19",
+   "name": "Virtual\nServices",
+   "action": "meeting members where they are,",
+   "glyph": "where"
+  },
+  {
+   "id": "d20",
+   "name": "Digital Member\nExperience",
+   "action": "taking service far!",
+   "glyph": "far"
+  },
+  {
+   "id": "d21",
+   "name": "Member\nExperience",
+   "action": "keeps the member at the heart,",
+   "glyph": "heart"
+  },
+  {
+   "id": "d22",
+   "name": "Community\nDevelopment",
+   "action": "making an impact from the start!",
+   "glyph": "impact"
+  },
+  {
+   "id": "d23",
+   "name": "Marketing\nand PR",
+   "action": "tell the story, make it loud,",
+   "glyph": "loud"
+  },
+  {
+   "id": "d24",
+   "name": "High School\nBranches",
+   "action": "building futures—make us proud!",
+   "glyph": "proud"
+  },
+  {
+   "id": "d25",
+   "name": "Human Resources,\nPeople Ops",
+   "action": "supporting the crew,",
+   "glyph": "support"
+  },
+  {
+   "id": "d26",
+   "name": "Learning and\nDevelopment",
+   "action": "helping talent break through!",
+   "glyph": "breakthrough"
+  },
+  {
+   "id": "d27",
+   "name": "Executive\nOffice",
+   "action": "setting vision, leading the way—",
+   "glyph": "lead"
+  }
+ ]
+}

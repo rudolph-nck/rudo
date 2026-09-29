@@ -1,0 +1,257 @@
+{
+ "note": "Approximate public coordinates of each place named in the roll call (used as an abstract constellation, not a survey map).",
+ "places": [
+  {
+   "line": "b01",
+   "name": "Altamonte",
+   "lat": 28.661,
+   "lon": -81.366,
+   "side": "l"
+  },
+  {
+   "line": "b01",
+   "name": "Longwood",
+   "lat": 28.703,
+   "lon": -81.338,
+   "side": "r"
+  },
+  {
+   "line": "b01",
+   "name": "Lake Mary",
+   "lat": 28.759,
+   "lon": -81.318,
+   "side": "r"
+  },
+  {
+   "line": "b02",
+   "name": "Fern Park",
+   "lat": 28.649,
+   "lon": -81.348,
+   "side": "r"
+  },
+  {
+   "line": "b02",
+   "name": "Sanford",
+   "lat": 28.8,
+   "lon": -81.273,
+   "side": "r"
+  },
+  {
+   "line": "b03",
+   "name": "Appleyard",
+   "lat": 30.445,
+   "lon": -84.335,
+   "side": "l"
+  },
+  {
+   "line": "b03",
+   "name": "Hansell",
+   "lat": 30.452,
+   "lon": -84.262,
+   "side": "r"
+  },
+  {
+   "line": "b03",
+   "name": "Quincy",
+   "lat": 30.587,
+   "lon": -84.583,
+   "side": "l"
+  },
+  {
+   "line": "b04",
+   "name": "Bainbridge",
+   "lat": 30.904,
+   "lon": -84.575,
+   "side": "r"
+  },
+  {
+   "line": "b04",
+   "name": "Chattahoochee",
+   "lat": 30.705,
+   "lon": -84.846,
+   "side": "l"
+  },
+  {
+   "line": "b05",
+   "name": "Clermont",
+   "lat": 28.549,
+   "lon": -81.773,
+   "side": "l"
+  },
+  {
+   "line": "b05",
+   "name": "Four Corners",
+   "lat": 28.333,
+   "lon": -81.646,
+   "side": "l"
+  },
+  {
+   "line": "b05",
+   "name": "Kissimmee",
+   "lat": 28.292,
+   "lon": -81.408,
+   "side": "r"
+  },
+  {
+   "line": "b05",
+   "name": "The Loop",
+   "lat": 28.345,
+   "lon": -81.423,
+   "side": "r"
+  },
+  {
+   "line": "b06",
+   "name": "Poinciana",
+   "lat": 28.14,
+   "lon": -81.458,
+   "side": "l"
+  },
+  {
+   "line": "b06",
+   "name": "St. Cloud",
+   "lat": 28.249,
+   "lon": -81.281,
+   "side": "r"
+  },
+  {
+   "line": "b07",
+   "name": "Winter Garden",
+   "lat": 28.565,
+   "lon": -81.586,
+   "side": "l"
+  },
+  {
+   "line": "b07",
+   "name": "Metro West",
+   "lat": 28.509,
+   "lon": -81.466,
+   "side": "l"
+  },
+  {
+   "line": "b07",
+   "name": "South Orlando",
+   "lat": 28.448,
+   "lon": -81.395,
+   "side": "r"
+  },
+  {
+   "line": "b09",
+   "name": "Apopka",
+   "lat": 28.676,
+   "lon": -81.512,
+   "side": "l"
+  },
+  {
+   "line": "b09",
+   "name": "Eustis",
+   "lat": 28.853,
+   "lon": -81.685,
+   "side": "r"
+  },
+  {
+   "line": "b09",
+   "name": "Leesburg",
+   "lat": 28.811,
+   "lon": -81.878,
+   "side": "l"
+  },
+  {
+   "line": "b10",
+   "name": "Oviedo",
+   "lat": 28.67,
+   "lon": -81.208,
+   "side": "r"
+  },
+  {
+   "line": "b10",
+   "name": "Mills Ave",
+   "lat": 28.566,
+   "lon": -81.365,
+   "side": "r"
+  },
+  {
+   "line": "b11",
+   "name": "Pine Hills",
+   "lat": 28.558,
+   "lon": -81.453,
+   "side": "l"
+  },
+  {
+   "line": "b11",
+   "name": "Parkway",
+   "lat": 28.476,
+   "lon": -81.305,
+   "side": "r"
+  },
+  {
+   "line": "b11",
+   "name": "East Orlando",
+   "lat": 28.545,
+   "lon": -81.26,
+   "side": "r"
+  },
+  {
+   "line": "b12",
+   "name": "Lake Nona",
+   "lat": 28.393,
+   "lon": -81.244,
+   "side": "r"
+  },
+  {
+   "line": "b12",
+   "name": "Killearn",
+   "lat": 30.537,
+   "lon": -84.227,
+   "side": "r"
+  },
+  {
+   "line": "b13",
+   "name": "Liberty",
+   "lat": 30.432,
+   "lon": -84.977,
+   "side": "l"
+  },
+  {
+   "line": "b13",
+   "name": "Marianna",
+   "lat": 30.774,
+   "lon": -85.227,
+   "side": "l"
+  },
+  {
+   "line": "b14",
+   "name": "Orange City",
+   "lat": 28.949,
+   "lon": -81.299,
+   "side": "r"
+  },
+  {
+   "line": "b14",
+   "name": "Tallahassee Downtown",
+   "lat": 30.44,
+   "lon": -84.283,
+   "side": "r"
+  },
+  {
+   "line": "b15",
+   "name": "UCF",
+   "lat": 28.602,
+   "lon": -81.2,
+   "side": "r"
+  },
+  {
+   "line": "b15",
+   "name": "Seminole State",
+   "lat": 28.745,
+   "lon": -81.3,
+   "side": "l"
+  },
+  {
+   "line": "b15",
+   "name": "Downtown Campus",
+   "lat": 28.543,
+   "lon": -81.388,
+   "side": "l"
+  }
+ ]
+}

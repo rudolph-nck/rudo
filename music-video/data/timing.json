@@ -1,0 +1,133 @@
+{
+ "fps": 30,
+ "duration": 282.0,
+ "durationInFrames": 8460,
+ "sections": [
+  {
+   "id": "intro",
+   "name": "Intro \u2014 cinematic build",
+   "worlds": "Signal \u2192 Line \u2192 Logo",
+   "start": 0.0,
+   "end": 21.5,
+   "startFrame": 0,
+   "endFrame": 645
+  },
+  {
+   "id": "rise",
+   "name": "Rise / cut / drop",
+   "worlds": "Timeline",
+   "start": 21.5,
+   "end": 29.9,
+   "startFrame": 645,
+   "endFrame": 897
+  },
+  {
+   "id": "verse",
+   "name": "Verse",
+   "worlds": "Timeline \u00b7 Merger \u00b7 Map \u00b7 Dial \u00b7 Waveform",
+   "start": 29.9,
+   "end": 57.52,
+   "startFrame": 897,
+   "endFrame": 1726
+  },
+  {
+   "id": "chorus",
+   "name": "Chorus",
+   "worlds": "Rhythm type \u00b7 Road",
+   "start": 57.52,
+   "end": 74.1,
+   "startFrame": 1726,
+   "endFrame": 2223
+  },
+  {
+   "id": "branches",
+   "name": "Roll call \u2014 branches",
+   "worlds": "Constellation map",
+   "start": 74.1,
+   "end": 116.1,
+   "startFrame": 2223,
+   "endFrame": 3483
+  },
+  {
+   "id": "departments",
+   "name": "Beat switch \u2014 departments",
+   "worlds": "The Rail",
+   "start": 116.1,
+   "end": 183.4,
+   "startFrame": 3483,
+   "endFrame": 5502
+  },
+  {
+   "id": "beatcut",
+   "name": "Beat cut",
+   "worlds": "Depth planes \u00b7 Name mosaic",
+   "start": 183.4,
+   "end": 198.62,
+   "startFrame": 5502,
+   "endFrame": 5959
+  },
+  {
+   "id": "bridge",
+   "name": "Bridge",
+   "worlds": "Editorial light",
+   "start": 198.62,
+   "end": 214.4,
+   "startFrame": 5959,
+   "endFrame": 6432
+  },
+  {
+   "id": "build",
+   "name": "Beat builds",
+   "worlds": "Recap montage \u2192 single line",
+   "start": 214.4,
+   "end": 222.6,
+   "startFrame": 6432,
+   "endFrame": 6678
+  },
+  {
+   "id": "finalbuild",
+   "name": "Final build",
+   "worlds": "Tension / DJ reveal",
+   "start": 222.6,
+   "end": 226.0,
+   "startFrame": 6678,
+   "endFrame": 6780
+  },
+  {
+   "id": "finalchorus",
+   "name": "Final drop / chorus",
+   "worlds": "Monument plus \u00b7 DJ \u00b7 Timeline recall",
+   "start": 226.0,
+   "end": 246.2,
+   "startFrame": 6780,
+   "endFrame": 7386
+  },
+  {
+   "id": "climax",
+   "name": "Climax",
+   "worlds": "Together \u2192 logo",
+   "start": 246.2,
+   "end": 261.3,
+   "startFrame": 7386,
+   "endFrame": 7839
+  },
+  {
+   "id": "outro",
+   "name": "Outro",
+   "worlds": "Addapalooza \u00b7 Summit 2026",
+   "start": 261.3,
+   "end": 280.8,
+   "startFrame": 7839,
+   "endFrame": 8424
+  },
+  {
+   "id": "end",
+   "name": "Mic drop",
+   "worlds": "Line to point",
+   "start": 280.8,
+   "end": 282.0,
+   "startFrame": 8424,
+   "endFrame": 8460
+  }
+ ]
+}
