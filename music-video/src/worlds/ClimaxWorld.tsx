@@ -66,17 +66,17 @@ export const ClimaxWorld: React.FC = () => {
         <AbsoluteFill>
           <svg width={1920} height={1080} style={{ position: "absolute", inset: 0 }}>
             <path
-              d={`M0 640 Q 960 ${640 + Math.sin(f * 1.7) * 14 * tension + 60 * tension} 1920 640`}
+              d={`M0 540 Q 960 ${540 + Math.sin(f * 1.7) * 14 * tension + 60 * tension} 1920 540`}
               stroke={C.blue}
               strokeWidth={3 + 2 * tension}
               fill="none"
               style={{ filter: glow(0.6 + tension) }}
             />
           </svg>
-          <div style={{ position: "absolute", left: 960, top: 640, transform: `translate(-50%,-78%) translateX(${Math.sin(f * 2.3) * 3 * tension}px)` }}>
+          <div style={{ position: "absolute", left: 960, top: 540, transform: `translate(-50%,-78%) translateX(${Math.sin(f * 2.3) * 3 * tension}px)` }}>
             <Hero text="2026" size={400} t={f - TS + 4} dur={8} stagger={1.2} tracking={-0.045} />
           </div>
-          <div style={{ position: "absolute", left: 110, top: 720 }}>
+          <div style={{ position: "absolute", left: 110, top: 600 }}>
             <Mono text="PUT US TO THE TEST —" t={f - TS - 6} size={22} opacity={0.7} cps={40} weight={500} />
           </div>
         </AbsoluteFill>
