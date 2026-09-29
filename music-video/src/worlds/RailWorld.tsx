@@ -20,10 +20,10 @@ const sx = (i: number) => (i + 1) * STEP;
 
 /** four movements of the Rail: flat → angled → low → high */
 const MOVES: Array<{ until: number; ry: number; rx: number; y: number; zk: number }> = [
-  { until: 3, ry: 0, rx: 0, y: -330, zk: 1.0 },
-  { until: 9, ry: -16, rx: 5, y: -420, zk: 0.97 },
-  { until: 17, ry: 12, rx: -7, y: -160, zk: 0.95 },
-  { until: 99, ry: -7, rx: 17, y: -700, zk: 1.02 },
+  { until: 3, ry: 0, rx: 0, y: 60, zk: 1.0 },
+  { until: 9, ry: -14, rx: 0, y: 60, zk: 0.98 },
+  { until: 17, ry: 12, rx: 0, y: 60, zk: 0.98 },
+  { until: 99, ry: -8, rx: 0, y: 60, zk: 1.02 },
 ];
 const moveOf = (i: number) => MOVES.find((m) => i <= m.until)!;
 
@@ -119,15 +119,15 @@ export const RailWorld: React.FC = () => {
                 <Obj x={x} y={0} anchor="center">
                   <div style={{ width: 16, height: 16, borderRadius: 8, background: isCur ? C.white : C.blue, boxShadow: `0 0 18px rgba(${C.blueRGB},0.9)` }} />
                 </Obj>
-                <Obj x={x} y={44} anchor="top" opacity={op}>
+                <Obj x={x} y={34} anchor="top" opacity={op}>
                   <div style={{ textAlign: "center", whiteSpace: "nowrap" }}>
-                    <Mono text={`D.${String(i + 1).padStart(2, "0")} / 27`} t={isCur ? t : 999} size={20} opacity={0.7} color={C.blue} />
-                    <div style={{ height: 8 }} />
-                    <Mono text={d.name.replace("\n", " ")} t={isCur ? t - 4 : 999} size={22} opacity={0.75} weight={500} cps={80} />
+                    <Mono text={`D.${String(i + 1).padStart(2, "0")} / 27`} t={isCur ? t : 999} size={20} opacity={0.75} color={C.blue} />
+                    <div style={{ height: 10 }} />
+                    <Hero text={d.name.replace("\n", " ").toUpperCase()} size={58} t={isCur ? t : 999} dur={10} stagger={0.5} tracking={0} align="center" />
                   </div>
                 </Obj>
-                <Obj x={x} y={-215} anchor="center" opacity={isCur ? 1 : 0.15}>
-                  <Glyph kind={d.glyph} t={isCur ? t : 60} size={330} />
+                <Obj x={x} y={-265} anchor="center" opacity={isCur ? 1 : 0.15}>
+                  <Glyph kind={d.glyph} t={isCur ? t : 60} size={300} />
                 </Obj>
               </React.Fragment>
             );

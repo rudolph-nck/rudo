@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
 import { PlusMark, Segment } from "../components/Brand";
-import { YeahPile } from "../components/YeahPile";
+import { ConcertDrop } from "../components/ConcertDrop";
 import { monthX, TimelineRuler } from "../components/Timeline";
 import { Field, LightPool, Vignette } from "../effects/Finish";
 import { ParticleField } from "../three/Particles";
@@ -139,7 +139,8 @@ export const VerseWorld: React.FC = () => {
       )}
 
       {/* the chopped "yeah"s on the beat drop pile up, then collapse into the line */}
-      {f < CH + 6 && <YeahPile abs={abs} collapseAt={CH / 30 + chapter("verse").start - 0.35} lineY={700} />}
+      {/* the beat drop: a concert — the DJ on stage, the crowd jumping on the beat */}
+      {f < CH && <ConcertDrop abs={abs} f={f} outAt={CH} />}
 
 
       {/* two teams → the plus → the map */}

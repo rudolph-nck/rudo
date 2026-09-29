@@ -224,14 +224,20 @@ const GLYPHS: Record<string, G> = {
       </>
     );
   },
-  heart: (t) => (
-    <>
-      {[125, 88, 52].map((r, i) => (
-        <circle key={r} cx={150} cy={150} r={r * (1 + 0.03 * Math.sin(t * 0.3 - i))} {...W1} opacity={0.35 + i * 0.2} style={draw((t - i * 4) / 16, 2 * Math.PI * r)} />
-      ))}
-      <circle cx={150} cy={150} r={16} fill={C.blue} />
-    </>
-  ),
+  heart: (t) => {
+    // the member at the heart — hearts ripple out from a beating centre
+    const H = (sc: number) => `M150 ${150 + 28 * sc} C ${150 - 70 * sc} ${150 - 18 * sc}, ${150 - 36 * sc} ${150 - 72 * sc}, 150 ${150 - 34 * sc} C ${150 + 36 * sc} ${150 - 72 * sc}, ${150 + 70 * sc} ${150 - 18 * sc}, 150 ${150 + 28 * sc} Z`;
+    const beat = 1 + 0.08 * Math.max(0, Math.sin((t / 16.7) * Math.PI * 2));
+    return (
+      <>
+        {[0, 1, 2, 3].map((i) => {
+          const q = ((t + i * 13) % 52) / 52;
+          return <path key={i} d={H(1.0 + q * 1.9)} {...W1} strokeWidth={2.5} opacity={(1 - q) * clamp01(t / 8)} />;
+        })}
+        <path d={H(1.0 * beat)} fill={C.blue} opacity={clamp01(t / 6)} />
+      </>
+    );
+  },
   impact: (t) => (
     <>
       {[0, 1, 2, 3].map((i) => {

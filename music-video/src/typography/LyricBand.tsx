@@ -149,14 +149,17 @@ const Line: React.FC<{ line: LyricLine; t: number; abs: number; out: number }> =
       break;
     }
   const chars = s.display.length;
-  const size = chars > 46 ? 76 : chars > 30 ? 90 : 112;
+  // departments: lyrics sit under the station graphics, centred
+  const low = line.section === "departments";
+  const size = low ? (chars > 46 ? 60 : 70) : chars > 46 ? 76 : chars > 30 ? 90 : 112;
   return (
     <div
       style={{
         position: "absolute",
-        left: 110,
-        top: 96,
-        width: 1640,
+        left: low ? 140 : 110,
+        top: low ? 700 : 96,
+        width: low ? 1640 : 1640,
+        textAlign: low ? "center" : "left",
         fontFamily: F.hero,
         fontWeight: 800,
         fontSize: size,
@@ -186,11 +189,12 @@ export const LyricBand: React.FC = () => {
   const prevOn = prev && scene(prev.id).caption && prevOut < 1 && t <= prev.hold + 0.3;
   const holdOut = clamp01((t - (cur.hold - 0.25)) / 0.25);
   const vis = Math.max(curOn ? 1 - holdOut : 0, prevOn ? 1 - prevOut : 0);
+  const low = cur.section === "departments";
   if (vis <= 0.001) return null;
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
-      <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 480, opacity: vis,
-        background: "linear-gradient(180deg, rgba(6,7,8,0.72) 0%, rgba(6,7,8,0.45) 50%, rgba(6,7,8,0) 100%)" }} />
+      <div style={{ position: "absolute", left: 0, right: 0, top: low ? 600 : 0, height: 480, opacity: vis,
+        background: low ? "linear-gradient(0deg, rgba(6,7,8,0.72) 0%, rgba(6,7,8,0.45) 50%, rgba(6,7,8,0) 100%)" : "linear-gradient(180deg, rgba(6,7,8,0.72) 0%, rgba(6,7,8,0.45) 50%, rgba(6,7,8,0) 100%)" }} />
       {prevOn && prev && <Line line={prev} t={t} abs={f} out={prevOut} />}
       {curOn && <Line line={cur} t={t} abs={f} out={holdOut} />}
     </AbsoluteFill>
