@@ -163,7 +163,7 @@ const Line: React.FC<{ line: LyricLine; t: number; abs: number; out: number }> =
         lineHeight: 1.06,
         letterSpacing: "-0.02em",
         opacity: 1 - out,
-        transform: `translateY(${-cubicInOut(out) * 26}px)`,
+        transform: `translateY(${-cubicInOut(out) * 60}px)`,
       }}
     >
       {line.words.map((w, i) => (
@@ -182,7 +182,7 @@ export const LyricBand: React.FC = () => {
   const cur = allLyrics[idx];
   const curOn = scene(cur.id).caption && t <= cur.hold;
   const prev = idx > 0 ? allLyrics[idx - 1] : undefined;
-  const prevOut = prev ? clamp01((t - (cur.start - 0.1)) / 0.22) : 1;
+  const prevOut = prev ? clamp01((t - (cur.start - 0.16)) / 0.13) : 1;
   const prevOn = prev && scene(prev.id).caption && prevOut < 1 && t <= prev.hold + 0.3;
   const holdOut = clamp01((t - (cur.hold - 0.25)) / 0.25);
   const vis = Math.max(curOn ? 1 - holdOut : 0, prevOn ? 1 - prevOut : 0);

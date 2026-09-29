@@ -20,10 +20,10 @@ const sx = (i: number) => (i + 1) * STEP;
 
 /** four movements of the Rail: flat → angled → low → high */
 const MOVES: Array<{ until: number; ry: number; rx: number; y: number; zk: number }> = [
-  { until: 3, ry: 0, rx: 0, y: -80, zk: 1.0 },
-  { until: 9, ry: -16, rx: 5, y: -160, zk: 0.95 },
-  { until: 17, ry: 12, rx: -7, y: 120, zk: 0.92 },
-  { until: 99, ry: -7, rx: 17, y: -420, zk: 1.0 },
+  { until: 3, ry: 0, rx: 0, y: -330, zk: 1.0 },
+  { until: 9, ry: -16, rx: 5, y: -420, zk: 0.97 },
+  { until: 17, ry: 12, rx: -7, y: -160, zk: 0.95 },
+  { until: 99, ry: -7, rx: 17, y: -700, zk: 1.02 },
 ];
 const moveOf = (i: number) => MOVES.find((m) => i <= m.until)!;
 
@@ -126,8 +126,8 @@ export const RailWorld: React.FC = () => {
                     <Mono text={d.name.replace("\n", " ")} t={isCur ? t - 4 : 999} size={22} opacity={0.75} weight={500} cps={80} />
                   </div>
                 </Obj>
-                <Obj x={x} y={-250} anchor="center" opacity={isCur ? 1 : 0.15}>
-                  <Glyph kind={d.glyph} t={isCur ? t : 60} size={380} />
+                <Obj x={x} y={-215} anchor="center" opacity={isCur ? 1 : 0.15}>
+                  <Glyph kind={d.glyph} t={isCur ? t : 60} size={330} />
                 </Obj>
               </React.Fragment>
             );
