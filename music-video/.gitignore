@@ -3,3 +3,5 @@ out/
 .remotion/
 renders/previews/*.mp4
 renders/previews/frames/
+renders/final/*.mp4
+renders/final/chunks/
