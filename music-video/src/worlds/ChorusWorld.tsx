@@ -55,8 +55,8 @@ export const ChorusWorld: React.FC = () => {
       [
         [O1, { z: P * 1.04 }],
         [O2, { z: P * 0.98, ry: 0, x: 0 }],
-        [O2 + 20, { ry: -10, x: 260, z: P * 1.1 }, expoOut],
-        [LK, { ry: -4, x: 120, z: P * 1.0 }, sineInOut],
+        [O2 + 20, { ry: -6, x: 60, z: P * 1.12 }, expoOut],
+        [LK, { ry: -3, x: 30, z: P * 1.05 }, sineInOut],
         [LK + 8, { ry: 0, x: 0, z: P * 0.9 }],
         [RD, { z: ROAD_Z0, y: 0, rx: 3 }, (t) => mix(t, expoIn(t), 0.35)],
       ],
@@ -116,8 +116,8 @@ export const ChorusWorld: React.FC = () => {
       <ParticleField cam={cam} frame={f} count={f >= RD ? 500 : 240} opacity={0.45} size={1.8} seed={21}
         box={{ x: [-4000, 4000], y: [-1800, 240], z: [cam.z - 9000, cam.z + 600] }} drift={[0, 0, 0]} />
 
-      {f >= RD - 6 && (
-        <AbsoluteFill style={{ opacity: ramp(f, RD - 6, 14) }}>
+      {f >= RD - 26 && (
+        <AbsoluteFill style={{ opacity: ramp(f, RD - 26, 20) }}>
           <LightPool x={960} y={mix(560, 470, ramp(f, AS, 36))} r={1100} squash={0.22} color={C.blueRGB} opacity={0.12} />
           <Lines3D cam={cam} segs={[...roadSegs, ...horizon]} fadeFar={42000} />
         </AbsoluteFill>
@@ -127,12 +127,12 @@ export const ChorusWorld: React.FC = () => {
         {/* ONE TEAM / ONE RHYTHM */}
         {f < LK + 30 && (
           <>
-            <Obj x={-820} y={-10} anchor="bottom-left" opacity={1 - typeOut * 0.2}>
+            <Obj x={-820} y={-10} anchor="bottom-left" opacity={1 - typeOut}>
               <div style={{ transform: `scale(${heroScale})`, transformOrigin: "0 100%" }}>
                 <Hero text="ONE TEAM" size={250} t={f - O1 + 2} dur={12} stagger={1.3} tracking={-0.035} />
               </div>
             </Obj>
-            <Obj x={-820} y={240} anchor="bottom-left" opacity={1 - typeOut * 0.2}>
+            <Obj x={-820} y={240} anchor="bottom-left" opacity={1 - typeOut}>
               <div style={{ transform: `scale(${heroScale})`, transformOrigin: "0 100%" }}>
                 <Hero text="ONE RHYTHM" size={250} t={f - (f >= O2 ? W("otor2", 2) : W("otor1", 2))} dur={12} stagger={1.3} tracking={-0.035} color={C.blue} />
               </div>
@@ -171,9 +171,9 @@ export const ChorusWorld: React.FC = () => {
           })}
 
         {/* AS ONE stands at the end of the merged road */}
-        {f >= AS - 20 && f < words[1] && (
-          <Obj x={0} y={GROUND - 20} z={roadZ(AS) - 5200} anchor="bottom" opacity={ramp(f, AS - 20, 20) * (1 - ramp(f, words[0] - 6, 12))}>
-            <Hero text="AS ONE" size={900} t={f - AS + 4} dur={16} stagger={2} tracking={-0.04} />
+        {f >= AS - 20 && f < words[0] && (
+          <Obj x={0} y={GROUND - 20} z={roadZ(AS) - 5200} anchor="bottom" opacity={ramp(f, AS - 20, 20) * (1 - ramp(f, words[0] - 22, 12))}>
+            <Hero text="AS ONE" size={720} t={f - AS + 4} dur={16} stagger={2} tracking={-0.04} />
           </Obj>
         )}
 

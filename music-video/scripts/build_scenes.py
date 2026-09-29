@@ -20,8 +20,8 @@ CHAPTERS = [
     ("verse",       "VerseWorld",  29.90,  57.60, "whip-in on drop", "curve shoots up → cut on downbeat", "ink", "blue line / plus"),
     ("chorus",      "ChorusWorld", 57.40,  77.10, "hard cut on downbeat", "freeze → vanishing point", "ink", "beat meter"),
     ("branches",    "MapWorld",    76.80, 118.10, "point → map tilt", "nodes slide into one line", "ink", "live nodes"),
-    ("departments", "RailWorld",  117.80, 185.00, "nodes → rail", "rail bends into ring → snap to black", "ink", "station word"),
-    ("beatcut",     "MosaicWorld",184.80, 199.50, "black", "plus of names → dissolve to warm dark", "ink", "plus of names"),
+    ("departments", "RailWorld",  117.80, 186.40, "nodes → rail", "rail bends into ring → snap to black", "ink", "station word"),
+    ("beatcut",     "MosaicWorld",186.20, 199.50, "black", "plus of names → dissolve to warm dark", "ink", "plus of names"),
     ("bridge",      "BridgeWorld",199.20, 216.80, "warm fade", "line rotates horizontal", "warm dark", "single line"),
     ("build",       "BuildWorld", 216.50, 225.90, "line continues", "line holds → the drop", "ink", "one line"),
     ("finale",      "FinaleWorld",225.60, 247.60, "the drop — DJ lights up", "everything collapses to one line", "ink", "the DJ"),
@@ -31,7 +31,7 @@ CHAPTERS = [
 
 # lines whose world already displays the full lyric as hero type → no caption
 IN_WORLD = {
-    "y2026", "otor1", "otor2", "howwemove", "holdup", "letsroll", "departments",
+    "chant1", "chant2", "y2026", "otor1", "otor2", "howwemove", "holdup", "letsroll", "departments",
     "frontline", "backoffice", "mix", "names", "roles", "piece", "thatsaddition",
     "learn", "learn2", "teach", "teach2", "improve2", "improve3", "integrity", "integrity2",
     "offices", "roles2", "stories2", "roads2", "rhythmstarts", "moveasone",

@@ -56,9 +56,9 @@
    "id": "departments",
    "world": "RailWorld",
    "start": 117.8,
-   "end": 185.0,
+   "end": 186.4,
    "startFrame": 3534,
-   "endFrame": 5550,
+   "endFrame": 5592,
    "transitionIn": "nodes → rail",
    "transitionOut": "rail bends into ring → snap to black",
    "background": "ink",
@@ -67,9 +67,9 @@
   {
    "id": "beatcut",
    "world": "MosaicWorld",
-   "start": 184.8,
+   "start": 186.2,
    "end": 199.5,
-   "startFrame": 5544,
+   "startFrame": 5586,
    "endFrame": 5985,
    "transitionIn": "black",
    "transitionOut": "plus of names → dissolve to warm dark",
@@ -309,7 +309,7 @@
     897,
     965
    ],
-   "caption": true,
+   "caption": false,
    "notes": ""
   },
   {
@@ -331,7 +331,7 @@
     1034,
     1104
    ],
-   "caption": true,
+   "caption": false,
    "notes": ""
   },
   {

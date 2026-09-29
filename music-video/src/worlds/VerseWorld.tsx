@@ -40,7 +40,7 @@ const DATA_ROWS = [
 ];
 
 export const VerseWorld: React.FC = () => {
-  const { f, L, abs } = useWorld("verse");
+  const { f, L, W, abs } = useWorld("verse");
   const off = chapter("verse").startFrame;
   const CH = L("changin"),
     TW = L("twoteams"),
@@ -137,6 +137,21 @@ export const VerseWorld: React.FC = () => {
         </AbsoluteFill>
       )}
 
+      {/* the background chant before the verse: ONE TEAM! ONE RHYTHM! */}
+      {(["chant1", "chant2"] as const).map((id, i) => {
+        const s = L(id);
+        const e = i === 0 ? L("chant2") - 4 : CH - 6;
+        if (f < s - 2 || f > e + 8) return null;
+        return (
+          <div key={id} style={{ position: "absolute", left: 120, top: 150, opacity: 1 - ramp(f, e - 4, 10) }}>
+            <Mono text={`CHANT · 0${i + 1}`} t={f - s} size={15} opacity={0.5} />
+            <div style={{ height: 12 }} />
+            <Hero text="ONE TEAM!" size={170} t={f - s} dur={10} stagger={1} tracking={-0.035} />
+            <Hero text="ONE RHYTHM!" size={170} t={f - W(id, 2)} dur={10} stagger={1} tracking={-0.035} color={C.blue} />
+          </div>
+        );
+      })}
+
       {/* CHANGIN' */}
       {f < TW + 10 && (
         <AbsoluteFill style={{ opacity: 1 - ramp(f, TW - 6, 14) }}>
@@ -180,8 +195,8 @@ export const VerseWorld: React.FC = () => {
             <div style={{ position: "absolute", left: 960 - 150, top: 540 - 16, transform: "translate(-100%,-100%)", opacity: 1 - pull }}>
               <Hero text="ENVISION" size={92} t={f - EN - 4} dur={14} stagger={1.2} />
             </div>
-            <div style={{ position: "absolute", left: 960 + 22, top: 1050, transform: "rotate(-90deg)", transformOrigin: "0 0", opacity: 1 - pull }}>
-              <Hero text="ADDITION" size={80} t={f - EN - 16} dur={14} stagger={1.2} color={C.blue} />
+            <div style={{ position: "absolute", left: 960 + 22, top: 420, transform: "rotate(-90deg)", transformOrigin: "0 0", opacity: 1 - pull }}>
+              <Hero text="ADDITION" size={64} t={f - EN - 16} dur={14} stagger={1.2} color={C.blue} />
             </div>
           </AbsoluteFill>
 

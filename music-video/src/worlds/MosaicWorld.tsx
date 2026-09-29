@@ -11,6 +11,7 @@ import { Hero, Mono } from "../typography/Type";
 import { baseCam, camPath } from "../utils/camera";
 import { clamp01, cubicInOut, expoInOut, expoOut, mix, ramp } from "../utils/ease";
 import { hash01, rng } from "../utils/random";
+import { beatPulse } from "../utils/time";
 import { useWorld } from "../utils/scenes";
 
 const COLS = 16,
@@ -45,7 +46,7 @@ const inPoly = (x: number, y: number) => {
 };
 
 export const MosaicWorld: React.FC = () => {
-  const { f, L } = useWorld("beatcut");
+  const { f, L, abs } = useWorld("beatcut");
   const FL = L("frontline"),
     BO = L("backoffice"),
     MX = L("mix"),
@@ -183,6 +184,10 @@ export const MosaicWorld: React.FC = () => {
           <div style={{ position: "absolute", left: 110, bottom: 80 }}>
             <Mono text="BEAT CUT" t={f - 4} size={15} opacity={0.4} />
           </div>
+          <div style={{ position: "absolute", left: 960, top: 540, width: 10, height: 10, marginLeft: -5, marginTop: -5, borderRadius: 5, background: C.blue,
+            boxShadow: `0 0 ${10 + 30 * beatPulse(abs, 6)}px rgba(${C.blueRGB},0.9)`, transform: `scale(${1 + 1.2 * beatPulse(abs, 6)})` }} />
+          <div style={{ position: "absolute", left: 960, top: 539, height: 2, width: 1400 * ramp(f, FL - 40, 36, expoInOut), marginLeft: -700 * ramp(f, FL - 40, 36, expoInOut),
+            background: C.blue, opacity: 0.8 }} />
         </AbsoluteFill>
       )}
       {[

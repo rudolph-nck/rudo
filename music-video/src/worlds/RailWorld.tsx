@@ -47,7 +47,9 @@ export const RailWorld: React.FC = () => {
   });
   const camFor = (i: number) => {
     const m = i < 0 ? MOVES[0] : moveOf(i);
-    return { x: i < 0 ? 300 : sx(i) - 170, y: m.y, ry: m.ry, rx: m.rx, z: base.z * m.zk };
+    const z = base.z * m.zk;
+    // keep the station framed when the camera yaws: shift x by depth·tan(yaw)
+    return { x: i < 0 ? 300 : sx(i) - 170 + z * Math.tan((m.ry * Math.PI) / 180), y: m.y, ry: m.ry, rx: m.rx, z };
   };
   const a = camFor(cur - 1),
     b = camFor(cur);
@@ -215,7 +217,7 @@ export const RailWorld: React.FC = () => {
           </div>
         </AbsoluteFill>
       )}
-      <Flash at={D0} peak={0.3} />
+      <Flash at={D0} peak={0.12} />
       <Vignette strength={0.6} />
     </AbsoluteFill>
   );
