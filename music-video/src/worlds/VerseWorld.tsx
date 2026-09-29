@@ -9,7 +9,7 @@ import { Stage3D } from "../three/Stage3D";
 import { C, F, glow } from "../theme";
 import { Counter, Hero, Mono, Scramble } from "../typography/Type";
 import { baseCam, camPath } from "../utils/camera";
-import { clamp01, cubicInOut, expoIn, expoInOut, expoOut, mix, quintOut, ramp, sineInOut } from "../utils/ease";
+import { clamp01, cubicInOut, expoIn, expoInOut, expoOut, mix, quintOut, ramp, sineInOut, softBack } from "../utils/ease";
 import { noise1, rng } from "../utils/random";
 import { chapter, useWorld } from "../utils/scenes";
 import { beatPulse, energy } from "../utils/time";
@@ -174,7 +174,7 @@ export const VerseWorld: React.FC = () => {
             <div style={{ position: "absolute", left: 960 - 150, top: 540 - 16, transform: "translate(-100%,-100%)", opacity: 1 - pull }}>
               <Hero text="ENVISION" size={92} t={f - EN - 4} dur={14} stagger={1.2} />
             </div>
-            <div style={{ position: "absolute", left: 960 + 22, top: 1010, transform: "rotate(-90deg)", transformOrigin: "0 0", opacity: 1 - pull }}>
+            <div style={{ position: "absolute", left: 960 + 22, top: 1010, transform: `rotate(-90deg) scale(${mix(1, 1.3, ramp(f, EN + 31, 16, softBack))})`, transformOrigin: "0 0", opacity: 1 - pull }}>
               <Hero text="ADDITION" size={64} t={f - EN - 16} dur={14} stagger={1.2} color={C.blue} />
             </div>
           </AbsoluteFill>

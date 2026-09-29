@@ -15,7 +15,7 @@ import { allLyrics, beatPulse, FPS, LyricLine } from "../utils/time";
 
 type Action =
   | "down" | "up" | "tall" | "loud" | "far" | "push" | "scramble" | "align" | "converge"
-  | "pulse" | "shake" | "open" | "night" | "underline" | "drop" | "flow" | "mix" | "ring" | "none";
+  | "pulse" | "shake" | "open" | "night" | "underline" | "drop" | "flow" | "mix" | "ring" | "grow" | "none";
 
 const ACTIONS: Array<[RegExp, Action]> = [
   [/^down$/, "down"],
@@ -36,19 +36,25 @@ const ACTIONS: Array<[RegExp, Action]> = [
   [/^mix$/, "mix"],
   [/^call$/, "ring"],
 ];
-const actionFor = (w: string): Action => {
+// per-line overrides: a word that means something special in one line only
+const LINE_ACTIONS: Record<string, Record<string, Action>> = {
+  envision: { addition: "grow" }, // "…Addition stood tall": the word grows
+};
+const actionFor = (w: string, lineId?: string): Action => {
   const n = w.toLowerCase().replace(/[’']/g, "").replace(/[^a-z0-9]/g, "");
+  const o = lineId ? LINE_ACTIONS[lineId]?.[n] : undefined;
+  if (o) return o;
   for (const [re, a] of ACTIONS) if (re.test(n)) return a;
   return "none";
 };
 
 const GLYPHS = "ABCDEFGHJKLMNOPQRSTUVWXYZ0123456789+";
 
-const Word: React.FC<{ text: string; t: number; wt: number; hero: boolean; abs: number; big: boolean }> = ({ text, t, wt, hero, abs, big }) => {
+const Word: React.FC<{ text: string; t: number; wt: number; hero: boolean; abs: number; big: boolean; lineId?: string }> = ({ text, t, wt, hero, abs, big, lineId }) => {
   const dt = t - wt; // seconds since this word was sung
   const p = cubicOut(clamp01((dt + 0.06) / 0.2));
   if (p <= 0) return <span style={{ display: "inline-block", marginRight: "0.24em", opacity: 0 }}>{text}</span>;
-  const a = actionFor(text);
+  const a = actionFor(text, lineId);
   const k = clamp01(dt / 0.55); // action progress
   let tr = `translateY(${(1 - p) * 0.3}em)`;
   let extra: React.CSSProperties = {};
@@ -115,6 +121,10 @@ const Word: React.FC<{ text: string; t: number; wt: number; hero: boolean; abs: 
     case "mix":
       letters = perChar((_, i) => ({ transform: `rotate(${(hash01(i + 9) - 0.5) * 40 * (1 - expoOut(clamp01(dt / 0.45)))}deg) translateY(${(hash01(i + 3) - 0.5) * 0.4 * (1 - expoOut(clamp01(dt / 0.45)))}em)` }));
       break;
+    case "grow":
+      // grows in place, reflowing the line so it never overlaps its neighbours
+      extra = { fontSize: `${mix(1, 1.55, softBack(clamp01(dt / 0.5)))}em`, color: C.blue, verticalAlign: "baseline" };
+      break;
     case "ring":
       extra = { textShadow: `0 0 ${24 * (1 - k)}px rgba(${C.blueRGB},${1 - k})` };
       break;
@@ -170,7 +180,7 @@ const Line: React.FC<{ line: LyricLine; t: number; abs: number; out: number }> =
       }}
     >
       {line.words.map((w, i) => (
-        <Word key={i} text={display[i] ?? w.w} t={t} wt={w.t} abs={abs} big hero={hStart >= 0 && i >= hStart && i < hStart + heroWords.length} />
+        <Word key={i} text={display[i] ?? w.w} t={t} wt={w.t} abs={abs} big lineId={line.id} hero={hStart >= 0 && i >= hStart && i < hStart + heroWords.length} />
       ))}
     </div>
   );
