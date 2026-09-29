@@ -115,12 +115,12 @@ export const ClimaxWorld: React.FC = () => {
           {["LEARNED!", "TAUGHT!", "CHANGED!", "GREW!"].map((w, i) => {
             const t = f - stamps[i];
             if (t < -1) return null;
-            const x = i % 2 === 0 ? 110 : 1010,
+            const x = i % 2 === 0 ? 110 : 990,
               y = i < 2 ? 190 : 600;
             return (
               <div key={w} style={{ position: "absolute", left: x, top: y, transform: `scale(${1 + 0.05 * Math.exp(-Math.max(0, t) / 4)})`, transformOrigin: "0 0" }}>
                 <Mono text={`WE · 0${i + 1}`} t={t} size={18} opacity={0.6} color={i === 3 ? C.blue : C.white} />
-                <Hero text={w} size={170} t={t} dur={6} stagger={0.5} tracking={-0.04} color={i === 3 ? C.blue : C.white} />
+                <Hero text={w} size={140} t={t} dur={6} stagger={0.5} tracking={-0.04} color={i === 3 ? C.blue : C.white} />
               </div>
             );
           })}
@@ -133,9 +133,9 @@ export const ClimaxWorld: React.FC = () => {
         <AbsoluteFill style={{ display: "flex", alignItems: "center", justifyContent: "center", opacity: 1 - ramp(f, AC - 3, 5) }}>
           <div style={{ transform: `scale(${1 + 0.03 * db})` }}>
             {f < OR ? (
-              <Hero text="ONE TEAM!" size={330} t={f - OT} dur={8} stagger={1} tracking={-0.045} align="center" />
+              <Hero text="ONE TEAM!" size={290} t={f - OT} dur={8} stagger={1} tracking={-0.045} align="center" />
             ) : (
-              <Hero text="ONE RHYTHM!" size={300} t={f - OR} dur={8} stagger={1} tracking={-0.045} align="center" color={C.blue} />
+              <Hero text="ONE RHYTHM!" size={250} t={f - OR} dur={8} stagger={1} tracking={-0.045} align="center" color={C.blue} />
             )}
           </div>
         </AbsoluteFill>

@@ -152,7 +152,7 @@ export const RailWorld: React.FC = () => {
               if (t < 0) return null;
               const os = Math.min(7, 2 + Math.floor(t / 3));
               return (
-                <div style={{ fontFamily: F.hero, fontWeight: 800, fontSize: 170, letterSpacing: "-0.03em", color: C.white, lineHeight: 1 }}>
+                <div style={{ fontFamily: F.hero, fontWeight: 800, fontSize: 150, letterSpacing: "-0.03em", color: C.white, lineHeight: 1 }}>
                   LET’S G
                   {Array.from({ length: os }, (_, k) => (
                     <span key={k} style={{ color: k === os - 1 ? C.blue : C.white, opacity: 1 - k * 0.07, display: "inline-block", transform: `scale(${k === os - 1 ? expoOut(clamp01((t % 3) / 3)) : 1})` }}>
@@ -175,7 +175,7 @@ export const RailWorld: React.FC = () => {
         return (
           <AbsoluteFill style={{ display: "flex", alignItems: "center", justifyContent: "center", opacity: 1 - ramp(f, starts[i + 1] - 6, 6) }}>
             <div style={{ transform: `scale(${1 + 0.04 * beatPulse(abs, 5)})` }}>
-              <Hero text="LOUD" size={640} t={t - 16} dur={8} stagger={1} tracking={-0.05} color={C.white} />
+              <Hero text="LOUD" size={560} t={t - 16} dur={8} stagger={1} tracking={-0.05} color={C.white} />
             </div>
           </AbsoluteFill>
         );
