@@ -17,5 +17,60 @@
   36.72,
   37.08,
   37.81
- ]
+ ],
+ "pops": [
+  {
+   "t": 29.52,
+   "w": "ONE\nTEAM"
+  },
+  {
+   "t": 30.73,
+   "w": "ONE\nRHYTHM"
+  },
+  {
+   "t": 31.33,
+   "w": "YEAH"
+  },
+  {
+   "t": 31.74,
+   "w": "YEAH"
+  },
+  {
+   "t": 32.31,
+   "w": "YEAH"
+  },
+  {
+   "t": 33.34,
+   "w": "YEAH"
+  },
+  {
+   "t": 33.75,
+   "w": "YEAH"
+  },
+  {
+   "t": 34.19,
+   "w": "ONE\nTEAM"
+  },
+  {
+   "t": 35.64,
+   "w": "ONE\nRHYTHM"
+  },
+  {
+   "t": 36.37,
+   "w": "YEAH"
+  },
+  {
+   "t": 36.72,
+   "w": "YEAH"
+  },
+  {
+   "t": 37.08,
+   "w": "YEAH"
+  },
+  {
+   "t": 37.81,
+   "w": "YEAH"
+  }
+ ],
+ "popsNote": "What each chop sings: 'One team' / 'one rhythm' (word-level ASR on the vocal stem places them at ~29.5, 30.7, 34.2, 35.6 s); the rest are 'yeah'."
 }

@@ -130,25 +130,29 @@ const SideEQ: React.FC<{ abs: number; level: number }> = ({ abs, level }) => {
 };
 
 const POP_ANGLES = [200, -20, 160, 20, 215, -35, 145, 35, 190, -10, 170, 10, 225, -45, 135, 45];
+/** each chopped vocal pops up around the mask in LED type: "yeah", or "one team" / "one rhythm" */
 const YeahPops: React.FC<{ t: number }> = ({ t }) => (
   <>
-    {chops.yeah.map((c, i) => {
-      const dt = t - c;
-      if (dt < -0.02 || dt > 0.75) return null;
+    {chops.pops.map((pp, i) => {
+      const phrase = pp.w.includes("\n");
+      const life = phrase ? 1.05 : 0.75;
+      const dt = t - pp.t;
+      if (dt < -0.02 || dt > life) return null;
       const a = (POP_ANGLES[i % POP_ANGLES.length] * Math.PI) / 180;
-      const drift = 1 + 0.12 * clamp01(dt / 0.75);
-      const x = 960 + Math.cos(a) * 610 * drift;
-      const y = 540 + Math.sin(a) * 330 * drift;
+      const drift = 1 + 0.1 * clamp01(dt / life);
+      const x = 960 + Math.cos(a) * (phrase ? 790 : 610) * drift;
+      const y = 540 + Math.sin(a) * (phrase ? 200 : 330) * drift;
       const pop = clamp01(dt / 0.09);
       const sc = mix(0.55, 1, 1 - Math.pow(1 - pop, 3)) * (1 + 0.1 * Math.exp(-dt * 14));
-      const op = pop * (1 - clamp01((dt - 0.45) / 0.3));
-      const big = i % 4 === 0;
+      const op = pop * (1 - clamp01((dt - (life - 0.3)) / 0.3));
+      const size = phrase ? 100 : i % 4 === 0 ? 150 : 104;
       return (
         <div key={i} style={{ position: "absolute", left: x, top: y, transform: `translate(-50%, -50%) rotate(${Math.cos(a) > 0 ? -6 : 6}deg) scale(${sc})`, opacity: op }}>
-          <div style={{ fontFamily: F.hero, fontWeight: 800, fontSize: big ? 150 : 104, letterSpacing: "0.02em", color: i % 3 === 0 ? "#e6fbff" : C.blue,
+          <div style={{ fontFamily: F.hero, fontWeight: 800, fontSize: size, lineHeight: 0.95, textAlign: "center", whiteSpace: "pre", letterSpacing: "0.02em",
+            color: phrase ? "#e6fbff" : i % 3 === 0 ? "#e6fbff" : C.blue,
             textShadow: `0 0 8px rgba(${C.blueRGB},1), 0 0 30px rgba(${C.blueRGB},0.8)`,
             WebkitMaskImage: "radial-gradient(circle at 50% 50%, #000 60%, rgba(0,0,0,0.3) 68%)", WebkitMaskSize: "7px 7px" }}>
-            YEAH
+            {pp.w}
           </div>
         </div>
       );
