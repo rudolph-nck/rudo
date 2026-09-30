@@ -37,6 +37,11 @@ const centroid = (ps: Place[]) => ({
 const ORL = centroid(PLACES.filter((p) => p.lon > -82.5));
 const TLH = centroid(PLACES.filter((p) => p.lon < -83.5));
 const MID = { x: (ORL.x + TLH.x) / 2, z: (ORL.z + TLH.z) / 2 };
+/** a roll-call line naming places in both regions gets the wide view */
+const spansBoth = (id: string) => {
+  const ps = PLACES.filter((p) => p.line === id);
+  return ps.some((p) => p.lon > -82.5) && ps.some((p) => p.lon < -83.5);
+};
 
 type View = { x: number; z: number; d: number; rx: number; ry: number };
 const camFromView = (v: View, fov = 40): Cam => {
@@ -98,6 +103,7 @@ export const MapWorld: React.FC = () => {
       else if (id === "b12") target = { x: MID.x, z: MID.z, d: 20000, rx: 50, ry: YAW + 4 };
       else if (id === "b14") target = { x: MID.x, z: MID.z, d: 20000, rx: 54, ry: YAW - 4 };
       else if (id === "b16") target = { x: MID.x, z: MID.z, d: 23000, rx: 70, ry: YAW };
+      else if (spansBoth(id)) target = { x: MID.x, z: MID.z, d: 20000, rx: 52, ry: YAW + 2 }; // names on both sides of the map
       else target = lineView(id);
       const travel = Math.hypot(target.x - prev.x, target.z - prev.z);
       v.push([s - 6, prev, 0]);
@@ -243,9 +249,12 @@ export const MapWorld: React.FC = () => {
       {/* hold up — the freeze */}
       {f < LR + 10 && (
         <AbsoluteFill style={{ background: "#000", opacity: 1 - ramp(f, LR - 2, 12) }}>
-          <div style={{ position: "absolute", left: 956, top: 536, width: 8, height: 8, borderRadius: 4, background: C.blue, filter: glow(1.2), opacity: ramp(f, HU, 4) }} />
-          <div style={{ position: "absolute", left: 990, top: 528 }}>
-            <Mono text="HOLD UP…" t={f - HU - 6} size={18} opacity={0.7} cps={20} />
+          {/* the freeze: a held breath, a heartbeat of a dot, the words hung in the dark */}
+          <div style={{ position: "absolute", left: 956, top: 626, width: 8, height: 8, borderRadius: 4, background: C.blue, filter: glow(1.2),
+            opacity: ramp(f, HU, 4), transform: `scale(${1 + 0.8 * beatPulse(abs, 5)})` }} />
+          <div style={{ position: "absolute", left: 0, width: 1920, top: 420, display: "flex", justifyContent: "center",
+            transform: `scale(${1 + 0.012 * Math.max(0, f - HU) / 30})` }}>
+            <Hero text="HOLD UP…" size={150} t={f - HU} dur={12} stagger={1.4} tracking={-0.03} color={C.white} />
           </div>
         </AbsoluteFill>
       )}

@@ -18,8 +18,8 @@ lyr = {l["id"]: l for l in json.load(open(os.path.join(DATA, "lyrics.json")))["l
 CHAPTERS = [
     ("signal",      "SignalWorld",  0.00,  30.10, "fade from black", "timeline slams in on drop", "ink", "blue line"),
     ("verse",       "VerseWorld",  29.90,  57.60, "whip-in on drop", "curve shoots up → cut on downbeat", "ink", "blue line / plus"),
-    ("chorus",      "ChorusWorld", 57.40,  77.10, "hard cut on downbeat", "freeze → vanishing point", "ink", "beat meter"),
-    ("branches",    "MapWorld",    76.80, 118.10, "point → map tilt", "nodes slide into one line", "ink", "live nodes"),
+    ("chorus",      "ChorusWorld", 57.40,  75.25, "hard cut on downbeat", "freeze → vanishing point", "ink", "beat meter"),
+    ("branches",    "MapWorld",    74.95, 118.10, "point → map tilt", "nodes slide into one line", "ink", "live nodes"),
     ("departments", "RailWorld",  117.80, 186.40, "nodes → rail", "rail bends into ring → snap to black", "ink", "station word"),
     ("beatcut",     "MosaicWorld",186.20, 199.50, "black", "plus of names → dissolve to warm dark", "ink", "plus of names"),
     ("bridge",      "BridgeWorld",199.20, 216.80, "warm fade", "line rotates horizontal", "warm dark", "single line"),

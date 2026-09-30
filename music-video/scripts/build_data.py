@@ -55,7 +55,7 @@ LINES = [
     ("grew1",      72.00, "We grew!",                                               "chorus", "grew"),
     ("howwemove",  73.80, "THAT’S HOW WE MOVE!",                                    "chorus", "MOVE"),
 
-    ("holdup",     76.90, "Hold up…",                                               "branches", "Hold up"),
+    ("holdup",     75.05, "Hold up…",                                               "branches", "Hold up"),
     ("letsroll",   79.00, "Branches—LET’S ROLL!",                                   "branches", "LET’S ROLL"),
     ("b01",        80.10, "Altamonte, Longwood, Lake Mary too,",                    "branches", ""),
     ("b02",        82.30, "Fern Park, Sanford—yeah, that’s the crew!",              "branches", "the crew"),

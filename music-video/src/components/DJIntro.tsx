@@ -2,7 +2,7 @@ import React from "react";
 import { AbsoluteFill, Img, staticFile } from "remotion";
 import chops from "../../data/chops.json";
 import spectrum from "../../data/spectrum.json";
-import { C } from "../theme";
+import { C, F } from "../theme";
 import { clamp01, cubicInOut, expoIn, expoOut, mix, ramp } from "../utils/ease";
 import { beatPulse, DOWNBEATS, FPS, lyric } from "../utils/time";
 import { Helmet, VISOR_GEOM } from "./Helmet";
@@ -16,13 +16,18 @@ import { Helmet, VISOR_GEOM } from "./Helmet";
  */
 
 const T_IN = 21.9;
-const T_SWAP = 27.7; // stand → helmet dissolve
+const T_SWAP = 27.3; // stand → helmet hand-off (a match cut: both A+ marks locked together)
 const DROP = 29.93;
 
-// stand.png is 912×2480 (Real-ESRGAN ×4 of the character sheet); the visor sits at (456, 250)
+// stand.png is 912×2480 (Real-ESRGAN ×4 of the character sheet)
 const SW = 912,
-  SH = 2480,
-  HEAD = { x: 456, y: 250 };
+  SH = 2480;
+// the A+ on the visor, in each image (px): the camera is anchored on it, so the push from full
+// body into the helmet close-up is one continuous move
+const STAND_MARK = { x: 456, y: 280.5 };
+const HELMET_MARK = { x: 455.5, y: 576.5 };
+const HELMET_PER_STAND = 2.25; // helmet-close.png px per stand.png px (A+ width 327 vs 144)
+const FEET = 2437; // stand.png, soles
 
 // A+ mark (brand vector, units)
 const MARK_W = 37.505,
@@ -124,18 +129,48 @@ const SideEQ: React.FC<{ abs: number; level: number }> = ({ abs, level }) => {
   return <>{out}</>;
 };
 
+const POP_ANGLES = [200, -20, 160, 20, 215, -35, 145, 35, 190, -10, 170, 10, 225, -45, 135, 45];
+const YeahPops: React.FC<{ t: number }> = ({ t }) => (
+  <>
+    {chops.yeah.map((c, i) => {
+      const dt = t - c;
+      if (dt < -0.02 || dt > 0.75) return null;
+      const a = (POP_ANGLES[i % POP_ANGLES.length] * Math.PI) / 180;
+      const drift = 1 + 0.12 * clamp01(dt / 0.75);
+      const x = 960 + Math.cos(a) * 610 * drift;
+      const y = 540 + Math.sin(a) * 330 * drift;
+      const pop = clamp01(dt / 0.09);
+      const sc = mix(0.55, 1, 1 - Math.pow(1 - pop, 3)) * (1 + 0.1 * Math.exp(-dt * 14));
+      const op = pop * (1 - clamp01((dt - 0.45) / 0.3));
+      const big = i % 4 === 0;
+      return (
+        <div key={i} style={{ position: "absolute", left: x, top: y, transform: `translate(-50%, -50%) rotate(${Math.cos(a) > 0 ? -6 : 6}deg) scale(${sc})`, opacity: op }}>
+          <div style={{ fontFamily: F.hero, fontWeight: 800, fontSize: big ? 150 : 104, letterSpacing: "0.02em", color: i % 3 === 0 ? "#e6fbff" : C.blue,
+            textShadow: `0 0 8px rgba(${C.blueRGB},1), 0 0 30px rgba(${C.blueRGB},0.8)`,
+            WebkitMaskImage: "radial-gradient(circle at 50% 50%, #000 60%, rgba(0,0,0,0.3) 68%)", WebkitMaskSize: "7px 7px" }}>
+            YEAH
+          </div>
+        </div>
+      );
+    })}
+  </>
+);
+
 export const DJIntro: React.FC<{ abs: number }> = ({ abs }) => {
   const t = abs / FPS;
   const END = lyric("changin").start;
   const fr = (s: number) => s * FPS;
 
-  // ---------- act 1: the DJ stands in the dark ----------
-  const u = clamp01((t - T_IN) / (T_SWAP + 0.6 - T_IN));
-  const z = mix(1, 2.7, Math.pow(u, 2.1));
-  const S = (1000 / SH) * z;
+  // ---------- one camera, anchored on the visor A+, from full body to the helmet ----------
+  const S0 = 1000 / SH; // full figure ~1000 px tall
+  const S_DROP = (1150 / 1108) * HELMET_PER_STAND; // helmet 1150 px tall at the drop
+  const u = clamp01((t - T_IN) / (DROP - T_IN));
+  const S = S0 * Math.exp(Math.log(S_DROP / S0) * Math.pow(u, 2.2)); // screen px per stand px
+  const markY0 = 1040 - (FEET - STAND_MARK.y) * S0;
+  const markY = mix(markY0, 540, Math.pow(u, 1.25));
+  const z = S / S0;
   const cx = 960;
-  const cy = mix(1040 - (SH - HEAD.y) * (1000 / SH), 470, Math.pow(u, 1.5));
-  const standOp = 1 - ramp(abs, fr(T_SWAP), 16, cubicInOut);
+  const standOp = 1 - ramp(abs, fr(T_SWAP), 18, cubicInOut);
   const rim = ramp(abs, fr(T_IN + 0.4), 60);
   const lit = ramp(abs, fr(T_IN + 1.6), 90);
   const rise = ramp(abs, fr(T_IN), fr(DROP - T_IN), expoIn); // tension of the build
@@ -149,10 +184,13 @@ export const DJIntro: React.FC<{ abs: number }> = ({ abs }) => {
   const after = ramp(abs, fr(DROP), fr(END - DROP));
   const down = beatPulse(abs, 4, DOWNBEATS);
   const exitK = ramp(abs, fr(END) - 18, 18, expoIn);
-  const Hh = (dropK < 1 ? mix(640, 1150, pre) : mix(1420, 1520, after)) * (1 + 0.025 * down * dropK) * mix(1, 2.6, exitK);
-  const s = Hh / VISOR_GEOM.IH;
-  const vcy = dropK < 1 ? mix(470, 540, pre) : 540;
-  const helmetOp = ramp(abs, fr(T_SWAP - 0.1), 14, cubicInOut) * (1 - ramp(abs, fr(END) - 8, 8));
+  // before the drop the helmet rides the same camera as the full-body shot; on the drop it punches in
+  const sAligned = S / HELMET_PER_STAND;
+  const s = dropK < 1 ? sAligned : ((mix(1420, 1520, after) * (1 + 0.025 * down)) / VISOR_GEOM.IH) * mix(1, 2.6, exitK);
+  const Hh = VISOR_GEOM.IH * s;
+  const hx = 960 - HELMET_MARK.x * s;
+  const hy = (dropK < 1 ? markY : 540) - HELMET_MARK.y * s;
+  const helmetOp = ramp(abs, fr(T_SWAP), 18, cubicInOut) * (1 - ramp(abs, fr(END) - 8, 8));
   const chop = t >= DROP - 0.05 ? chopPulse(t) : 0;
   const eqLevel = mix(0.35, 1, dropK) * (dropK < 1 ? 0.3 + 0.7 * pre : 1);
   // lay the EQ exactly over the A+ printed on the visor (measured bbox 292–619 × 409–744 image px)
@@ -174,17 +212,17 @@ export const DJIntro: React.FC<{ abs: number }> = ({ abs }) => {
 
       {/* act 1 */}
       {standOp > 0 && (
-        <AbsoluteFill style={{ opacity: standOp, filter: `blur(${ramp(abs, fr(T_SWAP), 16) * 8}px)` }}>
+        <AbsoluteFill style={{ opacity: standOp }}>
           {/* the line passes behind him at the waist */}
-          <div style={{ position: "absolute", left: 0, top: cy + (SH * 0.49 - HEAD.y) * S, width: 1920, height: Math.max(3, 4 * z * 0.6), background: C.blue,
+          <div style={{ position: "absolute", left: 0, top: markY + (SH * 0.49 - STAND_MARK.y) * S, width: 1920, height: Math.max(3, 4 * z * 0.6), background: C.blue,
             transform: `scaleX(${ramp(abs, fr(T_IN + 0.5), 50, expoOut)})`, boxShadow: `0 0 ${18 + 30 * kick}px rgba(${C.blueRGB},0.9)` }} />
           {/* floor glow */}
-          <div style={{ position: "absolute", left: cx - 520 * z, top: cy + (SH * 0.985 - HEAD.y) * S - 30 * z, width: 1040 * z, height: 60 * z, borderRadius: "50%",
+          <div style={{ position: "absolute", left: cx - 520 * z, top: markY + (FEET - STAND_MARK.y) * S - 30 * z, width: 1040 * z, height: 60 * z, borderRadius: "50%",
             background: `radial-gradient(closest-side, rgba(${C.blueRGB},${0.35 * rim}), transparent)` }} />
-          <Img src={staticFile("images/dj/stand.png")} style={{ position: "absolute", left: cx - HEAD.x * S, top: cy - HEAD.y * S, width: SW * S, height: SH * S,
+          <Img src={staticFile("images/dj/stand.png")} style={{ position: "absolute", left: cx - STAND_MARK.x * S, top: markY - STAND_MARK.y * S, width: SW * S, height: SH * S,
             filter: `brightness(${mix(0.08, 0.95, lit)}) contrast(1.05) drop-shadow(0 0 ${6 + 10 * rim}px rgba(${C.blueRGB},${0.55 * rim}))` }} />
           {/* visor glows with the music */}
-          <div style={{ position: "absolute", left: cx - 120 * z, top: cy - 120 * z, width: 240 * z, height: 240 * z, borderRadius: "50%",
+          <div style={{ position: "absolute", left: cx - 120 * S * 2.4, top: markY - 120 * S * 2.4, width: 240 * S * 2.4, height: 240 * S * 2.4, borderRadius: "50%",
             background: `radial-gradient(closest-side, rgba(${C.blueRGB},${(0.25 + 0.5 * mids) * rim}), transparent)`, mixBlendMode: "screen" }} />
         </AbsoluteFill>
       )}
@@ -195,7 +233,7 @@ export const DJIntro: React.FC<{ abs: number }> = ({ abs }) => {
           <AbsoluteFill style={{ opacity: mix(0.25, 1, dropK) * (1 - exitK) }}>
             <SideEQ abs={abs} level={mix(0.3, 1, dropK)} />
           </AbsoluteFill>
-          <div style={{ position: "absolute", left: 960 - VISOR_GEOM.cx * s, top: vcy - VISOR_GEOM.cy * s, width: VISOR_GEOM.IW * s, height: Hh,
+          <div style={{ position: "absolute", left: hx, top: hy, width: VISOR_GEOM.IW * s, height: Hh,
             WebkitMaskImage: "linear-gradient(180deg, #000 0%, #000 72%, transparent 97%), linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%)",
             WebkitMaskComposite: "source-in" }}>
             <Helmet abs={abs} height={Hh} ids={[]} lights={mix(0.6, 1, pre)} dim={0.9} groove={dropK}
@@ -205,6 +243,8 @@ export const DJIntro: React.FC<{ abs: number }> = ({ abs }) => {
                 </g>
               } />
           </div>
+          {/* each chopped "yeah" pops up around the mask in LED type, then drifts off */}
+          <YeahPops t={t} />
           {/* each "yeah" throws a pulse of light off the visor */}
           <AbsoluteFill style={{ background: `radial-gradient(circle at 50% 50%, rgba(${C.blueRGB},${0.28 * chop}) 0%, transparent 45%)`, mixBlendMode: "screen" }} />
         </AbsoluteFill>

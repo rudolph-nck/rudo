@@ -32,9 +32,9 @@
    "id": "chorus",
    "world": "ChorusWorld",
    "start": 57.4,
-   "end": 77.1,
+   "end": 75.25,
    "startFrame": 1722,
-   "endFrame": 2313,
+   "endFrame": 2258,
    "transitionIn": "hard cut on downbeat",
    "transitionOut": "freeze → vanishing point",
    "background": "ink",
@@ -43,9 +43,9 @@
   {
    "id": "branches",
    "world": "MapWorld",
-   "start": 76.8,
+   "start": 74.95,
    "end": 118.1,
-   "startFrame": 2304,
+   "startFrame": 2248,
    "endFrame": 3543,
    "transitionIn": "point → map tilt",
    "transitionOut": "nodes slide into one line",
@@ -672,7 +672,7 @@
    "scene": "howwemove",
    "chapter": "chorus",
    "startFrame": 2214,
-   "endFrame": 2307,
+   "endFrame": 2252,
    "lyric": "THAT’S HOW WE MOVE!",
    "display": "THAT’S HOW WE MOVE!",
    "heroWord": "MOVE",
@@ -683,16 +683,14 @@
    "transitionIn": "",
    "transitionOut": "freeze",
    "assetReferences": [],
-   "beatMarkers": [
-    2276
-   ],
+   "beatMarkers": [],
    "caption": false,
    "notes": ""
   },
   {
    "scene": "holdup",
    "chapter": "branches",
-   "startFrame": 2307,
+   "startFrame": 2252,
    "endFrame": 2370,
    "lyric": "Hold up…",
    "display": "Hold up…",
@@ -705,6 +703,7 @@
    "transitionOut": "point",
    "assetReferences": [],
    "beatMarkers": [
+    2276,
     2345
    ],
    "caption": false,

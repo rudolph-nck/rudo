@@ -811,7 +811,7 @@
      "t": 74.64
     }
    ],
-   "hold": 76.9,
+   "hold": 75.05,
    "id": "howwemove",
    "text": "THAT’S HOW WE MOVE!",
    "section": "chorus",
@@ -819,30 +819,30 @@
    "start": 73.8,
    "rawStart": 73.8,
    "snapped": false,
-   "end": 76.9,
+   "end": 75.05,
    "startFrame": 2214
   },
   {
    "words": [
     {
      "w": "Hold",
-     "t": 76.9
+     "t": 75.05
     },
     {
      "w": "up…",
-     "t": 77.24
+     "t": 75.39
     }
    ],
-   "hold": 79.0,
+   "hold": 77.79,
    "id": "holdup",
    "text": "Hold up…",
    "section": "branches",
    "hero": "Hold up",
-   "start": 76.9,
-   "rawStart": 76.9,
+   "start": 75.05,
+   "rawStart": 75.05,
    "snapped": false,
    "end": 79.0,
-   "startFrame": 2307
+   "startFrame": 2252
   },
   {
    "words": [
