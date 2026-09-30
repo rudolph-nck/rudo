@@ -140,12 +140,14 @@ const YeahPops: React.FC<{ t: number }> = ({ t }) => (
       if (dt < -0.02 || dt > life) return null;
       const a = (POP_ANGLES[i % POP_ANGLES.length] * Math.PI) / 180;
       const drift = 1 + 0.1 * clamp01(dt / life);
-      const x = 960 + Math.cos(a) * (phrase ? 790 : 610) * drift;
+      const size = phrase ? 100 : i % 4 === 0 ? 150 : 104;
+      // keep the whole word inside the frame (≈0.72 em per glyph at 800 weight, +6° tilt)
+      const hw = (Math.max(...pp.w.split("\n").map((l) => l.length)) * 0.72 * size) / 2 + 40;
+      const x = Math.min(1920 - hw, Math.max(hw, 960 + Math.cos(a) * (phrase ? 790 : 610) * drift));
       const y = 540 + Math.sin(a) * (phrase ? 200 : 330) * drift;
       const pop = clamp01(dt / 0.09);
       const sc = mix(0.55, 1, 1 - Math.pow(1 - pop, 3)) * (1 + 0.1 * Math.exp(-dt * 14));
       const op = pop * (1 - clamp01((dt - (life - 0.3)) / 0.3));
-      const size = phrase ? 100 : i % 4 === 0 ? 150 : 104;
       return (
         <div key={i} style={{ position: "absolute", left: x, top: y, transform: `translate(-50%, -50%) rotate(${Math.cos(a) > 0 ? -6 : 6}deg) scale(${sc})`, opacity: op }}>
           <div style={{ fontFamily: F.hero, fontWeight: 800, fontSize: size, lineHeight: 0.95, textAlign: "center", whiteSpace: "pre", letterSpacing: "0.02em",
