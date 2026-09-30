@@ -5,10 +5,10 @@ import { clamp01, cubicOut } from "../utils/ease";
 import { scene } from "../utils/scenes";
 import { beatIndex, beatPulse, BEATS, FPS, lyric } from "../utils/time";
 
-/** helmet-close.png is 832×1080; visor glass centred here (image px). */
-const IW = 832,
-  IH = 1080;
-const VISOR = { cx: 430, cy: 548, rx: 238, ry: 262 };
+/** helmet-close.png is 896×1108 (Real-ESRGAN ×4 of the character sheet); visor glass centred here (image px). */
+const IW = 896,
+  IH = 1108;
+const VISOR = { cx: 455, cy: 588, rx: 240, ry: 272 };
 const TEXT_W = 380,
   TEXT_H = 360;
 
@@ -25,7 +25,7 @@ export const Helmet: React.FC<{
   lights?: number;
   /** extra visor dimming 0..1 (to let an overlay own the glass) */
   dim?: number;
-  /** drawn over the visor glass, in image pixels (832×1080) */
+  /** drawn over the visor glass, in image pixels (896×1108) */
   overlay?: React.ReactNode;
   groove?: number;
 }> = ({ abs, height, ids, lights = 1, dim = 0, overlay, groove = 1 }) => {

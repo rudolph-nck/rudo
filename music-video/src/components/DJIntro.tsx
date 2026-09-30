@@ -19,10 +19,10 @@ const T_IN = 21.9;
 const T_SWAP = 27.7; // stand → helmet dissolve
 const DROP = 29.93;
 
-// stand.png is 630×1800; the visor sits at (315, 150)
-const SW = 630,
-  SH = 1800,
-  HEAD = { x: 315, y: 150 };
+// stand.png is 912×2480 (Real-ESRGAN ×4 of the character sheet); the visor sits at (456, 250)
+const SW = 912,
+  SH = 2480,
+  HEAD = { x: 456, y: 250 };
 
 // A+ mark (brand vector, units)
 const MARK_W = 37.505,
@@ -155,10 +155,9 @@ export const DJIntro: React.FC<{ abs: number }> = ({ abs }) => {
   const helmetOp = ramp(abs, fr(T_SWAP - 0.1), 14, cubicInOut) * (1 - ramp(abs, fr(END) - 8, 8));
   const chop = t >= DROP - 0.05 ? chopPulse(t) : 0;
   const eqLevel = mix(0.35, 1, dropK) * (dropK < 1 ? 0.3 + 0.7 * pre : 1);
-  // lay the EQ exactly over the A+ printed on the visor (measured bbox 268–594 × 352–718 image px;
-  // the visor's curve stretches it vertically)
-  const msx = (594 - 268) / MARK_W,
-    msy = (718 - 352) / MARK_H;
+  // lay the EQ exactly over the A+ printed on the visor (measured bbox 292–619 × 409–744 image px)
+  const msx = (619 - 292) / MARK_W,
+    msy = (744 - 409) / MARK_H;
 
   const fadeIn = ramp(abs, fr(T_IN), 10);
 
@@ -177,10 +176,10 @@ export const DJIntro: React.FC<{ abs: number }> = ({ abs }) => {
       {standOp > 0 && (
         <AbsoluteFill style={{ opacity: standOp, filter: `blur(${ramp(abs, fr(T_SWAP), 16) * 8}px)` }}>
           {/* the line passes behind him at the waist */}
-          <div style={{ position: "absolute", left: 0, top: cy + (880 - HEAD.y) * S, width: 1920, height: Math.max(3, 4 * z * 0.6), background: C.blue,
+          <div style={{ position: "absolute", left: 0, top: cy + (SH * 0.49 - HEAD.y) * S, width: 1920, height: Math.max(3, 4 * z * 0.6), background: C.blue,
             transform: `scaleX(${ramp(abs, fr(T_IN + 0.5), 50, expoOut)})`, boxShadow: `0 0 ${18 + 30 * kick}px rgba(${C.blueRGB},0.9)` }} />
           {/* floor glow */}
-          <div style={{ position: "absolute", left: cx - 520 * z, top: cy + (1790 - HEAD.y) * S - 30 * z, width: 1040 * z, height: 60 * z, borderRadius: "50%",
+          <div style={{ position: "absolute", left: cx - 520 * z, top: cy + (SH * 0.985 - HEAD.y) * S - 30 * z, width: 1040 * z, height: 60 * z, borderRadius: "50%",
             background: `radial-gradient(closest-side, rgba(${C.blueRGB},${0.35 * rim}), transparent)` }} />
           <Img src={staticFile("images/dj/stand.png")} style={{ position: "absolute", left: cx - HEAD.x * S, top: cy - HEAD.y * S, width: SW * S, height: SH * S,
             filter: `brightness(${mix(0.08, 0.95, lit)}) contrast(1.05) drop-shadow(0 0 ${6 + 10 * rim}px rgba(${C.blueRGB},${0.55 * rim}))` }} />
@@ -201,7 +200,7 @@ export const DJIntro: React.FC<{ abs: number }> = ({ abs }) => {
             WebkitMaskComposite: "source-in" }}>
             <Helmet abs={abs} height={Hh} ids={[]} lights={mix(0.6, 1, pre)} dim={0.9} groove={dropK}
               overlay={
-                <g transform={`translate(268 352) scale(${msx} ${msy})`} opacity={0.35 + 0.65 * pre}>
+                <g transform={`translate(292 409) scale(${msx} ${msy})`} opacity={0.35 + 0.65 * pre}>
                   <MarkEQ abs={abs} level={eqLevel} fill={chop * 0.95 + exitK} />
                 </g>
               } />
