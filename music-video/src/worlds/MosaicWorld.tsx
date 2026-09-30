@@ -9,7 +9,7 @@ import { Obj, Stage3D } from "../three/Stage3D";
 import { C, F } from "../theme";
 import { Hero, Mono } from "../typography/Type";
 import { baseCam, camPath } from "../utils/camera";
-import { clamp01, cubicInOut, expoInOut, expoOut, mix, ramp } from "../utils/ease";
+import { clamp01, cubicInOut, expoIn, expoInOut, expoOut, mix, ramp } from "../utils/ease";
 import { hash01, rng } from "../utils/random";
 import { beatPulse } from "../utils/time";
 import { useWorld } from "../utils/scenes";
@@ -93,8 +93,8 @@ export const MosaicWorld: React.FC = () => {
     f,
     [
       [FL, { z: P * 1.02 }],
-      [BO - 4, { z: P * 0.96 }],
-      [BO + 30, { z: BACKZ + P * 1.0 }, expoInOut],
+      [MX - 8, { z: P * 0.98 }],
+      [MX + 26, { z: BACKZ + P * 1.0 }, expoInOut],
       [MX + 20, { z: BACKZ + P * 1.08 }],
       [TA, { z: BACKZ + P * 1.02 }],
       [TA + 40, { z: BACKZ + P * 1.16 }, expoOut],
@@ -112,31 +112,6 @@ export const MosaicWorld: React.FC = () => {
       <ParticleField cam={cam} frame={f} count={220} opacity={0.3} size={1.6} seed={31} box={{ x: [-3000, 3000], y: [-1800, 1800], z: [-8000, 1200] }} />
       {f >= TA - 4 && <LightPool x={960} y={540} r={900} color={C.blueRGB} opacity={0.22 * plusOn} />}
       <Stage3D cam={cam}>
-        {/* FRONT LINE. — near plane */}
-        {f >= FL - 2 && f < BO + 40 && (
-          <Obj x={-780} y={60} anchor="bottom-left">
-            <div>
-              <Mono text="01 · FRONT" t={f - FL} size={18} opacity={0.55} />
-              <div style={{ height: 12 }} />
-              <Hero text="FRONT LINE." size={250} t={f - FL} dur={12} stagger={1.2} tracking={-0.04} />
-            </div>
-          </Obj>
-        )}
-        {f >= FL && f < BO + 40 && (
-          <Obj x={-780} y={100} anchor="left">
-            <BrandLine length={1560} thickness={6} progress={ramp(f, FL + 4, 24, expoOut)} />
-          </Obj>
-        )}
-        {/* BACK OFFICE. — far plane, visible in depth from the start */}
-        {f >= FL && f < MX + 30 && (
-          <Obj x={-560} y={40} z={BACKZ} anchor="bottom-left" opacity={mix(0.1, 1, ramp(f, BO, 20)) * (1 - ramp(f, MX, 20))}>
-            <div>
-              <Mono text="02 · BACK" t={f - BO} size={18} opacity={0.55} />
-              <div style={{ height: 12 }} />
-              <Hero text="BACK OFFICE." size={200} t={f - FL - 10} dur={12} stagger={1.2} tracking={-0.04} color={C.lunar} />
-            </div>
-          </Obj>
-        )}
         {/* every team in the mix → the wall */}
         {f >= MX - 2 &&
           cells.map((c, i) => {
@@ -177,6 +152,28 @@ export const MosaicWorld: React.FC = () => {
             );
           })}
       </Stage3D>
+
+      {/* FRONT LINE. / BACK OFFICE. — sung back to back, stacked, pulsing on the beat until the wall */}
+      {f >= FL - 2 && f < MX + 16 && (() => {
+        const kick = beatPulse(abs, 5);
+        const out = expoIn(ramp(f, MX - 10, 11));
+        const row = (label: string, text: string, at: number, color: string, top: number) => (
+          <div style={{ position: "absolute", left: 180, top, transform: `scale(${1 + 0.035 * kick * ramp(f, at + 6, 6)})`, transformOrigin: "0% 100%" }}>
+            <Mono text={label} t={f - at} size={18} opacity={0.55} />
+            <div style={{ height: 10 }} />
+            <Hero text={text} size={210} t={f - at} dur={10} stagger={0.8} tracking={-0.04} color={color} />
+          </div>
+        );
+        return (
+          <AbsoluteFill style={{ opacity: 1 - out, transform: `scale(${1 + 0.25 * out})`, transformOrigin: "50% 50%" }}>
+            {row("01 · FRONT", "FRONT LINE.", FL, C.white, 170)}
+            <div style={{ position: "absolute", left: 180, top: 540, width: 1560, height: 6, background: C.blue,
+              transform: `scaleX(${ramp(f, FL + 4, 20, expoOut)})`, transformOrigin: "0 50%",
+              boxShadow: `0 0 ${12 + 26 * kick}px rgba(${C.blueRGB},${0.5 + 0.5 * kick})` }} />
+            {row("02 · BACK", "BACK OFFICE.", BO, C.lunar, 580)}
+          </AbsoluteFill>
+        );
+      })()}
 
       {/* line-level hero statements */}
       {f < FL && (

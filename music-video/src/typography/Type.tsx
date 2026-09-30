@@ -74,7 +74,7 @@ export const Hero: React.FC<
       }}
     >
       {lines.map((ln, li) => (
-        <div key={li} style={{ overflow: mode === "rise" ? "hidden" : "visible", paddingBottom: size * 0.06, marginBottom: -size * 0.06 }}>
+        <div key={li} style={{ overflow: mode === "rise" ? "hidden" : "visible", paddingBottom: size * 0.06, marginBottom: -size * 0.06, paddingRight: size * 0.1, marginRight: -size * 0.1 }}>
           {Array.from(ln).map((ch, ci) => {
             const i = idx++;
             if (ci === 0) inWord = false;

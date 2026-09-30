@@ -105,7 +105,7 @@ LINES = [
     ("oneaddition",182.50,"Different roles, ONE ADDITION every day!",               "departments", "ONE ADDITION"),
 
     ("frontline", 188.60, "Front line.",                                            "beatcut", "Front line"),
-    ("backoffice",190.70, "Back office.",                                           "beatcut", "Back office"),
+    ("backoffice",189.25, "Back office.",                                           "beatcut", "Back office"),
     ("mix",       192.70, "Every team in the mix.",                                 "beatcut", "mix"),
     ("names",     193.80, "Different names.",                                       "beatcut", "names"),
     ("roles",     195.00, "Different roles.",                                       "beatcut", "roles"),

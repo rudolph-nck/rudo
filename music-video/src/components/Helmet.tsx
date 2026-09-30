@@ -16,7 +16,19 @@ const TEXT_W = 380,
  * The DJ's helmet in close-up, its visor used as an LED lyric screen: the
  * A+ dims while a line plays and each word lights up as it is sung.
  */
-export const Helmet: React.FC<{ abs: number; height: number; ids: string[]; lights?: number }> = ({ abs, height, ids, lights = 1 }) => {
+export const VISOR_GEOM = { IW, IH, ...VISOR };
+
+export const Helmet: React.FC<{
+  abs: number;
+  height: number;
+  ids: string[];
+  lights?: number;
+  /** extra visor dimming 0..1 (to let an overlay own the glass) */
+  dim?: number;
+  /** drawn over the visor glass, in image pixels (832×1080) */
+  overlay?: React.ReactNode;
+  groove?: number;
+}> = ({ abs, height, ids, lights = 1, dim = 0, overlay, groove = 1 }) => {
   const s = height / IH;
   const w = IW * s;
   const t = abs / FPS;
@@ -27,8 +39,8 @@ export const Helmet: React.FC<{ abs: number; height: number; ids: string[]; ligh
   const b1 = BEATS[bi + 1] ?? b0 + 0.557;
   const ph = clamp01((t - b0) / (b1 - b0));
   const dip = (1 + Math.cos(ph * Math.PI * 2)) / 2;
-  const nod = (dip - 0.5) * 2.2;
-  const sway = Math.sin((t / (0.557 * 8)) * Math.PI * 2) * 1.2;
+  const nod = (dip - 0.5) * 2.2 * groove;
+  const sway = Math.sin((t / (0.557 * 8)) * Math.PI * 2) * 1.2 * groove;
 
   // current visor line
   let line: ReturnType<typeof lyric> | undefined;
@@ -47,7 +59,7 @@ export const Helmet: React.FC<{ abs: number; height: number; ids: string[]; ligh
   const kick = beatPulse(abs, 5);
 
   return (
-    <div style={{ position: "relative", width: w, height, transform: `rotate(${nod + sway}deg) translateY(${dip * 6}px)`, transformOrigin: "52% 85%" }}>
+    <div style={{ position: "relative", width: w, height, transform: `rotate(${nod + sway}deg) translateY(${dip * 6 * groove}px)`, transformOrigin: "52% 85%" }}>
       <Img src={staticFile("images/dj/helmet-close.png")} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", filter: `brightness(${0.55 + 0.45 * lights})` }} />
       {/* visor glass: dim the A+ while the LED text plays */}
       <div
@@ -59,9 +71,14 @@ export const Helmet: React.FC<{ abs: number; height: number; ids: string[]; ligh
           height: VISOR.ry * 2 * s,
           borderRadius: "50%",
           background: "radial-gradient(closest-side, rgba(2,4,12,0.94) 62%, rgba(2,4,12,0.6) 85%, rgba(2,4,12,0) 100%)",
-          opacity: 0.25 + 0.72 * presence,
+          opacity: Math.min(0.97, 0.25 + 0.72 * presence + dim),
         }}
       />
+      {overlay && (
+        <svg width={w} height={height} viewBox={`0 0 ${IW} ${IH}`} style={{ position: "absolute", inset: 0, overflow: "visible" }}>
+          {overlay}
+        </svg>
+      )}
       {/* LED lyric */}
       {on > 0 && line && (
         <div

@@ -1,7 +1,6 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
 import { PlusMark, Segment } from "../components/Brand";
-import { ConcertDrop } from "../components/ConcertDrop";
 import { monthX, TimelineRuler } from "../components/Timeline";
 import { Field, LightPool, Vignette } from "../effects/Finish";
 import { ParticleField } from "../three/Particles";
@@ -10,7 +9,7 @@ import { C, F, glow } from "../theme";
 import { Counter, Hero, Mono, Scramble } from "../typography/Type";
 import { baseCam, camPath } from "../utils/camera";
 import { clamp01, cubicInOut, expoIn, expoInOut, expoOut, mix, quintOut, ramp, sineInOut, softBack } from "../utils/ease";
-import { noise1, rng } from "../utils/random";
+import { hash01, noise1, rng } from "../utils/random";
 import { chapter, useWorld } from "../utils/scenes";
 import { beatPulse, energy } from "../utils/time";
 
@@ -140,7 +139,7 @@ export const VerseWorld: React.FC = () => {
 
       {/* the chopped "yeah"s on the beat drop pile up, then collapse into the line */}
       {/* the beat drop: a concert — the DJ on stage, the crowd jumping on the beat */}
-      {f < CH && <ConcertDrop abs={abs} f={f} outAt={CH} />}
+      {/* the beat drop itself is the DJ intro layer (components/DJIntro, mounted in Film) */}
 
 
       {/* two teams → the plus → the map */}
@@ -174,9 +173,59 @@ export const VerseWorld: React.FC = () => {
             <div style={{ position: "absolute", left: 960 - 150, top: 540 - 16, transform: "translate(-100%,-100%)", opacity: 1 - pull }}>
               <Hero text="ENVISION" size={92} t={f - EN - 4} dur={14} stagger={1.2} />
             </div>
-            <div style={{ position: "absolute", left: 960 + 22, top: 1010, transform: `rotate(-90deg) scale(${mix(1, 1.3, ramp(f, EN + 31, 16, softBack))})`, transformOrigin: "0 0", opacity: 1 - pull }}>
-              <Hero text="ADDITION" size={64} t={f - EN - 16} dur={14} stagger={1.2} color={C.blue} />
-            </div>
+            {(() => {
+              // "Addition stood tall": the word slides clear of the plus and rises into a tower
+              const G = EN + 31; // the sung "Addition"
+              const g = ramp(f, G - 2, 24, expoInOut);
+              const sc = mix(1, 2.1, g);
+              const TX = mix(960 + 22, 1190, g);
+              const BASE = 1010;
+              const TW0 = 66 * sc; // rotated word thickness
+              const TH = 336 * sc; // rotated word length
+              const fl = ramp(f, G + 8, 22, expoOut); // floors + frame build upward
+              const floors = 14;
+              const beacon = 0.5 + 0.5 * Math.sin(f * 0.35);
+              return (
+                <div style={{ opacity: 1 - pull }}>
+                  {/* ground */}
+                  <div style={{ position: "absolute", left: TX - 120, top: BASE + 2, width: TW0 + 240, height: 2, background: C.blue, opacity: 0.8 * g,
+                    transform: `scaleX(${g})`, filter: glow(0.5) }} />
+                  {/* tower frame, setback crown and spire */}
+                  {fl > 0 && (
+                    <svg width={TW0 + 60} height={TH + 140} style={{ position: "absolute", left: TX - 30, top: BASE - TH - 140, overflow: "visible" }}>
+                      <g transform={`translate(30 140)`} fill="none" stroke={`rgba(${C.blueRGB},0.9)`} strokeWidth={2}>
+                        <rect x={-14} y={TH * (1 - fl) - 10} width={TW0 + 28} height={TH * fl + 10} opacity={0.9} />
+                        {Array.from({ length: floors }, (_, k) => {
+                          const y = TH - ((k + 1) * TH) / (floors + 1);
+                          const on = clamp01(fl * (floors + 1) - k);
+                          return <line key={k} x1={-14} x2={-4} y1={y} y2={y} opacity={on} />;
+                        })}
+                        {Array.from({ length: floors }, (_, k) => {
+                          const y = TH - ((k + 1) * TH) / (floors + 1);
+                          const on = clamp01(fl * (floors + 1) - k);
+                          return <line key={`r${k}`} x1={TW0 + 4} x2={TW0 + 14} y1={y} y2={y} opacity={on} />;
+                        })}
+                        {/* crown setback + spire */}
+                        <path d={`M${-4} -10 L${-4} -34 L${TW0 + 4} -34 L${TW0 + 4} -10 M${TW0 * 0.25} -34 L${TW0 * 0.25} -54 L${TW0 * 0.75} -54 L${TW0 * 0.75} -34 M${TW0 / 2} -54 L${TW0 / 2} -120`}
+                          pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - ramp(f, G + 22, 14, expoOut)} />
+                      </g>
+                      {/* lit windows beside the letters */}
+                      {Array.from({ length: floors * 2 }, (_, k) => {
+                        const side = k % 2,
+                          row = Math.floor(k / 2);
+                        const y = 140 + TH - ((row + 1) * TH) / (floors + 1) - 14;
+                        const lit = clamp01(fl * (floors + 1) - row) * (hash01(k * 3.7) > 0.35 ? 1 : 0.25);
+                        return <rect key={`w${k}`} x={side ? 30 + TW0 + 18 : 30 - 26} y={y} width={8} height={10} fill={side ? C.blue : C.white} opacity={0.75 * lit} />;
+                      })}
+                      <circle cx={30 + TW0 / 2} cy={20} r={5} fill={C.blue} opacity={ramp(f, G + 34, 6) * (0.4 + 0.6 * beacon)} style={{ filter: glow(1) }} />
+                    </svg>
+                  )}
+                  <div style={{ position: "absolute", left: TX, top: BASE, transform: `rotate(-90deg) scale(${sc})`, transformOrigin: "0 0" }}>
+                    <Hero text="ADDITION" size={64} t={f - EN - 16} dur={14} stagger={1.2} color={C.blue} />
+                  </div>
+                </div>
+              );
+            })()}
           </AbsoluteFill>
 
           {/* different sides of the map */}

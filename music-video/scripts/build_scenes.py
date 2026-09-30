@@ -30,7 +30,7 @@ CHAPTERS = [
 ]
 
 # lines whose world already displays the full lyric as hero type → no caption
-IN_WORLD = {
+IN_WORLD = {"acu0", 
     "oneaddition", "learned1", "taught1", "changed1", "grew1",
     "y2026", "otor1", "otor2", "howwemove", "holdup", "letsroll", "departments",
     "frontline", "backoffice", "mix", "names", "roles", "piece", "thatsaddition",

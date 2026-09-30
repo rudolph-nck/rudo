@@ -291,7 +291,7 @@
     1034,
     1104
    ],
-   "caption": true,
+   "caption": false,
    "notes": ""
   },
   {
@@ -1681,7 +1681,7 @@
    "scene": "frontline",
    "chapter": "beatcut",
    "startFrame": 5658,
-   "endFrame": 5721,
+   "endFrame": 5678,
    "lyric": "Front line.",
    "display": "Front line.",
    "heroWord": "Front line",
@@ -1692,16 +1692,14 @@
    "transitionIn": "black",
    "transitionOut": "",
    "assetReferences": [],
-   "beatMarkers": [
-    5688
-   ],
+   "beatMarkers": [],
    "caption": false,
    "notes": ""
   },
   {
    "scene": "backoffice",
    "chapter": "beatcut",
-   "startFrame": 5721,
+   "startFrame": 5678,
    "endFrame": 5781,
    "lyric": "Back office.",
    "display": "Back office.",
@@ -1714,6 +1712,7 @@
    "transitionOut": "",
    "assetReferences": [],
    "beatMarkers": [
+    5688,
     5756
    ],
    "caption": false,

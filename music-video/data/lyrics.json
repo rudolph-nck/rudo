@@ -2675,7 +2675,7 @@
      "t": 188.96
     }
    ],
-   "hold": 190.7,
+   "hold": 189.25,
    "id": "frontline",
    "text": "Front line.",
    "section": "beatcut",
@@ -2683,30 +2683,30 @@
    "start": 188.6,
    "rawStart": 188.6,
    "snapped": false,
-   "end": 190.7,
+   "end": 189.25,
    "startFrame": 5658
   },
   {
    "words": [
     {
      "w": "Back",
-     "t": 190.7
+     "t": 189.25
     },
     {
      "w": "office.",
-     "t": 191.04
+     "t": 189.59
     }
    ],
-   "hold": 192.7,
+   "hold": 191.99,
    "id": "backoffice",
    "text": "Back office.",
    "section": "beatcut",
    "hero": "Back office",
-   "start": 190.7,
-   "rawStart": 190.7,
+   "start": 189.25,
+   "rawStart": 189.25,
    "snapped": false,
    "end": 192.7,
-   "startFrame": 5721
+   "startFrame": 5678
   },
   {
    "words": [
