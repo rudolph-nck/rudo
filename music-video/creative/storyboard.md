@@ -121,3 +121,6 @@ Warm white, serif, stillness, dust in a single light pool, a thin vertical line 
 | "Back office comes right after Front line" | Re-timed to 189.25 s; both lines stacked and pulsing on the beat until "Every team in the mix" |
 | "Teach / Improve need a little something; grow the grow" | A line-art glyph per value (book, stake + sprout, steps, compass); bridge lines land as sung; "grow" grows |
 | "Addition should grow, move right, become a building" | The vertical ADDITION slides clear of the plus and rises into a tower with floors, windows and a spire |
+| "Hold up is at 1:15" | Re-timed to 75.05 s; the freeze sets HOLD UP… as hero type |
+| "Parkway is on the other side of the map" | Placed in the Tallahassee region; lines naming both regions get the wide map view |
+| "Better body → mask transition; words around the mask on the drop" | One camera anchored on the visor A+ carries the push through both images; each chop pops what it sings (ONE TEAM / ONE RHYTHM / YEAH) in LED type |
