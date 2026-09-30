@@ -49,7 +49,7 @@ hero type · narrative/technical type · light (pools, sweeps) · grain + vignet
 
 ## Imagery
 Supplied images are *fragments*, never slides:
-- DJ: performs the beat drop in front of a crowd, and the final drop, where the camera pushes into his helmet and the visor becomes an LED lyric screen.
+- DJ: stands alone in the dark for the rise; the camera pushes into his helmet and on the beat drop the visor A+ becomes an audio-driven LED equalizer. In the final drop the visor becomes an LED lyric screen.
 - DJ booth: framed in a brand notch (bottom-right), graded down, the line passing behind the DJ.
 - Addapalooza logo: revealed by a light sweep and a mask at the welcome; the line runs through its
   "THE SUMMIT" bar.

@@ -10,7 +10,7 @@ node scripts/stills.mjs renders/styleframes 1 10.7 32.5 43.9 69.5 95.8 131.7 183
 | # | Time | Moment | Establishes |
 |---|---|---|---|
 | 01 | 10.7 s | Opening — **2026** rising behind the line | The line is born; the line cuts behind subjects; hero type scale |
-| 02 | 32.5 s | Beat drop — the DJ on stage, the crowd jumping | The event itself; the line as the stage edge |
+| 02 | 32.5 s | Beat drop — the helmet close-up, the visor A+ as an equalizer | The DJ as performer; the brand mark as the music |
 | 03 | 43.9 s | Verse — **Envision + Addition cross into the plus** | The film's thesis: the plus is two lines crossing |
 | 04 | 69.5 s | Chorus — **AS ONE** on the merged road | Line → road; kinetic lyric band |
 | 05 | 95.8 s | Roll call — **one crew** across both regions | Real geography as constellation; one bridge between regions |

@@ -83,10 +83,12 @@ the final drop sings "ONE TEAM! ONE RHYTHM!" where the sheet has "JAX… YOU REA
 - In the final chorus the lyrics play on the DJ's helmet visor as LED text (`src/components/Helmet.tsx`).
 
 ## The DJ
-`public/images/dj/` holds the supplied DJ image cut into booth / body / head layers (2× upscaled,
-sharpened, with emissive-glow passes). `src/components/DJ.tsx` animates them on the beat grid with a
-smooth groove. `ConcertDrop.tsx` + `Crowd.tsx` stage him for the beat drop in front of a crowd that
-jumps on the beat.
+`public/images/dj/` holds the supplied DJ image cut into layers (2× upscaled, sharpened, with glow
+passes), a standing cut-out (`stand.png`) and the helmet close-up. `src/components/DJIntro.tsx` owns the
+rise and the beat drop (≈22 s → the verse): the DJ stands alone in the dark, the camera pushes into
+his helmet, and on the drop the A+ on his visor becomes an LED equalizer driven by the song's real
+spectrum (`scripts/spectrum.py` → `data/spectrum.json`); every chopped "yeah" fills the mark. In the
+final chorus the same visor becomes the lyric screen (`Helmet.tsx`).
 
 ## Brand compliance
 Colours measured from the PDF (Vivid Blue `#00B2E3`, Anchor Gray `#53575A`, Lunar Gray `#CFD3D3`);

@@ -115,3 +115,9 @@ Warm white, serif, stillness, dust in a single light pool, a thin vertical line 
 | "Departments getting cut off" | Stations = centred glyph + bigger name under the rail; lyrics below the graphics |
 | "Heart ripple for Member Experience" | Glyph is now hearts rippling from a beating centre |
 | "Clustered yeahs → DJ + big crowd for the beat drop" | 29.9–38.5 s is a concert shot: DJ on stage, four-row crowd jumping on the beat, strobes on each "yeah" |
+| "DJ standing, no booth; zoom into the helmet; A+ as an equalizer for the drop" | 22 s → verse: the DJ stands alone, camera pushes into the helmet; on the drop the visor A+ is an LED equalizer driven by the real spectrum, with speaker columns either side (replaces the concert shot) |
+| "The 6 in 2026 is chopped" | Hero type line boxes padded so negative tracking never clips the last glyph |
+| "No extra lyrics on the first Addition Financial Credit Union" | That line is carried by the logo lockup only |
+| "Back office comes right after Front line" | Re-timed to 189.25 s; both lines stacked and pulsing on the beat until "Every team in the mix" |
+| "Teach / Improve need a little something; grow the grow" | A line-art glyph per value (book, stake + sprout, steps, compass); bridge lines land as sung; "grow" grows |
+| "Addition should grow, move right, become a building" | The vertical ADDITION slides clear of the plus and rises into a tower with floors, windows and a spire |
