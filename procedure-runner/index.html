@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Procedure Runner</title>
+<link rel="stylesheet" href="app/css/app.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2302568a'/><path d='M9 16l5 5 9-11' stroke='white' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#/">
+    <span class="brand-mark">✓</span>
+    <span class="brand-text"><b>Core Team</b> Procedure Runner</span>
+  </a>
+  <nav class="nav">
+    <a class="nav-link" data-view="library" href="#/">Library</a>
+    <a class="nav-link" data-view="runs" href="#/runs">Runs</a>
+    <a class="nav-link" data-view="lessons" href="#/lessons">Lessons</a>
+  </nav>
+  <div class="spacer"></div>
+  <span id="syncSlot"></span>
+  <button id="userChip" class="user-chip" type="button" title="Change your name">👤</button>
+  <button id="btnHelp" class="icon-btn" type="button" title="Quick guide">?</button>
+  <button id="btnTheme" class="icon-btn" type="button" title="Light / dark">☾</button>
+</header>
+<main id="view" class="view"></main>
+<datalist id="peopleList"></datalist>
+
+<script src="app/js/util.js"></script>
+<script src="app/js/store.js"></script>
+<script src="app/js/model.js"></script>
+<script src="app/js/blocks.js"></script>
+<script src="app/js/ui.js"></script>
+<script src="app/js/templates.js"></script>
+<script src="app/js/importer.js"></script>
+<script src="app/js/app.js"></script>
+<script src="app/js/builder.js"></script>
+<script src="app/js/runner.js"></script>
+<script src="app/js/report.js"></script>
+</body>
+</html>
