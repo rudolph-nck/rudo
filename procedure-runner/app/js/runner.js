@@ -8,7 +8,7 @@ PR.runner = (() => {
   const M = () => PR.model;
   const me = () => PR.app.me;
 
-  let run, proc, host, focusId, filter, siteFilter, mode, pollT, deferRender, forceArm, histStats, priorLessons, rightTab, editingSetup;
+  let run, proc, host, focusId, filter, siteFilter, mode, pollT, deferRender, forceArm, histStats, priorLessons, rightTab, editingSetup, commsCfg, lastDue, dueT;
 
   /* ======================= start a new run ======================= */
   async function startNew(procId, { practice = false } = {}) {
@@ -56,7 +56,9 @@ PR.runner = (() => {
     editingSetup = false; deferRender = false; forceArm = {}; histStats = {}; priorLessons = [];
     filter = PR.app.LS.get("runFilter", "all"); siteFilter = "all"; mode = PR.app.LS.get("runMode", "list"); rightTab = "active";
     focusId = (run.ui && run.ui[me()]) || firstOpen();
+    commsCfg = await PR.comms.load().catch(() => null); lastDue = null;
     el.appendChild(h("div.run#run"));
+    dueT = setInterval(checkDue, 30000); // interval-based updates become due with time
     document.addEventListener("keydown", onKey);
     document.addEventListener("focusout", onFocusOut);
     render();
@@ -67,7 +69,7 @@ PR.runner = (() => {
   async function unmount() {
     document.removeEventListener("keydown", onKey);
     document.removeEventListener("focusout", onFocusOut);
-    clearInterval(pollT);
+    clearInterval(pollT); clearInterval(dueT);
     // The outbox keeps retrying in the background; nothing to wait for here.
   }
 
@@ -313,12 +315,32 @@ PR.runner = (() => {
   function render() {
     const root = $("#run"); if (!root) return;
     deferRender = false;
-    if (run.status === "setup" || editingSetup) { root.innerHTML = ""; root.append(setupWizard()); return; }
+    if (run.status === "setup" || editingSetup) { root.innerHTML = ""; root.append(setupWizard()); fillSetupComms(); return; }
     const sc = $("#runCenter"); const top = sc && render.lastMode === mode ? sc.scrollTop : null;
     render.lastMode = mode;
     root.innerHTML = "";
+    if (commsCfg) { const d = commsDue(); if (lastDue != null && d > lastDue && PR.comms.isCommunicator(commsCfg)) toast(`📣 ${d} update${d > 1 ? "s" : ""} due — open the Updates tab`, "info", 4000); lastDue = d; }
     root.append(bar(), banner(), h("div.run-main", leftNav(), h("div.run-center#runCenter", mode === "lanes" ? lanes() : list()), rightPanel()), datalists());
     if (top != null) $("#runCenter").scrollTop = top;
+  }
+  function commsDue() { return commsCfg ? PR.comms.dueCount(run, commsCfg) : 0; }
+  function checkDue() {
+    if (!run || !commsCfg) return;
+    const d = commsDue();
+    if (lastDue != null && d > lastDue && PR.comms.isCommunicator(commsCfg)) toast(`📣 ${d} update${d > 1 ? "s" : ""} due — open the Updates tab`, "info", 4000);
+    if (d !== lastDue) { lastDue = d; const t = $('.run-right .tab[data-k="comms"]'); if (t) t.textContent = `📣 Updates${d ? " (" + d + ")" : ""}`; t && t.classList.toggle("due", d > 0); }
+  }
+  function fillSetupComms() {
+    const box = $("#wzComms"); if (!box || !commsCfg) return;
+    const items = PR.comms.planFor(proc, commsCfg).filter((i) => ["advance", "reminder", "start"].includes(i.trigger));
+    if (!items.length) return;
+    const can = PR.comms.isCommunicator(commsCfg);
+    box.append(h("h3", "📣 Communications before you start"), items.map((it) => {
+      const s = PR.comms.status(run, it); const last = s.sent[s.sent.length - 1];
+      return h("div.cm-item.inline", h("b", it.tpl.name), h("span.muted.small", ` — ${commsCfg.audiences.filter((a) => (it.tpl.audiences || []).includes(a.id)).map((a) => a.name).join(", ")}`),
+        h("div.spacer"), last ? h("span.chip.c-green", `Sent ${fmtTime(last.at, false)}`) : null,
+        can ? h("button.btn.btn-sm", { type: "button", onclick: () => PR.comms.compose({ run, item: it, commit }) }, "Compose") : null);
+    }));
   }
   function datalists() { return h("datalist#runPeople", people().map((p) => h("option", { value: p }))); }
 
@@ -340,6 +362,7 @@ PR.runner = (() => {
       h("span#runSync.sync-dot.ok", { title: "All changes saved" }),
       h("button.btn.btn-sm.btn-warn-o", { type: "button", title: "Log an issue (I)", onclick: () => issueModal({ stepId: focusId }) }, "⚠ Issue"),
       h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Communication log (C)", onclick: commsModal }, "☎ Comms"),
+      h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Read-only live view to share with the team or put on a screen", onclick: () => { PR.u.copyText(PR.comms.liveURL(run)); window.open(`#/live/${run.id}`, "_blank"); } }, "📺 Follow"),
       h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Run report", onclick: () => PR.app.go(`#/report/${run.id}`) }, "📄 Report"),
       h("button.icon-btn", { type: "button", title: "More", onclick: (e) => menu(e.currentTarget, [
         { icon: "⚙", label: "Edit run setup (participants, direction…)", onClick: () => { editingSetup = true; setupWizard.page = "info"; render(); } },
@@ -536,7 +559,8 @@ PR.runner = (() => {
   function rightPanel() {
     const active = stepsInOrder().filter(({ step }) => statusOf(step) === "active");
     const open = Object.values(run.issues || {}).filter((i) => i.status !== "resolved");
-    const tabs = [["active", `Active (${active.length})`], ["issues", `Issues${open.length ? " (" + open.length + ")" : ""}`], ["log", "Log"], ["team", "Team"]];
+    const due = commsDue();
+    const tabs = [["active", `Active (${active.length})`], ["comms", `📣 Updates${due ? " (" + due + ")" : ""}`], ["issues", `Issues${open.length ? " (" + open.length + ")" : ""}`], ["log", "Log"], ["team", "Team"]];
     let body;
     if (rightTab === "active") {
       body = active.length ? active.map(({ step, section }) => {
@@ -552,6 +576,10 @@ PR.runner = (() => {
         all.length ? all.map((i) => { const f = i.stepId && M().findStep(proc, i.stepId); return h(`div.iss-card.${i.status === "resolved" ? "res" : "open"}.sev-${i.severity || "medium"}`, { onclick: () => issueModal(i) },
           h("div.ic-top", h("b", i.title || "Issue"), h("span.chip", i.status === "resolved" ? "Resolved" : "Open")),
           h("div.muted.small", f ? `Step ${f.step.num} · ` : "", fmtTime(i.at), " · ", i.by, (i.evidence || []).length ? ` · 📎 ${i.evidence.length}` : "")); }) : h("div.muted.pad", "No issues logged.")];
+    } else if (rightTab === "comms") {
+      const ph = h("div.muted.pad", "Loading…");
+      PR.comms.runnerPanel({ run, commit }).then((n) => ph.replaceWith(n)).catch((e) => { ph.textContent = "Couldn't load communications: " + e.message; });
+      body = ph;
     } else if (rightTab === "log") {
       body = h("div.log", (run.events || []).slice().reverse().slice(0, 300).map((e) => h("div.log-row", { onclick: () => e.stepId && setFocus(e.stepId) }, h("span.log-t", fmtTime(e.at)), h("span.log-w", e.by || ""), h("span.log-x", e.text || e.type))));
     } else {
@@ -561,7 +589,7 @@ PR.runner = (() => {
         return h("div.team-row", h("div", h("b", p.name), h("div.muted.small", p.chair || "")), h("div.small", `${doneBy} done`, act.length ? h("div.c-blue-t", `◉ ${act.map((x) => x.step.num).join(", ")}`) : null));
       }), h("button.btn.btn-sm", { type: "button", onclick: () => { editingSetup = true; setupWizard.page = "info"; render(); } }, "Edit participants"));
     }
-    return h("aside.run-right", h("div.tabs", tabs.map(([k, l]) => h(`button.tab${rightTab === k ? ".on" : ""}`, { type: "button", onclick: () => { rightTab = k; render(); } }, l))), h("div.rr-body", body));
+    return h("aside.run-right", h("div.tabs", tabs.map(([k, l]) => h(`button.tab${rightTab === k ? ".on" : ""}${k === "comms" && due ? ".due" : ""}`, { type: "button", dataset: { k }, onclick: () => { rightTab = k; render(); } }, l))), h("div.rr-body", body));
   }
 
   /* ======================= issue capture ======================= */
@@ -709,6 +737,9 @@ PR.runner = (() => {
         h("div.field", h("label.lbl", "Run name"), h("input.inp", { value: run.name, onchange: (e) => commit([{ op: "set", path: ["name"], value: e.target.value }], { render: false }) })),
         h("div.frow", h("div.field", h("label.lbl", "Exercise date"), h("input.inp", { type: "date", value: su.exerciseDate, onchange: (e) => set(["exerciseDate"], e.target.value) })),
           h("div.field.grow", h("label.lbl", "Change / exercise ID", proc.setup.requireChangeId ? h("span.req", " *") : null), h("input.inp", { value: su.changeId, placeholder: "e.g. CR-2423", onchange: (e) => set(["changeId"], e.target.value) }))),
+        h("div.frow", h("div.field", h("label.lbl", "Maintenance window start"), h("input.inp", { type: "datetime-local", value: su.windowStart || "", onchange: (e) => set(["windowStart"], e.target.value) })),
+          h("div.field", h("label.lbl", "Window end"), h("input.inp", { type: "datetime-local", value: su.windowEnd || "", onchange: (e) => set(["windowEnd"], e.target.value) }))),
+        h("div.field", h("label.lbl", "Expected impact (used in communications)"), h("input.inp", { value: su.impact || "", placeholder: "e.g. Online & mobile banking, ATMs and branch systems briefly unavailable", onchange: (e) => set(["impact"], e.target.value) })),
         h("div.field", h("label.lbl", "Participants & chairs"), drawParts()),
         h("div.help", "Everyone joining opens this run from the library on their own PC (shared mode) and sets their name — each click is stamped with who did it."));
     },
@@ -770,6 +801,7 @@ PR.runner = (() => {
           env.enabled ? h("tr", h("th", "Verified"), h("td", su.verification ? `${su.verification.by} at ${fmtTime(su.verification.at)}` : "—")) : null,
           proc.setup.readiness.length ? h("tr", h("th", "Readiness"), h("td", `${proc.setup.readiness.length - notReady.length}/${proc.setup.readiness.length} confirmed`)) : null)),
         warn.map(([p, w]) => h("div.banner.b-warn.sm", "⚠ ", w, h("div.spacer"), h("button.mini-btn", { type: "button", onclick: () => goPage(p) }, "Fix"))),
+        h("div.wz-comms#wzComms"),
         notReady.length ? h("div.banner.b-info.sm", `${notReady.length} readiness item(s) not confirmed: ${notReady.map((r) => r.label).join(", ")}. You can start anyway — it's recorded.`) : null,
         h("button.btn.btn-primary.btn-xl", { type: "button", disabled: blocking, onclick: async () => {
           if (notReady.length && !(await confirmBox("Start with open readiness items?", `${notReady.length} item(s) are not confirmed. Starting anyway is recorded in the run log.`, { ok: "Start anyway" }))) return;

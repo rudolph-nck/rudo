@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Procedure Runner</title>
+  <!-- Anchor Gray tile with the brand's angled notch (top-left, matching the angle of the A) -->
+  <path d="M92 0H416a96 96 0 0 1 96 96V416a96 96 0 0 1-96 96H96a96 96 0 0 1-96-96V160Z" fill="#53575a"/>
+  <!-- Check: a completed step -->
+  <path d="M112 196l60 60 128-146" fill="none" stroke="#ffffff" stroke-width="50" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Next steps in the runbook -->
+  <rect x="96" y="304" width="150" height="34" rx="17" fill="#ffffff" fill-opacity=".38"/>
+  <rect x="96" y="364" width="210" height="34" rx="17" fill="#ffffff" fill-opacity=".38"/>
+  <!-- Upright Vivid Blue plus -->
+  <path d="M374 264h38v62h62v38h-62v62h-38v-62h-62v-38h62z" fill="#00b2e3"/>
+  <!-- Signature blue line -->
+  <rect x="0" y="452" width="512" height="18" fill="#00b2e3"/>
+</svg>

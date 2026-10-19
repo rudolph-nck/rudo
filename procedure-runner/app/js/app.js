@@ -34,7 +34,7 @@ PR.app = (() => {
     PR.u.closeMenus();
     const parts = (location.hash.replace(/^#\/?/, "") || "").split("/").map(decodeURIComponent);
     const [name, ...args] = parts;
-    const view = { "": "library", edit: "builder", run: "runner", report: "report", history: "history", runs: "runs", lessons: "lessons" }[name || ""] || "library";
+    const view = { "": "library", edit: "builder", run: "runner", report: "report", history: "history", runs: "runs", lessons: "lessons", comms: "comms", live: "live" }[name || ""] || "library";
     if (current && current.unmount) { try { const ok = await current.unmount(); if (ok === false) return; } catch (e) { console.error(e); } }
     const host = $("#view");
     host.innerHTML = ""; host.className = `view view-${view}`;
@@ -175,7 +175,8 @@ PR.app = (() => {
             h("div.live-title", r.name || r.procTitle), h("div.muted.small", r.procTitle),
             h("div.bar", h("div.bar-fill", { style: { width: pct + "%" } })),
             h("div.live-meta", h("span", `${r.done}/${r.total} steps`), r.openIssues ? h("span.c-red-t", `⚠ ${r.openIssues} open issue${r.openIssues > 1 ? "s" : ""}`) : null, r.startedAt ? h("span", "⏱ ", h("span", { dataset: { since: String(r.startedAt) } }, fmtDur(now() - r.startedAt))) : null),
-            h("button.btn.btn-primary.btn-sm", { type: "button" }, r.status === "setup" ? "Continue setup" : "Resume ▶"));
+            h("div.live-actions", h("button.btn.btn-primary.btn-sm", { type: "button" }, r.status === "setup" ? "Continue setup" : "Resume ▶"),
+              h("button.btn.btn-sm", { type: "button", title: "Read-only view for teammates, leadership or a war-room screen", onclick: (e) => { e.stopPropagation(); go(`#/live/${r.id}`); } }, "📺 Follow along")));
         })));
       }
 
@@ -251,6 +252,7 @@ PR.app = (() => {
     $("#userChip").onclick = () => askName(true);
     $("#btnHelp").onclick = () => PR.app.help();
     renderUser();
+    PR.comms.load().then(PR.comms.applyBranding).catch(() => {});
     window.addEventListener("hashchange", route);
     window.addEventListener("beforeunload", (e) => { if (PR.app.dirty && PR.app.dirty()) { e.preventDefault(); e.returnValue = ""; } });
     await route();
@@ -272,6 +274,8 @@ PR.app = (() => {
 <ul><li>Setup records date, change ID, participants, failover direction and who verified the environment mapping.</li>
 <li><kbd>Enter</kbd> starts / completes the focused step; the next step is focused automatically with a preview. <kbd>↑</kbd><kbd>↓</kbd> move focus.</li>
 <li>Several steps can run at once — each has its own timer in <b>Active now</b>. Use <b>Lanes</b> to track each datacenter separately.</li>
+<li><b>📣 Updates</b> (right panel) shows which communications are due — compose a branded email and copy it into Outlook, open it as an Outlook draft, or copy it for Teams. Templates and audiences live on the <b>Comms</b> page.</li>
+<li><b>📺 Follow</b> opens a read-only live view to share with the team, leadership or a war-room screen.</li>
 <li><kbd>I</kbd> logs an issue (paste screenshots with Ctrl+V). <kbd>N</kbd> adds an improvement note without leaving the step. <kbd>G</kbd> jumps to a step number.</li>
 <li>Forgot to press Start? Complete it anyway — the finish time is recorded and the timing is flagged <i>unreliable</i>. You can enter the real start later (<i>manual</i>).</li></ul>` }),
       actions: [{ label: "Got it", kind: "primary" }],

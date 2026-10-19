@@ -44,6 +44,40 @@ Sections or steps marked *after cutover* switch the role labels to New Primary /
    - A NO-GO decision halts the run, or jumps to a rollback section if you configure that.
 3. **🏁 Finish**: milestones, remaining issues, outcome, who authorized completion, and lessons learned. Lessons are pre-filled from the notes and issues captured during the run. Lessons flagged *check next run* appear on that step next time with a "did it work?" prompt.
 
+## Communication plan (📣)
+
+The **Comms** page belongs to the communicator/manager. List the names under *Who can send*; everyone else sees what was sent but can't compose.
+
+- **Audiences**: IT Teams, Leadership and Whole Organization by default, each with To/Cc distribution lists. You can add more.
+- **Templates**: 12 ready-made messages, from the advance notice and IT briefing through start, Go/No-Go, progress every N minutes, issue, paused, "systems available", complete, rolled back and the post-run summary. Each has a subject, headline, a *key facts* table and a body. All of them accept variables such as `{{window.start}}`, `{{progress.pct}}`, `{{eta}}`, `{{decision.result}}`, `{{issues.latest}}` and `{{live.url}}`.
+- **Per procedure**: ⚙ Settings → 📣 Comms plan chooses which templates apply and when they trigger. For example, *Systems available* fires when a specific step is completed.
+- **During a run**: the **📣 Updates** tab flags messages as **Due** when their trigger happens. Each message is rendered as a branded, Outlook-safe email. You can:
+  - **Copy for Outlook**: paste into a new email.
+  - **Outlook draft (.eml)**: opens as a ready-to-send draft.
+  - **mailto**.
+  - **Copy for Teams**.
+
+  Every send is logged with time, audience and sender, and appears in the run report.
+
+## Follow along (📺)
+
+`#/live/<run>` is a read-only, auto-refreshing view for teammates, leadership, or a war-room screen. It shows what's happening now per datacenter, phase progress, ETA, open issues and the latest update sent. Use **📺 Follow** in the runner to open it and copy the link. IT and leadership emails can include a *Follow along live* button.
+
+## App icon & desktop shortcut
+
+Run **`Install_Desktop_Shortcut.bat`**. It asks for the server address and puts a **Procedure Runner** shortcut, with the app icon, on the desktop. The shortcut opens the app in its own Edge window, which teammates can pin to the taskbar. Icons are in `app/icons/`: SVG, PNG sizes, and `ProcedureRunner.ico`.
+
+## Branding
+
+The app follows the brand guide:
+- Anchor Gray `#53575a` and Vivid Blue `#00b2e3` as the primary colours.
+- Click-me Green `#6abf4b` for call-to-action buttons (Start / Complete / Send).
+- The brand's semantic colours for alerts.
+- Open Sans (bundled, so it works offline) with ExtraBold headings.
+- The blue line and angled notch as signature elements.
+
+Light and dark modes are available from the ☾ / ☀ button. You can upload a white logo on the Comms page to show it in the header.
+
 ## Records
 
 - **📄 Report** (per run, printable and exportable to CSV/JSON) covers run setup, environment verification, readiness, step execution and timing source, parallel operations with a timeline, problems and exceptions with evidence, communications, critical decisions, validations, final completion, lessons learned, captured values, and the full audit log.
@@ -55,7 +89,12 @@ Sections or steps marked *after cutover* switch the role labels to New Primary /
 index.html              app shell
 app/js/                 util, store (local + server), model, blocks (components), ui,
                         templates, importer, app (library), builder, runner, report
-app/css/app.css         styles (light + dark)
+app/js/comms.js         communication plan, composer, Comms page
+app/js/live.js          follow-along view
+app/css/app.css         styles (brand-aligned, light + dark)
+app/fonts/              Open Sans (SIL Open Font License)
+app/icons/              app icon set (.svg, .png, .ico)
+Install_Desktop_Shortcut.bat / tools/Install-Shortcut.ps1
 server.py               team server (Python 3.8+, stdlib only)
 data/                   created at runtime — procedures, runs, evidence (not in git)
 ```

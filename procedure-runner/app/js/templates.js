@@ -98,6 +98,11 @@ PR.templates = (() => {
         T("Failover complete", "none", { ...core, category: "Celebration", estMin: 1 }, [appr("Failover complete — authorize close", "Failover lead")]),
       ]),
     ];
+    // Communication plan: team templates with this procedure's triggers ("Systems available" fires when vendors are told the host is up).
+    const avail = p.sections.flatMap((x) => x.steps).find((x) => /host is available/i.test(x.title));
+    p.comms = { items: [["tpl_advance_org", "advance"], ["tpl_advance_it", "advance"], ["tpl_reminder", "reminder"], ["tpl_start", "start"], ["tpl_decision", "decision"], ["tpl_progress", "interval", { minutes: 30 }],
+      ["tpl_issue", "issue"], ["tpl_halt", "halt"], ["tpl_available", "step", { stepId: avail ? avail.id : "" }], ["tpl_complete", "complete"], ["tpl_aborted", "aborted"], ["tpl_summary", "after"]]
+      .map(([templateId, trigger, o]) => ({ id: "pl_" + templateId, templateId, trigger, enabled: true, stepId: "", ...(o || {}) })) };
     return p;
   }
 

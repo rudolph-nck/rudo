@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Procedure Runner</title>
+  <path d="M92 0H416a96 96 0 0 1 96 96V416a96 96 0 0 1-96 96H96a96 96 0 0 1-96-96V160Z" fill="#53575a"/>
+  <path d="M96 236l76 76 160-180" fill="none" stroke="#ffffff" stroke-width="72" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M362 300h52v72h72v52h-72v72h-52v-72h-72v-52h72z" fill="#00b2e3"/>
+</svg>

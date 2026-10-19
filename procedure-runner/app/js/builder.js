@@ -676,7 +676,7 @@ PR.views.builder = (() => {
     const draft = clone(proc);
     let cur = tab;
     const body = h("div.settings");
-    const tabs = [["general", "General"], ["env", "Environments"], ["setup", "Run setup"], ["contacts", "Contacts"], ["versions", "Versions"]];
+    const tabs = [["general", "General"], ["env", "Environments"], ["setup", "Run setup"], ["comms", "📣 Comms plan"], ["contacts", "Contacts"], ["versions", "Versions"]];
     const draw = () => {
       body.innerHTML = "";
       body.append(h("div.tabs", tabs.map(([k, l]) => h(`button.tab${cur === k ? ".on" : ""}`, { type: "button", onclick: () => { cur = k; draw(); } }, l))), h("div.settings-body", SETTINGS[cur](draft, draw)));
@@ -731,6 +731,7 @@ PR.views.builder = (() => {
       field("Chairs / roles for participants (one per line)", h("textarea.inp", { rows: 6, oninput: (e) => (d.setup.chairs = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean)) }, d.setup.chairs.join("\n"))),
       field("Pre-run readiness checklist (one per line)", h("textarea.inp", { rows: 6, oninput: (e) => (d.setup.readiness = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean).map((label, i) => ({ id: (d.setup.readiness[i] && d.setup.readiness[i].label === label && d.setup.readiness[i].id) || uid("rd"), label }))) }, d.setup.readiness.map((r) => r.label).join("\n")), "Backups, transfers, replication status, approvals… shown at run setup with who/when."),
       field("Completion milestones (one per line)", h("textarea.inp", { rows: 5, oninput: (e) => (d.setup.milestones = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean).map((label, i) => ({ id: (d.setup.milestones[i] && d.setup.milestones[i].id) || uid("ms"), label }))) }, d.setup.milestones.map((r) => r.label).join("\n")), "Confirmed when the run is closed out.")),
+    comms: (d) => { const ph = h("div.muted", "Loading…"); PR.comms.planEditor(d).then((n) => ph.replaceWith(n)); return ph; },
     contacts: (d, draw) => h("div",
       h("div.help", "Contacts appear as suggestions in Contact components and in the runner's comms log."),
       h("table.edit-table", h("thead", h("tr", ["Name", "Organisation", "Phone", "Email", "Notes", ""].map((x) => h("th", x)))),
