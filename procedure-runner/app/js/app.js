@@ -248,6 +248,7 @@ PR.app = (() => {
   async function boot() {
     applyTheme(LS.get("theme", matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
     await PR.store.init();
+    checkVersion();
     $("#btnTheme").onclick = () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
     $("#userChip").onclick = () => askName(true);
     $("#btnHelp").onclick = () => PR.app.help();
@@ -260,9 +261,17 @@ PR.app = (() => {
     refreshPeople();
   }
 
+  /* If the server runs a newer (or older) build than this page, the browser is showing a stale copy. */
+  function checkVersion() {
+    const info = S().info;
+    const brand = $(".brand"); if (brand) brand.title = `Procedure Runner ${window.PR_BUILD || ""}${info ? " · server " + info.version : " · local mode"}`;
+    if (!info || !info.version || info.version === window.PR_BUILD) return;
+    document.body.prepend(h("div.update-bar", `This page is an old copy (page ${window.PR_BUILD || "?"}, server ${info.version}).`,
+      h("button.btn.btn-sm", { type: "button", onclick: () => { location.href = location.pathname + "?v=" + Date.now() + location.hash; } }, "Reload now")));
+  }
   function help() {
     modal({
-      title: "Quick guide", size: "lg",
+      title: `Quick guide · version ${window.PR_BUILD || ""}`, size: "lg",
       body: h("div.prose", { html: `
 <h3>Build</h3>
 <ul><li>Drag <b>steps</b> and <b>components</b> from the left panel onto the canvas, or click them to add after the selection.</li>

@@ -32,7 +32,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, unquote
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-VERSION = "3.0"
+VERSION = "3.1"  # keep in sync with BUILD in index.html
 MAX_BODY = 60 * 1024 * 1024
 ID_RE = re.compile(r"^[A-Za-z0-9_.\-]{1,120}$")
 
@@ -204,8 +204,8 @@ class Handler(SimpleHTTPRequestHandler):
         sys.stderr.write("%s  %s\n" % (time.strftime("%H:%M:%S"), fmt % args))
 
     def end_headers(self):
-        if self.path.startswith("/api/") or self.path.endswith((".html", ".js", ".css")) or self.path == "/":
-            self.send_header("Cache-Control", "no-store")
+        if not self.path.startswith("/data/"):  # never let browsers keep an old copy of the app after an update
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
         super().end_headers()
 
     # -- helpers
@@ -448,9 +448,16 @@ def main():
     DATA = os.path.abspath(args.data)
     for sub in ("procedures", "runs", "attachments"):
         os.makedirs(p(sub), exist_ok=True)
-    httpd = ThreadingHTTPServer((args.host, args.port), Handler)
+    try:
+        httpd = ThreadingHTTPServer((args.host, args.port), Handler)
+    except OSError:
+        print("Port %d is already in use." % args.port)
+        print("An older Procedure Runner window is probably still running (maybe from a different folder).")
+        print("Close that window, then start this one again - otherwise your browser keeps showing the old version.")
+        sys.exit(1)
     host = socket.gethostname()
     print("Procedure Runner %s" % VERSION)
+    print("  App folder  : %s" % APP_DIR)
     print("  Data folder : %s" % DATA)
     print("  This PC     : http://localhost:%d/" % args.port)
     if args.host != "127.0.0.1":
