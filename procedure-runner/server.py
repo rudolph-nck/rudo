@@ -37,6 +37,9 @@ MAX_BODY = 60 * 1024 * 1024
 ID_RE = re.compile(r"^[A-Za-z0-9_.\-]{1,120}$")
 
 DATA = None
+# Evidence types served inline; anything else is stored as .bin and downloaded, never rendered.
+SAFE_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp", ".bmp": "image/bmp",
+              ".pdf": "application/pdf", ".txt": "text/plain; charset=utf-8", ".log": "text/plain; charset=utf-8"}
 _lock = threading.RLock()
 _summary_cache = {}  # path -> (mtime, summary)
 
@@ -110,15 +113,28 @@ def apply_ops(doc, ops):
         if not path:
             continue
         cur = doc
+        ok = True
         for k in path[:-1]:
+            if isinstance(cur, list):
+                try:
+                    cur = cur[int(k)]
+                    continue
+                except (ValueError, IndexError):
+                    ok = False
+                    break
             k = str(k)
             if not isinstance(cur.get(k), (dict, list)):
                 cur[k] = {}
             cur = cur[k]
-            if isinstance(cur, list):
-                cur = {}  # paths only address objects
+        if not ok or not isinstance(cur, dict):
+            raise ValueError("Op path does not address an object: %r" % (path,))
         last = str(path[-1])
         kind, val = op.get("op"), op.get("value")
+        if op.get("ifStatus") is not None:  # guard against stale clicks from another operator
+            tgt = cur.get(last)
+            status = (tgt.get("status") if isinstance(tgt, dict) else None) or "pending"
+            if status not in op["ifStatus"]:
+                continue
         if kind == "set":
             if val is None:
                 cur.pop(last, None)
@@ -203,7 +219,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def body(self):
         n = int(self.headers.get("Content-Length") or 0)
-        if n > MAX_BODY:
+        if n < 0 or n > MAX_BODY:
             raise ValueError("Request too large")
         return self.rfile.read(n) if n else b""
 
@@ -245,14 +261,20 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         u, parts, q = self.route()
+        if not parts or parts[0] != "api":
+            return self.send_json(404, {"error": "Unknown endpoint"})
         self.guard(lambda: self.api_write("POST", parts[1:], q))
 
     def do_PUT(self):
         u, parts, q = self.route()
+        if not parts or parts[0] != "api":
+            return self.send_json(404, {"error": "Unknown endpoint"})
         self.guard(lambda: self.api_write("PUT", parts[1:], q))
 
     def do_DELETE(self):
         u, parts, q = self.route()
+        if not parts or parts[0] != "api":
+            return self.send_json(404, {"error": "Unknown endpoint"})
         self.guard(lambda: self.api_write("DELETE", parts[1:], q))
 
     def serve_attachment(self, rest):
@@ -262,12 +284,16 @@ class Handler(SimpleHTTPRequestHandler):
         fp = p("attachments", run_id, name)
         if not os.path.isfile(fp):
             return self.send_error(404)
-        ctype = self.guess_type(fp)
+        ext = os.path.splitext(name)[1].lower()
+        ctype = SAFE_TYPES.get(ext, "application/octet-stream")
         with open(fp, "rb") as f:
             data = f.read()
         self.send_response(200)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(data)))
+        self.send_header("X-Content-Type-Options", "nosniff")
+        if ext not in SAFE_TYPES or ext in (".txt", ".log"):
+            self.send_header("Content-Disposition", 'attachment; filename="%s"' % name)
         self.send_header("Cache-Control", "private, max-age=86400")
         self.end_headers()
         self.wfile.write(data)
@@ -398,7 +424,9 @@ class Handler(SimpleHTTPRequestHandler):
             name = os.path.basename((q.get("name") or ["file"])[0]) or "file"
             name = re.sub(r"[^A-Za-z0-9_.\-]", "_", name)[-80:]
             ctype = (self.headers.get("Content-Type") or "").split(";")[0]
-            ext = os.path.splitext(name)[1] or {"image/png": ".png", "image/jpeg": ".jpg", "application/pdf": ".pdf"}.get(ctype, ".bin")
+            ext = os.path.splitext(name)[1].lower() or {"image/png": ".png", "image/jpeg": ".jpg", "application/pdf": ".pdf"}.get(ctype, ".bin")
+            if ext not in SAFE_TYPES:
+                ext = ".bin"  # never store something the browser would execute (html, svg, js…)
             fname = "%d_%s%s" % (now_ms(), uuid.uuid4().hex[:6], ext)
             data = self.body()
             d = p("attachments", rid)

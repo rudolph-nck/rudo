@@ -8,7 +8,7 @@ PR.runner = (() => {
   const M = () => PR.model;
   const me = () => PR.app.me;
 
-  let run, proc, host, focusId, filter, siteFilter, mode, queue, sending, pollT, deferRender, forceArm, histStats, priorLessons, rightTab, lastRev;
+  let run, proc, host, focusId, filter, siteFilter, mode, pollT, deferRender, forceArm, histStats, priorLessons, rightTab, editingSetup;
 
   /* ======================= start a new run ======================= */
   async function startNew(procId, { practice = false } = {}) {
@@ -50,7 +50,10 @@ PR.runner = (() => {
     if (!run) { el.appendChild(h("div.empty", h("div.empty-title", "Run not found"), h("a.btn", { href: "#/" }, "Back"))); return; }
     proc = M().normalize(run.snapshot);
     run.snapshot = proc;
-    queue = []; sending = false; deferRender = false; forceArm = {}; histStats = {}; priorLessons = []; lastRev = run.rev;
+    const ob = outbox(runId);
+    if (ob.queue.length) { PR.store.applyOps(run, ob.queue); flush(ob); } // unsent changes from an earlier visit / closed tab
+    ob.lastRev = Math.max(ob.lastRev, run.rev || 0);
+    editingSetup = false; deferRender = false; forceArm = {}; histStats = {}; priorLessons = [];
     filter = PR.app.LS.get("runFilter", "all"); siteFilter = "all"; mode = PR.app.LS.get("runMode", "list"); rightTab = "active";
     focusId = (run.ui && run.ui[me()]) || firstOpen();
     el.appendChild(h("div.run#run"));
@@ -65,7 +68,7 @@ PR.runner = (() => {
     document.removeEventListener("keydown", onKey);
     document.removeEventListener("focusout", onFocusOut);
     clearInterval(pollT);
-    if (queue && queue.length) await flush();
+    // The outbox keeps retrying in the background; nothing to wait for here.
   }
 
   async function loadHistory() {
@@ -76,7 +79,7 @@ PR.runner = (() => {
       const full = (await Promise.all(runs.map((r) => S().getRun(r.id)))).filter(Boolean);
       const durs = {};
       full.forEach((r) => Object.entries(r.steps || {}).forEach(([sid, s]) => {
-        if (s.startedAt && s.finishedAt && s.timing !== "unavailable") (durs[sid] = durs[sid] || []).push(s.finishedAt - s.startedAt);
+        if (s.status === "done" && s.startedAt && s.finishedAt && s.timing !== "unavailable") (durs[sid] = durs[sid] || []).push(s.finishedAt - s.startedAt);
       }));
       histStats = Object.fromEntries(Object.entries(durs).map(([k, v]) => [k, { median: median(v), n: v.length }]));
       priorLessons = [];
@@ -98,42 +101,75 @@ PR.runner = (() => {
     PR.store.applyOps(run, ops);
     const pg = progressOf();
     if (!run.progress || pg.done !== run.progress.done || pg.total !== run.progress.total) { const o = { op: "set", path: ["progress"], value: pg }; PR.store.applyOps(run, [o]); ops.push(o); }
-    queue.push(...ops);
-    flush();
+    const ob = outbox(run.id);
+    ob.queue.push(...ops); persistQ(ob);
+    flush(ob);
     if (doRender) render();
   }
-  async function flush() {
-    if (sending || !queue.length) return;
-    sending = true;
-    const batch = queue.splice(0);
-    setSync("saving");
-    try {
-      const r = await S().patchRun(run.id, batch);
-      lastRev = r.rev;
-      if (!queue.length && PR.store.kind === "server") { adopt(r); }
-      else run.rev = r.rev;
-      setSync("ok");
-    } catch (e) {
-      console.warn("sync failed", e);
-      queue.unshift(...batch);
-      setSync("err");
-      setTimeout(() => { sending = false; flush(); }, 3000);
-      return;
+
+  /* Outbox per run id: survives navigating away, is backed up to localStorage until the server confirms,
+     and retries while offline. Replies for a run that is no longer on screen never touch the view. */
+  const outboxes = {};
+  function outbox(id) {
+    if (!outboxes[id]) {
+      let saved = [];
+      try { saved = JSON.parse(localStorage.getItem("pr_q_" + id) || "[]"); } catch { /* ignore */ }
+      outboxes[id] = { id, queue: Array.isArray(saved) ? saved : [], sending: null, lastRev: 0 };
     }
-    sending = false;
-    if (queue.length) flush();
+    return outboxes[id];
+  }
+  function persistQ(ob) { try { if (ob.queue.length) localStorage.setItem("pr_q_" + ob.id, JSON.stringify(ob.queue)); else localStorage.removeItem("pr_q_" + ob.id); } catch { /* storage full/private */ } }
+  const isCurrent = (ob) => run && run.id === ob.id && $("#run");
+  function flush(ob = outbox(run.id)) {
+    if (ob.sending) return ob.sending;
+    if (!ob.queue.length) return Promise.resolve();
+    ob.sending = (async () => {
+      while (ob.queue.length) {
+        const batch = ob.queue.slice();
+        if (isCurrent(ob)) setSync("saving");
+        try {
+          const r = await S().patchRun(ob.id, batch);
+          ob.queue.splice(0, batch.length); persistQ(ob);
+          ob.lastRev = Math.max(ob.lastRev, r.rev || 0);
+          if (isCurrent(ob)) { if (!ob.queue.length && PR.store.kind === "server") adopt(r); else run.rev = r.rev; setSync("ok"); }
+        } catch (e) {
+          console.warn("sync failed", e);
+          if (e.status === 404 || e.status === 400) { // not retryable: drop the batch rather than loop forever
+            ob.queue.splice(0, batch.length); persistQ(ob);
+            if (isCurrent(ob)) toast(`A change could not be saved: ${e.message}`, "err", 5000);
+            continue;
+          }
+          if (isCurrent(ob)) setSync("err");
+          await new Promise((res) => setTimeout(res, 3000));
+        }
+      }
+      ob.sending = null;
+    })();
+    return ob.sending;
+  }
+  /* Wait until everything for the current run is saved (gives up after `ms` — the outbox keeps retrying). */
+  async function drain(ms = 8000) {
+    const ob = outbox(run.id);
+    const until = now() + ms;
+    while ((ob.queue.length || ob.sending) && now() < until) await Promise.race([flush(ob), new Promise((r) => setTimeout(r, 500))]);
   }
   function adopt(remote) {
+    const ob = outbox(remote.id);
+    if ((remote.rev || 0) < ob.lastRev) return; // older than what we already have
+    ob.lastRev = remote.rev || ob.lastRev;
     const changedByOthers = JSON.stringify(remote.steps) !== JSON.stringify(run.steps) || JSON.stringify(remote.issues) !== JSON.stringify(run.issues) || remote.status !== run.status || JSON.stringify(remote.setup) !== JSON.stringify(run.setup) || (remote.events || []).length !== (run.events || []).length;
     remote.snapshot = proc;
     run = remote;
     if (changedByOthers) safeRender();
   }
   async function poll() {
-    if (sending || queue.length || document.hidden) return;
+    if (!run) return;
+    const ob = outbox(run.id);
+    if (ob.sending || ob.queue.length || document.hidden) return;
     try {
-      const rev = await S().runRev(run.id);
-      if (rev !== run.rev) { const r = await S().getRun(run.id); if (r && !queue.length && !sending) adopt(r); }
+      const id = run.id;
+      const rev = await S().runRev(id);
+      if (rev !== run.rev) { const r = await S().getRun(id); if (r && run.id === id && !ob.queue.length && !ob.sending) adopt(r); }
       setSync("ok");
     } catch { setSync("err"); }
   }
@@ -176,7 +212,7 @@ PR.runner = (() => {
       if (blockers.length && !(await confirmBox("Hold point", h("div", `Step ${f.step.num} is a hold point. ${blockers.length} earlier required step(s) aren't finished: `, h("b", blockers.slice(0, 6).map((b) => b.step.num).join(", ")), blockers.length > 6 ? "…" : "", ". Start anyway? (This override is recorded.)"), { ok: "Override & start", kind: "danger" }))) return;
       if (blockers.length) commit([], { render: false, event: { type: "override", stepId: id, text: `Hold point overridden with ${blockers.length} open step(s)` } });
     }
-    commit([{ op: "merge", path: ["steps", id], value: { status: "active", startedAt: now(), startedBy: me(), timing: "auto", finishedAt: null } }], { event: { type: "start", stepId: id, text: `Started ${f.step.num} ${f.step.title}` } });
+    commit([{ op: "merge", path: ["steps", id], ifStatus: ["pending"], value: { status: "active", startedAt: now(), startedBy: me(), timing: "auto", finishedAt: null } }], { event: { type: "start", stepId: id, text: `Started ${f.step.num} ${f.step.title}` } });
     if (!quiet) setFocus(id);
   }
   function completeStep(id) {
@@ -201,7 +237,7 @@ PR.runner = (() => {
     const val = { status: "done", finishedAt: now(), finishedBy: me(), timing: started ? (s.timing || "auto") : "unavailable", incomplete };
     if (!started) val.startedAt = null;
     const next = nextOpenAfter(id);
-    commit([{ op: "merge", path: ["steps", id], value: val }], { render: false, event: { type: "complete", stepId: id, text: `Completed ${f.step.num} ${f.step.title}${started ? " in " + fmtDur(val.finishedAt - s.startedAt, { short: true }) : " (no start time — timing unreliable)"}${incomplete ? " — incomplete: " + incomplete.join(", ") : ""}` } });
+    commit([{ op: "merge", path: ["steps", id], ifStatus: ["pending", "active"], value: val }], { render: false, event: { type: "complete", stepId: id, text: `Completed ${f.step.num} ${f.step.title}${started ? " in " + fmtDur(val.finishedAt - s.startedAt, { short: true }) : " (no start time — timing unreliable)"}${incomplete ? " — incomplete: " + incomplete.join(", ") : ""}` } });
     if (!started) toast(`Step ${f.step.num} recorded. Timing marked unreliable — add the start time if you know it.`, "warn", 3500);
     if (next && focusId === id) focusId = next;
     saveUi();
@@ -252,6 +288,9 @@ PR.runner = (() => {
   const saveUi = debounce(() => { if (run && run.status !== "completed") commit([{ op: "set", path: ["ui", me()], value: focusId }], { render: false }); }, 1500);
   // Instant (not smooth) on purpose: a re-render during a smooth scroll would strand the focused card off-screen.
   function scrollToFocus() { requestAnimationFrame(() => { const n = $(`.fcard[data-fc="${focusId}"]`); n && n.scrollIntoView({ block: "nearest" }); }); }
+  function patchValue(stepId, blockId, delta, renderIt = true) {
+    commit([{ op: "merge", path: ["steps", stepId, "values", blockId], value: delta }], { render: renderIt });
+  }
   function setValue(stepId, blockId, value, renderIt = true) {
     commit([{ op: "set", path: ["steps", stepId, "values", blockId], value }], { render: renderIt });
   }
@@ -274,7 +313,7 @@ PR.runner = (() => {
   function render() {
     const root = $("#run"); if (!root) return;
     deferRender = false;
-    if (run.status === "setup") { root.innerHTML = ""; root.append(setupWizard()); return; }
+    if (run.status === "setup" || editingSetup) { root.innerHTML = ""; root.append(setupWizard()); return; }
     const sc = $("#runCenter"); const top = sc && render.lastMode === mode ? sc.scrollTop : null;
     render.lastMode = mode;
     root.innerHTML = "";
@@ -303,7 +342,7 @@ PR.runner = (() => {
       h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Communication log (C)", onclick: commsModal }, "☎ Comms"),
       h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Run report", onclick: () => PR.app.go(`#/report/${run.id}`) }, "📄 Report"),
       h("button.icon-btn", { type: "button", title: "More", onclick: (e) => menu(e.currentTarget, [
-        { icon: "⚙", label: "Edit run setup (participants, direction…)", onClick: () => { commit([{ op: "set", path: ["status"], value: "setup" }, { op: "set", path: ["resumeTo"], value: run.status }]); } },
+        { icon: "⚙", label: "Edit run setup (participants, direction…)", onClick: () => { editingSetup = true; setupWizard.page = "info"; render(); } },
         run.status === "paused" ? { icon: "▶", label: "Resume run", onClick: resumeRun } : { icon: "⏸", label: "Halt run", onClick: haltRun },
         { icon: "⇩", label: "Export run (JSON)", onClick: async () => PR.u.download(`${PR.u.slug(run.name)}.run.json`, JSON.stringify(await PR.store.exportRunBundle(run), null, 2)) },
         { icon: "⌨", label: "Keyboard shortcuts", onClick: () => PR.app.help() },
@@ -325,7 +364,7 @@ PR.runner = (() => {
   function resumeRun() { commit([{ op: "set", path: ["status"], value: "active" }, { op: "set", path: ["halt"], value: null }], { event: { type: "resume", text: "Run resumed" } }); }
   async function abortRun() {
     const r = await promptBox("Abort run?", { label: "Reason (the run is kept and marked aborted)", ok: "Abort run", required: true });
-    if (r) { commit([{ op: "set", path: ["status"], value: "aborted" }, { op: "set", path: ["completedAt"], value: now() }, { op: "merge", path: ["completion"], value: { outcome: "Aborted", summary: r, authorizedBy: me(), authorizedAt: now() } }], { event: { type: "abort", text: `Run aborted: ${r}` } }); await flush(); PR.app.go(`#/report/${run.id}`); }
+    if (r) { commit([{ op: "set", path: ["status"], value: "aborted" }, { op: "set", path: ["completedAt"], value: now() }, { op: "merge", path: ["completion"], value: { outcome: "Aborted", summary: r, authorizedBy: me(), authorizedAt: now() } }], { event: { type: "abort", text: `Run aborted: ${r}` } }); await drain(); PR.app.go(`#/report/${run.id}`); }
   }
 
   /* ---------- left navigation ---------- */
@@ -404,6 +443,7 @@ PR.runner = (() => {
     const r = (b) => ({
       value: vals[b.id], ctx: c, me: me(), people: people(), readonly: !live || ["done", "skipped", "na"].includes(status),
       set: (v, o = {}) => setValue(step.id, b.id, v, o.render !== false),
+      patch: (d, o = {}) => patchValue(step.id, b.id, d, o.render !== false),
       onDecision: (blk, v) => onDecision(step, blk, v),
       onFail: (blk) => setTimeout(async () => { if (await confirmBox("Validation failed", "Log an issue for this failed check?", { ok: "Log issue" })) issueModal({ stepId: step.id, title: `Validation failed: ${M().interpolate(blk.test, c, false)}` }); }, 50),
       putFile: async (f) => S().putAttachment(run.id, f.type && f.type.startsWith("image/") ? PR.u.dataURLToBlob(await PR.u.compressImage(f)) : f, f.name),
@@ -519,7 +559,7 @@ PR.runner = (() => {
         const doneBy = Object.values(run.steps || {}).filter((s) => s.finishedBy === p.name).length;
         const act = stepsInOrder().filter(({ step }) => statusOf(step) === "active" && st(step.id).startedBy === p.name);
         return h("div.team-row", h("div", h("b", p.name), h("div.muted.small", p.chair || "")), h("div.small", `${doneBy} done`, act.length ? h("div.c-blue-t", `◉ ${act.map((x) => x.step.num).join(", ")}`) : null));
-      }), h("button.btn.btn-sm", { type: "button", onclick: () => { commit([{ op: "set", path: ["status"], value: "setup" }, { op: "set", path: ["resumeTo"], value: run.status }]); } }, "Edit participants"));
+      }), h("button.btn.btn-sm", { type: "button", onclick: () => { editingSetup = true; setupWizard.page = "info"; render(); } }, "Edit participants"));
     }
     return h("aside.run-right", h("div.tabs", tabs.map(([k, l]) => h(`button.tab${rightTab === k ? ".on" : ""}`, { type: "button", onclick: () => { rightTab = k; render(); } }, l))), h("div.rr-body", body));
   }
@@ -532,7 +572,9 @@ PR.runner = (() => {
     const thumbs = h("div.thumbs");
     const drawThumbs = () => { thumbs.innerHTML = ""; iss.evidence.forEach((ev, i) => thumbs.append(h("div.thumb-wrap", PR.app.thumb(ev), h("button.thumb-x", { type: "button", title: "Remove", onclick: () => { iss.evidence.splice(i, 1); drawThumbs(); } }, "✕")))); };
     drawThumbs();
-    const addFiles = async (files) => {
+    const uploads = new Set();
+    const addFiles = (files) => { const p = addFilesNow(files); uploads.add(p); p.finally(() => uploads.delete(p)); return p; };
+    const addFilesNow = async (files) => {
       for (const f of files) {
         const blob = f.type && f.type.startsWith("image/") ? PR.u.dataURLToBlob(await PR.u.compressImage(f)) : f;
         iss.evidence.push({ ref: await S().putAttachment(run.id, blob, f.name || "screenshot.jpg"), name: f.name || "screenshot", type: blob.type, at: now(), by: me() });
@@ -561,6 +603,7 @@ PR.runner = (() => {
     });
     if (v === "delete") { if (await confirmBox("Delete issue?", "This removes it from the run record.", { ok: "Delete", kind: "danger" })) commit([{ op: "set", path: ["issues", iss.id], value: null }], { event: { type: "issue", stepId: iss.stepId, text: `Deleted issue: ${iss.title}` } }); return; }
     if (v !== "save") return;
+    if (uploads.size) { toast("Finishing screenshot upload…", "info", 1200); await Promise.allSettled([...uploads]); }
     if (!iss.title.trim()) iss.title = iss.what ? iss.what.split("\n")[0].slice(0, 80) : "Issue";
     if (iss.status === "resolved" && !iss.resolvedAt) { iss.resolvedAt = now(); iss.resolvedBy = me(); }
     if (iss.status !== "resolved") { iss.resolvedAt = null; }
@@ -730,13 +773,16 @@ PR.runner = (() => {
         notReady.length ? h("div.banner.b-info.sm", `${notReady.length} readiness item(s) not confirmed: ${notReady.map((r) => r.label).join(", ")}. You can start anyway — it's recorded.`) : null,
         h("button.btn.btn-primary.btn-xl", { type: "button", disabled: blocking, onclick: async () => {
           if (notReady.length && !(await confirmBox("Start with open readiness items?", `${notReady.length} item(s) are not confirmed. Starting anyway is recorded in the run log.`, { ok: "Start anyway" }))) return;
-          const resume = run.resumeTo && run.resumeTo !== "setup" ? run.resumeTo : null;
-          commit([{ op: "set", path: ["status"], value: resume || "active" }, { op: "set", path: ["startedAt"], value: run.startedAt || now() }, { op: "set", path: ["resumeTo"], value: null }, { op: "set", path: ["directionLabel"], value: M().directionLabel(proc, su) || null }],
+          const resume = editingSetup;
+          editingSetup = false;
+          const ops = [{ op: "set", path: ["directionLabel"], value: M().directionLabel(proc, su) || null }];
+          if (!resume) ops.push({ op: "set", path: ["status"], value: "active" }, { op: "set", path: ["startedAt"], value: run.startedAt || now() });
+          commit(ops,
             { event: { type: resume ? "setup" : "begin", text: resume ? "Run setup updated" : `Run started${directional ? " — " + M().directionLabel(proc, su) : ""}${notReady.length ? ` with ${notReady.length} open readiness item(s)` : ""}` } });
           PR.app.rememberPeople((su.participants || []).map((p) => p.name));
           focusId = focusId || firstOpen();
           render();
-        } }, run.resumeTo && run.resumeTo !== "setup" ? "Save & return to run" : "▶ Begin run"));
+        } }, editingSetup ? "Save & return to run" : "▶ Begin run"));
     },
   };
 
@@ -795,14 +841,14 @@ PR.runner = (() => {
       ops.push({ op: "set", path: ["status"], value: comp.outcome === "Aborted" ? "aborted" : "completed" }, { op: "set", path: ["completedAt"], value: now() });
     }
     commit(ops, { render: false, event: v === "done" ? { type: "complete-run", text: `Run completed — ${comp.outcome}, authorized by ${comp.authorizedBy}` } : null });
-    await flush();
+    await drain();
     if (v === "done") PR.app.go(`#/report/${run.id}`); else { toast("Close-out draft saved", "ok"); render(); }
   }
   const stat = (k, v) => h("div.stat", h("div.stat-v", v), h("div.stat-k", k));
 
   /* ======================= keyboard ======================= */
   function onKey(e) {
-    if (!run || run.status === "setup" || PR.u.topModalOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!run || run.status === "setup" || editingSetup || PR.u.topModalOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
     if (PR.u.isTyping(e)) { if (e.key === "Escape") document.activeElement.blur(); return; }
     const all = stepsInOrder().filter(({ step, section }) => visible(step, section));
     const i = all.findIndex((x) => x.step.id === focusId);

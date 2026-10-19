@@ -5,15 +5,16 @@ PR.views.builder = (() => {
   const { h, $, $$, esc, toast, modal, confirmBox, promptBox, menu, uid, clone, now, fmtMin, debounce } = PR.u;
   const S = () => PR.store.b;
 
-  let doc, proc, sel, multi, undoStack, redoStack, dirty, saving, leftTab, compact, outlineQ, collapsedOutline;
+  let doc, proc, sel, multi, undoStack, redoStack, dirty, leftTab, compact, outlineQ, collapsedOutline;
   let editSnap = null; // snapshot taken on focus of an inline editor, pushed on first change
+  let editGen = 0;     // bumps on every change, so a save only clears "dirty" if nothing changed meanwhile
 
   /* ======================= lifecycle ======================= */
   async function mount(el, id) {
     doc = await S().getProcedure(id);
     if (!doc) { el.appendChild(h("div.empty", h("div.empty-title", "Procedure not found"), h("a.btn", { href: "#/" }, "Back"))); return; }
     proc = M().normalize(clone(doc.draft));
-    sel = null; multi = new Set(); undoStack = []; redoStack = []; dirty = false; saving = false;
+    sel = null; multi = new Set(); undoStack = []; redoStack = []; dirty = false;
     leftTab = PR.app.LS.get("bldLeft", "add"); compact = PR.app.LS.get("bldCompact", false); outlineQ = ""; collapsedOutline = new Set();
     el.appendChild(h("div.bld",
       h("div.bld-bar#bldBar"),
@@ -34,7 +35,7 @@ PR.views.builder = (() => {
   /* ======================= state changes ======================= */
   function snap() { undoStack.push(JSON.stringify(proc)); if (undoStack.length > 100) undoStack.shift(); redoStack = []; }
   function changed(render = "all") {
-    dirty = true; setSaveState("Unsaved…"); save();
+    dirty = true; editGen++; setSaveState("Unsaved…"); save();
     if (render === "all") renderAll();
     else if (render === "canvas") { renderCanvas(); renderOutline(); renderInspector(); }
     else if (render && render.step) { rerenderStep(render.step); renderOutline(); if (render.insp !== false) renderInspector(); }
@@ -42,23 +43,30 @@ PR.views.builder = (() => {
   }
   function mutate(fn, render = "all") { snap(); fn(); changed(render); }
   function beginEdit() { editSnap = JSON.stringify(proc); }
-  function editing() { if (editSnap) { undoStack.push(editSnap); redoStack = []; editSnap = null; } dirty = true; setSaveState("Unsaved…"); save(); }
+  function editing() { if (editSnap) { undoStack.push(editSnap); redoStack = []; editSnap = null; } dirty = true; editGen++; setSaveState("Unsaved…"); save(); }
 
   function undo() { if (!undoStack.length) return; redoStack.push(JSON.stringify(proc)); proc = JSON.parse(undoStack.pop()); changed(); toast("Undone", "info", 900); }
   function redo() { if (!redoStack.length) return; undoStack.push(JSON.stringify(proc)); proc = JSON.parse(redoStack.pop()); changed(); toast("Redone", "info", 900); }
 
-  const save = debounce(async () => {
-    if (saving) { save(); return; }
-    saving = true;
-    try {
-      doc.draft = clone(proc); doc.dirtySincePublish = true; doc.updatedBy = PR.app.me;
-      doc = await S().saveProcedure(doc, doc.rev);
-      dirty = false; setSaveState("Saved");
-    } catch (e) {
-      if (e.conflict) await resolveConflict(e.current);
-      else { setSaveState("Save failed — retrying"); setTimeout(() => save(), 3000); }
-    } finally { saving = false; }
-  }, 700);
+  let savingP = null;
+  async function doSave() {
+    while (savingP) await savingP; // one save at a time; flush() waits for an in-flight one
+    if (!dirty) return;
+    const gen = editGen;
+    savingP = (async () => {
+      try {
+        doc.draft = clone(proc); doc.dirtySincePublish = true; doc.updatedBy = PR.app.me;
+        doc = await S().saveProcedure(doc, doc.rev);
+        if (editGen === gen) { dirty = false; setSaveState("Saved"); }
+      } catch (e) {
+        if (e.conflict) await resolveConflict(e.current);
+        else { setSaveState("Save failed — retrying"); setTimeout(() => save(), 3000); }
+      }
+    })();
+    try { await savingP; } finally { savingP = null; }
+    if (dirty && editGen !== gen) return doSave(); // edits arrived while saving
+  }
+  const save = debounce(doSave, 700);
   async function resolveConflict(current) {
     const v = await modal({
       title: "Someone else edited this procedure", size: "sm", dismissable: false,
@@ -760,12 +768,26 @@ PR.views.builder = (() => {
       actions: [{ spacer: true }, { label: "Cancel", value: null }, { label: errs.length ? "Fix errors first" : "Publish", kind: "primary", value: errs.length ? null : "go" }],
     });
     if (v !== "go") return;
-    const version = (doc.publishedVersion || 0) + 1;
+    // Re-read so two authors publishing at once don't collide on a version number.
+    const latest = await S().getProcedure(proc.id);
+    if (latest && latest.rev !== doc.rev) { doc.rev = latest.rev; doc.publishedVersion = Math.max(doc.publishedVersion || 0, latest.publishedVersion || 0); doc.versions = latest.versions || doc.versions; }
+    let version = (doc.publishedVersion || 0) + 1;
     const data = clone(proc);
-    await S().putVersion(proc.id, version, data);
+    for (let tries = 0; ; tries++) {
+      try { await S().putVersion(proc.id, version, data); break; }
+      catch (e) { if (tries < 20 && (e.conflict || /exists/i.test(e.message))) { version++; continue; } toast(`Publish failed: ${e.message}`, "err", 5000); return; }
+    }
     doc.versions = [...(doc.versions || []), { version, at: now(), by: PR.app.me, note: note.value, steps: M().allSteps(proc).length }];
     doc.publishedVersion = version; doc.publishedAt = now(); doc.status = "published"; doc.draft = data; doc.dirtySincePublish = false;
-    try { doc = await S().saveProcedure(doc, doc.rev); } catch (e) { if (e.conflict) return resolveConflict(e.current); throw e; }
+    try { doc = await S().saveProcedure(doc, doc.rev); }
+    catch (e) {
+      if (!e.conflict) { toast(`Publish failed: ${e.message}`, "err", 5000); return; }
+      // Someone saved meanwhile: keep our publish record on top of their latest doc.
+      const cur = e.current; cur.versions = [...(cur.versions || []).filter((x) => x.version !== version), doc.versions[doc.versions.length - 1]];
+      cur.publishedVersion = Math.max(cur.publishedVersion || 0, version); cur.publishedAt = now(); cur.status = "published"; cur.draft = data; cur.dirtySincePublish = false;
+      try { doc = await S().saveProcedure(cur, cur.rev); } catch (e2) { toast(`Publish failed: ${e2.message}`, "err", 5000); return; }
+      proc = M().normalize(clone(doc.draft)); renderAll();
+    }
     dirty = false; renderBar(); toast(`Published v${version}`, "ok");
   }
 

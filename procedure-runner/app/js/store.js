@@ -18,6 +18,10 @@ PR.store = (() => {
         cur = cur[k];
       }
       const last = path[path.length - 1];
+      if (op.ifStatus) { // only apply if the target is still in an expected state (guards stale clicks from other operators)
+        const cs = (isObj(cur[last]) && cur[last].status) || "pending";
+        if (!op.ifStatus.includes(cs)) continue;
+      }
       if (op.op === "set") {
         if (op.value === null || op.value === undefined) delete cur[last];
         else cur[last] = clone(op.value);
@@ -139,7 +143,7 @@ PR.store = (() => {
     let data = null;
     try { data = await res.json(); } catch { /* empty */ }
     if (res.status === 409) { const e = new Error("conflict"); e.conflict = true; e.current = data && data.current; throw e; }
-    if (!res.ok) throw new Error((data && data.error) || `HTTP ${res.status}`);
+    if (!res.ok) { const e = new Error((data && data.error) || `HTTP ${res.status}`); e.status = res.status; throw e; }
     return data;
   }
   const enc = encodeURIComponent;

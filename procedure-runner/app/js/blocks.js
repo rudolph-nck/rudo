@@ -119,7 +119,7 @@ PR.blocks = (() => {
       return h("div.blk-check", b.title ? h("div.blk-title", b.title) : null, itemsOf(b).map((it) => {
         const st = v[it.id];
         return h(`label.ck-row${st ? ".on" : ""}`,
-          h("input", { type: "checkbox", checked: !!st, disabled: r.readonly, onchange: (e) => r.set({ ...v, [it.id]: e.target.checked ? { at: now(), by: r.me } : null }) }),
+          h("input", { type: "checkbox", checked: !!st, disabled: r.readonly, onchange: (e) => r.patch({ [it.id]: e.target.checked ? { at: now(), by: r.me } : null }) }),
           h("span", { html: PR.u.inline(I(it.text, r.ctx)) }), st ? h("span.stamp", `${st.by || ""} · ${fmtTime(st.at)}`) : null);
       }));
     },
@@ -221,13 +221,13 @@ PR.blocks = (() => {
         b.request ? mdNode(b.request, r.ctx) : null,
         h("div.ct-actions",
           v.contactedAt ? h("span.done-pill", `✓ Contacted ${fmtTime(v.contactedAt)} by ${v.by || ""}`) :
-            h("button.btn.btn-sm", { type: "button", disabled: r.readonly, onclick: () => r.set({ ...v, contactedAt: now(), by: r.me }) }, "☎ Mark contacted"),
+            h("button.btn.btn-sm", { type: "button", disabled: r.readonly, onclick: () => r.patch({ contactedAt: now(), by: r.me }) }, "☎ Mark contacted"),
           v.confirmedAt ? h("span.done-pill", `✓ Confirmed ${fmtTime(v.confirmedAt)}`) :
-            h("button.btn.btn-sm", { type: "button", disabled: r.readonly || !v.contactedAt, onclick: () => r.set({ ...v, confirmedAt: now(), confirmed: true }) }, "✓ Confirmation received"),
-          v.contactedAt && !v.confirmedAt ? h("button.btn.btn-sm.btn-ghost", { type: "button", disabled: r.readonly, onclick: () => r.set({ ...v, confirmed: false, noConfirmAt: now() }) }, "No response") : null),
+            h("button.btn.btn-sm", { type: "button", disabled: r.readonly || !v.contactedAt, onclick: () => r.patch({ confirmedAt: now(), confirmed: true }) }, "✓ Confirmation received"),
+          v.contactedAt && !v.confirmedAt ? h("button.btn.btn-sm.btn-ghost", { type: "button", disabled: r.readonly, onclick: () => r.patch({ confirmed: false, noConfirmAt: now() }) }, "No response") : null),
         h("div.ct-grid",
-          h("input.inp", { placeholder: "Ticket / reference #", value: v.reference || "", disabled: r.readonly, onchange: (e) => r.set({ ...v, reference: e.target.value }, { render: false }) }),
-          h("input.inp", { placeholder: "Response / who you spoke with", value: v.response || "", disabled: r.readonly, onchange: (e) => r.set({ ...v, response: e.target.value }, { render: false }) })));
+          h("input.inp", { placeholder: "Ticket / reference #", value: v.reference || "", disabled: r.readonly, onchange: (e) => r.patch({ reference: e.target.value }, { render: false }) }),
+          h("input.inp", { placeholder: "Response / who you spoke with", value: v.response || "", disabled: r.readonly, onchange: (e) => r.patch({ response: e.target.value }, { render: false }) })));
     },
     needs: (b) => !!b.requireConfirmation,
     complete: (b, v) => !!(v && v.contactedAt && v.confirmedAt),
@@ -245,10 +245,10 @@ PR.blocks = (() => {
       return h(`div.blk-val${v.result ? ".res-" + v.result : ""}`,
         h("div.val-row", h("span.val-k", "Test"), h("span", { html: PR.u.inline(I(b.test, r.ctx)) })),
         h("div.val-row", h("span.val-k", "Expected"), h("span", { html: PR.u.inline(I(b.expected, r.ctx)) })),
-        h("div.val-row", h("span.val-k", "Actual"), h("input.inp", { placeholder: "What did you observe?", value: v.actual || "", disabled: r.readonly, onchange: (e) => r.set({ ...v, actual: e.target.value }, { render: false }) })),
+        h("div.val-row", h("span.val-k", "Actual"), h("input.inp", { placeholder: "What did you observe?", value: v.actual || "", disabled: r.readonly, onchange: (e) => r.patch({ actual: e.target.value }, { render: false }) })),
         h("div.val-row", h("span.val-k", ""), h("div.seg",
-          h(`button.seg-btn.pass${v.result === "pass" ? ".on" : ""}`, { type: "button", disabled: r.readonly, onclick: () => r.set({ ...v, result: "pass", at: now(), by: r.me }) }, "✓ Pass"),
-          h(`button.seg-btn.fail${v.result === "fail" ? ".on" : ""}`, { type: "button", disabled: r.readonly, onclick: () => { r.set({ ...v, result: "fail", at: now(), by: r.me }); r.onFail && r.onFail(b); } }, "✕ Fail")), stamp(v)));
+          h(`button.seg-btn.pass${v.result === "pass" ? ".on" : ""}`, { type: "button", disabled: r.readonly, onclick: () => r.patch({ result: "pass", at: now(), by: r.me }) }, "✓ Pass"),
+          h(`button.seg-btn.fail${v.result === "fail" ? ".on" : ""}`, { type: "button", disabled: r.readonly, onclick: () => { r.patch({ result: "fail", at: now(), by: r.me }); r.onFail && r.onFail(b); } }, "✕ Fail")), stamp(v)));
     },
     needs: (b) => !!b.required, complete: (b, v) => !!(v && v.result),
     summary: (b, v) => `${PR.model.interpolate(b.test, {}, false)} → ${v && v.result ? v.result.toUpperCase() : "not recorded"}${v && v.actual ? " (" + v.actual + ")" : ""}`,

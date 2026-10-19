@@ -11,7 +11,7 @@
       const s = (run.steps || {})[step.id] || {};
       const applicable = M().isApplicable(step, run.setup);
       const status = applicable ? s.status || "pending" : "na";
-      return { step, section, s, status, t: M().resolveTarget(p, step, section, run.setup), dur: s.startedAt && s.finishedAt && s.timing !== "unavailable" ? s.finishedAt - s.startedAt : null };
+      return { step, section, s, status, t: M().resolveTarget(p, step, section, run.setup), dur: status === "done" && s.startedAt && s.finishedAt && s.timing !== "unavailable" ? s.finishedAt - s.startedAt : null };
     });
   }
   function blockValues(run, type) {
@@ -175,7 +175,7 @@
       if (full.length) {
         const base = full[full.length - 1].snapshot;
         const steps = M().allSteps(base);
-        const durOf = (r, id) => { const s = (r.steps || {})[id]; return s && s.startedAt && s.finishedAt && s.timing !== "unavailable" ? s.finishedAt - s.startedAt : null; };
+        const durOf = (r, id) => { const s = (r.steps || {})[id]; return s && s.status === "done" && s.startedAt && s.finishedAt && s.timing !== "unavailable" ? s.finishedAt - s.startedAt : null; };
         const meds = Object.fromEntries(steps.map(({ step }) => [step.id, median(full.map((r) => durOf(r, step.id)))]));
         const slow = steps.filter(({ step }) => meds[step.id]).sort((a, b) => meds[b.step.id] - meds[a.step.id]).slice(0, 10);
         wrap.append(h("h2", "Where the time goes"), h("div.muted", `Median over the last ${full.length} completed run(s). Use this to target improvements.`),
