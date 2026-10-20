@@ -25,7 +25,25 @@ PR.blocks = (() => {
     run: (b, r) => mdNode(b.text, r.ctx),
   });
 
+  /* Console window: shows text exactly as it appears in the terminal. Lines that start with the prompt are commands
+     (Copy commands copies just those, prompt stripped); everything else is shown as expected output. */
+  function consoleView(b, ctx) {
+    const code = PR.model.interpolate(b.code || "", ctx, false).replace(/\r/g, "");
+    const prompt = (b.prompt || "").trim();
+    const lines = code.split("\n");
+    const isCmd = (l) => !prompt || l.trimStart().startsWith(prompt);
+    const strip = (l) => (prompt && l.trimStart().startsWith(prompt) ? l.trimStart().slice(prompt.length).trimStart() : l.trim());
+    const cmds = lines.filter((l) => l.trim() && isCmd(l)).map(strip);
+    return h("div.console",
+      h("div.console-bar", h("span.console-dots", h("i"), h("i"), h("i")), h("span.console-title", PR.model.interpolate(b.label || b.title || "Console", ctx, false)),
+        h("div.spacer"),
+        prompt && cmds.length ? h("button.console-btn", { type: "button", title: "Copy only the commands (without the prompt)", onclick: () => copyText(cmds.join("\n")) }, "Copy commands") : null,
+        h("button.console-btn", { type: "button", title: "Copy exactly what is shown", onclick: () => copyText(code) }, "Copy all")),
+      h("pre.console-body", lines.map((l) => h(`div.console-line${prompt && !isCmd(l) ? ".out" : ""}`, { title: "Click to copy this line", onclick: () => l.trim() && copyText(isCmd(l) ? strip(l) : l) }, l || " "))),
+      b.note ? h("div.blk-note", b.note) : null);
+  }
   function codeView(b, ctx) {
+    if (b.display === "console") return consoleView(b, ctx);
     const code = PR.model.interpolate(b.code || "", ctx, false);
     return h("div.blk-code",
       b.label ? h("div.blk-code-h", h("span", b.label), h("button.mini-btn", { type: "button", onclick: () => copyText(code) }, "Copy all")) :
@@ -35,9 +53,20 @@ PR.blocks = (() => {
   }
   reg("command", {
     label: "Command", icon: "⌘", group: "Content", desc: "Monospace command with one-click copy",
-    defaults: () => ({ label: "", code: "FAILOVER.OFFLINE", note: "" }),
-    fields: [{ key: "label", label: "Label", placeholder: "e.g. Terminal window" }, { key: "code", label: "Command(s)", type: "code", rows: 4 }, { key: "note", label: "Note", placeholder: "Optional" }],
+    defaults: () => ({ label: "", code: "FAILOVER.OFFLINE", note: "", display: "code" }),
+    fields: [{ key: "display", label: "Show as", type: "select", options: [["code", "Code box"], ["console", "Console window (as it looks on screen)"]] },
+      { key: "label", label: "Label", placeholder: "e.g. Terminal window" }, { key: "prompt", label: "Prompt (console only)", placeholder: "e.g. $ or symop>", showIf: (b) => b.display === "console", help: "Lines starting with the prompt are commands; other lines are shown as expected output." },
+      { key: "code", label: "Command(s)", type: "code", rows: 4 }, { key: "note", label: "Note", placeholder: "Optional" }],
     preview: (b, ctx) => codeView(b, ctx), run: (b, r) => codeView(b, r.ctx),
+  });
+
+  reg("console", {
+    label: "Console", icon: ">_", group: "Content", desc: "Text exactly as it looks in the terminal — commands and expected output, with copy",
+    defaults: () => ({ label: "symop@{{primary.hostname}}", prompt: "$", code: "$ REPLICATIONSERVICE\n  (4) Start Replication Services\n  (5) Stop Replication Service\n$ BATCHSTATUS", note: "" }),
+    fields: [{ key: "label", label: "Window title", placeholder: "e.g. symop@Symitar or Terminal" },
+      { key: "prompt", label: "Prompt", placeholder: "$", help: "Lines that start with this are commands (Copy commands strips it). Leave empty to treat every line as a command." },
+      { key: "code", label: "Console text (spacing kept exactly)", type: "code", rows: 8 }, { key: "note", label: "Note", placeholder: "Optional" }],
+    preview: (b, ctx) => consoleView(b, ctx), run: (b, r) => consoleView(b, r.ctx),
   });
 
   function pathView(b, ctx) {

@@ -62,9 +62,11 @@ PR.views.live = (() => {
         h("div.lv-tools",
           h("button.btn.btn-sm", { type: "button", onclick: () => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()) }, "⛶ Full screen"),
           h("button.btn.btn-sm", { type: "button", onclick: () => PR.u.copyText(PR.comms.liveURL(run)) }, "⧉ Copy link"))),
+      PR.ui.impactPanel(M().impactState(run), { size: "hero" }),
       run.status === "paused" ? h("div.banner.b-warn", h("b", "⏸ Paused. "), run.halt ? run.halt.reason : "") : null,
       run.status === "completed" ? h("div.banner.b-ok", h("b", "✓ Complete. "), (run.completion || {}).outcome || "") : null,
       h("div.lv-grid",
+        roadblocks(run),
         card("Happening now", active.length ? active.map(({ step, section }) => {
           const t = M().resolveTarget(p, step, section, su); const s = st(step.id);
           return h("div.lv-now", { style: { "--c": t.color || "var(--vivid)" } },
@@ -87,6 +89,18 @@ PR.views.live = (() => {
         lastComm ? card("Latest update", h("div.lv-update", h("b", lastComm.request), h("div.muted.small", `${lastComm.who} · ${fmtTime(lastComm.at, false)} · ${lastComm.by}`))) : null,
         card(`Open issues (${issues.length})`, issues.length ? issues.map((i) => h("div.lv-issue", "⚠ ", i.title, h("span.muted.small", ` · ${fmtTime(i.at, false)}`))) : h("div.muted", "None")),
         card("Recent activity", h("div.log", (run.events || []).slice(-12).reverse().map((e) => h("div.log-row", h("span.log-t", fmtTime(e.at, false)), h("span.log-w", e.by || ""), h("span.log-x", e.text || e.type)))))));
+  }
+  function roadblocks(run) {
+    const im = M().impactState(run);
+    const { open, resolved } = im.roadblocks;
+    if (!open.length && !resolved.length) return null;
+    const p = run.snapshot;
+    const stepOf = (i) => { const f = i.stepId && M().findStep(p, i.stepId); return f ? `Step ${f.step.num} ${f.step.title}` : "General"; };
+    return h("section.lv-card.rb-card", h("div.lv-h", `🚧 Roadblocks (${open.length} open)`),
+      open.map((i) => h("div.lv-rb", h("div.lv-rb-top", h("b", i.title), h("span.timer.live", { dataset: { since: String(i.at) } }, fmtDur(now() - i.at))),
+        h("div.small.muted", `${stepOf(i)} · since ${fmtTime(i.at, false)} · ${i.by || ""}`),
+        i.troubleshooting ? h("div.small", "Trying: ", i.troubleshooting) : null, i.assistance ? h("div.small", "Help: ", i.assistance) : null)),
+      resolved.slice(-3).map((i) => h("div.lv-rb.res", h("div.lv-rb-top", h("b", "✓ ", i.title), h("span.small.muted", `held up ${fmtDur((i.resolvedAt || now()) - i.at, { short: true })}`)), i.resolution ? h("div.small", i.resolution) : null)));
   }
   return { mount, unmount };
 })();

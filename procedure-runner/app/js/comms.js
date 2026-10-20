@@ -11,6 +11,7 @@ PR.comms = (() => {
   /* ======================= defaults ======================= */
   const TRIGGERS = [
     ["advance", "Advance notice (before the window)"], ["reminder", "Reminder (day before / day of)"], ["start", "When the run starts"],
+    ["impact-down", "When members become impacted (system down)"], ["impact-up", "When service is restored (system back up)"],
     ["decision", "When a Go / No-Go is recorded"], ["step", "When a specific step is completed"], ["interval", "Progress update every N minutes"],
     ["issue", "When a high / critical issue is logged"], ["halt", "When the run is halted or NO-GO"], ["complete", "When the run is completed"],
     ["aborted", "When the run is aborted / rolled back"], ["after", "Post-run summary"], ["manual", "Manual only"],
@@ -48,6 +49,11 @@ PR.comms = (() => {
           headline: "{{run.name}} is underway",
           facts: "Started | {{started}}\nDirection | {{run.direction}}\nSteps | {{progress.total}}\nEstimated finish | {{eta}}",
           body: "The Core Team has started. We'll send updates at key milestones." },
+        { id: "tpl_impact_down", name: "Members impacted", audiences: [A.lead, A.it], trigger: "impact-down", tone: "error", includeLive: true,
+          subject: "[Impact] Members impacted — {{run.name}}",
+          headline: "Members are impacted now",
+          facts: "Since | {{impact.since}}\nWhat's down | {{impact.note}}\nBack online when | {{impact.restoreStep}}\nRestore estimate | {{impact.eta}}",
+          body: "This is a planned interruption. We'll let you know the moment service is restored." },
         { id: "tpl_decision", name: "Go / No-Go decision", audiences: [A.lead, A.it], trigger: "decision", tone: "info", includeLive: true,
           subject: "[Decision] {{decision.result}} — {{run.name}}",
           headline: "Decision: {{decision.result}}",
@@ -68,10 +74,10 @@ PR.comms = (() => {
           headline: "Work is paused",
           facts: "Reason | {{halt.reason}}\nPaused at | {{halt.time}}\nProgress | {{progress.done}} of {{progress.total}} steps",
           body: "Leadership will decide the next step. We'll follow up shortly." },
-        { id: "tpl_available", name: "Systems available", audiences: [A.org], trigger: "step", tone: "success", includeLive: false,
+        { id: "tpl_available", name: "Systems available", audiences: [A.org], trigger: "impact-up", tone: "success", includeLive: false,
           subject: "Systems are back up",
           headline: "We're back!",
-          facts: "Available since | {{now}}",
+          facts: "Available since | {{now}}\nTotal interruption | {{impact.duration}}",
           body: "Thanks for your patience. Core systems are available again.\n\nIf something doesn't look right, contact the IT Service Desk." },
         { id: "tpl_complete", name: "Completed", audiences: [A.it, A.lead], trigger: "complete", tone: "success", includeLive: false,
           subject: "[Complete] {{run.name}} — {{run.outcome}}",
@@ -100,6 +106,12 @@ PR.comms = (() => {
     const d = defaults();
     cache = { ...d, ...(s.comms || {}) };
     if (!s.comms) cache.templates = d.templates;
+    else {
+      // offer templates added in later versions exactly once (respects ones the communicator deleted)
+      const seen = new Set(cache.defaultsSeen || cache.templates.map((t) => t.id));
+      d.templates.forEach((t) => { if (!seen.has(t.id) && !cache.templates.some((x) => x.id === t.id)) cache.templates.push(t); });
+    }
+    cache.defaultsSeen = d.templates.map((t) => t.id);
     return cache;
   }
   async function save(cfg) {
@@ -164,6 +176,13 @@ PR.comms = (() => {
       timing: { auto: timedAuto },
       lessons: { list: lessons.length ? lessons.map((l) => `- ${l.text}`).join("\n") : "- None recorded" },
       live: { url: liveURL(run) },
+      impact: (() => {
+        const im = M().impactState(run);
+        const last = (run.impactLog || []).filter((e) => e.type === "down").pop();
+        return { since: im.since ? fmtTime(im.since, false) : im.periods.length ? fmtTime(im.periods[0].start, false) : "(not yet)", duration: im.totalMs ? fmtDur(im.totalMs, { short: true }) : "—",
+          restoreStep: im.restore ? `step ${im.restore.step.num} ${im.restore.step.title}` : im.plannedUp ? `step ${im.plannedUp.num} ${im.plannedUp.title}` : "(not defined)",
+          eta: im.restore && im.restore.etaAt ? fmtTime(im.restore.etaAt, false) : "—", pct: im.restore ? im.restore.pct : 0, note: (last && last.note) || "Core banking (planned failover)" };
+      })(),
     });
     ctx.run = { ...ctx.run, name: run.name, status: run.status, outcome: c.outcome || "", summary: c.summary || "", authorizedBy: c.authorizedBy || "", date: su.exerciseDate || "" };
     return ctx;
@@ -181,6 +200,10 @@ PR.comms = (() => {
     switch (item.trigger) {
       case "advance": case "reminder": due = !sent.length && (st === "setup" || live); why = st === "setup" ? "Before you start" : "Not sent before start"; break;
       case "start": due = !sent.length && live; why = "Run has started"; break;
+      case "impact-down": case "impact-up": {
+        const ev = M().impactEvents(run).filter((e) => e.type === (item.trigger === "impact-down" ? "down" : "up"));
+        due = ev.some((e) => e.at > last); why = item.trigger === "impact-down" ? "Members impacted" : "Service restored"; break;
+      }
       case "decision": {
         let latest = 0;
         M().allSteps(run.snapshot).forEach(({ step }) => (step.blocks || []).filter((b) => b.type === "decision").forEach((b) => { const v = (((run.steps || {})[step.id] || {}).values || {})[b.id]; if (v && v.at > latest) latest = v.at; }));
@@ -188,7 +211,7 @@ PR.comms = (() => {
       }
       case "step": { const s = item.stepId && (run.steps || {})[item.stepId]; due = !!(s && s.status === "done" && !sent.length); why = "Linked step completed"; break; }
       case "interval": { const mins = Number(item.minutes || item.tpl.minutes) || 30; due = st === "active" && now() - (last || run.startedAt || now()) >= mins * 60000; why = `Every ${mins} min`; break; }
-      case "issue": due = Object.values(run.issues || {}).some((i) => ["high", "critical"].includes(i.severity) && i.at > last); why = "High-severity issue"; break;
+      case "issue": due = Object.values(run.issues || {}).some((i) => (i.blocking || ["high", "critical"].includes(i.severity)) && i.at > last); why = "Roadblock / high-severity issue"; break;
       case "halt": due = st === "paused" && run.halt && run.halt.at > last; why = "Run halted"; break;
       case "complete": due = st === "completed" && !sent.length; why = "Run completed"; break;
       case "aborted": due = st === "aborted" && !sent.length; why = "Run aborted"; break;
@@ -446,7 +469,7 @@ PR.comms = (() => {
   const VARS = [["run.name", "Run name"], ["run.direction", "e.g. Main → DR"], ["run.changeId", "Change ID"], ["window.start", "Maintenance window start"], ["window.end", "Window end"], ["window.date", "Window date"],
     ["impact", "Expected impact (run setup)"], ["started", "Start time"], ["elapsed", "Elapsed"], ["eta", "Estimated finish"], ["progress.pct", "% complete"], ["progress.done", "Steps done"], ["progress.total", "Total steps"],
     ["current.steps", "Steps in progress"], ["decision.result", "GO / NO-GO"], ["decision.maker", "Decision-maker"], ["decision.rationale", "Rationale"], ["issues.open", "Open issues"], ["issues.latest", "Latest issue"],
-    ["halt.reason", "Why halted"], ["run.outcome", "Final outcome"], ["run.authorizedBy", "Who authorized completion"], ["lessons.list", "Lessons learned (bullets)"], ["live.url", "Follow-along link"], ["sender", "Your name"], ["now", "Current time"]];
+    ["halt.reason", "Why halted"], ["impact.since", "Members impacted since"], ["impact.duration", "Total impact time"], ["impact.restoreStep", "Step that restores service"], ["impact.eta", "Restore estimate"], ["impact.note", "What's down"], ["run.outcome", "Final outcome"], ["run.authorizedBy", "Who authorized completion"], ["lessons.list", "Lessons learned (bullets)"], ["live.url", "Follow-along link"], ["sender", "Your name"], ["now", "Current time"]];
 
   return { load, save, applyBranding, isCommunicator, planFor, status, dueCount, compose, runnerPanel, planEditor, renderEmail, context, liveURL, TRIGGERS, TONES };
 })();

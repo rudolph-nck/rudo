@@ -214,7 +214,9 @@ PR.runner = (() => {
       if (blockers.length && !(await confirmBox("Hold point", h("div", `Step ${f.step.num} is a hold point. ${blockers.length} earlier required step(s) aren't finished: `, h("b", blockers.slice(0, 6).map((b) => b.step.num).join(", ")), blockers.length > 6 ? "…" : "", ". Start anyway? (This override is recorded.)"), { ok: "Override & start", kind: "danger" }))) return;
       if (blockers.length) commit([], { render: false, event: { type: "override", stepId: id, text: `Hold point overridden with ${blockers.length} open step(s)` } });
     }
+    const impBefore = M().impactState(run);
     commit([{ op: "merge", path: ["steps", id], ifStatus: ["pending"], value: { status: "active", startedAt: now(), startedBy: me(), timing: "auto", finishedAt: null } }], { event: { type: "start", stepId: id, text: `Started ${f.step.num} ${f.step.title}` } });
+    announceImpact(impBefore);
     if (!quiet) setFocus(id);
   }
   function completeStep(id) {
@@ -238,8 +240,10 @@ PR.runner = (() => {
     const started = !!s.startedAt;
     const val = { status: "done", finishedAt: now(), finishedBy: me(), timing: started ? (s.timing || "auto") : "unavailable", incomplete };
     if (!started) val.startedAt = null;
+    const impBefore = M().impactState(run);
     const next = nextOpenAfter(id);
     commit([{ op: "merge", path: ["steps", id], ifStatus: ["pending", "active"], value: val }], { render: false, event: { type: "complete", stepId: id, text: `Completed ${f.step.num} ${f.step.title}${started ? " in " + fmtDur(val.finishedAt - s.startedAt, { short: true }) : " (no start time — timing unreliable)"}${incomplete ? " — incomplete: " + incomplete.join(", ") : ""}` } });
+    announceImpact(impBefore);
     if (!started) toast(`Step ${f.step.num} recorded. Timing marked unreliable — add the start time if you know it.`, "warn", 3500);
     if (next && focusId === id) focusId = next;
     saveUi();
@@ -319,15 +323,17 @@ PR.runner = (() => {
     const sc = $("#runCenter"); const top = sc && render.lastMode === mode ? sc.scrollTop : null;
     render.lastMode = mode;
     root.innerHTML = "";
-    if (commsCfg) { const d = commsDue(); if (lastDue != null && d > lastDue && PR.comms.isCommunicator(commsCfg)) toast(`📣 ${d} update${d > 1 ? "s" : ""} due — open the Updates tab`, "info", 4000); lastDue = d; }
-    root.append(bar(), banner(), h("div.run-main", leftNav(), h("div.run-center#runCenter", mode === "lanes" ? lanes() : list()), rightPanel()), datalists());
+    if (commsCfg) { const d = commsDue(); if (lastDue != null && d > lastDue && PR.comms.isCommunicator(commsCfg)) dueToast(d); lastDue = d; }
+    root.append(bar(), banner(), impactStrip(), h("div.run-main", leftNav(), h("div.run-center#runCenter", mode === "lanes" ? lanes() : list()), rightPanel()), datalists());
     if (top != null) $("#runCenter").scrollTop = top;
   }
   function commsDue() { return commsCfg ? PR.comms.dueCount(run, commsCfg) : 0; }
+  let lastDueToast = 0;
+  function dueToast(d) { if (now() - lastDueToast < 15000) return; lastDueToast = now(); toast(`📣 ${d} update${d > 1 ? "s" : ""} due — open the Updates tab`, "info", 4000); }
   function checkDue() {
     if (!run || !commsCfg) return;
     const d = commsDue();
-    if (lastDue != null && d > lastDue && PR.comms.isCommunicator(commsCfg)) toast(`📣 ${d} update${d > 1 ? "s" : ""} due — open the Updates tab`, "info", 4000);
+    if (lastDue != null && d > lastDue && PR.comms.isCommunicator(commsCfg)) dueToast(d);
     if (d !== lastDue) { lastDue = d; const t = $('.run-right .tab[data-k="comms"]'); if (t) t.textContent = `📣 Updates${d ? " (" + d + ")" : ""}`; t && t.classList.toggle("due", d > 0); }
   }
   function fillSetupComms() {
@@ -367,6 +373,8 @@ PR.runner = (() => {
       h("button.icon-btn", { type: "button", title: "More", onclick: (e) => menu(e.currentTarget, [
         { icon: "⚙", label: "Edit run setup (participants, direction…)", onClick: () => { editingSetup = true; setupWizard.page = "info"; render(); } },
         run.status === "paused" ? { icon: "▶", label: "Resume run", onClick: resumeRun } : { icon: "⏸", label: "Halt run", onClick: haltRun },
+        { icon: "🚧", label: "Log a roadblock", onClick: () => issueModal({ stepId: focusId, blocking: true, severity: "high" }) },
+        M().impactState(run).down ? { icon: "🟢", label: "Declare service restored now", onClick: () => declareImpact("up") } : { icon: "🔴", label: "Declare members impacted now", onClick: () => declareImpact("down") },
         { icon: "⇩", label: "Export run (JSON)", onClick: async () => PR.u.download(`${PR.u.slug(run.name)}.run.json`, JSON.stringify(await PR.store.exportRunBundle(run), null, 2)) },
         { icon: "⌨", label: "Keyboard shortcuts", onClick: () => PR.app.help() },
         { sep: true },
@@ -379,6 +387,30 @@ PR.runner = (() => {
     if (run.status === "completed" || run.status === "aborted") return h("div.banner.b-ok", run.status === "completed" ? "✓ Run completed " : "Run aborted ", fmtDateTime(run.completedAt), h("div.spacer"), h("button.btn.btn-sm", { type: "button", onclick: () => PR.app.go(`#/report/${run.id}`) }, "View report"));
     if (run.practice) return h("div.banner.b-info", "🧪 Practice run — not counted in history or timing statistics.");
     return null;
+  }
+  function impactStrip() {
+    const im = M().impactState(run);
+    if (im.enabled) return PR.ui.impactPanel(im, { size: "strip" });
+    const rb = im.roadblocks.open;
+    return rb.length ? h("div.banner.b-warn.sm", `🚧 ${rb.length} open roadblock${rb.length > 1 ? "s" : ""}: `, rb.map((i) => i.title).join(" · ")) : null;
+  }
+  function impactFlag(step) {
+    const im = step.impact; if (!im || !im.mark) return null;
+    return h(`span.imp-flag.${im.mark}`, { title: `${M().impactName(proc)}: ${im.mark === "down" ? "members impacted" : "service restored"} when this step ${im.on === "start" ? "starts" : "completes"}` },
+      im.mark === "down" ? (im.on === "start" ? "🔴 DOWN at start" : "🔴 DOWN after") : (im.on === "start" ? "🟢 UP at start" : "🟢 UP after"));
+  }
+  /* Manual declaration for unplanned outages, or when reality differs from the planned markers. */
+  async function declareImpact(type) {
+    const note = await PR.u.promptBox(type === "down" ? "Members impacted now?" : "Service restored now?", { label: type === "down" ? "What's down / who is impacted? (shown on the dashboard)" : "Note (optional)", ok: type === "down" ? "🔴 Start impact timer" : "🟢 Stop impact timer", required: type === "down" });
+    if (note == null) return;
+    const before = M().impactState(run);
+    commit([{ op: "push", path: ["impactLog"], value: { type, at: now(), by: me(), note } }], { event: { type: "impact", text: type === "down" ? `🔴 ${M().impactName(proc)}: members impacted — ${note}` : `🟢 ${M().impactName(proc)}: service restored${before.since ? " after " + fmtDur(now() - before.since, { short: true }) : ""}${note ? " — " + note : ""}` } });
+  }
+  /* Toast + log line when a step marked as an impact boundary flips the state. */
+  function announceImpact(before) {
+    const after = M().impactState(run);
+    if (!before.down && after.down) { toast(`🔴 ${after.name}: members impacted — timer started`, "err", 4000); commit([], { render: false, event: { type: "impact", text: `🔴 ${after.name}: members impacted` } }); }
+    if (before.down && !after.down) { toast(`🟢 Service restored — members were impacted for ${fmtDur(now() - before.since, { short: true })}`, "ok", 5000); commit([], { render: false, event: { type: "impact", text: `🟢 ${after.name}: service restored after ${fmtDur(now() - before.since, { short: true })}` } }); }
   }
   async function haltRun() {
     const r = await promptBox("Halt run", { label: "Reason", ok: "Halt", required: true });
@@ -442,7 +474,7 @@ PR.runner = (() => {
         onclick: () => (status === "pending" ? startStep(step.id, { quiet: true }) : completeStep(step.id)) }, ss.icon),
       h("span.sr-num", step.num),
       PR.ui.envBadge(t, { size: "sm" }),
-      h("span.sr-title", step.title),
+      h("span.sr-title", step.title), impactFlag(step),
       step.window && status === "pending" ? h("span.sr-win", step.window) : null,
       issues.length ? h("span.sr-iss", { title: `${issues.length} issue(s)` }, `⚠ ${issues.length}`) : null,
       h("span.sr-right",
@@ -477,7 +509,7 @@ PR.runner = (() => {
     return h(`div.fcard.${PR.ui.STEP_STATUS[status].cls}${step.critical ? ".critical" : ""}`, { dataset: { fc: step.id }, style: { "--c": t.color || "var(--line)" } },
       h("div.fc-top",
         h("span.fc-num", step.num || "•"),
-        h("div.fc-tt", h("div.fc-title", step.title), h("div.fc-sub", sec.title, step.category ? " · " : "", PR.ui.catChip(step.category), step.critical ? h("span.crit-tag", "★ critical") : null, step.parallel ? h("span.par-tag", "⇉ parallel with previous") : null)),
+        h("div.fc-tt", h("div.fc-title", step.title), h("div.fc-sub", sec.title, step.category ? " · " : "", PR.ui.catChip(step.category), step.critical ? h("span.crit-tag", "★ critical") : null, step.parallel ? h("span.par-tag", "⇉ parallel with previous") : null, impactFlag(step))),
         h("div.fc-stat",
           status === "active" ? h("div.fc-timer", h("span.muted.small", "Elapsed"), h("b", { dataset: { since: String(s.startedAt) } }, fmtDur(now() - s.startedAt))) : null,
           status === "done" ? h("div.fc-timer", h("span.muted.small", "Duration"), h("b", s.timing === "unavailable" ? "—" : fmtDur(duration(s))), PR.ui.timingChip(s.timing)) : null,
@@ -574,7 +606,7 @@ PR.runner = (() => {
       const all = Object.values(run.issues || {}).sort((a, b) => b.at - a.at);
       body = [h("button.btn.btn-warn-o.btn-block", { type: "button", onclick: () => issueModal({ stepId: focusId }) }, "＋ Log issue (I)"),
         all.length ? all.map((i) => { const f = i.stepId && M().findStep(proc, i.stepId); return h(`div.iss-card.${i.status === "resolved" ? "res" : "open"}.sev-${i.severity || "medium"}`, { onclick: () => issueModal(i) },
-          h("div.ic-top", h("b", i.title || "Issue"), h("span.chip", i.status === "resolved" ? "Resolved" : "Open")),
+          h("div.ic-top", h("b", i.blocking ? "🚧 " : "", i.title || "Issue"), h("span.chip", i.status === "resolved" ? "Resolved" : "Open")),
           h("div.muted.small", f ? `Step ${f.step.num} · ` : "", fmtTime(i.at), " · ", i.by, (i.evidence || []).length ? ` · 📎 ${i.evidence.length}` : "")); }) : h("div.muted.pad", "No issues logged.")];
     } else if (rightTab === "comms") {
       const ph = h("div.muted.pad", "Loading…");
@@ -625,6 +657,7 @@ PR.runner = (() => {
         h("div.field", h("label.lbl", "Screenshots / evidence"), thumbs,
           h("div.drop-zone", { tabindex: 0, ondragover: (e) => e.preventDefault(), ondrop: (e) => { e.preventDefault(); addFiles([...e.dataTransfer.files]); }, onclick: async () => { const f = await PR.u.pickFile("image/*,.pdf,.txt,.log"); if (f) addFiles([f]); } }, "📋 Paste (Ctrl+V), drop, or click to attach")),
         h("div.frow", h("div.field.grow", h("label.lbl", "Troubleshooting performed"), ta("troubleshooting", "What did you try?")), h("div.field.grow", h("label.lbl", "Assistance received"), ta("assistance", "Vendor / person / ticket #"))),
+        h("label.ck.rb-check", h("input", { type: "checkbox", checked: !!iss.blocking, onchange: (e) => (iss.blocking = e.target.checked) }), " 🚧 Roadblock — this is blocking progress (shown on the live dashboard with a timer until resolved)"),
         h("div.frow", h("div.field.grow", h("label.lbl", "Resolution"), ta("resolution", "How was it resolved?")),
           h("div.field", h("label.lbl", "Status"), h("select.inp", { onchange: (e) => (iss.status = e.target.value) }, h("option", { value: "open", selected: iss.status !== "resolved" }, "Open"), h("option", { value: "resolved", selected: iss.status === "resolved" }, "Resolved"))))),
       actions: [isNew ? null : { label: "Delete", kind: "danger-o", value: "delete" }, { spacer: true }, { label: "Cancel", value: null }, { label: isNew ? "Save issue" : "Save", kind: "primary", value: "save" }].filter(Boolean),

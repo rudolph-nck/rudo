@@ -42,5 +42,34 @@ PR.ui = (() => {
   };
   function timingChip(src) { const t = TIMING[src]; return t ? h(`span.tm.${t.cls}`, { title: t.title }, t.label) : null; }
 
-  return { envBadge, catChip, STEP_STATUS, TIMING, timingChip };
+  /* Member-impact panel. size "strip" (runner, one line) or "hero" (live dashboard). */
+  function impactPanel(im, { size = "strip" } = {}) {
+    const { fmtDur, fmtTime, fmtMin, now } = PR.u;
+    if (!im || !im.enabled) return null;
+    const when = (step, on) => (step ? `${on === "start" ? "starts" : "completes"}: step ${step.num} ${step.title}` : "");
+    const rb = im.roadblocks.open;
+    const rbNode = rb.length ? h("span.imp-rb", { title: rb.map((i) => i.title).join("\n") }, `🚧 ${rb.length} roadblock${rb.length > 1 ? "s" : ""}`) : null;
+    if (im.down) {
+      const r = im.restore;
+      return h(`div.impact.down.imp-${size}`,
+        h("div.imp-state", h("span.imp-pulse"), h("div", h("div.imp-k", `${im.name} · members impacted`), h("div.imp-timer", { dataset: { since: String(im.since) } }, fmtDur(now() - im.since)))),
+        h("div.imp-body",
+          r ? [h("div.imp-line", h("b", "Back online when "), `step ${r.step.num} ${r.step.title}`, r.on === "start" ? " starts" : " completes"),
+            h("div.imp-prog", h("div.bar", h("div.bar-fill", { style: { width: r.pct + "%" } })), h("span", `${r.done}/${r.total} steps`)),
+            h("div.imp-sub", `Down since ${fmtTime(im.since, false)}`, r.current ? ` · now: ${r.current.num} ${r.current.title}` : "", r.etaAt ? ` · restore ETA ${fmtTime(r.etaAt, false)} (~${fmtMin(r.remainMin)})` : "")]
+            : h("div.imp-line", `Down since ${fmtTime(im.since, false)} — no restore step defined; declare “service restored” when members are back.`)),
+        rbNode);
+    }
+    if (im.periods.length) {
+      const last = im.periods[im.periods.length - 1];
+      return h(`div.impact.up.imp-${size}`, h("div.imp-state", h("span.imp-ok", "✓"), h("div", h("div.imp-k", `${im.name} · service restored`), h("div.imp-timer", fmtDur(im.totalMs)))),
+        h("div.imp-body", h("div.imp-line", `Members were impacted ${fmtTime(im.periods[0].start, false)} – ${fmtTime(last.end, false)}`, im.periods.length > 1 ? ` (${im.periods.length} interruptions)` : ""),
+          h("div.imp-sub", "Total impact ", h("b", fmtDur(im.totalMs, { short: true })))), rbNode);
+    }
+    return h(`div.impact.pending.imp-${size}`, h("div.imp-state", h("span.imp-idle", "○"), h("div", h("div.imp-k", im.name), h("div.imp-timer.muted", "Not yet impacted"))),
+      h("div.imp-body", im.plannedDown ? h("div.imp-line", "Impact begins when ", when(im.plannedDown, im.plannedDownOn)) : null,
+        im.plannedUp ? h("div.imp-sub", "Restored when ", when(im.plannedUp, im.plannedUpOn)) : null), rbNode);
+  }
+
+  return { envBadge, catChip, STEP_STATUS, TIMING, timingChip, impactPanel };
 })();

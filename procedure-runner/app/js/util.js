@@ -184,9 +184,16 @@ PR.u = (() => {
   }
   function md(src) {
     const lines = String(src || "").replace(/\r/g, "").split("\n");
-    let out = "", depth = 0;
+    let out = "", depth = 0, fence = null;
     const close = (to) => { while (depth > to) { out += "</ul>"; depth--; } };
     for (const raw of lines) {
+      // ``` fenced text renders as a console window (exact spacing, copy button)
+      if (/^\s*```/.test(raw)) {
+        if (fence) { const txt = fence.join("\n"); out += `<div class="console md-console"><div class="console-bar"><span class="console-dots"><i></i><i></i><i></i></span><span class="console-title">Console</span><span class="spacer"></span><button type="button" class="console-btn" data-copy-block="${esc(txt)}">Copy</button></div><pre class="console-body">${esc(txt)}</pre></div>`; fence = null; }
+        else { close(0); fence = []; }
+        continue;
+      }
+      if (fence) { fence.push(raw.replace(/\u2063|\u2064/g, "")); continue; }
       const line = raw.replace(/\s+$/, "");
       const b = line.match(/^\s*(-{1,4}|\*|•)\s+(.*)$/);
       if (b) {
@@ -203,6 +210,7 @@ PR.u = (() => {
       const hd = line.match(/^#{1,3}\s+(.*)$/);
       out += hd ? `<div class="md-h">${inline(hd[1])}</div>` : `<div class="md-p">${inline(line)}</div>`;
     }
+    if (fence) out += `<pre class="console-body">${esc(fence.join("\n"))}</pre>`;
     close(0);
     return out;
   }
@@ -211,6 +219,9 @@ PR.u = (() => {
   function toast(msg, kind = "info", ms = 2600) {
     let host = $("#toasts");
     if (!host) { host = h("div#toasts"); document.body.appendChild(host); }
+    // replace an identical message instead of stacking, and keep at most 3 on screen
+    [...host.children].forEach((c) => { if (c.textContent === String(msg)) c.remove(); });
+    while (host.children.length >= 3) host.firstChild.remove();
     const t = h(`div.toast.t-${kind}`, msg);
     host.appendChild(t);
     requestAnimationFrame(() => t.classList.add("show"));
@@ -317,6 +328,8 @@ PR.u = (() => {
   document.addEventListener("click", (e) => {
     const c = e.target.closest && e.target.closest("code.ic[data-copy]");
     if (c && !c.closest(".builder-canvas")) copyText(c.textContent);
+    const cb = e.target.closest && e.target.closest("[data-copy-block]");
+    if (cb && !cb.closest(".builder-canvas")) copyText(cb.dataset.copyBlock);
   });
 
   function isTyping(e) {

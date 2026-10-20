@@ -224,6 +224,10 @@ PR.views.builder = (() => {
     { id: "wait", icon: "⏳", label: "Wait", make: () => M().newStep({ title: "Wait", blocks: [B("timer")] }) },
     { id: "signoff", icon: "✍", label: "Sign-off", make: () => M().newStep({ title: "Approval", category: "Approval", hold: true, blocks: [B("approval")] }) },
     { id: "milestone", icon: "🏁", label: "Milestone", make: () => M().newStep({ title: "Milestone reached", category: "Milestone", blocks: [] }) },
+    { id: "impact-down", icon: "🔴", label: "System down", make: () => M().newStep({ title: "System down — members impacted", category: "Milestone", critical: true, impact: { mark: "down", on: "complete" },
+      blocks: [B("callout", { tone: "danger", title: "Members are impacted from here", text: "Completing this step starts the member-impact timer on the dashboard." })] }) },
+    { id: "impact-up", icon: "🟢", label: "System back up", make: () => M().newStep({ title: "System back up — members restored", category: "Milestone", critical: true, impact: { mark: "up", on: "complete" },
+      blocks: [B("validation", { test: "Members can transact (online banking / ATM / branch)", expected: "Working normally", required: true })] }) },
     { id: "section", icon: "▤", label: "Section", make: null },
   ];
 
@@ -346,7 +350,7 @@ PR.views.builder = (() => {
           ondragstart: (e) => startDrag(e, { kind: "step", payload: st.id }),
           onclick: (e) => select("step", st.id, { add: e.ctrlKey || e.metaKey || e.shiftKey, scroll: true }) },
         h("span.ol-num", st.num || "·"), h("span.ol-dot", { style: { background: t.color || "transparent" }, title: t.title || "No environment" }), h("span.ol-t", st.title || "Untitled"),
-        st.parallel ? h("span.ol-flag", { title: "Parallel" }, "⇉") : null, st.critical ? h("span.ol-flag.crit", { title: "Critical" }, "★") : null));
+        st.parallel ? h("span.ol-flag", { title: "Parallel" }, "⇉") : null, st.critical ? h("span.ol-flag.crit", { title: "Critical" }, "★") : null, st.impact && st.impact.mark ? h("span.ol-flag", { title: "Member impact marker" }, st.impact.mark === "down" ? "🔴" : "🟢") : null));
       });
       if (!q) zone(list, { items: () => $$(":scope > .ol-step", list), accepts: (d) => d.kind === "step" || d.kind === "new-step", drop: (i, d) => onStepDrop(sec.id, i, d) });
       wrap.append(secNode);
@@ -441,6 +445,7 @@ PR.views.builder = (() => {
         st.estMin ? h("span.st-flag", { title: "Estimated minutes" }, `⏱ ${st.estMin}m`) : null,
         st.parallel ? h("span.st-flag.par", { title: "Runs in parallel with the previous step" }, "⇉ parallel") : null,
         st.hold ? h("span.st-flag.hold", { title: "Hold point: cannot start until earlier required steps are done" }, "✋ hold") : null,
+        impactFlag(st),
         st.condition ? h("span.st-flag", { title: "Only runs in one direction" }, "⇄ " + (M().siteById(proc, st.condition.slice(4)) || {}).name + " primary only") : null,
         h("button.icon-btn.sm", { type: "button", title: "Step menu", onclick: (e) => { select("step", st.id); menu(e.currentTarget, [
           { icon: "⧉", label: "Duplicate", hint: "Ctrl+D", onClick: duplicateSel },
@@ -463,6 +468,11 @@ PR.views.builder = (() => {
       zone(node, { items: () => [], accepts: (d) => d.kind === "new-block" || d.kind === "block", drop: (i, d) => d.kind === "new-block" ? addBlock(d.payload, { stepId: st.id, index: st.blocks.length }) : mutate(() => moveBlock(d.payload, st.id, st.blocks.length)) });
     }
     return node;
+  }
+  function impactFlag(st) {
+    const im = st.impact; if (!im || !im.mark) return null;
+    return h(`span.imp-flag.${im.mark}`, { title: `${M().impactName(proc)}: ${im.mark === "down" ? "members impacted" : "service restored"} when this step ${im.on === "start" ? "starts" : "completes"}` },
+      im.mark === "down" ? `🔴 DOWN ${im.on === "start" ? "at start" : "after"}` : `🟢 UP ${im.on === "start" ? "at start" : "after"}`);
   }
   function quickAdd(anchor, stepId) {
     menu(anchor, PR.blocks.groups().flatMap((g) => [{ header: g.name }, ...g.items.map((d) => ({ icon: d.icon, label: d.label, onClick: () => addBlock(d.type, { stepId }) }))]));
@@ -589,6 +599,10 @@ PR.views.builder = (() => {
         h("label.ck", h("input", { type: "checkbox", checked: st.critical, ...bind(st, "critical", refresh, { type: "checkbox" }) }), " Critical (highlighted)"),
         h("label.ck", h("input", { type: "checkbox", checked: st.parallel, ...bind(st, "parallel", refresh, { type: "checkbox" }) }), " Runs in parallel with previous step"),
         h("label.ck", h("input", { type: "checkbox", checked: st.hold, ...bind(st, "hold", refresh, { type: "checkbox" }) }), " Hold point (earlier required steps must be done)")),
+      field(`${M().impactName(proc)} (system down / up)`, h("select.inp", { onfocus: beginEdit, onchange: (e) => { const [mark, on] = e.target.value.split(":"); st.impact = mark ? { mark, on } : null; editing(); refresh(); } },
+        [["", "— no change —"], ["down:complete", "🔴 Members impacted once this step completes"], ["down:start", "🔴 Members impacted when this step starts"], ["up:complete", "🟢 Service restored once this step completes"], ["up:start", "🟢 Service restored when this step starts"]]
+          .map(([v, l]) => h("option", { value: v, selected: (st.impact && st.impact.mark ? `${st.impact.mark}:${st.impact.on || "complete"}` : "") === v }, l))),
+        "Starts / stops the member-impact timer shown in the runner and on the live dashboard, with progress toward the restore step."),
       field("Author note (not shown to operators)", h("textarea.inp", { rows: 2, ...bind(st, "authorNote") }, st.authorNote)),
       h("div.ins-sec", `Components (${st.blocks.length})`),
       h("div.ins-blocks", st.blocks.map((b) => { const d = PR.blocks.def(b.type); return h("div.ins-blk", { onclick: () => select("block", b.id, { scroll: true }) }, h("span", d ? d.icon : "?"), h("span", d ? d.label : b.type), h("span.muted.small", blockHint(b))); })),
@@ -727,6 +741,7 @@ PR.views.builder = (() => {
     },
     setup: (d) => h("div",
       h("label.ck", h("input", { type: "checkbox", checked: d.setup.requireChangeId, onchange: (e) => (d.setup.requireChangeId = e.target.checked) }), " Require a change / exercise ID to start"),
+      field("Name of the impact tracker", h("input.inp", { value: d.impactName || "", placeholder: "Member impact", oninput: (e) => (d.impactName = e.target.value) }), "Shown on the runner and the live dashboard while the system is down."),
       h("label.ck", h("input", { type: "checkbox", checked: d.setup.requireVerification, onchange: (e) => (d.setup.requireVerification = e.target.checked) }), " Require someone to verify the environment mapping before starting"),
       field("Chairs / roles for participants (one per line)", h("textarea.inp", { rows: 6, oninput: (e) => (d.setup.chairs = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean)) }, d.setup.chairs.join("\n"))),
       field("Pre-run readiness checklist (one per line)", h("textarea.inp", { rows: 6, oninput: (e) => (d.setup.readiness = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean).map((label, i) => ({ id: (d.setup.readiness[i] && d.setup.readiness[i].label === label && d.setup.readiness[i].id) || uid("rd"), label }))) }, d.setup.readiness.map((r) => r.label).join("\n")), "Backups, transfers, replication status, approvals… shown at run setup with who/when."),

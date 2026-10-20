@@ -76,6 +76,21 @@
         p.setup.readiness.length ? sec("3", "Pre-run readiness",
           tbl(["Item", "Confirmed", "By", "At", "Note"], p.setup.readiness.map((r) => { const v = (su.readiness || {})[r.id] || {}; return h(`tr${v.done ? "" : ".warn-row"}`, h("td", r.label), h("td", v.done ? "✓" : "✕ not confirmed"), h("td", v.by || ""), h("td", v.at ? fmtTime(v.at) : ""), h("td", v.note || "")); }))) : null,
 
+        (() => {
+          const im = M().impactState(run, run.completedAt || now());
+          const rbs = [...im.roadblocks.open, ...im.roadblocks.resolved].sort((a, b) => a.at - b.at);
+          if (!im.enabled && !rbs.length) return null;
+          const stepTxt = (id) => { const f = id && M().findStep(p, id); return f ? `${f.step.num} ${f.step.title}` : "declared manually"; };
+          return sec("M", `${im.name} & roadblocks`,
+            im.enabled ? [h("div.rp-note", im.periods.length || im.down ? `Total time members were impacted: ` : "Members were not impacted during this run.", im.periods.length || im.down ? h("b", fmtDur(im.totalMs)) : null),
+              (im.periods.length || im.down) ? tbl(["Impact began", "Trigger", "Service restored", "Trigger", "Duration"], [...im.periods, ...(im.down ? [{ start: im.since, startStep: null, end: null }] : [])].map((x) => h("tr",
+                h("td", fmtDateTime(x.start)), h("td", stepTxt(x.startStep)), h("td", x.end ? fmtDateTime(x.end) : "still impacted"), h("td", x.end ? stepTxt(x.endStep) : ""), h("td", h("b", fmtDur((x.end || now()) - x.start, { short: true })))))) : null,
+              (run.impactLog || []).length ? h("div.small.muted", "Manual declarations: ", (run.impactLog || []).map((e) => `${e.type === "down" ? "down" : "up"} ${fmtTime(e.at)} by ${e.by}${e.note ? " (" + e.note + ")" : ""}`).join("; ")) : null] : null,
+            rbs.length ? [h("h3", "Roadblocks"), tbl(["Roadblock", "Step", "Logged", "Resolved", "Time held up", "Resolution"], rbs.map((i) => h(`tr${i.status === "resolved" ? "" : ".warn-row"}`,
+              h("td", h("b", i.title)), h("td", i.stepId ? stepTxt(i.stepId) : "General"), h("td", fmtTime(i.at)), h("td", i.resolvedAt ? fmtTime(i.resolvedAt) : "open"),
+              h("td", fmtDur((i.resolvedAt || run.completedAt || now()) - i.at, { short: true })), h("td", i.resolution || ""))))] : null);
+        })(),
+
         sec("4", "Step execution & timing",
           h("div.rp-note", `Timing captured automatically: ${timingCounts.auto} · entered afterward: ${timingCounts.manual} · unreliable (no start time): ${timingCounts.unavailable}`),
           tbl(["#", "Step", "Target", "Executed by", "Status", "Start", "Finish", "Duration", "Timing"], rows.map((r) => h(`tr.st-${r.status}`,

@@ -76,7 +76,7 @@ PR.templates = (() => {
         T("Log into HMC and open terminal", "secondary", { ...core, category: "Processing", estMin: 3, critical: true }, [link("Open HMC at {{secondary.name}}", "{{secondary.hmc}}"), conf("Type the HMC partition label you selected", "{{secondary.partition}}")]),
         T("Take secondary to HARD DOWN", "secondary", { ...core, category: "Processing", estMin: 5 }, [co("warn", "If SECURITYSERVER.EXE or EVENTBUSSERVER.EXE is running stop Internal Sym Level Services (25). If DBMS is running stop DBMS (30).")]),
         T("Start partition", "secondary", { ...core, category: "Processing", estMin: 10 }, [txt("HMC → tick **{{secondary.partition}}** → Operations → **Activate**")]),
-        T("Issue FAILOVER command", "secondary", { ...core, category: "Processing", estMin: 10, critical: true }, [cmd("UP\nFAILOVER\n(6) Execute Failover", "Terminal window"), txt("Answer **Y** to *Failover Primary/Secondary?* and confirm.")]),
+        T("Issue FAILOVER command", "secondary", { ...core, category: "Processing", estMin: 10, critical: true }, [B("console", { label: "symop@{{secondary.partition}}", prompt: "$", code: "$ UP\n$ FAILOVER\n   (0) Display Failover Configuration\n   (6) Execute Failover\nSelection: 6\nFailover Primary/Secondary? Y\nAre you sure you want to continue? Y", note: "Answer Y to both prompts." })]),
         T("Validate new primary", "secondary", { ...core, category: "Validation", estMin: 3, phase: "post" }, [path(["FAILOVER", "(1) Display Replication Services Status Details"]), val("Hostname shown on {{newPrimary.name}}", "Hostname = {{newPrimary.hostname}}")]),
         T("Ask Network to change primary DNS", "none", { owner: "Network", category: "Communication", estMin: 10, phase: "post" }, [contact("Network team", "teams", "", "Point **{{newPrimary.hostname}}** DNS to {{newPrimary.name}}.")]),
         T("Validate DNS response", "secondary", { ...core, category: "Validation", estMin: 3, phase: "post" }, [val("PING {{newPrimary.hostname}}", "Responds with {{newPrimary.name}} IP")]),
@@ -98,10 +98,16 @@ PR.templates = (() => {
         T("Failover complete", "none", { ...core, category: "Celebration", estMin: 1 }, [appr("Failover complete — authorize close", "Failover lead")]),
       ]),
     ];
-    // Communication plan: team templates with this procedure's triggers ("Systems available" fires when vendors are told the host is up).
-    const avail = p.sections.flatMap((x) => x.steps).find((x) => /host is available/i.test(x.title));
-    p.comms = { items: [["tpl_advance_org", "advance"], ["tpl_advance_it", "advance"], ["tpl_reminder", "reminder"], ["tpl_start", "start"], ["tpl_decision", "decision"], ["tpl_progress", "interval", { minutes: 30 }],
-      ["tpl_issue", "issue"], ["tpl_halt", "halt"], ["tpl_available", "step", { stepId: avail ? avail.id : "" }], ["tpl_complete", "complete"], ["tpl_aborted", "aborted"], ["tpl_summary", "after"]]
+    // Communication plan: team templates with this procedure's triggers ("Systems available" fires when service is restored).
+    // Member impact: members are impacted from the moment the primary goes HARD DOWN until FAILOVER.ONLINE puts devices back ON HOST.
+    const allSt = p.sections.flatMap((x) => x.steps);
+    const downStep = allSt.find((x) => /hard down/i.test(x.title) && x.target === "primary");
+    const upStep = allSt.find((x) => /FAILOVER\.ONLINE/i.test(x.title));
+    if (downStep) downStep.impact = { mark: "down", on: "start" };
+    if (upStep) upStep.impact = { mark: "up", on: "complete" };
+    p.impactName = "Member impact";
+    p.comms = { items: [["tpl_advance_org", "advance"], ["tpl_advance_it", "advance"], ["tpl_reminder", "reminder"], ["tpl_start", "start"], ["tpl_impact_down", "impact-down"], ["tpl_decision", "decision"], ["tpl_progress", "interval", { minutes: 30 }],
+      ["tpl_issue", "issue"], ["tpl_halt", "halt"], ["tpl_available", "impact-up"], ["tpl_complete", "complete"], ["tpl_aborted", "aborted"], ["tpl_summary", "after"]]
       .map(([templateId, trigger, o]) => ({ id: "pl_" + templateId, templateId, trigger, enabled: true, stepId: "", ...(o || {}) })) };
     return p;
   }

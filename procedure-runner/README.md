@@ -44,6 +44,24 @@ Sections or steps marked *after cutover* switch the role labels to New Primary /
    - A NO-GO decision halts the run, or jumps to a rollback section if you configure that.
 3. **🏁 Finish**: milestones, remaining issues, outcome, who authorized completion, and lessons learned. Lessons are pre-filled from the notes and issues captured during the run. Lessons flagged *check next run* appear on that step next time with a "did it work?" prompt.
 
+## Console view
+
+Use the **Console** component, or set a Command's *Show as* to **Console window**, to show text exactly as it appears in the terminal: dark window, spacing kept, expected output dimmed. **Copy commands** copies only the lines that start with the prompt (with the prompt stripped). **Copy all** copies everything, and clicking a single line copies that line. In any Instructions text, wrapping lines in ``` fences also renders them as a console box with a Copy button.
+
+## Member impact (system down → back up)
+
+- **Mark the boundaries**: select a step and set **Member impact** in the inspector to *Members impacted once this step completes / starts* or *Service restored once this step completes / starts*. You can also drag in the **🔴 System down** or **🟢 System back up** step tiles at the right spot, e.g. after step 12 and after step 36.
+- **While members are impacted**, the runner and the live dashboard show:
+  - a red **impact timer**;
+  - a **progress bar toward the restore step** (steps done of steps remaining to get back online);
+  - the restore ETA;
+  - the step currently being worked.
+  Once service is back, they turn green and show the total impact time.
+- **Unplanned outages**: ⋯ → *Declare members impacted now* / *Declare service restored now*.
+- **Roadblocks**: ⋯ → *Log a roadblock*, or tick 🚧 on any issue. The live dashboard shows it with its own timer until it's resolved, then how long it held you up.
+- The run report gets a **Member impact & roadblocks** section, with every interruption, total impact and roadblock time.
+- **Comms**: the *Members impacted* and *Systems available* templates trigger on these markers.
+
 ## Communication plan (📣)
 
 The **Comms** page belongs to the communicator/manager. List the names under *Who can send*; everyone else sees what was sent but can't compose.

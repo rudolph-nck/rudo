@@ -272,6 +272,62 @@ PR.model = (() => {
     return issues;
   }
 
+  /* ---------- member impact (system down → back up) ----------
+     A step can mark the moment members become impacted (down) or service is restored (up), on start or on completion.
+     Operators can also declare it manually (run.impactLog) for unplanned outages. */
+  function impactName(p) { return (p && p.impactName) || "Member impact"; }
+  function hasImpact(p) { return allSteps(p || {}).some(({ step }) => step.impact && step.impact.mark); }
+  function impactEvents(run) {
+    const p = run.snapshot; const ev = [];
+    allSteps(p).forEach(({ step }) => {
+      const im = step.impact; if (!im || !im.mark) return;
+      const s = (run.steps || {})[step.id] || {};
+      const at = im.on === "start" ? s.startedAt : s.status === "done" ? s.finishedAt : null;
+      if (at) ev.push({ type: im.mark, at, stepId: step.id, source: "step" });
+    });
+    (run.impactLog || []).forEach((e) => ev.push({ ...e, source: "manual" }));
+    return ev.sort((a, b) => a.at - b.at);
+  }
+  function impactState(run, nowTs = Date.now()) {
+    const p = run.snapshot; const all = allSteps(p);
+    const events = impactEvents(run);
+    const periods = []; let open = null;
+    events.forEach((e) => {
+      if (e.type === "down" && !open) open = { start: e.at, startStep: e.stepId, startBy: e.by, note: e.note };
+      else if (e.type === "up" && open) { periods.push({ ...open, end: e.at, endStep: e.stepId }); open = null; }
+    });
+    const down = !!open;
+    const totalMs = periods.reduce((a, x) => a + (x.end - x.start), 0) + (open ? nowTs - open.start : 0);
+    const idxOf = (id) => all.findIndex((x) => x.step.id === id);
+    const markers = all.map((x, i) => ({ ...x, i })).filter((x) => x.step.impact && x.step.impact.mark);
+    const st = (id) => (run.steps || {})[id] || {};
+    const applicable = (step) => isApplicable(step, run.setup);
+    // planned: first down marker and the first up marker after it
+    const plannedDown = markers.find((m) => m.step.impact.mark === "down");
+    const plannedUp = markers.find((m) => m.step.impact.mark === "up" && (!plannedDown || m.i > plannedDown.i));
+    let restore = null;
+    if (open) {
+      // the up marker that will end this impact: first not-yet-done up marker after where the impact started
+      const fromIdx = open.startStep ? idxOf(open.startStep) : -1;
+      const up = markers.find((m) => m.step.impact.mark === "up" && m.i > fromIdx && st(m.step.id).status !== "done") || markers.find((m) => m.step.impact.mark === "up" && st(m.step.id).status !== "done");
+      if (up) {
+        // steps still to do (as of when the impact began) up to and including the restore step
+        const span = all.slice(0, up.i + 1).filter(({ step }) => applicable(step) && !(st(step.id).finishedAt && st(step.id).finishedAt <= open.start && ["done", "skipped", "na"].includes(st(step.id).status)));
+        const done = span.filter(({ step }) => ["done", "skipped", "na"].includes(st(step.id).status)).length;
+        const remainMin = span.filter(({ step }) => !["done", "skipped", "na"].includes(st(step.id).status)).reduce((a, { step }) => a + (Number(step.estMin) || 0), 0);
+        const current = all.find(({ step }) => st(step.id).status === "active");
+        restore = { step: up.step, on: up.step.impact.on || "complete", done, total: span.length, pct: span.length ? Math.round((done / span.length) * 100) : 0, remainMin, etaAt: remainMin ? nowTs + remainMin * 60000 : null, current: current ? current.step : null };
+      }
+    }
+    const roadblocks = Object.values(run.issues || {}).filter((i) => i.blocking).sort((a, b) => a.at - b.at);
+    return {
+      name: impactName(p), enabled: hasImpact(p) || events.length > 0, down, since: open ? open.start : null, periods, totalMs, events, restore,
+      plannedDown: plannedDown ? plannedDown.step : null, plannedUp: plannedUp ? plannedUp.step : null,
+      plannedDownOn: plannedDown ? plannedDown.step.impact.on || "complete" : null, plannedUpOn: plannedUp ? plannedUp.step.impact.on || "complete" : null,
+      roadblocks: { open: roadblocks.filter((i) => i.status !== "resolved"), resolved: roadblocks.filter((i) => i.status === "resolved") },
+    };
+  }
+
   /* Wrap procedure data in a stored document */
   function newDoc(data, by) {
     return { id: data.id, status: "draft", draft: data, publishedVersion: 0, versions: [], createdAt: now(), updatedAt: now(), updatedBy: by || "", dirtySincePublish: true };
@@ -280,6 +336,6 @@ PR.model = (() => {
   return {
     CATEGORIES, catMeta, DEFAULT_CHAIRS, BUILTIN_VARS, defaultEnvironments, newProcedure, newSection, newStep, newBlock, normalize, fromLegacy,
     allSteps, findStep, findBlock, estimateMinutes, renumber, sites, siteById, otherSite, primarySite, directionLabel, phaseOf,
-    resolveTarget, isApplicable, countRunnable, varContext, interpolate, variablesDeclared, lint, newDoc,
+    resolveTarget, isApplicable, countRunnable, varContext, interpolate, variablesDeclared, lint, newDoc, impactName, hasImpact, impactEvents, impactState,
   };
 })();
