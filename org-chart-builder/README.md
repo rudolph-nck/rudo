@@ -13,7 +13,7 @@ No install and no build step. It's plain HTML/JS plus a Python server that uses 
 
 | How | What you get |
 |---|---|
-| Double-click **`Start_OrgChartBuilder.bat`** | Team server on port 8010, and your browser opens it. Teammates open `http://<your-pc-name>:8010/`. The chart is saved in `.\data`. |
+| Double-click **`Start_OrgChartBuilder.bat`** (or the desktop shortcut) | Team server on port 8010 in a console window, then the app opens in its own window. Teammates open `http://<your-pc-name>:8010/`. The chart is saved in `.\data`. |
 | `py server.py --data I:\HR\OrgChart\data` | Same, with the data on a shared drive. |
 | Open `index.html` directly | **Local mode**: the chart lives in this browser only. Good for trying things out. Use Publish → *Project backup* / *Open a project file* to move it. |
 
@@ -67,7 +67,12 @@ Downloads made while there are unpublished changes are marked **DRAFT**.
 
 ## Desktop shortcut
 
-Run **`Install_Desktop_Shortcut.bat`**. It asks for the server address and puts an **Org Chart Builder** shortcut, with the app icon, on the desktop. The shortcut opens the app in its own Edge window. It works with OneDrive- or policy-redirected desktops.
+Run **`Install_Desktop_Shortcut.bat`** and pick one of these:
+
+1. **This PC runs Org Chart Builder.** The shortcut runs `Start_OrgChartBuilder.bat`. That opens the server console window (keep it open while people use the chart; close it to stop the server) and then opens the app in its own Edge window. If the server is already running, the shortcut just opens the app.
+2. **Connect to Org Chart Builder on another PC.** The shortcut opens that PC's address in its own Edge window. This is the one to give teammates.
+
+Either way, the shortcut gets the app icon and goes on the real desktop, even when it's redirected to OneDrive or by Group Policy.
 
 ## Branding
 
@@ -98,5 +103,7 @@ app/css/app.css            app styles (brand-aligned, light + dark)
 app/fonts/                 Open Sans (SIL Open Font License)
 app/icons/                 app icon set (.svg, .png, .ico)
 server.py                  team server (Python 3.8+, standard library only)
+Start_OrgChartBuilder.bat  starts the server console and opens the app (or just opens it if it's running)
+Install_Desktop_Shortcut.bat, tools/   desktop shortcut installer and the app-window opener
 data/                      created at runtime: project.json, history/, published/ (not in git)
 ```
