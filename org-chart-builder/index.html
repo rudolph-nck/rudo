@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Org Chart Builder</title>
+<link rel="stylesheet" href="app/css/app.css?v=2.0" />
+<link rel="icon" type="image/svg+xml" href="app/icons/icon-small.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="app/icons/favicon-32.png" />
+<link rel="apple-touch-icon" href="app/icons/apple-touch-icon.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#53575a" />
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#/chart" title="Org Chart Builder">
+    <img class="brand-icon" src="app/icons/icon.svg" alt="" />
+    <span class="brand-text"><b>Org Chart Builder</b><span id="brandOrg"></span></span>
+  </a>
+  <nav class="nav">
+    <a class="nav-link" data-view="chart" href="#/chart">Chart</a>
+    <a class="nav-link" data-view="people" href="#/people">People</a>
+    <a class="nav-link" data-view="publish" href="#/publish">Publish</a>
+  </nav>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="Search people and pages  ( / )" autocomplete="off" spellcheck="false" />
+    <div id="searchResults" class="search-results hidden" role="listbox"></div>
+  </div>
+  <div class="spacer"></div>
+  <span id="syncSlot" class="sync-slot"></span>
+  <span id="presence" class="presence"></span>
+  <div id="modeToggle" class="mode-toggle" title="View / Edit (E)"></div>
+  <button id="btnSettings" class="icon-btn" type="button" title="Settings">⚙</button>
+  <button id="userChip" class="user-chip" type="button" title="Your name"></button>
+  <button id="btnHelp" class="icon-btn" type="button" title="Quick guide">?</button>
+  <button id="btnTheme" class="icon-btn" type="button" title="Light / dark">☾</button>
+</header>
+<main id="view" class="view"><div class="loading">Loading…</div></main>
+
+<script>window.OC_BUILD = "2.0"; /* keep in sync with VERSION in server.py and ?v= below */</script>
+<script src="app/js/util.js?v=2.0"></script>
+<script src="app/js/model.js?v=2.0"></script>
+<script src="app/js/layout.js?v=2.0"></script>
+<script src="app/js/store.js?v=2.0"></script>
+<script src="app/js/chartstyle.js?v=2.0"></script>
+<script src="app/js/ui.js?v=2.0"></script>
+<script src="app/js/chart.js?v=2.0"></script>
+<script src="app/js/sheet.js?v=2.0"></script>
+<script src="app/js/actions.js?v=2.0"></script>
+<script src="app/js/panel.js?v=2.0"></script>
+<script src="app/js/directory.js?v=2.0"></script>
+<script src="app/js/export.js?v=2.0"></script>
+<script src="app/js/publish.js?v=2.0"></script>
+<script src="app/js/app.js?v=2.0"></script>
+<script>OC.chartStyle.install(); OC.app.boot();</script>
+</body>
+</html>
