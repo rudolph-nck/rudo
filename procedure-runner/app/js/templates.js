@@ -106,6 +106,14 @@ PR.templates = (() => {
     if (downStep) downStep.impact = { mark: "down", on: "start" };
     if (upStep) upStep.impact = { mark: "up", on: "complete" };
     p.impactName = "Member impact";
+    // Concurrent chairs: 1st chair runs the core failover, 2nd chair handles vendors, notifications and other teams.
+    p.tracks = [{ id: "chair1", name: "1st chair", desc: "Core failover" }, { id: "chair2", name: "2nd chair", desc: "Vendors, notifications & other teams" }];
+    p.sections.forEach((sec) => { sec.track = /notification/i.test(sec.title) ? "chair2" : "chair1"; });
+    const find = (re) => allSt.find((x) => re.test(x.title));
+    const dns = find(/Network to change primary DNS/i), dnsCheck = find(/Validate DNS response/i), vendors = find(/Inform vendors the host is available/i);
+    if (dns) dns.track = "chair2";
+    if (dnsCheck && dns) dnsCheck.waitFor = dns.id;
+    if (vendors) { vendors.track = "chair2"; if (upStep) vendors.waitFor = upStep.id; }
     p.comms = { items: [["tpl_advance_org", "advance"], ["tpl_advance_it", "advance"], ["tpl_reminder", "reminder"], ["tpl_start", "start"], ["tpl_impact_down", "impact-down"], ["tpl_decision", "decision"], ["tpl_progress", "interval", { minutes: 30 }],
       ["tpl_issue", "issue"], ["tpl_halt", "halt"], ["tpl_available", "impact-up"], ["tpl_complete", "complete"], ["tpl_aborted", "aborted"], ["tpl_summary", "after"]]
       .map(([templateId, trigger, o]) => ({ id: "pl_" + templateId, templateId, trigger, enabled: true, stepId: "", ...(o || {}) })) };

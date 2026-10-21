@@ -411,6 +411,7 @@ PR.views.builder = (() => {
         h("button.icon-btn.sm", { type: "button", title: sec.collapsed ? "Expand" : "Collapse", onclick: () => { sec.collapsed = !sec.collapsed; dirty = true; save(); const n = sectionNode(sec); node.replaceWith(n); applySelection(); } }, sec.collapsed ? "▸" : "▾"),
         h("input.sec-title", { value: sec.title, placeholder: "Section title", onfocus: (e) => { beginEdit(); select("section", sec.id); }, oninput: (e) => { sec.title = e.target.value; editing(); renderOutline(); } }),
         sec.phase === "post" ? h("span.chip.c-amber-o", { title: "Role labels show the post-cutover names (New Primary / New Secondary)" }, "after cutover") : null,
+        (() => { const t = M().trackById(proc, sec.track); return t ? h("span.track-chip", { style: { "--c": t.color } }, t.name) : null; })(),
         h("span.muted.small", `${sec.steps.length} steps${est ? " · ~" + fmtMin(est) : ""}`),
         h("button.icon-btn.sm", { type: "button", title: "Section menu", onclick: (e) => { select("section", sec.id); menu(e.currentTarget, [
           { icon: "＋", label: "Add step", onClick: () => addStepFromTemplate("blank", { secId: sec.id, index: sec.steps.length }) },
@@ -445,7 +446,8 @@ PR.views.builder = (() => {
         st.estMin ? h("span.st-flag", { title: "Estimated minutes" }, `⏱ ${st.estMin}m`) : null,
         st.parallel ? h("span.st-flag.par", { title: "Runs in parallel with the previous step" }, "⇉ parallel") : null,
         st.hold ? h("span.st-flag.hold", { title: "Hold point: cannot start until earlier required steps are done" }, "✋ hold") : null,
-        impactFlag(st),
+        impactFlag(st), trackChip(st, sec),
+        st.waitFor ? h("span.st-flag", { title: "Waits for a step in another chair" }, `⏳ after #${(M().findStep(proc, st.waitFor) || { step: {} }).step.num || "?"}`) : null,
         st.condition ? h("span.st-flag", { title: "Only runs in one direction" }, "⇄ " + (M().siteById(proc, st.condition.slice(4)) || {}).name + " primary only") : null,
         h("button.icon-btn.sm", { type: "button", title: "Step menu", onclick: (e) => { select("step", st.id); menu(e.currentTarget, [
           { icon: "⧉", label: "Duplicate", hint: "Ctrl+D", onClick: duplicateSel },
@@ -468,6 +470,16 @@ PR.views.builder = (() => {
       zone(node, { items: () => [], accepts: (d) => d.kind === "new-block" || d.kind === "block", drop: (i, d) => d.kind === "new-block" ? addBlock(d.payload, { stepId: st.id, index: st.blocks.length }) : mutate(() => moveBlock(d.payload, st.id, st.blocks.length)) });
     }
     return node;
+  }
+  function trackChip(st, sec) {
+    const t = M().trackById(proc, M().trackOf(st, sec));
+    return t ? h("span.track-chip", { style: { "--c": t.color }, title: `${t.name}${t.desc ? " — " + t.desc : ""}` }, t.name) : null;
+  }
+  function trackSelect(value, onPick, inheritLabel) {
+    return h("select.inp", { onfocus: beginEdit, onchange: (e) => onPick(e.target.value) },
+      inheritLabel ? h("option", { value: "", selected: !value }, inheritLabel) : null,
+      h("option", { value: "shared", selected: value === "shared" }, "Shared — every chair sees it"),
+      M().tracks(proc).map((t) => h("option", { value: t.id, selected: value === t.id }, `${t.name}${t.desc ? " — " + t.desc : ""}`)));
   }
   function impactFlag(st) {
     const im = st.impact; if (!im || !im.mark) return null;
@@ -538,6 +550,7 @@ PR.views.builder = (() => {
       insHead("Section", `${sec.steps.length} steps`, [h("button.icon-btn", { type: "button", title: "Duplicate", onclick: duplicateSel }, "⧉"), h("button.icon-btn.danger", { type: "button", title: "Delete", onclick: deleteSel }, "🗑")]),
       field("Title", h("input.inp", { value: sec.title, ...bind(sec, "title", () => { const t = $(`[data-sec-id="${sec.id}"] .sec-title`); if (t) t.value = sec.title; renderOutline(); }) })),
       field("Description", h("textarea.inp", { rows: 3, ...bind(sec, "description") }, sec.description)),
+      M().tracks(proc).length ? field("Chair for this section", trackSelect(sec.track || "", (v) => { sec.track = v === "shared" ? "" : v; editing(); renderCanvas(); }, null), "Steps inherit this unless they set their own chair.") : null,
       proc.environments.enabled && proc.environments.directional ? field("Role labels in this section",
         h("select.inp", { ...bind(sec, "phase", () => renderCanvas(), { type: "select" }) },
           h("option", { value: "pre", selected: sec.phase !== "post" }, `Before cutover (${proc.environments.roles.primary.pre} / ${proc.environments.roles.secondary.pre})`),
@@ -593,6 +606,11 @@ PR.views.builder = (() => {
       row(field("Owner team", h("input.inp", { value: st.owner, placeholder: "Core", list: "ownerList", ...bind(st, "owner", refresh) })), field("Escalation contact", h("input.inp", { value: st.contact, placeholder: "Name", list: "peopleList", ...bind(st, "contact", refresh) }))),
       row(field("Timing window", h("input.inp", { value: st.window, placeholder: "e.g. Morning of failover", list: "windowList", ...bind(st, "window", refresh) })), field("Est. minutes", h("input.inp.w-num", { type: "number", min: 0, value: st.estMin || "", ...bind(st, "estMin", refresh, { parse: (v) => Number(v) || 0 }) }))),
       field("Category", h("input.inp", { value: st.category, list: "catList", placeholder: "Processing, Validation…", ...bind(st, "category", refresh) })),
+      M().tracks(proc).length ? field("Chair", trackSelect(st.track || "", (v) => { st.track = v; editing(); refresh(); }, `Inherit from section${sec.track ? " (" + ((M().trackById(proc, sec.track) || {}).name || "shared") + ")" : " (shared)"}`)) : null,
+      M().tracks(proc).length ? field("Waits for (handoff from another chair)", h("select.inp", { onfocus: beginEdit, onchange: (e) => { st.waitFor = e.target.value; editing(); refresh(); } },
+        h("option", { value: "" }, "— no dependency —"),
+        M().allSteps(proc).filter((x) => x.step.id !== st.id).map(({ step: o, section: os }) => { const t = M().trackById(proc, M().trackOf(o, os)); return h("option", { value: o.id, selected: st.waitFor === o.id }, `${o.num} ${o.title}`.slice(0, 60) + (t ? ` · ${t.name}` : "")); })),
+        "This step shows “waiting on …” until that step is done (operators can override; it's recorded).") : null,
       h("div.ins-sec", "Behaviour"),
       h("div.checks",
         h("label.ck", h("input", { type: "checkbox", checked: st.required, ...bind(st, "required", refresh, { type: "checkbox" }) }), " Required"),
@@ -619,6 +637,7 @@ PR.views.builder = (() => {
       insHead(`${steps.length} steps selected`, "Changes apply to all selected steps", [h("button.icon-btn", { type: "button", title: "Duplicate", onclick: duplicateSel }, "⧉"), h("button.icon-btn.danger", { type: "button", title: "Delete", onclick: deleteSel }, "🗑")]),
       field("Target environment", h("select.inp", { onchange: (e) => e.target.value && apply("target", e.target.value) }, h("option", { value: "" }, "— leave as is —"), targetOptions({}).map(([v, l]) => h("option", { value: v }, l)))),
       field("Category", h("input.inp", { list: "catList", placeholder: "— leave as is —", onchange: (e) => apply("category", e.target.value) })),
+      M().tracks(proc).length ? field("Chair", h("select.inp", { onchange: (e) => e.target.value !== "-" && apply("track", e.target.value) }, h("option", { value: "-" }, "— leave as is —"), h("option", { value: "" }, "Inherit from section"), h("option", { value: "shared" }, "Shared"), M().tracks(proc).map((t) => h("option", { value: t.id }, t.name)))) : null,
       field("Owner team", h("input.inp", { list: "ownerList", placeholder: "— leave as is —", onchange: (e) => apply("owner", e.target.value) })),
       field("Timing window", h("input.inp", { list: "windowList", placeholder: "— leave as is —", onchange: (e) => apply("window", e.target.value) })),
       proc.environments.directional ? field("Role label phase", h("select.inp", { onchange: (e) => e.target.value !== "-" && apply("phase", e.target.value) }, [["-", "— leave as is —"], ["", "Inherit"], ["pre", "Before cutover"], ["post", "After cutover"]].map(([v, l]) => h("option", { value: v }, l)))) : null,
@@ -690,7 +709,7 @@ PR.views.builder = (() => {
     const draft = clone(proc);
     let cur = tab;
     const body = h("div.settings");
-    const tabs = [["general", "General"], ["env", "Environments"], ["setup", "Run setup"], ["comms", "📣 Comms plan"], ["contacts", "Contacts"], ["versions", "Versions"]];
+    const tabs = [["general", "General"], ["env", "Environments"], ["setup", "Run setup"], ["chairs", "👥 Chairs"], ["comms", "📣 Comms plan"], ["contacts", "Contacts"], ["versions", "Versions"]];
     const draw = () => {
       body.innerHTML = "";
       body.append(h("div.tabs", tabs.map(([k, l]) => h(`button.tab${cur === k ? ".on" : ""}`, { type: "button", onclick: () => { cur = k; draw(); } }, l))), h("div.settings-body", SETTINGS[cur](draft, draw)));
@@ -746,6 +765,17 @@ PR.views.builder = (() => {
       field("Chairs / roles for participants (one per line)", h("textarea.inp", { rows: 6, oninput: (e) => (d.setup.chairs = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean)) }, d.setup.chairs.join("\n"))),
       field("Pre-run readiness checklist (one per line)", h("textarea.inp", { rows: 6, oninput: (e) => (d.setup.readiness = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean).map((label, i) => ({ id: (d.setup.readiness[i] && d.setup.readiness[i].label === label && d.setup.readiness[i].id) || uid("rd"), label }))) }, d.setup.readiness.map((r) => r.label).join("\n")), "Backups, transfers, replication status, approvals… shown at run setup with who/when."),
       field("Completion milestones (one per line)", h("textarea.inp", { rows: 5, oninput: (e) => (d.setup.milestones = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean).map((label, i) => ({ id: (d.setup.milestones[i] && d.setup.milestones[i].id) || uid("ms"), label }))) }, d.setup.milestones.map((r) => r.label).join("\n")), "Confirmed when the run is closed out.")),
+    chairs: (d, draw) => {
+      d.tracks = d.tracks || [];
+      return h("div",
+        h("div.help", "Split the procedure between chairs that work at the same time — e.g. the 1st chair runs the core failover while the 2nd chair handles vendors and other parties. Each operator picks their chair when they open the run and only sees their own steps; the master run can only be completed once every chair has signed off."),
+        h("label.ck", h("input", { type: "checkbox", checked: d.tracks.length > 0, onchange: (e) => { d.tracks = e.target.checked ? [{ id: "chair1", name: "1st chair", desc: "Core failover" }, { id: "chair2", name: "2nd chair", desc: "Vendors & other parties" }] : []; draw(); } }), " Run this procedure with concurrent chairs"),
+        d.tracks.map((t, i) => h("div.site-row", h("span.track-dot", { style: { background: M().TRACK_COLORS[i % 4] } }),
+          h("div.site-fields", row(field("Chair name", tf(t, "name", "1st chair")), field("Responsible for", tf(t, "desc", "Core failover")))),
+          d.tracks.length > 1 ? h("button.icon-btn.danger", { type: "button", title: "Remove", onclick: () => { d.tracks.splice(i, 1); draw(); } }, "🗑") : null)),
+        d.tracks.length ? h("button.btn", { type: "button", onclick: () => { d.tracks.push({ id: uid("chair"), name: `${d.tracks.length + 1}${["st", "nd", "rd"][d.tracks.length] || "th"} chair`, desc: "" }); draw(); } }, "＋ Add chair") : null,
+        d.tracks.length ? h("div.help", "Assign a whole section to a chair (select the section) or individual steps (step inspector → Chair). Steps with no chair are shared and appear for everyone.") : null);
+    },
     comms: (d) => { const ph = h("div.muted", "Loading…"); PR.comms.planEditor(d).then((n) => ph.replaceWith(n)); return ph; },
     contacts: (d, draw) => h("div",
       h("div.help", "Contacts appear as suggestions in Contact components and in the runner's comms log."),

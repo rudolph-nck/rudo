@@ -272,6 +272,24 @@ PR.model = (() => {
     return issues;
   }
 
+  /* ---------- concurrent chairs (tracks) ----------
+     A procedure can split work between chairs (e.g. 1st chair = core failover, 2nd chair = vendors / other parties).
+     A step belongs to step.track, else its section's track, else it's shared (both chairs see it). */
+  const TRACK_COLORS = ["#00b2e3", "#6abf4b", "#00538b", "#f6bf26"];
+  function tracks(p) { return ((p && p.tracks) || []).map((t, i) => ({ color: TRACK_COLORS[i % 4], ...t })); }
+  function trackOf(step, section) { return (step && step.track) || (section && section.track) || ""; }
+  function trackById(p, id) { return tracks(p).find((t) => t.id === id) || null; }
+  const DONE = ["done", "skipped", "na"];
+  function trackProgress(run, trackId) {
+    const p = run.snapshot; const st = (id) => (run.steps || {})[id] || {};
+    const mine = allSteps(p).filter(({ step, section }) => trackOf(step, section) === trackId && isApplicable(step, run.setup));
+    const done = mine.filter(({ step }) => DONE.includes(st(step.id).status)).length;
+    const active = mine.filter(({ step }) => st(step.id).status === "active").map((x) => x.step);
+    const next = mine.find(({ step }) => (st(step.id).status || "pending") === "pending");
+    const signoff = (run.trackSignoff || {})[trackId] || null;
+    return { done, total: mine.length, pct: mine.length ? Math.round((done / mine.length) * 100) : 0, active, next: next ? next.step : null, complete: done === mine.length, signoff };
+  }
+
   /* ---------- member impact (system down → back up) ----------
      A step can mark the moment members become impacted (down) or service is restored (up), on start or on completion.
      Operators can also declare it manually (run.impactLog) for unplanned outages. */
@@ -336,6 +354,6 @@ PR.model = (() => {
   return {
     CATEGORIES, catMeta, DEFAULT_CHAIRS, BUILTIN_VARS, defaultEnvironments, newProcedure, newSection, newStep, newBlock, normalize, fromLegacy,
     allSteps, findStep, findBlock, estimateMinutes, renumber, sites, siteById, otherSite, primarySite, directionLabel, phaseOf,
-    resolveTarget, isApplicable, countRunnable, varContext, interpolate, variablesDeclared, lint, newDoc, impactName, hasImpact, impactEvents, impactState,
+    resolveTarget, isApplicable, countRunnable, varContext, interpolate, variablesDeclared, lint, newDoc, impactName, hasImpact, impactEvents, impactState, tracks, trackOf, trackById, trackProgress, TRACK_COLORS,
   };
 })();

@@ -67,6 +67,13 @@ PR.views.live = (() => {
       run.status === "completed" ? h("div.banner.b-ok", h("b", "✓ Complete. "), (run.completion || {}).outcome || "") : null,
       h("div.lv-grid",
         roadblocks(run),
+        M().tracks(p).length ? card("Chairs", M().tracks(p).map((t) => {
+          const pg = M().trackProgress(run, t.id);
+          return h("div.lv-track", { style: { "--c": t.color } }, h("div.lv-site-top", h("b", t.name), h("span.muted.small", t.desc || "")),
+            h("div.bar", h("div.bar-fill", { style: { width: pg.pct + "%", background: t.color } })),
+            h("div.small", pg.signoff ? h("span.c-green-t", `✓ Signed off by ${pg.signoff.by} at ${fmtTime(pg.signoff.at, false)}`) : `${pg.done}/${pg.total} steps`,
+              !pg.signoff && pg.active.length ? ` · now: ${pg.active.map((x) => x.num + " " + x.title).join(", ")}` : !pg.signoff && pg.next ? ` · next: ${pg.next.num} ${pg.next.title}` : ""));
+        })) : null,
         card("Happening now", active.length ? active.map(({ step, section }) => {
           const t = M().resolveTarget(p, step, section, su); const s = st(step.id);
           return h("div.lv-now", { style: { "--c": t.color || "var(--vivid)" } },

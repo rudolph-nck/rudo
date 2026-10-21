@@ -91,11 +91,20 @@
               h("td", fmtDur((i.resolvedAt || run.completedAt || now()) - i.at, { short: true })), h("td", i.resolution || ""))))] : null);
         })(),
 
+        M().tracks(p).length ? sec("C", "Chairs", tbl(["Chair", "Responsible for", "Worked by", "Steps", "First start", "Last finish", "Signed off"], M().tracks(p).map((t) => {
+          const pg = M().trackProgress(run, t.id);
+          const rs = rows.filter((r) => M().trackOf(r.step, r.section) === t.id);
+          const st = rs.filter((r) => r.s.startedAt).map((r) => r.s.startedAt), fi = rs.filter((r) => r.s.finishedAt).map((r) => r.s.finishedAt);
+          const who = [...new Set(rs.map((r) => r.s.finishedBy || r.s.startedBy).filter(Boolean))].join(", ");
+          return h("tr", h("td", h("b", t.name)), h("td", t.desc || ""), h("td", who), h("td", `${pg.done}/${pg.total}`), h("td", st.length ? fmtTime(Math.min(...st)) : ""), h("td", fi.length ? fmtTime(Math.max(...fi)) : ""),
+            h("td", pg.signoff ? `${pg.signoff.by} · ${fmtDateTime(pg.signoff.at)}${pg.signoff.open ? ` (${pg.signoff.open} open)` : ""}` : h("b.c-red-t", "not signed off")));
+        })), (run.completion || {}).chairOverride ? h("div.banner.b-warn.sm", `Closed without sign-off from ${run.completion.chairOverride.unsigned.join(", ")} — ${run.completion.chairOverride.reason} (${run.completion.chairOverride.by})`) : null) : null,
+
         sec("4", "Step execution & timing",
           h("div.rp-note", `Timing captured automatically: ${timingCounts.auto} · entered afterward: ${timingCounts.manual} · unreliable (no start time): ${timingCounts.unavailable}`),
           tbl(["#", "Step", "Target", "Executed by", "Status", "Start", "Finish", "Duration", "Timing"], rows.map((r) => h(`tr.st-${r.status}`,
             h("td", r.step.num), h("td", r.step.title, r.s.skipReason ? h("div.small.muted", r.s.skipReason) : null, r.s.incomplete ? h("div.small.c-amber-t", "Incomplete: " + r.s.incomplete.join(", ")) : null),
-            h("td", PR.ui.envBadge(r.t, { size: "sm" })), h("td", ...(() => { const who = r.status === "done" ? r.s.finishedBy || r.s.startedBy : r.status === "active" ? r.s.startedBy : ""; return [who || "", chairShort(su, who)]; })()),
+            h("td", PR.ui.envBadge(r.t, { size: "sm" }), (() => { const t = M().trackById(p, M().trackOf(r.step, r.section)); return t ? h("div", h("span.track-chip.sm", { style: { "--c": t.color } }, t.name)) : null; })()), h("td", ...(() => { const who = r.status === "done" ? r.s.finishedBy || r.s.startedBy : r.status === "active" ? r.s.startedBy : ""; return [who || "", chairShort(su, who)]; })()),
             h("td", PR.ui.STEP_STATUS[r.status].label), h("td", r.s.startedAt ? fmtTime(r.s.startedAt) : ""), h("td", r.s.finishedAt ? fmtTime(r.s.finishedAt) : ""),
             h("td", r.dur != null ? fmtDur(r.dur, { short: true }) : ""), h("td", r.s.timing && r.status !== "pending" ? PR.ui.timingChip(r.s.timing) : ""))), ".rp-steps")),
 

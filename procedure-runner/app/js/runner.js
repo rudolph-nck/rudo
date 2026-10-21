@@ -8,6 +8,7 @@ PR.runner = (() => {
   const M = () => PR.model;
   const me = () => PR.app.me;
 
+  let chairView = ""; // "" = all chairs (coordinator), else a track id
   let run, proc, host, focusId, filter, siteFilter, mode, pollT, deferRender, forceArm, histStats, priorLessons, rightTab, editingSetup, commsCfg, lastDue, dueT;
 
   /* ======================= start a new run ======================= */
@@ -61,7 +62,10 @@ PR.runner = (() => {
     dueT = setInterval(checkDue, 30000); // interval-based updates become due with time
     document.addEventListener("keydown", onKey);
     document.addEventListener("focusout", onFocusOut);
+    chairView = hasTracks() ? PR.app.LS.get(`chair_${run.id}`, "") || "" : "";
+    if (hasTracks() && chairView && !myStepsInOrder().some((x) => x.step.id === focusId)) focusId = firstOpen();
     render();
+    if (hasTracks() && PR.app.LS.get(`chair_${run.id}`, null) === null) setTimeout(() => chooseChair(), 50);
     if (PR.store.kind === "server") pollT = setInterval(poll, 2500);
     loadHistory();
     if (run.status === "active" && "Notification" in window && Notification.permission === "default") try { Notification.requestPermission(); } catch { /* ignore */ }
@@ -190,9 +194,17 @@ PR.runner = (() => {
   const statusOf = (step) => (!applicable(step) ? "na" : st(step.id).status || "pending");
   const targetOf = (step, section) => M().resolveTarget(proc, step, section, run.setup);
   const ctx = () => M().varContext(run);
-  function firstOpen() { const f = stepsInOrder().find(({ step }) => ["pending", "active"].includes(statusOf(step))); return f ? f.step.id : (stepsInOrder()[0] || { step: {} }).step.id; }
+  const hasTracks = () => M().tracks(proc).length > 0;
+  /* In a chair's view: their own steps plus shared ones. */
+  function inMyChair(step, section) {
+    if (!chairView || !hasTracks()) return true;
+    const t = M().trackOf(step, section);
+    return !t || t === "shared" || t === chairView || !M().trackById(proc, t);
+  }
+  function myStepsInOrder() { return stepsInOrder().filter(({ step, section }) => inMyChair(step, section)); }
+  function firstOpen() { const all = myStepsInOrder(); const f = all.find(({ step }) => ["pending", "active"].includes(statusOf(step))); return f ? f.step.id : (all[0] || stepsInOrder()[0] || { step: {} }).step.id; }
   function nextOpenAfter(id) {
-    const all = stepsInOrder(); const i = all.findIndex((x) => x.step.id === id);
+    const all = myStepsInOrder(); const i = all.findIndex((x) => x.step.id === id);
     for (let k = i + 1; k < all.length; k++) if (statusOf(all[k].step) === "pending") return all[k].step.id;
     const any = all.find((x) => statusOf(x.step) === "pending"); return any ? any.step.id : null;
   }
@@ -209,6 +221,12 @@ PR.runner = (() => {
   async function startStep(id, { quiet } = {}) {
     const f = M().findStep(proc, id); if (!f) return;
     if (run.status === "paused") { toast("Run is halted — resume it first", "warn"); return; }
+    const w = waitingOn(f.step);
+    if (w) {
+      const t = M().trackById(proc, M().trackOf(w.step, w.section));
+      if (!(await confirmBox("Waiting on a handoff", `Step ${f.step.num} waits for ${t ? t.name + " · " : ""}step ${w.step.num} ${w.step.title}, which isn't done yet. Start anyway? (Recorded.)`, { ok: "Start anyway", kind: "danger" }))) return;
+      commit([], { render: false, event: { type: "override", stepId: id, text: `Started ${f.step.num} before handoff from step ${w.step.num}` } });
+    }
     if (f.step.hold) {
       const blockers = stepsInOrder().slice(0, stepsInOrder().findIndex((x) => x.step.id === id)).filter(({ step }) => step.required && applicable(step) && !["done", "skipped", "na"].includes(statusOf(step)));
       if (blockers.length && !(await confirmBox("Hold point", h("div", `Step ${f.step.num} is a hold point. ${blockers.length} earlier required step(s) aren't finished: `, h("b", blockers.slice(0, 6).map((b) => b.step.num).join(", ")), blockers.length > 6 ? "…" : "", ". Start anyway? (This override is recorded.)"), { ok: "Override & start", kind: "danger" }))) return;
@@ -361,6 +379,8 @@ PR.runner = (() => {
       dir ? h("span.dir-pill", { title: "Failover direction (current primary → new primary)" }, "⇄ ", dir) : null,
       run.practice ? h("span.chip.c-gray", "Practice") : null,
       PR.app.statusChip(run.status),
+      hasTracks() ? h("div.seg.seg-sm.chair-seg", { title: "Which chair's steps you see" }, [["", "All"], ...M().tracks(proc).map((t) => [t.id, t.name])].map(([k, l]) =>
+        h(`button.seg-btn${chairView === k ? ".on" : ""}`, { type: "button", onclick: () => setChair(k) }, l))) : null,
       h("div.spacer"),
       run.startedAt ? h("div.rb-clock", { title: "Elapsed since run start" }, h("span.muted.small", "⏱ "), live ? h("b", { dataset: { since: String(run.startedAt) } }, fmtDur(now() - run.startedAt)) : h("b", fmtDur((run.completedAt || now()) - run.startedAt))) : null,
       h("div.rb-prog", { title: `${pg.done} of ${pg.total} steps finished` }, h("div.bar", h("div.bar-fill", { style: { width: pct + "%" } })), h("span.small", `${pg.done}/${pg.total}`)),
@@ -387,6 +407,46 @@ PR.runner = (() => {
     if (run.status === "completed" || run.status === "aborted") return h("div.banner.b-ok", run.status === "completed" ? "✓ Run completed " : "Run aborted ", fmtDateTime(run.completedAt), h("div.spacer"), h("button.btn.btn-sm", { type: "button", onclick: () => PR.app.go(`#/report/${run.id}`) }, "View report"));
     if (run.practice) return h("div.banner.b-info", "🧪 Practice run — not counted in history or timing statistics.");
     return null;
+  }
+  function chairKey() { return `chair_${run.id}`; }
+  function setChair(id) { chairView = id; PR.app.LS.set(chairKey(), id); const f = myStepsInOrder().some((x) => x.step.id === focusId); if (!f) focusId = firstOpen(); render(); scrollToFocus(); }
+  async function chooseChair(force) {
+    if (!hasTracks() || run.status === "setup") return;
+    const saved = PR.app.LS.get(chairKey(), null);
+    if (saved !== null && !force) { chairView = saved; return; }
+    const mine = (run.setup.participants || []).find((p) => p.name === me() && p.track);
+    const v = await modal({
+      title: "Which chair are you working?", size: "md", subtitle: "You'll only see your chair's steps (plus shared ones). Switch any time from the run bar.",
+      body: (close) => h("div.chair-pick",
+        M().tracks(proc).map((t) => { const pg = M().trackProgress(run, t.id); return h(`button.chair-card${mine && mine.track === t.id ? ".on" : ""}`, { type: "button", style: { "--c": t.color }, onclick: () => close(t.id) },
+          h("b", t.name), h("span", t.desc || ""), h("span.muted.small", `${pg.done}/${pg.total} steps`)); }),
+        h("button.chair-card.all", { type: "button", onclick: () => close("") }, h("b", "All chairs"), h("span", "Coordinator / lead — see everything"))),
+    });
+    setChair(v == null ? (mine ? mine.track : "") : v);
+  }
+  async function signOffTrack(t) {
+    const pg = M().trackProgress(run, t.id);
+    if (!pg.complete && !(await confirmBox(`Sign off ${t.name}?`, `${pg.total - pg.done} step(s) in ${t.name} aren't finished. Sign off anyway? (Recorded.)`, { ok: "Sign off anyway", kind: "danger" }))) return;
+    commit([{ op: "set", path: ["trackSignoff", t.id], value: { by: me(), at: now(), open: pg.total - pg.done } }], { event: { type: "signoff", text: `✍ ${t.name} signed off by ${me()}${pg.complete ? "" : ` with ${pg.total - pg.done} open step(s)`}` } });
+    toast(`${t.name} signed off`, "ok");
+  }
+  function tracksPanel() {
+    if (!hasTracks()) return null;
+    return h("div.tracks-panel", h("div.ns-top", h("span.ns-t", "Chairs"), h("button.link-btn.small", { type: "button", onclick: () => chooseChair(true) }, "switch")),
+      M().tracks(proc).map((t) => {
+        const pg = M().trackProgress(run, t.id);
+        return h(`div.track-card${chairView === t.id ? ".on" : ""}`, { style: { "--c": t.color }, onclick: (e) => { if (!e.target.closest("button")) setChair(chairView === t.id ? "" : t.id); } },
+          h("div.ns-top", h("span.ns-t", t.name), h("span.ns-c", `${pg.done}/${pg.total}`)),
+          h("div.bar.thin", h("div.bar-fill", { style: { width: pg.pct + "%", background: t.color } })),
+          pg.signoff ? h("div.small.c-green-t", `✓ Signed off · ${pg.signoff.by} ${fmtTime(pg.signoff.at, false)}`) :
+            pg.active.length ? h("div.small", `◉ ${pg.active.map((x) => x.num + " " + x.title).join(", ")}`.slice(0, 80)) : pg.next ? h("div.small.muted", `Next: ${pg.next.num} ${pg.next.title}`.slice(0, 70)) : null,
+          !pg.signoff && run.status === "active" && (pg.complete || chairView === t.id) ? h(`button.btn.btn-sm${pg.complete ? ".btn-cta" : ""}`, { type: "button", onclick: () => signOffTrack(t) }, `✍ Sign off ${t.name}`) : null);
+      }));
+  }
+  function waitingOn(step) {
+    if (!step.waitFor) return null;
+    const f = M().findStep(proc, step.waitFor); if (!f) return null;
+    return ["done", "skipped", "na"].includes(statusOf(f.step)) ? null : f;
   }
   function impactStrip() {
     const im = M().impactState(run);
@@ -425,7 +485,7 @@ PR.runner = (() => {
   /* ---------- left navigation ---------- */
   function leftNav() {
     const sites = proc.environments.enabled ? M().sites(proc) : [];
-    return h("aside.run-left",
+    return h("aside.run-left", tracksPanel(),
       h("div.seg.seg-sm.seg-wide", [["all", "All"], ["open", "Open"], ["active", "Active"], ["issues", "Issues"]].map(([k, l]) =>
         h(`button.seg-btn${filter === k ? ".on" : ""}`, { type: "button", onclick: () => { filter = k; PR.app.LS.set("runFilter", k); render(); } }, l))),
       sites.length ? h("div.site-filter", h(`button.sf${siteFilter === "all" ? ".on" : ""}`, { type: "button", onclick: () => { siteFilter = "all"; render(); } }, "All sites"),
@@ -445,6 +505,7 @@ PR.runner = (() => {
 
   /* ---------- list (center) ---------- */
   function visible(step, section) {
+    if (!inMyChair(step, section)) return false;
     const s = statusOf(step);
     if (filter === "open" && !["pending", "active"].includes(s)) return step.id === focusId;
     if (filter === "active" && s !== "active") return step.id === focusId;
@@ -475,6 +536,8 @@ PR.runner = (() => {
       h("span.sr-num", step.num),
       PR.ui.envBadge(t, { size: "sm" }),
       h("span.sr-title", step.title), impactFlag(step),
+      !chairView && hasTracks() ? (() => { const t = M().trackById(proc, M().trackOf(step, sec)); return t ? h("span.track-chip.sm", { style: { "--c": t.color } }, t.name) : null; })() : null,
+      statusOf(step) === "pending" && waitingOn(step) ? h("span.sr-wait", { title: "Waiting on a handoff from another chair" }, `⏳ #${waitingOn(step).step.num}`) : null,
       step.window && status === "pending" ? h("span.sr-win", step.window) : null,
       issues.length ? h("span.sr-iss", { title: `${issues.length} issue(s)` }, `⚠ ${issues.length}`) : null,
       h("span.sr-right",
@@ -521,6 +584,8 @@ PR.runner = (() => {
         s.startedAt ? h("span", `▶ ${fmtTime(s.startedAt)} ${s.startedBy || ""}`) : null, s.finishedAt ? h("span", `✓ ${fmtTime(s.finishedAt)} ${s.finishedBy || ""}${chairOf(s.finishedBy) ? " (" + chairOf(s.finishedBy).split("—")[0].trim() + ")" : ""}`) : null,
         status === "skipped" || status === "na" ? h("span", `Reason: ${s.skipReason || (applicable(step) ? "" : "does not apply to this direction")}`) : null),
       s.incomplete ? h("div.banner.b-warn.sm", `Completed with missing items: ${s.incomplete.join(", ")}`) : null,
+      (() => { const w = status === "pending" && waitingOn(step); if (!w) return null; const t = M().trackById(proc, M().trackOf(w.step, w.section)); const ws = st(w.step.id);
+        return h("div.banner.b-info.sm.waiting", "⏳ Waiting on ", h("b", t ? t.name : "another step"), ` · step ${w.step.num} ${w.step.title}`, ws.status === "active" ? h("span", " — in progress, ", h("span", { dataset: { since: String(ws.startedAt) } }, fmtDur(now() - ws.startedAt))) : " — not started yet"); })(),
       s.timing === "unavailable" && status === "done" ? h("div.banner.b-warn.sm", "Timing unreliable — no start time was captured. ", h("button.mini-btn", { type: "button", onclick: () => editTimes(step.id) }, "Add start time")) : null,
       priorFor(step.id).map((p) => priorLessonBanner(p)),
       h("div.fc-blocks", step.blocks.map((b) => { const d = PR.blocks.def(b.type); return d ? h("div.fc-blk", { dataset: { bid: b.id } }, d.run(b, r(b))) : null; })),
@@ -763,6 +828,7 @@ PR.runner = (() => {
       const drawParts = () => h("div.parts", parts.map((p, i) => h("div.part-row",
         h("input.inp", { value: p.name, list: "peopleList", placeholder: "Name", onchange: (e) => { parts[i].name = e.target.value; set(["participants"], parts); } }),
         h("select.inp", { onchange: (e) => { parts[i].chair = e.target.value; set(["participants"], parts); } }, h("option", { value: "" }, "— chair / role —"), chairs.map((c) => h("option", { value: c, selected: p.chair === c }, c))),
+        M().tracks(proc).length ? h("select.inp", { title: "Which chair's steps this person works", onchange: (e) => { parts[i].track = e.target.value; set(["participants"], parts); } }, h("option", { value: "" }, "All chairs"), M().tracks(proc).map((t) => h("option", { value: t.id, selected: p.track === t.id }, t.name))) : null,
         h("button.icon-btn.danger", { type: "button", title: "Remove", onclick: () => { parts.splice(i, 1); set(["participants"], parts, true); } }, "✕"))),
       h("button.btn.btn-sm", { type: "button", onclick: () => { parts.push({ id: uid("pp"), name: "", chair: "" }); set(["participants"], parts, true); } }, "＋ Add participant"));
       return h("div",
@@ -847,6 +913,7 @@ PR.runner = (() => {
           PR.app.rememberPeople((su.participants || []).map((p) => p.name));
           focusId = focusId || firstOpen();
           render();
+          if (!resume && hasTracks()) setTimeout(() => chooseChair(), 50);
         } }, editingSetup ? "Save & return to run" : "▶ Begin run"));
     },
   };
@@ -854,6 +921,8 @@ PR.runner = (() => {
   /* ======================= completion & lessons ======================= */
   async function finishWizard() {
     const pg = progressOf();
+    const unsigned = M().tracks(proc).filter((t) => !M().trackProgress(run, t.id).signoff);
+    let override = false, overrideWhy = "";
     const remaining = stepsInOrder().filter(({ step }) => ["pending", "active"].includes(statusOf(step)));
     const openIss = Object.values(run.issues || {}).filter((i) => i.status !== "resolved");
     const unreliable = Object.values(run.steps || {}).filter((s) => s.timing === "unavailable").length;
@@ -885,6 +954,11 @@ PR.runner = (() => {
     const v = await modal({
       title: "🏁 Close out the run", size: "xl",
       body: h("div.finish",
+        hasTracks() ? h("div#trackGate.track-gate", h("div.ins-sec", "Chairs — every chair must sign off before the master run can be completed"),
+          M().tracks(proc).map((t) => { const tp = M().trackProgress(run, t.id); return h(`div.tg-row${tp.signoff ? ".ok" : ""}`, { style: { "--c": t.color } }, h("b", t.name), h("span.muted.small", t.desc || ""), h("div.spacer"), h("span.small", `${tp.done}/${tp.total} steps`),
+            tp.signoff ? h("span.done-pill", `✓ ${tp.signoff.by} · ${fmtTime(tp.signoff.at, false)}`) : h("span.chip.c-amber", "Not signed off")); }),
+          unsigned.length ? h("div.tg-override", h("label.ck", h("input", { type: "checkbox", onchange: (e) => (override = e.target.checked) }), " Close without every chair's sign-off (emergency)"),
+            h("input.inp", { placeholder: "Reason (required, recorded in the report)", oninput: (e) => (overrideWhy = e.target.value) })) : null) : null,
         h("div.fin-stats", stat("Elapsed", run.startedAt ? fmtDur(now() - run.startedAt) : "—"), stat("Steps finished", `${pg.done}/${pg.total}`), stat("Open issues", String(openIss.length)), stat("Timing unreliable", String(unreliable))),
         remaining.length ? h("div.banner.b-warn.sm", `${remaining.length} step(s) not finished (${remaining.slice(0, 8).map((x) => x.step.num).join(", ")}${remaining.length > 8 ? "…" : ""}). `,
           h("label.ck", h("input", { type: "checkbox", checked: markRest, onchange: (e) => (markRest = e.target.checked) }), " mark them skipped (“not performed at close-out”)")) : null,
@@ -896,13 +970,16 @@ PR.runner = (() => {
         h("div.field", h("label.lbl", "Summary / remaining work"), h("textarea.inp", { rows: 3, oninput: (e) => (comp.summary = e.target.value) }, comp.summary)),
         h("div.ins-sec", "Lessons learned"), h("div.help", "Pre-filled from improvement notes and issues captured during the run. Items marked “check next run” appear on that step next time with a “did it work?” prompt."),
         h("div.ls-grid", lessonBox), priorBox),
-      actions: [{ spacer: true }, { label: "Save draft", value: "draft" }, { label: "Complete run", kind: "primary", onClick: () => { if (!comp.authorizedBy.trim()) { const a = $("#authBy"); a.classList.add("err"); a.focus(); toast("Who authorized completion?", "warn"); return false; } }, value: "done" }],
+      actions: [{ spacer: true }, { label: "Save draft", value: "draft" }, { label: "Complete run", kind: "primary", onClick: () => {
+        if (unsigned.length && !(override && overrideWhy.trim())) { toast(`Waiting on sign-off: ${unsigned.map((t) => t.name).join(", ")}`, "warn", 4000); const o = $("#trackGate"); o && o.scrollIntoView({ block: "center" }); return false; }
+        if (!comp.authorizedBy.trim()) { const a = $("#authBy"); a.classList.add("err"); a.focus(); toast("Who authorized completion?", "warn"); return false; } }, value: "done" }],
     });
     if (!v) return;
     const ops = [{ op: "set", path: ["completion"], value: comp }, { op: "set", path: ["lessons"], value: Object.fromEntries(Object.entries(lessons).filter(([, l]) => l.text && l.text.trim())) }];
     if (v === "done") {
       comp.authorizedAt = now();
       if (markRest) remaining.forEach(({ step }) => ops.push({ op: "merge", path: ["steps", step.id], value: { status: "skipped", skipReason: "Not performed at close-out", finishedAt: now(), finishedBy: me() } }));
+      if (unsigned.length && override) comp.chairOverride = { reason: overrideWhy, by: me(), at: now(), unsigned: unsigned.map((t) => t.name) };
       ops.push({ op: "set", path: ["status"], value: comp.outcome === "Aborted" ? "aborted" : "completed" }, { op: "set", path: ["completedAt"], value: now() });
     }
     commit(ops, { render: false, event: v === "done" ? { type: "complete-run", text: `Run completed — ${comp.outcome}, authorized by ${comp.authorizedBy}` } : null });

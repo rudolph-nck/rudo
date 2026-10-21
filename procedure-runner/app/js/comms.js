@@ -62,7 +62,7 @@ PR.comms = (() => {
         { id: "tpl_progress", name: "Progress update", audiences: [A.lead], trigger: "interval", minutes: 30, tone: "neutral", includeLive: true,
           subject: "[Update] {{run.name}} — {{progress.pct}}% complete",
           headline: "{{progress.pct}}% complete",
-          facts: "Elapsed | {{elapsed}}\nProgress | {{progress.done}} of {{progress.total}} steps\nIn progress now | {{current.steps}}\nEstimated finish | {{eta}}\nOpen issues | {{issues.open}}",
+          facts: "Elapsed | {{elapsed}}\nProgress | {{progress.done}} of {{progress.total}} steps\nChairs | {{chairs.summary}}\nIn progress now | {{current.steps}}\nEstimated finish | {{eta}}\nOpen issues | {{issues.open}}",
           body: "" },
         { id: "tpl_issue", name: "Issue update", audiences: [A.lead, A.it], trigger: "issue", tone: "warn", includeLive: true,
           subject: "[Issue] {{run.name}}: {{issues.latest}}",
@@ -176,6 +176,7 @@ PR.comms = (() => {
       timing: { auto: timedAuto },
       lessons: { list: lessons.length ? lessons.map((l) => `- ${l.text}`).join("\n") : "- None recorded" },
       live: { url: liveURL(run) },
+      chairs: { summary: M().tracks(proc).length ? M().tracks(proc).map((t) => { const g = M().trackProgress(run, t.id); return `${t.name}: ${g.signoff ? "signed off" : g.done + "/" + g.total + " steps"}`; }).join(" · ") : "—" },
       impact: (() => {
         const im = M().impactState(run);
         const last = (run.impactLog || []).filter((e) => e.type === "down").pop();
@@ -469,7 +470,7 @@ PR.comms = (() => {
   const VARS = [["run.name", "Run name"], ["run.direction", "e.g. Main → DR"], ["run.changeId", "Change ID"], ["window.start", "Maintenance window start"], ["window.end", "Window end"], ["window.date", "Window date"],
     ["impact", "Expected impact (run setup)"], ["started", "Start time"], ["elapsed", "Elapsed"], ["eta", "Estimated finish"], ["progress.pct", "% complete"], ["progress.done", "Steps done"], ["progress.total", "Total steps"],
     ["current.steps", "Steps in progress"], ["decision.result", "GO / NO-GO"], ["decision.maker", "Decision-maker"], ["decision.rationale", "Rationale"], ["issues.open", "Open issues"], ["issues.latest", "Latest issue"],
-    ["halt.reason", "Why halted"], ["impact.since", "Members impacted since"], ["impact.duration", "Total impact time"], ["impact.restoreStep", "Step that restores service"], ["impact.eta", "Restore estimate"], ["impact.note", "What's down"], ["run.outcome", "Final outcome"], ["run.authorizedBy", "Who authorized completion"], ["lessons.list", "Lessons learned (bullets)"], ["live.url", "Follow-along link"], ["sender", "Your name"], ["now", "Current time"]];
+    ["halt.reason", "Why halted"], ["impact.since", "Members impacted since"], ["impact.duration", "Total impact time"], ["impact.restoreStep", "Step that restores service"], ["impact.eta", "Restore estimate"], ["impact.note", "What's down"], ["run.outcome", "Final outcome"], ["run.authorizedBy", "Who authorized completion"], ["lessons.list", "Lessons learned (bullets)"], ["live.url", "Follow-along link"], ["chairs.summary", "Each chair's progress / sign-off"], ["sender", "Your name"], ["now", "Current time"]];
 
   return { load, save, applyBranding, isCommunicator, planFor, status, dueCount, compose, runnerPanel, planEditor, renderEmail, context, liveURL, TRIGGERS, TONES };
 })();

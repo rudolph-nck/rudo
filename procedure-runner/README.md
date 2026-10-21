@@ -44,6 +44,15 @@ Sections or steps marked *after cutover* switch the role labels to New Primary /
    - A NO-GO decision halts the run, or jumps to a rollback section if you configure that.
 3. **🏁 Finish**: milestones, remaining issues, outcome, who authorized completion, and lessons learned. Lessons are pre-filled from the notes and issues captured during the run. Lessons flagged *check next run* appear on that step next time with a "did it work?" prompt.
 
+## Concurrent chairs
+
+Split any procedure between chairs that work at the same time, for example a 1st chair on the core failover and a 2nd chair on vendors and other parties.
+
+- **Turn it on and assign work**: ⚙ Settings → 👥 Chairs turns it on and names the chairs. Assign a whole section to a chair (section inspector), or individual steps (step inspector → Chair, or Ctrl+click several steps). Steps with no chair are shared.
+- **Handoffs**: set **Waits for** on a step and pick another chair's step. It shows "Waiting on …" until that step is done; starting early needs an override, which is recorded.
+- **In the run**: each operator picks their chair when they open it and only sees their own steps plus shared ones. The run bar toggles All / 1st / 2nd, and the left panel shows every chair's progress.
+- **Sign-off**: each chair signs off its own track. The master run can only be completed once every chair has signed off. An emergency override exists; its reason goes in the report.
+
 ## Console view
 
 Use the **Console** component, or set a Command's *Show as* to **Console window**, to show text exactly as it appears in the terminal: dark window, spacing kept, expected output dimmed. **Copy commands** copies only the lines that start with the prompt (with the prompt stripped). **Copy all** copies everything, and clicking a single line copies that line. In any Instructions text, wrapping lines in ``` fences also renders them as a console box with a Copy button.
