@@ -34,7 +34,7 @@ PR.runner = (() => {
       name: `${data.title} — ${fmtDate(now())}`, snapshot: data, status: "setup", createdAt: now(), createdBy: me(),
       setup: {
         exerciseDate: fmtDate(now()), changeId: "", participants: [{ id: uid("pp"), name: me(), chair: data.setup.chairs[0] || "" }],
-        primarySiteId: env.enabled && env.directional ? (env.defaultPrimarySiteId || (env.sites[0] || {}).id || "") : "",
+        primarySiteId: "", // the operator must choose the direction explicitly — never pre-filled
         verification: null, readiness: {},
       },
       steps: {}, issues: {}, notes: {}, comms: {}, events: [{ at: now(), by: me(), type: "created", text: `Run created from ${version === "draft" ? "draft" : "v" + version}` }],
@@ -807,7 +807,7 @@ PR.runner = (() => {
   function wizardDone(k) {
     const su = run.setup;
     if (k === "info") return !!(su.exerciseDate && (!proc.setup.requireChangeId || su.changeId) && (su.participants || []).some((p) => p.name));
-    if (k === "dir") return !!su.primarySiteId;
+    if (k === "dir") return !!(su.primarySiteId && su.directionChosen);
     if (k === "verify") return !!su.verification;
     if (k === "ready") return proc.setup.readiness.every((r) => su.readiness && su.readiness[r.id] && su.readiness[r.id].done);
     return false;
@@ -848,17 +848,18 @@ PR.runner = (() => {
         h("h2", "Which way are we failing over?"), h("p.muted", "Pick the datacenter that is primary right now. Every step will show its physical datacenter and HMC partition from this choice."),
         h("div.dir-cards", sites.map((s) => {
           const other = M().otherSite(proc, s.id);
-          return h(`button.dir-card${su.primarySiteId === s.id ? ".on" : ""}`, { type: "button", onclick: () => { set(["primarySiteId"], s.id); if (su.verification) set(["verification"], null); render(); } },
+          return h(`button.dir-card${su.directionChosen && su.primarySiteId === s.id ? ".on" : ""}`, { type: "button", onclick: () => { commit([{ op: "set", path: ["setup", "primarySiteId"], value: s.id }, { op: "set", path: ["setup", "directionChosen"], value: { by: me(), at: now() } }, ...(su.verification && su.primarySiteId !== s.id ? [{ op: "set", path: ["setup", "verification"], value: null }] : [])]); } },
             h("div.dc-flow", h("span", { style: { color: s.color } }, s.name), h("span.dc-arrow", "→"), h("span", { style: { color: other.color } }, other.name)),
             h("div.muted.small", `${s.name} is primary now · fail over to ${other.name}`));
         })),
-        su.primarySiteId ? [h("h3", "Resulting mapping"), mappingTable(su.primarySiteId)] : null);
+        su.primarySiteId && su.directionChosen ? [h("h3", "Resulting mapping"), mappingTable(su.primarySiteId)] : h("div.banner.b-info.sm", "Choose a direction above — it isn't pre-selected, so nobody starts a failover on an assumption."));
     },
     verify: ({ su, set, directional }) => {
       let who;
       const v = su.verification;
       return h("div",
         h("h2", "Verify the environment mapping"), h("p.muted", "A second person confirms the physical datacenters, fixed HMC partition labels and logical roles before anyone touches a system."),
+        directional && !su.directionChosen ? h("div.banner.b-warn.sm", "Choose the failover direction first.", h("div.spacer"), h("button.mini-btn", { type: "button", onclick: () => goPage("dir") }, "Choose")) :
         directional ? mappingTable(su.primarySiteId) : h("div", M().sites(proc).map((s) => PR.ui.envBadge({ kind: "site", title: s.name, code: s.code, partition: s.partition, color: s.color }))),
         v ? h("div.banner.b-ok", `✓ Mapping verified by ${v.by} at ${fmtDateTime(v.at)}${v.note ? " — " + v.note : ""}`, h("div.spacer"), h("button.btn.btn-sm", { type: "button", onclick: () => { set(["verification"], null, true); } }, "Redo")) :
           h("div.verify-box",
@@ -868,6 +869,7 @@ PR.runner = (() => {
             h("div.frow", h("div.field.grow", h("label.lbl", "Verified by"), who = h("input.inp", { list: "peopleList", value: (su.participants || []).map((p) => p.name).find((n) => n && n !== me()) || me() })),
               h("div.field.grow", h("label.lbl", "Note"), h("input.inp#vnote", { placeholder: "Optional" }))),
             h("button.btn.btn-primary", { type: "button", onclick: () => {
+              if (directional && !su.directionChosen) return toast("Choose the failover direction first", "warn");
               if ($$(".vchk").some((c) => !c.checked)) return toast("Tick every check first", "warn");
               set(["verification"], { by: who.value || me(), at: now(), note: $("#vnote").value, primarySiteId: su.primarySiteId }, true);
               commit([], { render: false, event: { type: "verify", text: `Environment mapping verified by ${who.value || me()}` } });
@@ -886,7 +888,7 @@ PR.runner = (() => {
       const warn = [];
       if (proc.setup.requireChangeId && !su.changeId) warn.push(["info", "Change / exercise ID is required"]);
       if (!(su.participants || []).some((p) => p.name)) warn.push(["info", "Add at least one participant"]);
-      if (directional && !su.primarySiteId) warn.push(["dir", "Choose the failover direction"]);
+      if (directional && !(su.primarySiteId && su.directionChosen)) warn.push(["dir", "Choose the failover direction"]);
       if (env.enabled && proc.setup.requireVerification && !su.verification) warn.push(["verify", "Environment mapping has not been verified"]);
       if (su.verification && su.verification.primarySiteId && su.verification.primarySiteId !== su.primarySiteId) warn.push(["verify", "Direction changed after verification — verify again"]);
       const notReady = proc.setup.readiness.filter((r) => !(su.readiness && su.readiness[r.id] && su.readiness[r.id].done));

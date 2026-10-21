@@ -55,6 +55,7 @@
           ["active", "paused", "setup"].includes(run.status) ? h("a.btn.btn-primary", { href: `#/run/${run.id}` }, "Back to run") : null,
           h("button.btn", { type: "button", onclick: () => window.print() }, "🖨 Print / PDF"), h("button.btn", { type: "button", onclick: exportCSV }, "⇩ Steps CSV"),
           h("button.btn", { type: "button", onclick: async () => download(`${PR.u.slug(run.name)}.run.json`, JSON.stringify(await PR.store.exportRunBundle(run), null, 2)) }, "⇩ JSON"),
+          h("button.btn", { type: "button", title: "What was different from the previous run", onclick: () => PR.compareWithPrevious(run) }, "⇄ Compare with previous"),
           h("a.btn.btn-ghost", { href: `#/history/${encodeURIComponent(run.procId)}` }, "📈 History")),
         h("header.rp-head",
           h("div", h("div.rp-kicker", run.practice ? "Practice run report" : "Run report"), h("h1", run.name), h("div.muted", `${run.procTitle} · ${run.procVersion === "draft" ? "draft" : "v" + run.procVersion}`)),
@@ -221,6 +222,7 @@
       h("td", r.procVersion === "draft" ? "draft" : `v${r.procVersion}`), h("td", PR.app.statusChip(r.status)), h("td", r.outcome || ""), h("td", `${r.done}/${r.total}`), h("td", r.issues ? `${r.issues}${r.openIssues ? " (" + r.openIssues + " open)" : ""}` : "0"),
       h("td", r.startedAt ? fmtDur((r.completedAt || now()) - r.startedAt, { short: true }) : ""),
       h("td", h("a.btn.btn-sm", { href: ["active", "paused", "setup"].includes(r.status) ? `#/run/${r.id}` : `#/report/${r.id}` }, ["active", "paused", "setup"].includes(r.status) ? "Open" : "Report"),
+        !r.practice ? h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Compare with the run before it", onclick: () => PR.compareWithPrevious(r) }, "⇄") : null,
         h("button.icon-btn.xs", { type: "button", title: "Delete run", onclick: async () => { if (await PR.u.confirmBox("Delete run?", `Permanently delete "${r.name}" and its record?`, { ok: "Delete", kind: "danger" })) { await S().deleteRun(r.id); PR.app.route(); } } }, "🗑")))));
   }
   function dirName(r) { return r.directionLabel || ""; }

@@ -34,7 +34,7 @@ PR.app = (() => {
     PR.u.closeMenus();
     const parts = (location.hash.replace(/^#\/?/, "") || "").split("/").map(decodeURIComponent);
     const [name, ...args] = parts;
-    const view = { "": "library", edit: "builder", run: "runner", report: "report", history: "history", runs: "runs", lessons: "lessons", comms: "comms", live: "live" }[name || ""] || "library";
+    const view = { "": "library", edit: "builder", run: "runner", report: "report", history: "history", runs: "runs", lessons: "lessons", comms: "comms", live: "live", print: "print", compare: "compare" }[name || ""] || "library";
     if (current && current.unmount) { try { const ok = await current.unmount(); if (ok === false) return; } catch (e) { console.error(e); } }
     const host = $("#view");
     host.innerHTML = ""; host.className = `view view-${view}`;
@@ -220,6 +220,7 @@ PR.app = (() => {
         { icon: "🧪", label: "Practice run (draft)", onClick: () => PR.runner.startNew(p.id, { practice: true }) },
         { icon: "📈", label: "History & insights", onClick: () => go(`#/history/${encodeURIComponent(p.id)}`) },
         { icon: "⧉", label: "Duplicate", onClick: async () => { const d = await S().getProcedure(p.id); const c = clone(d.draft); c.id = uid("proc"); c.title += " (copy)"; await saveNewProcedure(c, { open: false }); toast("Duplicated", "ok"); render(); } },
+        { icon: "📄", label: "Export PDF (for SharePoint)", onClick: () => go(`#/print/${encodeURIComponent(p.id)}`) },
         { icon: "⇩", label: "Export JSON", onClick: () => exportProcedure(p.id) },
         { sep: true },
         p.status === "archived"

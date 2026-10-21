@@ -105,6 +105,26 @@ The app follows the brand guide:
 
 Light and dark modes are available from the ☾ / ☀ button. You can upload a white logo on the Comms page to show it in the header.
 
+## Compare runs
+
+On a run report, **⇄ Compare with previous** shows what was different from the last run of the same procedure. In History, the ⇄ button on any run does the same, and the dropdowns at the top let you pick any two runs. The comparison covers:
+- a plain-English *What was different* summary;
+- side-by-side totals: duration, member impact, issues, roadblocks, timing quality, direction, version;
+- the biggest step timing changes and phase durations;
+- issues that were new, repeated, or didn't come back;
+- validations and decisions that changed outcome;
+- steps added, removed or edited between procedure versions;
+- whether last run's improvements worked.
+
+It's printable to PDF.
+
+## Export a procedure to PDF
+
+Use **📄 PDF** in the builder, or **⋯ → Export PDF** on a library card. Choose the version, then **Save as PDF**. The suggested file name is *Procedure name - version - date - last modified by Name*, ready for the SharePoint procedures folder. The document includes:
+- environments and the role mapping for both directions;
+- chairs, readiness checklist, milestones and member-impact markers;
+- every step with its details and a checkbox.
+
 ## Records
 
 - **📄 Report** (per run, printable and exportable to CSV/JSON) covers run setup, environment verification, readiness, step execution and timing source, parallel operations with a timeline, problems and exceptions with evidence, communications, critical decisions, validations, final completion, lessons learned, captured values, and the full audit log.

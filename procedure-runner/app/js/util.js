@@ -32,7 +32,8 @@ PR.u = (() => {
     const el = document.createElement(tagName);
     if (id) el.id = id;
     if (classes.length) el.className = classes.join(" ");
-    if (attrs && (attrs.nodeType || typeof attrs !== "object" || Array.isArray(attrs))) {
+    // anything that isn't a plain options object (text, numbers incl. 0, nodes, arrays, null) is the first child
+    if (attrs !== undefined && (attrs === null || typeof attrs !== "object" || attrs.nodeType || Array.isArray(attrs))) {
       children.unshift(attrs);
       attrs = null;
     }

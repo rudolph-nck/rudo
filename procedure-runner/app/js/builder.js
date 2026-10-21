@@ -304,6 +304,7 @@ PR.views.builder = (() => {
       h(`button.btn.btn-ghost${compact ? ".on" : ""}`, { type: "button", title: "Collapse step contents to reorder quickly", onclick: () => { compact = !compact; PR.app.LS.set("bldCompact", compact); renderBar(); renderCanvas(); } }, compact ? "☰ Compact" : "☰ Detailed"),
       h("button.btn.btn-ghost", { type: "button", onclick: () => openSettings() }, "⚙ Settings"),
       h(`button.btn.btn-ghost${lint.length ? ".lint" : ""}`, { type: "button", title: "Checks before publishing", onclick: () => showLint() }, lint.length ? `${errs ? "⛔" : "⚠"} ${lint.length}` : "✓ Checks"),
+      h("button.btn.btn-ghost", { type: "button", title: "Export the procedure as a PDF document (name, version, date, last modified by)", onclick: async () => { await save.flush(); PR.app.go(`#/print/${encodeURIComponent(proc.id)}/${doc.publishedVersion && !doc.dirtySincePublish ? doc.publishedVersion : "draft"}`); } }, "📄 PDF"),
       h("button.btn", { type: "button", title: "Try the draft in the runner (not counted in history)", onclick: async () => { await save.flush(); PR.runner.startNew(proc.id, { practice: true }); } }, "🧪 Practice"),
       h("button.btn.btn-primary", { type: "button", onclick: publish }, "Publish"));
   }
