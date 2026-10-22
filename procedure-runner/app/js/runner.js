@@ -465,6 +465,20 @@ PR.runner = (() => {
     toast(`Approval requested from ${whoLabel(op.value.to)}`, "ok");
     return op.value;
   }
+  /* Name (or change) the approvers during a run — e.g. a run that started before anyone was assigned. */
+  async function assignApprovers() {
+    const cur = (run.setup.approvers || []).join(", ");
+    const v = await promptBox("Approvers for this run", { label: `Who approves? Separate several names with commas.${approverNames().length ? " Current: " + approverNames().join(", ") : ""}`, value: cur, placeholder: "e.g. Pat Manager", ok: "Save approvers" });
+    if (v == null) return;
+    const names = v.split(",").map((x) => x.trim()).filter(Boolean);
+    const all = [...new Set([...M().approversFor(proc, { ...run, setup: { ...run.setup, approvers: [] } }), ...names])];
+    if (acfg().enforced && !run.practice && all.length && all.every((n) => M().sameName(n, me()))) return toast("You can't be the only approver in this procedure — name someone else", "err", 4500);
+    const ops = [{ op: "set", path: ["setup", "approvers"], value: names }];
+    M().pendingApprovals(run).forEach((r) => ops.push({ op: "merge", path: ["approvals", r.id], value: { to: all, pingAt: now() } })); // waiting requests go to the new approvers
+    commit(ops, { event: { type: "approvers", text: `Approvers for this run: ${all.join(", ") || "none"}` } });
+    PR.app.rememberPeople && PR.app.rememberPeople(names);
+    toast(all.length ? `Approvers: ${all.join(", ")} — waiting requests were sent to them` : "No approvers assigned", all.length ? "ok" : "warn", 4000);
+  }
   async function addAdhocApproval(id) {
     const f = M().findStep(proc, id); if (!f) return;
     const note = await promptBox(`Require approval for step ${f.step.num}`, { label: `What should ${whoLabel(approverNames())} approve? (optional)`, placeholder: "e.g. OK to restart services during business hours", ok: "Request approval" });
@@ -510,6 +524,8 @@ PR.runner = (() => {
   function approvalPanel(step, b, req) {
     const live = run.status === "active" || run.status === "paused";
     const enf = acfg().enforced;
+    if (!req && !approverNames().length && !run.practice) return h("div.ap-panel.ap-idle", "✍ Needs an approver — none is assigned to this run yet. ",
+      live ? h("span.ap-acts.ap-fix", h("button.btn.btn-sm", { type: "button", onclick: () => assignApprovers() }, "Assign approver…")) : null);
     if (!req) return h("div.ap-panel.ap-idle", "✍ Needs approval from ", h("b", whoLabel(approverNames())),
       statusOf(step) === "pending" ? " — requested automatically when the step starts." : ". ",
       live && statusOf(step) === "active" ? h("span.ap-acts", h("button.btn.btn-sm", { type: "button", onclick: () => requestApproval(step, b) }, "Request approval")) : null);
@@ -518,11 +534,15 @@ PR.runner = (() => {
     if (req.status === "approved") return h("div.ap-panel.ap-ok", req.kind === "decision" ? "✓ GO from " : "✓ Approved by ", h("b", req.decidedBy), ` at ${fmtTime(req.decidedAt)}`,
       req.verbal ? ` (verbal, recorded by ${req.recordedBy})` : "", req.comment ? ` — ${req.comment}` : "");
     const can = M().canApprove(proc, run, req, me());
+    if (!approverNames().length && !(req.to || []).length && !can) return h("div.ap-panel.ap-rejected",
+      h("div", h("b", "No approver is assigned to this run."), " Name who approves and the request goes to them."),
+      live ? h("div.ap-acts.ap-fix", h("button.btn.btn-sm.btn-primary", { type: "button", onclick: () => assignApprovers() }, "✍ Assign approver…")) : null);
     return h("div.ap-panel.ap-wait",
       h("div", "⏳ Waiting for ", h("b", whoLabel(req.to)), h("span.muted.small", ` · asked ${fmtTime(req.requestedAt)} by ${req.requestedBy} · `, h("span", { dataset: { since: String(req.requestedAt) } }, fmtDur(now() - req.requestedAt)))),
       req.note ? h("div.small.ap-note", "“", req.note, "”") : null,
       can ? decideControls(req) : live ? h("div.ap-acts",
         h("button.btn.btn-sm", { type: "button", onclick: () => pingRequest(req) }, "🔔 Remind"),
+        h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Change who approves this run", onclick: () => assignApprovers() }, "Change approver…"),
         h("button.btn.btn-sm.btn-ghost", { type: "button", onclick: () => { PR.u.copyText(shareText(req)); toast("Copied — paste it into Teams or an email", "ok"); } }, "Copy for Teams / email"),
         !enf ? h("button.btn.btn-sm.btn-ghost", { type: "button", onclick: () => verbalApproval(req) }, "Record verbal approval…") : null,
         req.kind === "adhoc" && (!enf || M().sameName(req.requestedBy, me())) ? h("button.mini-btn", { type: "button", onclick: () => commit([{ op: "merge", path: ["approvals", req.id], value: { status: "cancelled", cancelledBy: me(), cancelledAt: now() } }], { event: { type: "approval-cancel", stepId: req.stepId, text: `Approval request withdrawn — ${req.title}` } }) }, "Withdraw") : null) : null);
@@ -609,6 +629,7 @@ PR.runner = (() => {
       h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Run report", onclick: () => PR.app.go(`#/report/${run.id}`) }, "📄 Report"),
       h("button.icon-btn", { type: "button", title: "More", onclick: (e) => menu(e.currentTarget, [
         { icon: "⚙", label: "Edit run setup (participants, direction…)", onClick: () => { editingSetup = true; setupWizard.page = "info"; render(); } },
+        { icon: "✍", label: `Approvers… (${approverNames().join(", ") || "none assigned"})`, onClick: () => assignApprovers() },
         run.status === "paused" ? { icon: "▶", label: "Resume run", onClick: resumeRun } : { icon: "⏸", label: "Halt run", onClick: haltRun },
         { icon: "🚧", label: "Log a roadblock", onClick: () => issueModal({ stepId: focusId, blocking: true, severity: "high" }) },
         M().impactState(run).down ? { icon: "🟢", label: "Declare service restored now", onClick: () => declareImpact("up") } : { icon: "🔴", label: "Declare members impacted now", onClick: () => declareImpact("down") },
@@ -1055,6 +1076,13 @@ PR.runner = (() => {
         M().tracks(proc).length ? h("select.inp", { title: "Which chair's steps this person works", onchange: (e) => { parts[i].track = e.target.value; set(["participants"], parts); } }, h("option", { value: "" }, "All chairs"), M().tracks(proc).map((t) => h("option", { value: t.id, selected: p.track === t.id }, t.name))) : null,
         h("button.icon-btn.danger", { type: "button", title: "Remove", onclick: () => { parts.splice(i, 1); set(["participants"], parts, true); } }, "✕"))),
       h("button.btn.btn-sm", { type: "button", onclick: () => { parts.push({ id: uid("pp"), name: "", chair: "" }); set(["participants"], parts, true); } }, "＋ Add participant"));
+      const needAp = acfg().enforced || stepsInOrder().some(({ step }) => M().needsApproval(step));
+      const apField = needAp ? h("div.field.ap-setup",
+        h("label.lbl", "Approver(s) for this run", run.practice ? null : h("span.req", " *")),
+        h("input.inp", { value: (su.approvers || []).join(", "), list: "peopleList", placeholder: "e.g. Pat Manager (separate several with commas)",
+          onchange: (e) => set(["approvers"], e.target.value.split(",").map((x) => x.trim()).filter(Boolean), true) }),
+        h("div.help", `This procedure has ${stepsInOrder().filter(({ step }) => M().needsApproval(step)).length} sign-off / Go-No-Go step(s)${acfg().enforced ? " and approvals can't be bypassed" : ""}. `,
+          approverNames().length ? ["Approvers: ", h("b", approverNames().join(", ")), " — they're notified when their approval is needed."] : run.practice ? "Practice run: leave empty to approve your own steps." : "Name who approves, or add a participant in the Approver chair.")) : null;
       return h("div",
         h("h2", "Exercise details"), h("p.muted", "Recorded on the run report."),
         h("div.field", h("label.lbl", "Run name"), h("input.inp", { value: run.name, onchange: (e) => commit([{ op: "set", path: ["name"], value: e.target.value }], { render: false }) })),
@@ -1064,6 +1092,7 @@ PR.runner = (() => {
           h("div.field", h("label.lbl", "Window end"), h("input.inp", { type: "datetime-local", value: su.windowEnd || "", onchange: (e) => set(["windowEnd"], e.target.value) }))),
         h("div.field", h("label.lbl", "Expected impact (used in communications)"), h("input.inp", { value: su.impact || "", placeholder: "e.g. Online & mobile banking, ATMs and branch systems briefly unavailable", onchange: (e) => set(["impact"], e.target.value) })),
         h("div.field", h("label.lbl", "Participants & chairs"), drawParts()),
+        apField,
         h("div.help", "Everyone joining opens this run from the library on their own PC (shared mode) and sets their name — each click is stamped with who did it."));
     },
     dir: ({ su, set }) => {
@@ -1112,7 +1141,9 @@ PR.runner = (() => {
       const warn = [];
       if (proc.setup.requireChangeId && !su.changeId) warn.push(["info", "Change / exercise ID is required"]);
       if (!(su.participants || []).some((p) => p.name)) warn.push(["info", "Add at least one participant"]);
-      if (acfg().enforced && !run.practice && !approverNames().length) warn.push(["info", `This procedure requires an approver — add a participant in the ${(acfg().chairs[0] || "Approver")} chair, or name approvers in the procedure settings`]);
+      const apSteps = stepsInOrder().filter(({ step }) => M().needsApproval(step)).length;
+      if ((acfg().enforced || apSteps) && !run.practice && !approverNames().length) warn.push(["info", `Name the approver for this run — ${apSteps ? `${apSteps} step(s) need a sign-off or Go / No-Go` : "this procedure requires approvals"}`]);
+      else if (acfg().enforced && !run.practice && approverNames().every((n) => M().sameName(n, me()))) warn.push(["info", "You can't approve your own steps in this procedure — add another approver"]);
       if (directional && !(su.primarySiteId && su.directionChosen)) warn.push(["dir", "Choose the failover direction"]);
       if (env.enabled && proc.setup.requireVerification && !su.verification) warn.push(["verify", "Environment mapping has not been verified"]);
       if (su.verification && su.verification.primarySiteId && su.verification.primarySiteId !== su.primarySiteId) warn.push(["verify", "Direction changed after verification — verify again"]);
@@ -1122,6 +1153,7 @@ PR.runner = (() => {
         h("h2", "Review & start"),
         h("table.kv", h("tbody",
           h("tr", h("th", "Run"), h("td", run.name)), h("tr", h("th", "Date"), h("td", su.exerciseDate)), h("tr", h("th", "Change ID"), h("td", su.changeId || "—")),
+          approverNames().length ? h("tr", h("th", "Approvers"), h("td", approverNames().join(", "))) : null,
           h("tr", h("th", "Participants"), h("td", (su.participants || []).filter((p) => p.name).map((p) => `${p.name}${p.chair ? " (" + p.chair + ")" : ""}`).join(", "))),
           directional ? h("tr", h("th", "Direction"), h("td", h("b", M().directionLabel(proc, su)))) : null,
           env.enabled ? h("tr", h("th", "Verified"), h("td", su.verification ? `${su.verification.by} at ${fmtTime(su.verification.at)}` : "—")) : null,

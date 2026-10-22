@@ -129,7 +129,8 @@ PR.model = (() => {
   function approversFor(p, run) {
     const c = approvalsCfg(p);
     const fromChairs = ((run && run.setup && run.setup.participants) || []).filter((x) => x.name && c.chairs.includes(x.chair)).map((x) => x.name.trim());
-    return [...new Set([...c.approvers.map((n) => n.trim()), ...fromChairs])].filter(Boolean);
+    const forRun = ((run && run.setup && run.setup.approvers) || []).map((n) => String(n).trim());
+    return [...new Set([...c.approvers.map((n) => n.trim()), ...fromChairs, ...forRun])].filter(Boolean);
   }
   const needsApproval = (step) => (step.blocks || []).some((b) => APPROVAL_TYPES.includes(b.type));
   const sameName = (a, b) => String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
@@ -139,8 +140,9 @@ PR.model = (() => {
     const c = approvalsCfg(p);
     const list = req.to && req.to.length ? req.to : approversFor(p, run);
     if (list.length && !list.some((n) => sameName(n, me))) return false;
-    if (c.enforced && !list.length) return false;
-    if (sameName(me, req.requestedBy) && !run.practice && (c.enforced || !c.selfApprove)) return false;
+    if (c.enforced && !list.length && !run.practice) return false; // nobody assigned yet — assign an approver first
+    // Never your own request when approvals are enforced; otherwise only if allowed, or if nobody else is assigned
+    if (sameName(me, req.requestedBy) && !run.practice && (c.enforced || (!c.selfApprove && list.length))) return false;
     return true;
   }
   function pendingApprovals(run) {

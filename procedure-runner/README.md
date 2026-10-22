@@ -98,6 +98,7 @@ Use the **Console** component, or set a Command's *Show as* to **Console window*
 - **Who approves**: ⚙ Settings → ✍ Approvals. Name approvers, and/or tick run chairs whose people approve; by default that's the **Approver** chair the manager picks at run setup.
 - **Automatic requests**: when a step with a **Sign-off** or **Go / No-Go** starts, the approvers are asked automatically.
 - **Notifications**: approvers get a desktop notification and a **✍ approvals** badge in the top bar, wherever Procedure Runner is open. They approve, reject, or give GO / NO-GO from their own screen. The operator sees *Waiting for …* with a running timer, **🔔 Remind**, and **Copy for Teams / email**.
+- **Approver at setup**: if a procedure has any sign-off or Go / No-Go steps, run setup asks *Approver(s) for this run* and won't start until one is named. Practice runs can leave it empty and approve their own steps. During a run, ⋯ → *Approvers…* (or **Assign approver…** on a waiting step) changes who approves, and waiting requests move to the new approver.
 - **Ad-hoc approvals**: press `A`, or ⋯ → *Require approval for this step*, to add an approval layer to any step. That step then waits for an approver.
 - **Required, can't be bypassed** (on for the failover template):
   - a run can't start without an approver;
