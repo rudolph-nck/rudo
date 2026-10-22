@@ -32,7 +32,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, unquote
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-VERSION = "3.6"  # keep in sync with BUILD in index.html
+VERSION = "3.7"  # keep in sync with BUILD in index.html
 MAX_BODY = 60 * 1024 * 1024
 ID_RE = re.compile(r"^[A-Za-z0-9_.\-]{1,120}$")
 
@@ -167,6 +167,9 @@ def run_summary(r):
         "outcome": (r.get("completion") or {}).get("outcome") or "",
         "openIssues": sum(1 for i in issues if i.get("status") != "resolved"), "issues": len(r.get("issues") or {}),
         "done": pg.get("done", 0), "total": pg.get("total", 0),
+        "approvals": [{"id": a.get("id"), "kind": a.get("kind"), "title": a.get("title"), "stepId": a.get("stepId"), "to": a.get("to") or [],
+                       "requestedBy": a.get("requestedBy"), "requestedAt": a.get("requestedAt"), "pingAt": a.get("pingAt")}
+                      for a in (r.get("approvals") or {}).values() if isinstance(a, dict) and a.get("status") == "pending"],
     }
 
 

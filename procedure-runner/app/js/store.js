@@ -48,6 +48,7 @@ PR.store = (() => {
       direction: r.setup ? r.setup.primarySiteId : null, directionLabel: r.directionLabel || "", changeId: r.setup ? r.setup.changeId : "", outcome: r.completion ? r.completion.outcome : "",
       openIssues: Object.values(r.issues || {}).filter((i) => i.status !== "resolved").length,
       issues: Object.keys(r.issues || {}).length, done, total,
+      approvals: Object.values(r.approvals || {}).filter((x) => x.status === "pending").map((x) => ({ id: x.id, kind: x.kind, title: x.title, stepId: x.stepId, to: x.to || [], requestedBy: x.requestedBy, requestedAt: x.requestedAt, pingAt: x.pingAt || null })),
     };
   }
   function procSummary(p) {

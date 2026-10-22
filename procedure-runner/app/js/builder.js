@@ -711,7 +711,7 @@ PR.views.builder = (() => {
     const draft = clone(proc);
     let cur = tab;
     const body = h("div.settings");
-    const tabs = [["general", "General"], ["env", "Environments"], ["setup", "Run setup"], ["chairs", "👥 Chairs"], ["comms", "📣 Comms plan"], ["contacts", "Contacts"], ["versions", "Versions"]];
+    const tabs = [["general", "General"], ["env", "Environments"], ["setup", "Run setup"], ["chairs", "👥 Chairs"], ["approvals", "✍ Approvals"], ["comms", "📣 Comms plan"], ["contacts", "Contacts"], ["versions", "Versions"]];
     const draw = () => {
       body.innerHTML = "";
       body.append(h("div.tabs", tabs.map(([k, l]) => h(`button.tab${cur === k ? ".on" : ""}`, { type: "button", onclick: () => { cur = k; draw(); } }, l))), h("div.settings-body", SETTINGS[cur](draft, draw)));
@@ -777,6 +777,21 @@ PR.views.builder = (() => {
           d.tracks.length > 1 ? h("button.icon-btn.danger", { type: "button", title: "Remove", onclick: () => { d.tracks.splice(i, 1); draw(); } }, "🗑") : null)),
         d.tracks.length ? h("button.btn", { type: "button", onclick: () => { d.tracks.push({ id: uid("chair"), name: `${d.tracks.length + 1}${["st", "nd", "rd"][d.tracks.length] || "th"} chair`, desc: "" }); draw(); } }, "＋ Add chair") : null,
         d.tracks.length ? h("div.help", "Assign a whole section to a chair (select the section) or individual steps (step inspector → Chair). Steps with no chair are shared and appear for everyone.") : null);
+    },
+    approvals: (d, draw) => {
+      const a = d.approvals = M().approvalsCfg(d);
+      const nApp = M().allSteps(d).filter(({ step }) => M().needsApproval(step)).length;
+      return h("div",
+        h("div.help", `Sign-off and Go / No-Go components (${nApp} step${nApp === 1 ? "" : "s"} in this procedure) ask the approvers as soon as their step starts. Approvers get a notification wherever Procedure Runner is open and approve from their own screen. Operators can also add an approval to any step during a run (A).`),
+        h("label.ck.big", h("input", { type: "checkbox", checked: a.enforced, onchange: (e) => { a.enforced = e.target.checked; draw(); } }), " ", h("b", "Approvals are required and can't be bypassed")),
+        h("div.help", a.enforced
+          ? "Only an approver can sign or decide, as themselves, and never on a request they made. Steps waiting on approval can't be completed anyway or skipped, and the run can't be closed out until an approver approves the close-out. A run can't start without an approver."
+          : "Anyone can sign in the component, operators can record a verbal approval, and steps can be completed without approval (recorded in the log)."),
+        field("Approvers by name (one per line)", h("textarea.inp", { rows: 4, placeholder: "e.g. Pat Manager", oninput: (e) => (a.approvers = e.target.value.split("\n").map((x) => x.trim()).filter(Boolean)) }, a.approvers.join("\n")), "Optional. Must match the names people use in Procedure Runner (👤 in the top bar)."),
+        h("div.field", h("label.lbl", "…and anyone in these run chairs / roles"),
+          h("div.chk-wrap", d.setup.chairs.map((c) => h("label.ck", h("input", { type: "checkbox", checked: a.chairs.includes(c), onchange: (e) => { a.chairs = e.target.checked ? [...a.chairs, c] : a.chairs.filter((x) => x !== c); } }), " ", c))),
+          h("div.help", "Chairs are picked for each participant at run setup — e.g. the manager joins the run in the “Approver” chair.")),
+        a.enforced ? null : h("label.ck", h("input", { type: "checkbox", checked: a.selfApprove, onchange: (e) => (a.selfApprove = e.target.checked) }), " Allow people to approve their own requests"));
     },
     comms: (d) => { const ph = h("div.muted", "Loading…"); PR.comms.planEditor(d).then((n) => ph.replaceWith(n)); return ph; },
     contacts: (d, draw) => h("div",

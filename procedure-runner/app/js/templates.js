@@ -109,6 +109,8 @@ PR.templates = (() => {
     // Concurrent chairs: 1st chair runs the core failover, 2nd chair handles vendors, notifications and other teams.
     p.tracks = [{ id: "chair1", name: "1st chair", desc: "Core failover" }, { id: "chair2", name: "2nd chair", desc: "Vendors, notifications & other teams" }];
     p.sections.forEach((sec) => { sec.track = /notification/i.test(sec.title) ? "chair2" : "chair1"; });
+    // Go / No-Go and sign-offs must come from a manager in the Approver chair — no bypass.
+    p.approvals = { enforced: true, approvers: [], chairs: ["Approver"], selfApprove: false };
     const find = (re) => allSt.find((x) => re.test(x.title));
     const dns = find(/Network to change primary DNS/i), dnsCheck = find(/Validate DNS response/i), vendors = find(/Inform vendors the host is available/i);
     if (dns) dns.track = "chair2";

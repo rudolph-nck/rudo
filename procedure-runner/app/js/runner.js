@@ -67,7 +67,10 @@ PR.runner = (() => {
     chairView = hasTracks() ? PR.app.LS.get(`chair_${run.id}`, "") || "" : "";
     if (hasTracks() && chairView && !myStepsInOrder().some((x) => x.step.id === focusId)) focusId = firstOpen();
     render();
-    if (hasTracks() && PR.app.LS.get(`chair_${run.id}`, null) === null) setTimeout(() => chooseChair(), 50);
+    if (hasTracks() && PR.app.LS.get(`chair_${run.id}`, null) === null) {
+      if (amApprover() && !(run.setup.participants || []).some((p) => M().sameName(p.name, me()) && p.track)) { PR.app.LS.set(`chair_${run.id}`, ""); chairView = ""; } // approvers oversee every chair
+      else setTimeout(() => chooseChair(), 50);
+    }
     if (PR.store.kind === "server") pollT = setInterval(poll, 2500);
     loadHistory();
     if (run.status === "active" && "Notification" in window && Notification.permission === "default") try { Notification.requestPermission(); } catch { /* ignore */ }
@@ -243,11 +246,30 @@ PR.runner = (() => {
     // Countdowns set to start with the step begin now (only if this click actually started it)
     const vals = st(id).values || {};
     const autoT = st(id).startedAt === t0 ? (f.step.blocks || []).filter((b) => b.type === "timer" && b.autoStart !== false && !vals[b.id]) : [];
+    const apOps = st(id).startedAt === t0 ? autoRequestOps(f.step) : [];
+    if (apOps.length) commit(apOps, { render: false, event: { type: "approval-request", stepId: id, text: `Approval requested — ${apOps.map((o) => o.value.title).join("; ")} → ${whoLabel(apOps[0].value.to)}` } });
     if (autoT.length) commit(autoT.map((b) => ({ op: "set", path: ["steps", id, "values", b.id], value: { startedAt: t0, by: me(), auto: true } })), { render: false, event: { type: "timer", stepId: id, text: `Countdown started: ${autoT.map((b) => `${b.label} (${b.minutes} min)`).join(", ")}` } });
     announceImpact(impBefore);
     if (!quiet) { focusId = id; saveUi(); }
     render();
     if (!quiet) { scrollToFocus(); if (opts.guide) setTimeout(() => guideNext(id, { fromStart: true }), 30); }
+  }
+
+  /* Open approvals on a step. Enforced procedures: hard stop. Otherwise the operator may go ahead (recorded). */
+  async function approvalStepGate(step) {
+    const enf = acfg().enforced;
+    const adhoc = reqList().filter((r) => r.stepId === step.id && r.kind === "adhoc" && ["pending", "rejected"].includes(r.status));
+    const vals = st(step.id).values || {};
+    const blocks = enf ? (step.blocks || []).filter((b) => M().APPROVAL_TYPES.includes(b.type) && !PR.blocks.def(b.type).complete(b, vals[b.id])) : [];
+    if (!adhoc.length && !blocks.length) return true;
+    if (enf) {
+      $$(`[data-fc="${step.id}"] .ap-panel`).forEach((n) => { n.classList.remove("flash"); void n.offsetWidth; n.classList.add("flash"); });
+      toast(`Step ${step.num} needs approval from ${whoLabel(approverNames())}. This procedure doesn't allow approvals to be bypassed.`, "err", 5000);
+      return false;
+    }
+    if (!(await confirmBox("Approval not given", `Step ${step.num} is waiting on approval (${adhoc.map((r) => r.title).join("; ")}). Complete it without approval? This is recorded.`, { ok: "Complete without approval", kind: "danger" }))) return false;
+    commit(adhoc.map((r) => ({ op: "merge", path: ["approvals", r.id], value: { status: "cancelled", cancelledBy: me(), cancelledAt: now(), bypassed: true } })), { render: false, event: { type: "override", stepId: step.id, text: `Step ${step.num} completed without approval (${adhoc.map((r) => r.title).join("; ")})` } });
+    return true;
   }
 
   /* Timers that are still running (or required and never started) when a step is being finished.
@@ -283,6 +305,7 @@ PR.runner = (() => {
     const f = M().findStep(proc, id); if (!f) return;
     if (run.status === "paused") { toast("Run is halted — resume it first", "warn"); return; }
     if (!(await timerGate(f.step))) return;
+    if (!(await approvalStepGate(f.step))) return;
     const s = st(id);
     const missing = missingFor(f.step);
     let incomplete = null;
@@ -314,6 +337,7 @@ PR.runner = (() => {
   }
   async function skipStep(id, kind = "skipped") {
     const f = M().findStep(proc, id);
+    if (acfg().enforced && M().needsApproval(f.step) && applicable(f.step)) return toast(`Step ${f.step.num} has an approval or Go / No-Go and can't be skipped in this procedure`, "err", 4500);
     const reason = await promptBox(kind === "na" ? `Mark step ${f.step.num} not applicable` : `Skip step ${f.step.num}`, { label: "Reason (recorded in the run report)", ok: kind === "na" ? "Mark N/A" : "Skip", required: true });
     if (reason == null) return;
     const next = nextOpenAfter(id);
@@ -367,7 +391,8 @@ PR.runner = (() => {
         blk.querySelector(".tm-start, .drop-zone, .seg-btn:not(:disabled), .btn:not(:disabled)");
       const all = [...blk.querySelectorAll("input[type=checkbox]:not(:checked):not(:disabled), input:not([type=checkbox]):not(:disabled), select:not(:disabled), textarea:not(:disabled), .tm-start, .drop-zone, .seg-btn:not(:disabled), .btn:not(:disabled)")]
         .filter((x) => !passed.keys.has(ctlKey(x)) && !(x.matches("input:not([type=checkbox]), select, textarea") && (String(x.value || "").trim() || x.classList.contains("ok"))));
-      const pick = ctl && !passed.keys.has(ctlKey(ctl)) ? ctl : all[0];
+      const ok = (x) => x && !x.closest(".ap-acts") && !passed.keys.has(ctlKey(x));
+      const pick = ok(ctl) ? ctl : all.find(ok);
       if (pick) out.push(pick);
     });
     return out;
@@ -413,6 +438,118 @@ PR.runner = (() => {
       { event: { type: "nogo", stepId: step.id, text: `NO-GO at ${step.num} by ${val.maker} — run halted` } });
   }
 
+  /* ======================= approvals =======================
+     Approval / Go-No-Go components ask the approvers (named in settings, or people in the Approver chair) when their step
+     starts. Approvers see the request in their runner and get a desktop notification wherever Procedure Runner is open.
+     Operators can add an ad-hoc approval to any step (A). In an enforced procedure only an approver — not the person who
+     asked — can decide, and nothing (Complete anyway, Skip, close-out) gets past an open approval. */
+  const acfg = () => M().approvalsCfg(proc);
+  const reqList = () => Object.values(run.approvals || {});
+  const latestReq = (stepId, blockId) => reqList().filter((r) => (r.stepId || null) === (stepId || null) && (r.blockId || null) === (blockId || null) && r.status !== "cancelled").sort((a, b) => b.requestedAt - a.requestedAt)[0] || null;
+  const approverNames = () => M().approversFor(proc, run);
+  const whoLabel = (to) => (to && to.length ? to.join(", ") : "any approver");
+  const amApprover = () => approverNames().some((n) => M().sameName(n, me()));
+  const blockTitle = (b) => (b.type === "decision" ? `Go / No-Go: ${M().interpolate(b.question || "", ctx(), false)}` : `Sign-off: ${b.label || "Approval"}`);
+  function newRequest({ step = null, block = null, kind, title, note = "" }) {
+    const id = uid("ap");
+    return { op: "set", path: ["approvals", id], value: { id, kind, stepId: step ? step.id : null, blockId: block ? block.id : null, title, note, to: approverNames(), requestedBy: me(), requestedAt: now(), status: "pending" } };
+  }
+  function autoRequestOps(step) {
+    const vals = st(step.id).values || {};
+    return (step.blocks || []).filter((b) => M().APPROVAL_TYPES.includes(b.type) && !vals[b.id] && !["pending", "approved"].includes((latestReq(step.id, b.id) || {}).status))
+      .map((b) => newRequest({ step, block: b, kind: b.type, title: `Step ${step.num} · ${blockTitle(b)}` }));
+  }
+  function requestApproval(step, b, note = "", kind) {
+    const op = newRequest({ step, block: b, kind: kind || (b ? b.type : "adhoc"), title: step ? `Step ${step.num} · ${b ? blockTitle(b) : step.title}` : `Close out: ${run.name || proc.title}`, note });
+    commit([op], { event: { type: "approval-request", stepId: step ? step.id : null, text: `Approval requested — ${op.value.title} → ${whoLabel(op.value.to)}${note ? " · " + note : ""}` } });
+    toast(`Approval requested from ${whoLabel(op.value.to)}`, "ok");
+    return op.value;
+  }
+  async function addAdhocApproval(id) {
+    const f = M().findStep(proc, id); if (!f) return;
+    const note = await promptBox(`Require approval for step ${f.step.num}`, { label: `What should ${whoLabel(approverNames())} approve? (optional)`, placeholder: "e.g. OK to restart services during business hours", ok: "Request approval" });
+    if (note == null) return;
+    requestApproval(f.step, null, note.trim());
+  }
+  function pingRequest(req) {
+    commit([{ op: "merge", path: ["approvals", req.id], value: { pingAt: now() } }], { event: { type: "approval-ping", stepId: req.stepId, text: `Reminder sent — ${req.title}` } });
+    toast("Reminder sent — approvers get a notification in Procedure Runner", "ok");
+  }
+  const shareText = (req) => `Approval needed: ${req.title}\nProcedure: ${proc.title}${run.setup.changeId ? " · " + run.setup.changeId : ""}\nRequested by ${req.requestedBy} at ${fmtTime(req.requestedAt)}${req.note ? "\nNote: " + req.note : ""}\nOpen: ${location.href.split("#")[0]}#/run/${run.id}`;
+  function decideRequest(req, ok, comment = "", { verbalBy } = {}) {
+    const t = now(); const by = verbalBy || me();
+    const ops = [{ op: "merge", path: ["approvals", req.id], ifStatus: ["pending"], value: { status: ok ? "approved" : "rejected", decidedBy: by, decidedAt: t, comment, ...(verbalBy ? { verbal: true, recordedBy: me() } : {}) } }];
+    const fb = req.blockId ? M().findBlock(proc, req.blockId) : null;
+    let dec = null;
+    if (fb && fb.block.type === "approval" && ok) ops.push({ op: "set", path: ["steps", req.stepId, "values", req.blockId], value: { approver: by, comment, at: t, by: me(), requestId: req.id } });
+    if (fb && fb.block.type === "decision") { dec = { decision: ok ? "go" : "nogo", maker: by, rationale: comment, at: t, by: me(), requestId: req.id }; ops.push({ op: "set", path: ["steps", req.stepId, "values", req.blockId], value: dec }); }
+    commit(ops, { event: { type: ok ? "approved" : "rejected", stepId: req.stepId, text: `${req.title} — ${req.kind === "decision" ? (ok ? "GO" : "NO-GO") : ok ? "approved" : "rejected"} by ${by}${verbalBy ? ` (verbal, recorded by ${me()})` : ""}${comment ? " — " + comment : ""}` } });
+    if (dec) onDecision(fb.step, fb.block, dec); else toast(ok ? "Approved" : "Rejected", ok ? "ok" : "warn");
+  }
+  // An approver signing inside the component itself also answers the open request
+  function resolveFromBlock(step, b, v) {
+    const req = latestReq(step.id, b.id);
+    if (!req || req.status !== "pending" || !v) return;
+    const ok = b.type === "decision" ? v.decision === "go" : !!v.at;
+    commit([{ op: "merge", path: ["approvals", req.id], ifStatus: ["pending"], value: { status: ok ? "approved" : "rejected", decidedBy: v.maker || v.approver || me(), decidedAt: v.at || now(), comment: v.rationale || v.comment || "" } }], { render: false });
+  }
+  async function verbalApproval(req) {
+    const who = await promptBox("Record a verbal approval", { label: "Who approved? (recorded as verbal, with your name)", placeholder: "Name", ok: "Record approval", required: true });
+    if (who) decideRequest(req, true, "Verbal approval", { verbalBy: who.trim() });
+  }
+  function decideControls(req) {
+    let c;
+    const isDec = req.kind === "decision";
+    return h("div.ap-decide",
+      c = h("input.inp", { placeholder: isDec ? "Rationale / evidence" : "Comment (optional)" }),
+      h("button.btn.btn-sm.btn-success", { type: "button", onclick: () => decideRequest(req, true, c.value.trim()) }, isDec ? "✓ GO" : "✓ Approve"),
+      h("button.btn.btn-sm.btn-danger", { type: "button", onclick: async () => {
+        if (isDec && !(await confirmBox("Record NO-GO?", "The run will halt (or move to the rollback section).", { ok: "NO-GO", kind: "danger" }))) return;
+        decideRequest(req, false, c.value.trim()); } }, isDec ? "✕ NO-GO" : "✕ Reject"));
+  }
+  function approvalPanel(step, b, req) {
+    const live = run.status === "active" || run.status === "paused";
+    const enf = acfg().enforced;
+    if (!req) return h("div.ap-panel.ap-idle", "✍ Needs approval from ", h("b", whoLabel(approverNames())),
+      statusOf(step) === "pending" ? " — requested automatically when the step starts." : ". ",
+      live && statusOf(step) === "active" ? h("span.ap-acts", h("button.btn.btn-sm", { type: "button", onclick: () => requestApproval(step, b) }, "Request approval")) : null);
+    if (req.status === "rejected") return h("div.ap-panel.ap-rejected", h("div", req.kind === "decision" ? "✕ NO-GO from " : "✕ Rejected by ", h("b", req.decidedBy), ` at ${fmtTime(req.decidedAt)}`, req.comment ? ` — ${req.comment}` : ""),
+      live ? h("div.ap-acts", h("button.btn.btn-sm", { type: "button", onclick: () => requestApproval(step, b, "Asking again", req.kind) }, "Request again")) : null);
+    if (req.status === "approved") return h("div.ap-panel.ap-ok", req.kind === "decision" ? "✓ GO from " : "✓ Approved by ", h("b", req.decidedBy), ` at ${fmtTime(req.decidedAt)}`,
+      req.verbal ? ` (verbal, recorded by ${req.recordedBy})` : "", req.comment ? ` — ${req.comment}` : "");
+    const can = M().canApprove(proc, run, req, me());
+    return h("div.ap-panel.ap-wait",
+      h("div", "⏳ Waiting for ", h("b", whoLabel(req.to)), h("span.muted.small", ` · asked ${fmtTime(req.requestedAt)} by ${req.requestedBy} · `, h("span", { dataset: { since: String(req.requestedAt) } }, fmtDur(now() - req.requestedAt)))),
+      req.note ? h("div.small.ap-note", "“", req.note, "”") : null,
+      can ? decideControls(req) : live ? h("div.ap-acts",
+        h("button.btn.btn-sm", { type: "button", onclick: () => pingRequest(req) }, "🔔 Remind"),
+        h("button.btn.btn-sm.btn-ghost", { type: "button", onclick: () => { PR.u.copyText(shareText(req)); toast("Copied — paste it into Teams or an email", "ok"); } }, "Copy for Teams / email"),
+        !enf ? h("button.btn.btn-sm.btn-ghost", { type: "button", onclick: () => verbalApproval(req) }, "Record verbal approval…") : null,
+        req.kind === "adhoc" && (!enf || M().sameName(req.requestedBy, me())) ? h("button.mini-btn", { type: "button", onclick: () => commit([{ op: "merge", path: ["approvals", req.id], value: { status: "cancelled", cancelledBy: me(), cancelledAt: now() } }], { event: { type: "approval-cancel", stepId: req.stepId, text: `Approval request withdrawn — ${req.title}` } }) }, "Withdraw") : null) : null);
+  }
+  /* Used by Approval / Go-No-Go components to decide whether this person may sign, or should see the waiting panel. */
+  function approvalGate(step, b) {
+    const c = acfg(); const req = latestReq(step.id, b.id);
+    if (!c.enforced && !(req && req.status === "pending")) return null;
+    const isApprover = !!run.practice || amApprover();
+    const canDecide = req && req.status === "pending" ? M().canApprove(proc, run, req, me())
+      : c.enforced ? isApprover && (!!run.practice || !M().sameName(me(), st(step.id).startedBy)) : true;
+    return { enforced: c.enforced, isApprover, canDecide, panel: approvalPanel(step, b, req) };
+  }
+  function approvalInbox() {
+    const pend = M().pendingApprovals(run);
+    if (!pend.length) return null;
+    const mine = pend.filter((r) => M().canApprove(proc, run, r, me()));
+    const others = pend.filter((r) => !mine.includes(r));
+    return h(`div.ap-inbox${mine.length ? ".mine" : ""}`,
+      mine.length ? [h("div.ap-inbox-h", `✍ ${mine.length} approval${mine.length > 1 ? "s" : ""} waiting for you`),
+        mine.map((r) => h("div.ap-item",
+          h("div.ap-item-t", h("b", r.title), h("span.muted.small", ` · asked by ${r.requestedBy} at ${fmtTime(r.requestedAt)} · waiting `, h("span", { dataset: { since: String(r.requestedAt) } }, fmtDur(now() - r.requestedAt)))),
+          r.note ? h("div.small.ap-note", "“", r.note, "”") : null,
+          h("div.ap-item-a", r.stepId ? h("button.btn.btn-sm.btn-ghost", { type: "button", onclick: () => { filter = "all"; setFocus(r.stepId); } }, "Open step") : null, decideControls(r))))] : null,
+      others.length ? h("div.ap-inbox-h.wait", "⏳ Waiting on approval: ", others.map((r) => h("span.ap-chip", { onclick: () => r.stepId && setFocus(r.stepId) }, r.title.replace(/^Step /, ""), h("span.muted", ` — ${whoLabel(r.to)}`)))) : null);
+  }
+
   /* ======================= render ======================= */
   function render() {
     const root = $("#run"); if (!root) return;
@@ -422,7 +559,7 @@ PR.runner = (() => {
     render.lastMode = mode;
     root.innerHTML = "";
     if (commsCfg) { const d = commsDue(); if (lastDue != null && d > lastDue && PR.comms.isCommunicator(commsCfg)) dueToast(d); lastDue = d; }
-    root.append(bar(), banner(), impactStrip(), h("div.run-main", leftNav(), h("div.run-center#runCenter", mode === "lanes" ? lanes() : list()), rightPanel()), datalists());
+    root.append(bar(), banner(), approvalInbox(), impactStrip(), h("div.run-main", leftNav(), h("div.run-center#runCenter", mode === "lanes" ? lanes() : list()), rightPanel()), datalists());
     if (top != null) $("#runCenter").scrollTop = top;
   }
   function commsDue() { return commsCfg ? PR.comms.dueCount(run, commsCfg) : 0; }
@@ -640,7 +777,8 @@ PR.runner = (() => {
     let noteInp;
     const r = (b) => ({
       value: vals[b.id], ctx: c, me: me(), people: people(), readonly: !live || ["done", "skipped", "na"].includes(status),
-      set: (v, o = {}) => setValue(step.id, b.id, v, o.render !== false),
+      set: (v, o = {}) => { const ap = M().APPROVAL_TYPES.includes(b.type); setValue(step.id, b.id, v, o.render !== false && !ap); if (ap) { resolveFromBlock(step, b, v); if (o.render !== false) render(); } },
+      approvalGate: (blk) => approvalGate(step, blk),
       patch: (d, o = {}) => patchValue(step.id, b.id, d, o.render !== false),
       onDecision: (blk, v) => onDecision(step, blk, v),
       finishTimer: (blk) => timerGate(step, blk),
@@ -669,6 +807,7 @@ PR.runner = (() => {
         return h("div.banner.b-info.sm.waiting", "⏳ Waiting on ", h("b", t ? t.name : "another step"), ` · step ${w.step.num} ${w.step.title}`, ws.status === "active" ? h("span", " — in progress, ", h("span", { dataset: { since: String(ws.startedAt) } }, fmtDur(now() - ws.startedAt))) : " — not started yet"); })(),
       s.timing === "unavailable" && status === "done" ? h("div.banner.b-warn.sm", "Timing unreliable — no start time was captured. ", h("button.mini-btn", { type: "button", onclick: () => editTimes(step.id) }, "Add start time")) : null,
       priorFor(step.id).map((p) => priorLessonBanner(p)),
+      reqList().filter((r) => r.stepId === step.id && r.kind === "adhoc" && r.status !== "cancelled").map((r) => approvalPanel(step, null, r)),
       h("div.fc-blocks", step.blocks.map((b) => { const d = PR.blocks.def(b.type); return d ? h("div.fc-blk", { dataset: { bid: b.id } }, d.run(b, r(b))) : null; })),
       issues.length || notes.length ? h("div.fc-extra",
         issues.map((i) => h(`div.mini-issue.${i.status === "resolved" ? "res" : "open"}`, { onclick: () => issueModal(i) }, i.status === "resolved" ? "✓ " : "⚠ ", h("b", i.title || "Issue"), ` · ${fmtTime(i.at)} · ${i.by}`)),
@@ -681,6 +820,7 @@ PR.runner = (() => {
         h("div.spacer"),
         h("button.icon-btn", { type: "button", title: "More", onclick: (e) => menu(e.currentTarget, [
           { icon: "🕘", label: "Edit times / executed by", onClick: () => editTimes(step.id) },
+          { icon: "✍", label: "Require approval for this step…", hint: "A", disabled: !live || ["done", "skipped", "na"].includes(status), onClick: () => addAdhocApproval(step.id) },
           { icon: "∅", label: "Mark not applicable", disabled: !live, onClick: () => skipStep(step.id, "na") },
           { icon: "↺", label: "Reopen", disabled: !live || status === "pending" || status === "active", onClick: () => reopenStep(step.id) }], { align: "right" }) }, "⋯")),
       live && (status === "pending" || status === "active") ? h("div.kb-hint",
@@ -972,6 +1112,7 @@ PR.runner = (() => {
       const warn = [];
       if (proc.setup.requireChangeId && !su.changeId) warn.push(["info", "Change / exercise ID is required"]);
       if (!(su.participants || []).some((p) => p.name)) warn.push(["info", "Add at least one participant"]);
+      if (acfg().enforced && !run.practice && !approverNames().length) warn.push(["info", `This procedure requires an approver — add a participant in the ${(acfg().chairs[0] || "Approver")} chair, or name approvers in the procedure settings`]);
       if (directional && !(su.primarySiteId && su.directionChosen)) warn.push(["dir", "Choose the failover direction"]);
       if (env.enabled && proc.setup.requireVerification && !su.verification) warn.push(["verify", "Environment mapping has not been verified"]);
       if (su.verification && su.verification.primarySiteId && su.verification.primarySiteId !== su.primarySiteId) warn.push(["verify", "Direction changed after verification — verify again"]);
@@ -1020,6 +1161,23 @@ PR.runner = (() => {
       Object.values(run.issues || {}).forEach((i) => { const id = uid("ls"); lessons[id] = { id, kind: "wrong", text: i.title + (i.resolution ? ` — resolved: ${i.resolution}` : ""), stepId: i.stepId, owner: "", verifyNext: false, status: "open", from: "issue" }; });
     }
     let markRest = remaining.length > 0;
+    // Enforced procedures: an approver signs off the close-out before the run can be completed
+    const enf = acfg().enforced;
+    const closeReq = () => latestReq(null, null);
+    const closeBox = h("div.ap-close#closeGate");
+    const drawClose = () => {
+      if (!enf) return;
+      const r = closeReq();
+      closeBox.innerHTML = "";
+      closeBox.append(h("div.ins-sec", "Close-out approval"),
+        !r || r.status === "rejected" ? h("div.ap-panel.ap-idle",
+          r ? h("div", "✕ Rejected by ", h("b", r.decidedBy), r.comment ? ` — ${r.comment}` : "") : h("div", "This procedure needs ", h("b", whoLabel(approverNames())), " to approve the close-out."),
+          h("div.ap-acts", h("button.btn.btn-sm.btn-primary", { type: "button", onclick: () => { requestApproval(null, null, `Outcome: ${comp.outcome} · ${progressOf().done}/${progressOf().total} steps done${remaining.length ? ` · ${remaining.length} not finished` : ""}${openIss.length ? ` · ${openIss.length} open issue(s)` : ""}`, "closeout"); drawClose(); } }, "Request close-out approval")))
+          : approvalPanel(null, null, r));
+      if (r && r.status === "approved") { comp.authorizedBy = r.decidedBy; const a = $("#authBy"); if (a) { a.value = r.decidedBy; a.disabled = true; } }
+    };
+    drawClose();
+    const closeT = enf ? setInterval(drawClose, 2500) : null;
     const stepOpts = () => [h("option", { value: "" }, "— general —"), ...stepsInOrder().map(({ step }) => h("option", { value: step.id }, `${step.num} ${step.title}`.slice(0, 50)))];
     const lessonBox = h("div");
     const drawLessons = () => {
@@ -1045,6 +1203,7 @@ PR.runner = (() => {
             tp.signoff ? h("span.done-pill", `✓ ${tp.signoff.by} · ${fmtTime(tp.signoff.at, false)}`) : h("span.chip.c-amber", "Not signed off")); }),
           unsigned.length ? h("div.tg-override", h("label.ck", h("input", { type: "checkbox", onchange: (e) => (override = e.target.checked) }), " Close without every chair's sign-off (emergency)"),
             h("input.inp", { placeholder: "Reason (required, recorded in the report)", oninput: (e) => (overrideWhy = e.target.value) })) : null) : null,
+        enf ? closeBox : null,
         h("div.fin-stats", stat("Elapsed", run.startedAt ? fmtDur(now() - run.startedAt) : "—"), stat("Steps finished", `${pg.done}/${pg.total}`), stat("Open issues", String(openIss.length)), stat("Timing unreliable", String(unreliable))),
         remaining.length ? h("div.banner.b-warn.sm", `${remaining.length} step(s) not finished (${remaining.slice(0, 8).map((x) => x.step.num).join(", ")}${remaining.length > 8 ? "…" : ""}). `,
           h("label.ck", h("input", { type: "checkbox", checked: markRest, onchange: (e) => (markRest = e.target.checked) }), " mark them skipped (“not performed at close-out”)")) : null,
@@ -1058,8 +1217,10 @@ PR.runner = (() => {
         h("div.ls-grid", lessonBox), priorBox),
       actions: [{ spacer: true }, { label: "Save draft", value: "draft" }, { label: "Complete run", kind: "primary", onClick: () => {
         if (unsigned.length && !(override && overrideWhy.trim())) { toast(`Waiting on sign-off: ${unsigned.map((t) => t.name).join(", ")}`, "warn", 4000); const o = $("#trackGate"); o && o.scrollIntoView({ block: "center" }); return false; }
+        if (enf && !run.practice && (closeReq() || {}).status !== "approved") { toast(`Close-out needs approval from ${whoLabel(approverNames())} — this procedure doesn't allow it to be bypassed`, "err", 5000); closeBox.scrollIntoView({ block: "center" }); return false; }
         if (!comp.authorizedBy.trim()) { const a = $("#authBy"); a.classList.add("err"); a.focus(); toast("Who authorized completion?", "warn"); return false; } }, value: "done" }],
     });
+    clearInterval(closeT);
     if (!v) return;
     const ops = [{ op: "set", path: ["completion"], value: comp }, { op: "set", path: ["lessons"], value: Object.fromEntries(Object.entries(lessons).filter(([, l]) => l.text && l.text.trim())) }];
     if (v === "done") {
@@ -1112,6 +1273,7 @@ PR.runner = (() => {
       case "s": case "S": e.preventDefault(); if (focusId && ["pending", "active"].includes(statusOf(M().findStep(proc, focusId).step))) skipStep(focusId); break;
       case "t": case "T": e.preventDefault(); { const b = $(`.fcard[data-fc="${focusId}"] .tm-start`); if (b) b.click(); else { const f = M().findStep(proc, focusId); f && f.step.blocks.some((x) => x.type === "timer") && timerGate(f.step, f.step.blocks.find((x) => x.type === "timer")); } } break;
       case "c": case "C": e.preventDefault(); commsModal(); break;
+      case "a": case "A": e.preventDefault(); if (focusId && ["pending", "active"].includes(statusOf(M().findStep(proc, focusId).step))) addAdhocApproval(focusId); break;
       case "l": case "L": e.preventDefault(); mode = mode === "lanes" ? "list" : "lanes"; PR.app.LS.set("runMode", mode); render(); break;
       case "?": e.preventDefault(); keysHelp(); break;
       case "g": case "G": e.preventDefault(); promptBox("Go to step", { label: "Step number", ok: "Go" }).then((n) => { if (!n) return; const f = stepsInOrder().find((x) => x.step.num === n.trim()); if (f) { filter = "all"; siteFilter = "all"; mode = "list"; setFocus(f.step.id); } else toast("No step " + n, "warn"); }); break;
@@ -1128,7 +1290,7 @@ PR.runner = (() => {
       row(["Tab"], "Next control inside the step"), row(["Esc"], "Leave a field and go back to step keys"),
       row(["↑", "↓"], "Previous / next step (also K / J)"), row(["S"], "Skip the step (asks for a reason)"),
       row(["T"], "Start the step's countdown, or finish it early"), row(["I"], "Log an issue (paste screenshots)"),
-      row(["N"], "Improvement note"), row(["C"], "Communications"), row(["G"], "Go to a step number"), row(["L"], "List / lanes view"), row(["?"], "This list"))),
+      row(["A"], "Require approval for the step (asks the approvers)"), row(["N"], "Improvement note"), row(["C"], "Communications"), row(["G"], "Go to a step number"), row(["L"], "List / lanes view"), row(["?"], "This list"))),
       actions: [{ spacer: true }, { label: "Close", kind: "primary", value: true }] });
   }
   function onCountdownDone(e) {

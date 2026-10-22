@@ -780,3 +780,24 @@ tr.row-added td { background: color-mix(in srgb, var(--green-soft) 60%, transpar
 .blk-timer.tm-running { border-color: var(--vivid, #00b2e3); }
 .blk-timer.tm-early, .blk-timer.tm-skipped { border-color: var(--amber, #f2a900); }
 .tg-timer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 6px 0; }
+
+/* ---------- approvals ---------- */
+.ap-panel { border: 1px solid var(--line); border-left: 4px solid var(--amber-bright); border-radius: 8px; padding: 9px 12px; margin: 6px 0; background: var(--amber-soft); display: grid; gap: 6px; font-size: 13.5px; }
+.ap-panel.ap-ok { border-left-color: var(--green); background: var(--green-soft); }
+.ap-panel.ap-rejected { border-left-color: var(--red); background: var(--red-soft); }
+.ap-panel.ap-idle { border-left-color: var(--vivid); background: var(--panel-2); }
+.ap-panel.flash { animation: pulse 0.6s 3; }
+.ap-acts, .ap-decide { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ap-decide .inp { flex: 1 1 200px; min-width: 160px; }
+.ap-note { color: var(--muted); font-style: italic; }
+.ap-inbox { margin: 8px 16px 0; border: 1px solid var(--line); border-left: 4px solid var(--amber-bright); border-radius: 10px; background: var(--panel); padding: 8px 12px; display: grid; gap: 8px; }
+.ap-inbox.mine { border-left-color: var(--cta); box-shadow: var(--shadow); }
+.ap-inbox-h { font-weight: 800; }
+.ap-inbox-h.wait { font-weight: 600; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ap-item { display: grid; gap: 6px; padding: 8px 0; border-top: 1px solid var(--line); }
+.ap-item-a { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; } .ap-item-a .ap-decide { flex: 1; }
+.ap-chip { display: inline-flex; gap: 4px; align-items: baseline; padding: 2px 8px; border-radius: 999px; background: var(--amber-soft); border: 1px solid var(--line); font-size: 12.5px; cursor: pointer; }
+.ap-badge { font: inherit; font-size: 12.5px; font-weight: 700; color: #1d1d1d; background: var(--amber-bright); border: 0; border-radius: 999px; padding: 4px 10px; margin-right: 6px; cursor: pointer; animation: pulse 1.2s 3; }
+.ap-close { display: grid; gap: 6px; }
+.chk-wrap { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.lv-approvals { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }

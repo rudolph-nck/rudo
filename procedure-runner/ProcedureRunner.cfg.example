@@ -1,0 +1,8 @@
+# Copy to ProcedureRunner.cfg to change how the desktop launcher starts Procedure Runner.
+# PORT  - port on this PC (default 8000)
+# HOST  - 127.0.0.1 = only this PC (default, no firewall prompt); 0.0.0.0 = teammates can connect to this PC
+# DATA  - where procedures, runs and evidence are kept. Relative paths are inside the app folder (default: data).
+#         Point everyone at the same shared folder to work on the same runs, e.g. I:\Core\ProcedureRunner\data
+PORT=8000
+HOST=127.0.0.1
+DATA=data

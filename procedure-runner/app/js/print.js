@@ -76,7 +76,8 @@
             h("tr", h("th", "Version"), h("td", verLabel), h("th", "Status"), h("td", doc.status)),
             h("tr", h("th", "Last modified by"), h("td", modBy || "—"), h("th", "Last modified"), h("td", fmtDateTime(modAt))),
             h("tr", h("th", "Exported"), h("td", `${fmtDateTime(now())} by ${PR.app.me}`), h("th", "Steps"), h("td", `${steps.length}${M().estimateMinutes(p) ? " · est. " + fmtMin(M().estimateMinutes(p)) : ""}`)),
-            (p.tags || []).length ? h("tr", h("th", "Tags"), h("td", { colspan: 3 }, p.tags.join(", "))) : null))),
+            (p.tags || []).length ? h("tr", h("th", "Tags"), h("td", { colspan: 3 }, p.tags.join(", "))) : null,
+            (() => { const a = M().approvalsCfg(p); return a.enforced || a.approvers.length ? h("tr", h("th", "Approvals"), h("td", { colspan: 3 }, `${a.enforced ? "Required — cannot be bypassed" : "Optional"} · approvers: ${[...a.approvers, ...a.chairs.map((c) => c + " chair")].join(", ") || "—"}`)) : null; })()))),
 
         env.enabled ? sec("E", "Environments",
           tbl(["Datacenter", "Code", "HMC partition (fixed)", "HMC URL"], M().sites(p).map((s) => h("tr", h("td", h("b", s.name)), h("td", s.code), h("td", s.partition || "—"), h("td.small", s.hmc || "")))),

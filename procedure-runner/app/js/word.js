@@ -608,6 +608,7 @@ PR.word = (() => {
       ["Last modified by", modBy || "—", "Last modified", fmtDateTime(modAt)],
       ["Exported", `${fmtDateTime(now())} by ${PR.app.me || ""}`, "Steps", `${steps.length}${est ? " · est. " + fmtMin(est) : ""}`],
       ...((p.tags || []).length ? [["Tags", p.tags.join(", "), "", ""]] : []),
+      ...((() => { const a = M().approvalsCfg(p); return a.enforced || a.approvers.length ? [["Approvals", `${a.enforced ? "Required — cannot be bypassed" : "Optional"}`, "Approvers", [...a.approvers, ...a.chairs.map((c) => c + " chair")].join(", ") || "—"]] : []; })()),
     ], { header: false, ind: 0, widths: [1800, 3240, 1800, 3240] }).replace("</w:tblPr>", '<w:tblCaption w:val="ProcMeta"/></w:tblPr>'));
     parts.push(H("Contents"));
     let n0 = 0;

@@ -298,16 +298,20 @@ PR.blocks = (() => {
         r.set(val);
         r.onDecision && r.onDecision(b, val);
       };
+      const gate = r.approvalGate ? r.approvalGate(b) : null;
+      const waiting = !v.decision && gate && !gate.canDecide;
+      const canChange = !r.readonly && (!gate || !gate.enforced || gate.isApprover);
       return h(`div.blk-dec${v.decision ? ".dec-" + v.decision : ""}`,
         h("div.dec-q", "⚖ ", b.question),
         b.criteria ? h("div.dec-crit", h("div.val-k", "Criteria"), mdNode(b.criteria, r.ctx)) : null,
-        h("div.ct-grid",
+        waiting ? gate.panel : null,
+        waiting ? null : h("div.ct-grid",
           h("div.field", h("label.lbl", `Decision-maker (${b.decisionMaker || "any"})`),
-            maker = h("input.inp", { list: "peopleList", value: v.maker || "", placeholder: "Name", disabled: r.readonly || !!v.decision })),
+            maker = h("input.inp", { list: "peopleList", value: v.maker || (gate && gate.enforced ? r.me : ""), placeholder: "Name", disabled: r.readonly || !!v.decision || !!(gate && gate.enforced) })),
           h("div.field", h("label.lbl", "Rationale / evidence"), why = h("input.inp", { value: v.rationale || "", placeholder: "e.g. TB reports match", disabled: r.readonly || !!v.decision }))),
         v.decision ? h("div.dec-result", h("span.big", v.decision === "go" ? "GO" : "NO-GO"), ` — ${v.maker} at ${fmtDateTime(v.at)}`,
-          r.readonly ? null : h("button.mini-btn", { type: "button", onclick: () => r.set(null) }, "Change")) :
-          h("div.seg.big", h("button.seg-btn.pass", { type: "button", disabled: r.readonly, onclick: () => decide("go") }, "✓ GO"),
+          canChange ? h("button.mini-btn", { type: "button", onclick: () => r.set(null) }, "Change") : null) :
+          waiting ? null : h("div.seg.big", h("button.seg-btn.pass", { type: "button", disabled: r.readonly, onclick: () => decide("go") }, "✓ GO"),
             h("button.seg-btn.fail", { type: "button", disabled: r.readonly, onclick: () => decide("nogo") }, "✕ NO-GO")));
     },
     needs: () => true, complete: (b, v) => v && v.decision === "go",
@@ -322,9 +326,12 @@ PR.blocks = (() => {
     run: (b, r) => {
       const v = r.value || {};
       let who, note;
+      const gate = r.approvalGate ? r.approvalGate(b) : null; // enforced procedures: only an approver signs, as themselves
+      const canRevoke = !r.readonly && (!gate || !gate.enforced || gate.isApprover);
       return h(`div.blk-appr${v.at ? ".signed" : ""}`, h("div.blk-title", "✍ ", b.label), h("div.muted.small", `Approver: ${b.approverRole || "—"}`),
-        v.at ? h("div.done-pill", `✓ Approved by ${v.approver} at ${fmtDateTime(v.at)}${v.comment ? " — " + v.comment : ""}`, r.readonly ? null : h("button.mini-btn", { type: "button", onclick: () => r.set(null) }, "Revoke")) :
-          h("div.ct-grid", who = h("input.inp", { list: "peopleList", placeholder: "Approver name", disabled: r.readonly }), note = h("input.inp", { placeholder: "Comment (optional)", disabled: r.readonly }),
+        v.at ? h("div.done-pill", `✓ Approved by ${v.approver} at ${fmtDateTime(v.at)}${v.comment ? " — " + v.comment : ""}`, canRevoke ? h("button.mini-btn", { type: "button", onclick: () => r.set(null) }, "Revoke") : null) :
+        gate && !gate.canDecide ? gate.panel :
+          h("div.ct-grid", who = h("input.inp", { list: "peopleList", placeholder: "Approver name", value: gate && gate.enforced ? r.me : "", disabled: r.readonly || !!(gate && gate.enforced) }), note = h("input.inp", { placeholder: "Comment (optional)", disabled: r.readonly }),
             h("button.btn.btn-sm.btn-primary", { type: "button", disabled: r.readonly, onclick: () => { if (!who.value.trim()) { who.classList.add("err"); who.focus(); return; } r.set({ approver: who.value.trim(), comment: note.value, at: now(), by: r.me }); } }, "Sign off")));
     },
     needs: () => true, complete: (b, v) => !!(v && v.at),

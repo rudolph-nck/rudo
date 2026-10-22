@@ -247,7 +247,35 @@ PR.app = (() => {
     $$(".blk-timer[data-tm-end]").forEach((el) => { const bar = el.querySelector(".tm-bar i"); if (bar) bar.style.width = `${Math.min(100, Math.max(0, 100 - ((Number(el.dataset.tmEnd) - t) / (Number(el.dataset.tmTotal) || 1)) * 100))}%`; });
   }, 1000);
   function beep() { try { const a = new AudioContext(), o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value = 880; g.gain.value = 0.08; o.start(); setTimeout(() => { o.stop(); a.close(); }, 350); } catch { /* no audio */ } }
-  function notify(msg) { try { if ("Notification" in window && Notification.permission === "granted") new Notification("Procedure Runner", { body: msg }); } catch { /* ignore */ } }
+  function notify(msg, onclick) { try { if ("Notification" in window && Notification.permission === "granted") { const n = new Notification("Procedure Runner", { body: msg, icon: "app/icons/icon-192.png", requireInteraction: !!onclick }); if (onclick) n.onclick = () => { window.focus(); onclick(); n.close(); }; } } catch { /* ignore */ } }
+
+  /* ---------------- approvals waiting for me (checked wherever the app is open) ---------------- */
+  const seenAsks = new Set();
+  async function checkApprovals() {
+    if (!me) return;
+    let runs = [];
+    try { runs = await S().listRuns(); } catch { return; }
+    const low = (x) => String(x || "").trim().toLowerCase();
+    const mine = [];
+    runs.filter((r) => ["active", "paused"].includes(r.status)).forEach((r) => (r.approvals || []).forEach((a) => {
+      if ((a.to || []).some((n) => low(n) === low(me)) && (low(a.requestedBy) !== low(me) || r.practice)) mine.push({ ...a, run: r });
+    }));
+    const slot = $("#approvalSlot");
+    if (slot) {
+      slot.innerHTML = "";
+      if (mine.length) slot.append(h("button.ap-badge", { type: "button", title: "Approvals waiting for you", onclick: (e) => {
+        if ("Notification" in window && Notification.permission === "default") try { Notification.requestPermission(); } catch { /* ignore */ }
+        menu(e.currentTarget, [{ header: "Waiting for your approval" }, ...mine.map((a) => ({ icon: "✍", label: a.title, hint: `${a.run.procTitle} · ${a.requestedBy}`, onClick: () => go(`#/run/${encodeURIComponent(a.run.id)}`) }))], { align: "right" });
+      } }, "✍ ", h("b", String(mine.length)), mine.length === 1 ? " approval" : " approvals"));
+    }
+    const fresh = mine.filter((a) => !seenAsks.has(a.id + ":" + (a.pingAt || a.requestedAt)));
+    mine.forEach((a) => seenAsks.add(a.id + ":" + (a.pingAt || a.requestedAt)));
+    if (!fresh.length) return;
+    beep();
+    fresh.forEach((a) => notify(`Approval needed: ${a.title}\n${a.run.procTitle} — asked by ${a.requestedBy}`, () => go(`#/run/${encodeURIComponent(a.run.id)}`)));
+    const onRun = location.hash.startsWith(`#/run/${encodeURIComponent(fresh[0].run.id)}`);
+    if (!onRun) toast(`✍ Approval needed: ${fresh[0].title}${fresh.length > 1 ? ` (+${fresh.length - 1} more)` : ""} — click ✍ in the top bar`, "warn", 7000);
+  }
 
   /* ---------------- boot ---------------- */
   async function boot() {
@@ -264,6 +292,7 @@ PR.app = (() => {
     await route();
     if (!me) await askName();
     refreshPeople();
+    checkApprovals(); setInterval(checkApprovals, 8000);
   }
 
   /* If the server runs a newer (or older) build than this page, the browser is showing a stale copy. */

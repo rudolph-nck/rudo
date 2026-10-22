@@ -82,6 +82,7 @@ PR.model = (() => {
       ...(p.setup || {}),
     };
     p.contacts = Array.isArray(p.contacts) ? p.contacts : [];
+    p.approvals = approvalsCfg(p);
     p.sections = (p.sections || []).map((s) => ({
       ...newSection(), ...s, id: s.id || uid("sec"),
       steps: (s.steps || []).map((st) => ({ ...newStep(), ...st, id: st.id || uid("st"), blocks: (st.blocks || []).map((b) => ({ id: b.id || uid("b"), ...b })) })),
@@ -114,6 +115,36 @@ PR.model = (() => {
       }),
     }));
     return normalize(p);
+  }
+
+  /* ---------- approvals ----------
+     procedure.approvals = { enforced, approvers:[names], chairs:[run chairs whose people approve], selfApprove }
+     run.approvals[id]   = { id, kind: approval|decision|adhoc|closeout, stepId, blockId, title, note, to:[names],
+                             requestedBy, requestedAt, pingAt, status: pending|approved|rejected|cancelled, decidedBy, decidedAt, comment } */
+  const APPROVAL_TYPES = ["approval", "decision"];
+  function approvalsCfg(p) {
+    const a = (p && p.approvals) || {};
+    return { enforced: !!a.enforced, approvers: Array.isArray(a.approvers) ? a.approvers.filter(Boolean) : [], chairs: Array.isArray(a.chairs) ? a.chairs : ["Approver"], selfApprove: !!a.selfApprove };
+  }
+  function approversFor(p, run) {
+    const c = approvalsCfg(p);
+    const fromChairs = ((run && run.setup && run.setup.participants) || []).filter((x) => x.name && c.chairs.includes(x.chair)).map((x) => x.name.trim());
+    return [...new Set([...c.approvers.map((n) => n.trim()), ...fromChairs])].filter(Boolean);
+  }
+  const needsApproval = (step) => (step.blocks || []).some((b) => APPROVAL_TYPES.includes(b.type));
+  const sameName = (a, b) => String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
+  /* Can <me> decide this request? Enforced procedures: only a listed approver, never the person who asked (practice runs excepted). */
+  function canApprove(p, run, req, me) {
+    if (!req || req.status !== "pending") return false;
+    const c = approvalsCfg(p);
+    const list = req.to && req.to.length ? req.to : approversFor(p, run);
+    if (list.length && !list.some((n) => sameName(n, me))) return false;
+    if (c.enforced && !list.length) return false;
+    if (sameName(me, req.requestedBy) && !run.practice && (c.enforced || !c.selfApprove)) return false;
+    return true;
+  }
+  function pendingApprovals(run) {
+    return Object.values((run && run.approvals) || {}).filter((r) => r.status === "pending");
   }
 
   /* ---------- traversal ---------- */
@@ -351,7 +382,7 @@ PR.model = (() => {
     return { id: data.id, status: "draft", draft: data, publishedVersion: 0, versions: [], createdAt: now(), updatedAt: now(), updatedBy: by || "", dirtySincePublish: true };
   }
 
-  return {
+  return { approvalsCfg, approversFor, needsApproval, canApprove, pendingApprovals, sameName, APPROVAL_TYPES,
     CATEGORIES, catMeta, DEFAULT_CHAIRS, BUILTIN_VARS, defaultEnvironments, newProcedure, newSection, newStep, newBlock, normalize, fromLegacy,
     allSteps, findStep, findBlock, estimateMinutes, renumber, sites, siteById, otherSite, primarySite, directionLabel, phaseOf,
     resolveTarget, isApplicable, countRunnable, varContext, interpolate, variablesDeclared, lint, newDoc, impactName, hasImpact, impactEvents, impactState, tracks, trackOf, trackById, trackProgress, TRACK_COLORS,

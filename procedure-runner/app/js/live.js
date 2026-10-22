@@ -64,6 +64,7 @@ PR.views.live = (() => {
           h("button.btn.btn-sm", { type: "button", onclick: () => PR.u.copyText(PR.comms.liveURL(run)) }, "⧉ Copy link"))),
       PR.ui.impactPanel(M().impactState(run), { size: "hero" }),
       run.status === "paused" ? h("div.banner.b-warn", h("b", "⏸ Paused. "), run.halt ? run.halt.reason : "") : null,
+      (() => { const pend = M().pendingApprovals(run); return pend.length ? h("div.banner.b-info.lv-approvals", h("b", "✍ Waiting on approval: "), pend.map((r) => h("span.ap-chip", r.title, h("span.muted", ` — ${(r.to || []).join(", ") || "approver"} · `, h("span", { dataset: { since: String(r.requestedAt) } }, PR.u.fmtDur(now() - r.requestedAt)))))) : null; })(),
       run.status === "completed" ? h("div.banner.b-ok", h("b", "✓ Complete. "), (run.completion || {}).outcome || "") : null,
       h("div.lv-grid",
         roadblocks(run),

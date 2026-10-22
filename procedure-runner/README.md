@@ -8,9 +8,17 @@ No install and no build step. It's plain HTML/JS plus a small Python server from
 
 | How | What you get |
 |---|---|
-| Double-click **`Start_ProcedureRunner.bat`** | Team server on port 8000. Your browser opens it. Teammates open `http://<your-pc-name>:8000/`. Data is saved in `.\data`. |
-| `py server.py --data I:\Core\Procedures\ProcedureRunner\data` | Same, with data on the shared drive. |
+| Double-click **`ProcedureRunner.bat`**, or the desktop icon from `Install_Desktop_Shortcut.bat` | **Desktop app.** Procedure Runner boots quietly in the background, with no console window, and opens in its own app window. If it's already running, the window just opens. `Stop_ProcedureRunner.bat` stops it. |
+| Double-click **`Start_ProcedureRunner.bat`** | Team server on port 8000 in a console window, so you can see the log. Teammates open `http://<your-pc-name>:8000/`. |
+| `py server.py --data I:\Core\Procedures\ProcedureRunner\data` | The same, with data on the shared drive. |
 | Open `index.html` directly | **Local mode**: data stays in this browser only. Good for drafting; use Export/Import JSON to move work. |
+
+**Desktop app settings**: copy `ProcedureRunner.cfg.example` to `ProcedureRunner.cfg` to change the port, the data folder or who can connect.
+- `DATA=I:\Core\ProcedureRunner\data` keeps everyone on the same runs.
+- `HOST=0.0.0.0` lets teammates connect to your PC.
+- Logs are kept in `%LOCALAPPDATA%\ProcedureRunner`.
+
+`Install_Desktop_Shortcut.bat` can also start Procedure Runner in the background when you sign in to Windows. Turn that off any time in Task Manager › Startup apps.
 
 Several people can run `server.py` against the same `--data` folder on a shared drive; writes are file-locked. The simplest setup is still one person hosting and everyone else connecting to that address.
 
@@ -84,6 +92,21 @@ Use the **Console** component, or set a Command's *Show as* to **Console window*
 - **Roadblocks**: ⋯ → *Log a roadblock*, or tick 🚧 on any issue. The live dashboard shows it with its own timer until it's resolved, then how long it held you up.
 - The run report gets a **Member impact & roadblocks** section, with every interruption, total impact and roadblock time.
 - **Comms**: the *Members impacted* and *Systems available* templates trigger on these markers.
+
+## Approvals (✍)
+
+- **Who approves**: ⚙ Settings → ✍ Approvals. Name approvers, and/or tick run chairs whose people approve; by default that's the **Approver** chair the manager picks at run setup.
+- **Automatic requests**: when a step with a **Sign-off** or **Go / No-Go** starts, the approvers are asked automatically.
+- **Notifications**: approvers get a desktop notification and a **✍ approvals** badge in the top bar, wherever Procedure Runner is open. They approve, reject, or give GO / NO-GO from their own screen. The operator sees *Waiting for …* with a running timer, **🔔 Remind**, and **Copy for Teams / email**.
+- **Ad-hoc approvals**: press `A`, or ⋯ → *Require approval for this step*, to add an approval layer to any step. That step then waits for an approver.
+- **Required, can't be bypassed** (on for the failover template):
+  - a run can't start without an approver;
+  - only an approver can decide, signed as themselves, and never on their own request;
+  - steps waiting on approval can't be completed anyway or skipped;
+  - the run can't be closed out until an approver approves the close-out.
+- **Without enforcement**: anyone can sign, operators can record a verbal approval, and steps can go ahead without approval. The bypass is recorded.
+- **Records**: every request, who decided, how long it waited and any comment are in the run report's **Approvals** section and the audit log. The live dashboard shows what's waiting.
+- **Limit**: approver identity is the name set with 👤, which isn't a sign-in. Separation of duties holds as long as people use their own name.
 
 ## Communication plan (📣)
 
