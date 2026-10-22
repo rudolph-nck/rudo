@@ -410,6 +410,7 @@ OC.app = (() => {
   function help() {
     const row = (k, t) => h("div.kb-row", h("span.kb-keys", k.split(" ").map((x) => h("kbd", x))), h("span", t));
     modal({ title: "Quick guide", size: "md", body: h("div.guide",
+      h("a.btn.btn-cta.guide-link", { href: "docs/guide/index.html", target: "_blank", rel: "noopener" }, "Open the step-by-step guide (with pictures)"),
       h("p", h("b", "View"), " is for looking around. Switch to ", h("b", "Edit"), " (top right, or press E) to change people, layouts and pages. Every change saves on its own — there is no Save button — and can be undone."),
       h("h3", "On the chart"),
       h("ul",

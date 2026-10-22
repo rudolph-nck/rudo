@@ -29,6 +29,9 @@ People, managers, departments/branches, executives, card styles, page order, hid
 
 ## Using it
 
+For the people who use it day to day there is a **step-by-step guide with pictures** in `docs/guide/index.html` (also `docs/guide/Org Chart Builder - Step-by-Step Guide.pdf`, and the green button under **?** in the app opens it). The rest of this section is the short version.
+
+
 - **View / Edit** (top right, or press `E`). View is safe for browsing. Edit turns on every change below.
 - **Chart**: the page list is on the left, the chart in the middle, and the person panel on the right.
   - Click a person for details. In Edit mode, every field in the panel edits in place.
@@ -102,6 +105,7 @@ app/js/app.js              routes, top bar, search, page list, settings, first r
 app/css/app.css            app styles (brand-aligned, light + dark)
 app/fonts/                 Open Sans (SIL Open Font License)
 app/icons/                 app icon set (.svg, .png, .ico)
+docs/guide/                step-by-step user guide (HTML + PDF, screenshots of a made-up sample organization)
 server.py                  team server (Python 3.8+, standard library only)
 Start_OrgChartBuilder.bat  starts the server console and opens the app (or just opens it if it's running)
 Install_Desktop_Shortcut.bat, tools/   desktop shortcut installer and the app-window opener

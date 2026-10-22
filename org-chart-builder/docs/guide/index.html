@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Org Chart Builder — Step-by-Step Guide</title>
+<link rel="icon" type="image/svg+xml" href="../../app/icons/icon-small.svg">
+<style>
+@font-face{font-family:"Open Sans";src:url("../../app/fonts/OpenSans-Variable.woff2") format("woff2");font-weight:300 800;font-style:normal}
+:root{--anchor:#53575a;--vivid:#00b2e3;--ink:#45494c;--muted:#6f7477;--line:#e3e5e6;--soft:#e0f5fc;--deep:#00538b;--cta:#6abf4b;--amber:#f6bf26;--amber-soft:#fdf3d2;--red:#d7372a;--red-soft:#fbe4e1;--green-soft:#e1efe2;--green:#347f3e}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:"Open Sans",Calibri,"Segoe UI",Arial,sans-serif;color:var(--ink);background:#f3f4f5;font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--deep)}
+.top{background:var(--anchor);color:#fff;border-bottom:5px solid var(--vivid)}
+.top-in{max-width:980px;margin:0 auto;padding:48px 28px 44px 64px;position:relative}
+.top-in::before{content:"";position:absolute;left:28px;top:50px;bottom:46px;width:9px;background:var(--vivid)}
+.top .kicker{font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--vivid)}
+.top h1{font-size:44px;line-height:1.1;margin:6px 0 12px;font-weight:800}
+.top p{margin:0;font-size:19px;color:#e6e8e9;max-width:700px}
+.top .plus{position:absolute;right:28px;top:50%;transform:translateY(-50%);font-size:150px;font-weight:800;color:var(--vivid);line-height:1}
+main{max-width:980px;margin:0 auto;padding:10px 28px 80px}
+.toc{background:#fff;border-radius:12px;padding:22px 28px;margin:28px 0;box-shadow:0 1px 2px rgba(83,87,90,.08),0 4px 14px rgba(83,87,90,.06)}
+.toc h2{margin:0 0 8px;font-size:20px}
+.toc ol{columns:2;column-gap:40px;margin:0;padding-left:22px}
+.toc li{margin:3px 0;break-inside:avoid}
+.toc a{text-decoration:none;font-weight:600}
+.toc a:hover{text-decoration:underline}
+section{background:#fff;border-radius:12px;padding:30px 34px 32px;margin:26px 0;box-shadow:0 1px 2px rgba(83,87,90,.08),0 4px 14px rgba(83,87,90,.06);scroll-margin-top:16px}
+h2{color:var(--anchor);font-weight:800;font-size:28px;line-height:1.2;margin:0 0 6px;position:relative;padding-left:20px}
+h2::before{content:"";position:absolute;left:0;top:4px;bottom:4px;width:7px;background:var(--vivid)}
+h2 .num{color:var(--vivid);margin-right:6px}
+h3{color:var(--anchor);font-weight:800;font-size:20px;margin:26px 0 8px}
+.lead{font-size:18px;color:var(--muted);margin:2px 0 18px}
+p{margin:10px 0}
+.steps{list-style:none;counter-reset:s;padding:0;margin:14px 0}
+.steps>li{counter-increment:s;position:relative;padding:4px 0 10px 54px;min-height:42px}
+.steps>li::before{content:counter(s);position:absolute;left:0;top:0;width:38px;height:38px;border-radius:50%;background:var(--vivid);color:#fff;font-weight:800;font-size:18px;display:grid;place-items:center}
+.n{display:inline-grid;place-items:center;width:27px;height:27px;border-radius:50%;background:var(--amber);color:#2b2200;font-weight:800;font-size:14px;vertical-align:1px;margin:0 2px;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.key{display:inline-block;font-weight:700;font-size:14px;padding:0 8px;border:1px solid #c9cdcf;border-bottom-width:3px;border-radius:6px;background:#f7f8f8;line-height:1.6;color:var(--anchor);white-space:nowrap}
+.btn{display:inline-block;font-weight:700;font-size:15px;padding:1px 10px;border-radius:6px;border:1px solid #c9cdcf;background:#fff;color:var(--anchor);white-space:nowrap}
+.btn.green{background:var(--cta);border-color:var(--cta);color:#fff}
+.btn.blue{background:var(--vivid);border-color:var(--vivid);color:#fff}
+.btn.red{color:var(--red);border-color:var(--red)}
+figure{margin:16px 0 20px;text-align:center}
+figure img{max-width:100%;border-radius:10px;border:1px solid var(--line);box-shadow:0 4px 18px rgba(83,87,90,.14)}
+figure.small img{max-width:560px}
+figure.tiny img{max-width:420px}
+figcaption{font-size:14px;color:var(--muted);margin-top:8px}
+.legend{list-style:none;padding:0;margin:10px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px 28px}
+.legend li{display:flex;gap:10px;align-items:flex-start}
+.legend li .n{flex:none;margin-top:2px}
+.tip,.ok,.warn,.stop{border-radius:10px;padding:14px 18px 14px 56px;margin:16px 0;position:relative}
+.tip::before,.ok::before,.warn::before,.stop::before{position:absolute;left:16px;top:13px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff}
+.tip>b:first-child,.ok>b:first-child,.warn>b:first-child,.stop>b:first-child{display:block}
+.tip{background:var(--soft)}.tip::before{content:"i";background:var(--vivid)}
+.ok{background:var(--green-soft)}.ok::before{content:"✓";background:var(--green)}
+.warn{background:var(--amber-soft)}.warn::before{content:"!";background:#c79a10}
+.stop{background:var(--red-soft)}.stop::before{content:"✕";background:var(--red)}
+.console{max-width:620px;margin:16px auto;border-radius:8px;overflow:hidden;box-shadow:0 6px 22px rgba(0,0,0,.25);text-align:left}
+.console .bar{background:#e8e8e8;color:#222;font:13px "Segoe UI",Arial,sans-serif;padding:6px 10px;display:flex;align-items:center;gap:8px}
+.console .bar span{margin-left:auto;letter-spacing:12px;color:#555}
+.console pre{margin:0;background:#0c0c0c;color:#d9d9d9;font:13.5px/1.5 Consolas,"Cascadia Mono",monospace;padding:12px 14px;white-space:pre-wrap}
+.shortcut{display:inline-flex;flex-direction:column;align-items:center;gap:6px;font-size:14px;color:var(--ink);vertical-align:middle;margin:0 10px}
+.shortcut img{width:64px;height:64px;filter:drop-shadow(0 3px 6px rgba(0,0,0,.25))}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:16px}
+th{text-align:left;background:var(--anchor);color:#fff;padding:10px 12px;font-weight:700}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:nth-child(even) td{background:#f8f9f9}
+td:first-child{font-weight:700;color:var(--anchor);width:38%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{border:1px solid var(--line);border-radius:10px;padding:14px 18px;border-top:5px solid var(--vivid)}
+.card h3{margin-top:4px}
+.big-promise{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0 6px}
+.big-promise div{background:var(--soft);border-radius:10px;padding:14px 16px;font-size:16px}
+.big-promise b{display:block;color:var(--deep);font-size:17px}
+.foot{text-align:center;color:var(--muted);font-size:14px;margin-top:30px}
+.backtop{display:block;text-align:right;font-size:14px;margin-top:10px}
+@media (max-width:760px){.toc ol{columns:1}.legend,.two,.big-promise{grid-template-columns:1fr}.top h1{font-size:34px}.top .plus{display:none}section{padding:22px 18px}body{font-size:16px}}
+@media print{
+  @page{size:letter;margin:.5in .55in}
+  body{background:#fff;font-size:12pt}
+  .top{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .top-in{padding:36px 20px 34px 52px}
+  main{padding:0}
+  section,.toc{box-shadow:none;border:0;padding:0;margin:0 0 18px;border-radius:0}
+  section{break-before:page}
+  section.keep{break-before:auto}
+  figure{break-inside:avoid}
+  figure img{box-shadow:none;max-height:6.2in;width:auto}
+  .steps>li,.tip,.ok,.warn,.stop,tr,.legend li{break-inside:avoid}
+  h2,h3{break-after:avoid}
+  .backtop,.noprint{display:none}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="top-in">
+  <div class="kicker">Step-by-step guide</div>
+  <h1>Org Chart Builder</h1>
+  <p>How to look up people, keep the organizational chart up to date, and share it — explained one click at a time. No technical knowledge needed.</p>
+  <div class="plus">+</div>
+</div></header>
+
+<main>
+
+<div class="toc">
+  <h2>What's in this guide</h2>
+  <ol>
+    <li><a href="#start">Before you start (read this!)</a></li>
+    <li><a href="#open">Opening the Org Chart Builder</a></li>
+    <li><a href="#screen">What you see on the screen</a></li>
+    <li><a href="#find">Finding a person</a></li>
+    <li><a href="#around">Moving around a page</a></li>
+    <li><a href="#details">Seeing someone's details</a></li>
+    <li><a href="#edit">Turning on Edit</a></li>
+    <li><a href="#change">Changing a title, name or department</a></li>
+    <li><a href="#move">Moving someone to a new manager</a></li>
+    <li><a href="#undo">Oops! Undoing a mistake</a></li>
+    <li><a href="#add">Adding a new person</a></li>
+    <li><a href="#leave">When someone leaves</a></li>
+    <li><a href="#people">The People list</a></li>
+    <li><a href="#publish">Making it official (Publish)</a></li>
+    <li><a href="#print">Printing or saving a PDF</a></li>
+    <li><a href="#share">Sharing the chart with everyone</a></li>
+    <li><a href="#pages">Rearranging or hiding pages</a></li>
+    <li><a href="#help">Something looks wrong? (Help)</a></li>
+    <li><a href="#cheat">One-page cheat sheet</a></li>
+  </ol>
+</div>
+
+<!-- 1 -->
+<section id="start">
+  <h2><span class="num">1</span>Before you start</h2>
+  <p class="lead">Three things that make this easy.</p>
+  <div class="big-promise">
+    <div><b>You can't break it.</b>Every change can be undone. The chart also keeps automatic backups.</div>
+    <div><b>There is no Save button.</b>Changes save by themselves the moment you make them.</div>
+    <div><b>Looking is always safe.</b>Nothing can change until you switch to <span class="btn blue">Edit</span>.</div>
+  </div>
+  <div class="tip"><b>About the pictures in this guide</b>They show a made-up company called “Sample Credit Union”. Your screen will show your own organization, but every button is in the same place. The <span class="n">1</span> <span class="n">2</span> <span class="n">3</span> yellow numbers in the pictures match the numbers in the text.</div>
+</section>
+
+<!-- 2 -->
+<section id="open">
+  <h2><span class="num">2</span>Opening the Org Chart Builder</h2>
+  <p class="lead">Look for this icon on your desktop:
+    <span class="shortcut"><img src="../../app/icons/icon-192.png" alt="Org Chart Builder icon">Org Chart Builder</span></p>
+  <ol class="steps">
+    <li><b>Double-click</b> the <b>Org Chart Builder</b> icon on your desktop.</li>
+    <li>The Org Chart Builder opens in its own window. That's it!</li>
+  </ol>
+
+  <h3>If you are the person who “hosts” the chart</h3>
+  <p>One computer runs the Org Chart Builder for everybody. If that's your computer, double-clicking the icon also opens a <b>black window</b> like this one:</p>
+  <div class="console"><div class="bar">Org Chart Builder server<span>–□✕</span></div><pre>Starting Org Chart Builder. Keep this window open while people use the chart - close it to stop the server.
+
+Org Chart Builder 2.0
+  This PC        : http://localhost:8010/
+  Teammates      : http://HR-PC-07:8010/
+  Official chart : http://HR-PC-07:8010/published
+Press Ctrl+C to stop.</pre></div>
+  <div class="stop"><b>Leave the black window open.</b>It's what makes the chart work for everyone. You can make it smaller with the <b>–</b> button in its top-right corner, but <b>don't close it</b> with ✕. If it gets closed, just double-click the desktop icon again.</div>
+  <div class="tip"><b>Turned the computer off?</b>No problem. After you turn it back on, double-click the icon once to start everything again. Nothing is lost.</div>
+
+  <h3>Don't have the icon yet? (one-time setup)</h3>
+  <ol class="steps">
+    <li>Open the <b>Org Chart Builder</b> folder (ask your coordinator where it is).</li>
+    <li>Double-click <b>Install_Desktop_Shortcut</b>.</li>
+    <li>A window asks a question:
+      <ul>
+        <li>Type <span class="key">1</span> and press <span class="key">Enter</span> if <b>your</b> computer is the host.</li>
+        <li>Type <span class="key">2</span> and press <span class="key">Enter</span> if someone else's computer is the host. Then type the address they give you (it looks like <b>http://HR-PC-07:8010/</b>) and press <span class="key">Enter</span>.</li>
+      </ul></li>
+    <li>The icon appears on your desktop.</li>
+  </ol>
+  <div class="tip"><b>The first time you change something</b>you'll be asked for your name. Type it and click <span class="btn">Continue</span>. This is how the chart remembers who made each change.</div>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 3 -->
+<section id="screen">
+  <h2><span class="num">3</span>What you see on the screen</h2>
+  <p class="lead">The screen has the same few parts every time.</p>
+  <figure><img src="img/01-main.jpg" alt="The main screen with numbered parts"></figure>
+  <ul class="legend">
+    <li><span class="n">1</span><span><b>Page list.</b> Every page of the chart. Click a name to open that page.</span></li>
+    <li><span class="n">2</span><span><b>The chart.</b> The page you are looking at.</span></li>
+    <li><span class="n">3</span><span><b>Search.</b> Type a name to find someone fast.</span></li>
+    <li><span class="n">4</span><span><b>View / Edit.</b> View is for looking. Edit is for making changes.</span></li>
+    <li><span class="n">5</span><span><b>Status.</b> “✓ Saved” means your work is safe. More about the yellow “Draft” label in <a href="#publish">section 14</a>.</span></li>
+    <li><span class="n">6</span><span><b>Zoom.</b> Make the chart bigger or smaller.</span></li>
+    <li><span class="n">7</span><span><b>Next page.</b> Go to the next page (the arrow on the left goes back).</span></li>
+  </ul>
+  <div class="tip"><b>The tabs at the very top</b><b style="display:inline">Chart</b> shows the pictures, <b style="display:inline">People</b> shows everyone as a list, and <b style="display:inline">Publish</b> is where you make the chart official and get printouts.</div>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 4 -->
+<section id="find">
+  <h2><span class="num">4</span>Finding a person</h2>
+  <ol class="steps">
+    <li>Click in the <b>Search</b> box at the top <span class="n">1</span>.</li>
+    <li>Type part of their name (for example <i>angela</i>). You can also type a job title or a department.</li>
+    <li>Click the person in the list that drops down <span class="n">2</span>.</li>
+  </ol>
+  <figure class="small"><img src="img/02-search.png" alt="Searching for Angela"></figure>
+  <p>The chart jumps to the right page and the person's card <b>flashes yellow</b>. Their details open on the right (see <a href="#details">section 6</a>).</p>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 5 -->
+<section id="around">
+  <h2><span class="num">5</span>Moving around a page</h2>
+  <h3>Going to another page</h3>
+  <p>Click a page name in the <b>page list</b> on the left <span class="n">1</span>. The page you are on is highlighted in blue. The headings in capital letters <span class="n">2</span> are groups. Click a heading to fold it away or open it again.</p>
+  <figure class="small"><img src="img/04-pagelist.png" alt="The page list"></figure>
+  <h3>Moving the chart around</h3>
+  <p>Big departments don't fit on the screen. To see the rest:</p>
+  <ul>
+    <li><b>Click on an empty spot</b> of the chart (not on a person), <b>hold the mouse button down</b> and <b>drag</b>. The chart moves with your mouse.</li>
+    <li>Or just <b>scroll</b> with your mouse wheel or touchpad.</li>
+  </ul>
+  <h3>Making it bigger or smaller</h3>
+  <figure class="tiny"><img src="img/05-zoom.png" alt="Zoom buttons"></figure>
+  <ul class="legend">
+    <li><span class="n">1</span><span><b>–</b> makes it smaller.</span></li>
+    <li><span class="n">2</span><span><b>+</b> makes it bigger.</span></li>
+    <li><span class="n">3</span><span><b>Fit</b> shows the whole page at once.</span></li>
+    <li><span class="n" style="background:#cfd2d3">?</span><span>Lost? Click <b>Fit</b> and you're back to the whole page.</span></li>
+  </ul>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 6 -->
+<section id="details">
+  <h2><span class="num">6</span>Seeing someone's details</h2>
+  <ol class="steps">
+    <li><b>Click a person's card</b> <span class="n">1</span>.</li>
+    <li>A panel opens on the right <span class="n">2</span>. It shows their manager, department, email, and the people who report to them.</li>
+    <li>Click any blue name in the panel to jump to that person.</li>
+    <li>To close the panel, click the <b>✕</b> in its top-right corner (or press <span class="key">Esc</span>).</li>
+  </ol>
+  <figure><img src="img/03-details.jpg" alt="Details panel for Angela Torres"></figure>
+  <div class="tip"><b>What the small things on a card mean</b>
+    The dark number in the corner is how many people work under that person, in total. <b>Dashed, grey cards</b> are managers shown for context; they belong to another department. A <b>“Vacant”</b> card is an open position. If you see a <b>+3</b> button under a card, some people are folded away. Click it to show them.</div>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 7 -->
+<section id="edit">
+  <h2><span class="num">7</span>Turning on Edit</h2>
+  <p class="lead">You can't change anything by accident. Changes only work after you switch to Edit.</p>
+  <ol class="steps">
+    <li>Click <span class="btn blue">Edit</span> at the top right <span class="n">1</span>. It turns blue.</li>
+    <li>The first time, type your name and click <span class="btn">Continue</span>.</li>
+    <li>When you're finished, click <b>View</b> to go back to look-only mode.</li>
+  </ol>
+  <figure class="small"><img src="img/06-edit-switch.png" alt="The View and Edit switch"></figure>
+  <h3>How do I know my change is saved?</h3>
+  <p>Look at the top of the screen. <b>“✓ Saved”</b> means your change is safe. You don't need to do anything else.</p>
+  <figure class="small"><img src="img/20-status-saved.png" alt="Saved and Published labels"></figure>
+  <div class="ok"><b>Several people can edit at the same time.</b>When a colleague changes something, it shows up on your screen within a few seconds. You may see a message like “Updated with Pat's changes”. That's normal.</div>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 8 -->
+<section id="change">
+  <h2><span class="num">8</span>Changing a title, name or department</h2>
+  <ol class="steps">
+    <li>Make sure <span class="btn blue">Edit</span> is on.</li>
+    <li><b>Click the person's card.</b> The panel on the right now shows boxes you can type in.</li>
+    <li><b>Click in the box</b> you want to change, for example <b>Job title</b> <span class="n">1</span>.</li>
+    <li>Type the new text and press <span class="key">Enter</span>. Done! The card on the chart changes right away.</li>
+  </ol>
+  <figure><img src="img/07-edit-panel.jpg" alt="Editing in the details panel"></figure>
+  <p>The <b>Reports to</b> box <span class="n">2</span> changes who the person's manager is. Click it, type the manager's name, and click the right person in the list.</p>
+  <p>The buttons at the top of the panel <span class="n">3</span> do the bigger jobs: adding someone under this person, adding a vacancy, replacing them, or removing them. These are explained in the next sections.</p>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 9 -->
+<section id="move">
+  <h2><span class="num">9</span>Moving someone to a new manager</h2>
+  <p class="lead">Two ways. Use whichever feels easier.</p>
+  <h3>Way 1: drag and drop</h3>
+  <ol class="steps">
+    <li>Make sure <span class="btn blue">Edit</span> is on.</li>
+    <li>Put your mouse on the person's card <span class="n">1</span>, <b>press and hold</b> the mouse button.</li>
+    <li>Drag the card on top of their <b>new manager's</b> card <span class="n">2</span>. It gets a <b style="color:var(--green)">green outline</b> when you're in the right spot.</li>
+    <li><b>Let go</b> of the mouse button.</li>
+  </ol>
+  <figure><img src="img/08-drag.jpg" alt="Dragging Grace Liu onto Omar Haddad"></figure>
+  <div class="warn"><b>Red outline?</b>That move isn't allowed. You can't put a manager underneath someone who already reports to them. Let go anywhere else and nothing changes.</div>
+  <h3>Way 2: type the new manager</h3>
+  <p>Click the person, then change the <b>Reports to</b> box in the panel (see <a href="#change">section 8</a>).</p>
+  <div class="tip"><b>The person disappeared from the page?</b>That's normal if their new manager is in a different department. They now show up on that department's page. Use <b>Search</b> to find them.</div>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 10 -->
+<section id="undo">
+  <h2><span class="num">10</span>Oops! Undoing a mistake</h2>
+  <p>After most changes, a green message appears at the bottom of the screen with an <b>Undo</b> button <span class="n">1</span>. Click it, and the change is reversed.</p>
+  <figure class="small"><img src="img/09-undo.png" alt="Message with Undo button"></figure>
+  <p>Missed the message? Press <span class="key">Ctrl</span> + <span class="key">Z</span> on your keyboard (hold <b>Ctrl</b>, tap <b>Z</b>). Press it again to undo the change before that, and so on.</p>
+  <p>Undid too much? <span class="key">Ctrl</span> + <span class="key">Y</span> puts it back.</p>
+  <div class="tip"><b>Made a mistake days ago?</b>The chart keeps automatic backups. See “I need yesterday's version back” in <a href="#help">section 18</a>.</div>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 11 -->
+<section id="add">
+  <h2><span class="num">11</span>Adding a new person</h2>
+  <ol class="steps">
+    <li>Make sure <span class="btn blue">Edit</span> is on.</li>
+    <li>Find the new person's <b>manager</b> on the chart.</li>
+    <li><b>Right-click</b> the manager's card. That means clicking with the <b>right</b> mouse button. A menu opens <span class="n">1</span>.</li>
+    <li>Click <b>Add a direct report…</b></li>
+  </ol>
+  <figure><img src="img/10-rightclick.jpg" alt="Right-click menu on a card"></figure>
+  <ol class="steps" start="5" style="counter-reset:s 4">
+    <li>Type the person's <b>Name</b> and <b>Job title</b> <span class="n">1</span>. The manager and department are already filled in for you.</li>
+    <li>Click <span class="btn">Add</span> <span class="n">2</span>.</li>
+  </ol>
+  <figure><img src="img/11-add-form.jpg" alt="The Add person form"></figure>
+  <p>The new person appears on the chart, flashing yellow so you can spot them.</p>
+  <div class="tip"><b>Other ways to add someone</b>Click a manager and use the <span class="btn">+ Direct report</span> button in the panel, or go to the <b>People</b> tab and click <span class="btn green">+ Add person</span>.</div>
+  <h3>Adding an open (vacant) position</h3>
+  <p>Right-click the manager and choose <b>Add a vacant position under them…</b> Leave the name empty, type the job title, and click <span class="btn">Add</span>.</p>
+  <h3>Someone was hired into a vacancy</h3>
+  <p>Right-click the <b>Vacant</b> card, choose <b>Fill this vacancy…</b>, type the new person's name and click <span class="btn">Fill position</span>. Anyone who reported to the vacancy now reports to the new person.</p>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 12 -->
+<section id="leave">
+  <h2><span class="num">12</span>When someone leaves</h2>
+  <ol class="steps">
+    <li>Make sure <span class="btn blue">Edit</span> is on.</li>
+    <li>Right-click the person's card and choose <b>Remove…</b> (or click them and use the red <span class="btn red">Remove</span> button in the panel).</li>
+    <li>Choose what should happen:</li>
+  </ol>
+  <figure><img src="img/12-remove.jpg" alt="Remove dialog with two choices"></figure>
+  <ul class="legend" style="grid-template-columns:1fr">
+    <li><span class="n">1</span><span><b>“They're leaving — keep the position as a vacancy”.</b> Pick this when the job will be filled again. A “Vacant” card takes their place, and their team stays where it is. <i>This is usually the right choice.</i></span></li>
+    <li><span class="n">2</span><span><b>“Remove the position too”.</b> Pick this when the job is going away. The window then lists each person who reported to them. Choose a new manager for each one, or use <b>Apply to all</b> to give them all the same new manager.</span></li>
+  </ul>
+  <ol class="steps" start="4" style="counter-reset:s 3">
+    <li>Click the red <span class="btn red">Remove</span> button.</li>
+  </ol>
+  <div class="ok"><b>Nothing is truly deleted.</b>Removed people are kept in the list as “Inactive”, so you can always bring them back. See <a href="#people">section 13</a>.</div>
+  <h3>Someone is replaced by a new person</h3>
+  <p>Right-click them and choose <b>Replace with someone new…</b> Type the new person's name and click <span class="btn">Replace</span>. The new person takes over the same title, manager and team.</p>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 13 -->
+<section id="people">
+  <h2><span class="num">13</span>The People list</h2>
+  <p class="lead">Click <b>People</b> at the top of the screen to see everyone as a list, like a spreadsheet.</p>
+  <figure><img src="img/13-people.jpg" alt="The People list"></figure>
+  <ul class="legend">
+    <li><span class="n">1</span><span><b>Search</b> the list by name, title, department or email. The menus beside it narrow the list down.</span></li>
+    <li><span class="n">2</span><span>In <b>Edit</b>, <b>click any box</b> to change it. Type, then press <span class="key">Enter</span>.</span></li>
+    <li><span class="n">3</span><span><b>+ Add person</b> adds someone new.</span></li>
+    <li><span class="n">4</span><span><b>Things to check</b> lists possible mistakes, for example two people with the same name, or someone whose manager was removed. Click <b>Show</b> next to a problem to see who it's about.</span></li>
+  </ul>
+  <p>To get the list into <b>Excel</b>, click <span class="btn">Export ▾</span> and choose <b>Excel workbook (.xlsx)</b>. The file goes to your <b>Downloads</b> folder.</p>
+  <div class="tip"><b>Bringing a removed person back</b>With <b>Edit</b> on, change the menu that says “Current (active + on leave)” to <b>Removed / inactive</b>. Then click the <b>⋯</b> at the end of their row and choose <b>Restore (make active)</b>.</div>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 14 -->
+<section id="publish">
+  <h2><span class="num">14</span>Making it official (Publish)</h2>
+  <p class="lead">Your changes are a <b>draft</b> until you publish. While there are unpublished changes, the top of the screen shows a yellow <b style="background:var(--amber);padding:0 6px;border-radius:5px;color:#3a2c00">Draft · unpublished changes</b> label.</p>
+  <p>Publishing is like printing the “official copy”. Everyone who opens the official chart sees the new version. Only publish when the changes have been checked.</p>
+  <ol class="steps">
+    <li>Click <b>Publish</b> at the top of the screen.</li>
+    <li>Read the <b>What changed</b> list <span class="n">2</span>. It shows exactly who was added, removed or moved since the last official version. Is it right?</li>
+    <li>Click the green <span class="btn green">Publish changes</span> button <span class="n">1</span>.</li>
+  </ol>
+  <figure><img src="img/14-publish.jpg" alt="The Publish screen"></figure>
+  <ol class="steps" start="4" style="counter-reset:s 3">
+    <li>Type a short note about what changed <span class="n">1</span>, for example <i>“New teller at Lakeside, Grace moved to IT Support”</i>.</li>
+    <li>Click <span class="btn green">Publish</span> <span class="n">2</span>.</li>
+  </ol>
+  <figure><img src="img/15-publish-dialog.jpg" alt="The Publish window"></figure>
+  <p>The top now says <b>“Version 2 is the official chart”</b>, and the label at the top turns green: <b style="background:#d4f3c6;padding:0 6px;border-radius:5px;color:#2b5a1f">Published v2</b>.</p>
+  <figure><img src="img/16-published.jpg" alt="Published confirmation with the link to the official chart"></figure>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 15 -->
+<section id="print">
+  <h2><span class="num">15</span>Printing or saving a PDF</h2>
+  <ol class="steps">
+    <li>Open the page you want to print.</li>
+    <li>Click the <b>⋯</b> button at the top right of the page, then <b>Print / save as PDF…</b> <span class="n">1</span>.</li>
+  </ol>
+  <figure class="tiny"><img src="img/17-print-menu.png" alt="Page menu with Print"></figure>
+  <ol class="steps" start="3" style="counter-reset:s 2">
+    <li>Choose what to print: <b>This page</b>, one executive's <b>area</b>, or <b>The whole chart</b>.</li>
+    <li>Click <span class="btn">Open print view</span>.</li>
+  </ol>
+  <figure><img src="img/18-print-dialog.jpg" alt="Choosing what to print"></figure>
+  <ol class="steps" start="5" style="counter-reset:s 4">
+    <li>The print window opens. To print on paper, pick your printer and click <b>Print</b>.<br>To get a <b>PDF file</b>, change the <b>Destination</b> (or <b>Printer</b>) to <b>Save as PDF</b> and click <b>Save</b>.</li>
+  </ol>
+  <div class="tip"><b>Each chart page prints on its own sheet</b>sideways (landscape), sized to fit. Very big departments come out small, so for those you may prefer the PDF, because you can zoom in on it.</div>
+  <h3>Other files you can get</h3>
+  <p>On the <b>Publish</b> screen, under <b>Download</b>, you can also get a <b>PowerPoint</b> (one slide per page), an <b>Excel</b> list of everyone, and an <b>interactive chart</b> file that opens in any web browser.</p>
+  <div class="warn"><b>“DRAFT” on your printout?</b>That means there are changes that haven't been published yet. Publish first (<a href="#publish">section 14</a>) if you want the official version.</div>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 16 -->
+<section id="share">
+  <h2><span class="num">16</span>Sharing the chart with everyone</h2>
+  <p class="lead">People who only need to <b>look</b> at the chart don't need the Org Chart Builder at all.</p>
+  <ol class="steps">
+    <li>Go to <b>Publish</b>. Near the top it says <b>“Everyone can open the official chart at …”</b>.</li>
+    <li>Click <span class="btn">Copy link</span> and paste it into an email or a Teams message.</li>
+  </ol>
+  <p>Anyone who opens that link sees the latest <b>published</b> chart. They can search for a person <span class="n">1</span> and click a card to see contact details. They <b>can't</b> change anything.</p>
+  <figure><img src="img/19-official.jpg" alt="The official chart as everyone else sees it"></figure>
+  <div class="tip"><b>The link only works</b>while the host computer is on and its black window is open (see <a href="#open">section 2</a>). For people outside the office network, send the PDF or the interactive chart file instead.</div>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 17 -->
+<section id="pages">
+  <h2><span class="num">17</span>Rearranging or hiding pages <span style="font-size:15px;color:var(--muted);font-weight:600">(optional)</span></h2>
+  <p class="lead">The pages are made for you automatically from who reports to whom. You don't have to touch them, but you can change their order.</p>
+  <ol class="steps">
+    <li>Make sure <span class="btn blue">Edit</span> is on.</li>
+    <li>Click <span class="btn">Arrange</span> at the top of the page list <span class="n">1</span>.</li>
+    <li>To move a page, drag it by the dotted handle <span class="n">2</span> to a new spot.</li>
+    <li>To hide a page from the official chart, click the round button <span class="n">3</span> at the end of its row. Click it again to show it.</li>
+    <li>Click <span class="btn blue">Done</span> when you're finished.</li>
+  </ol>
+  <figure class="small"><img src="img/21-arrange.png" alt="Arranging pages"></figure>
+  <p>To change a page's title, open the page and click <span class="btn">✎ Edit text</span> at its top right.</p>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 18 -->
+<section id="help">
+  <h2><span class="num">18</span>Something looks wrong? (Help)</h2>
+  <table>
+    <tr><th>What you see</th><th>What to do</th></tr>
+    <tr><td>I can't change anything. Nothing happens when I drag or right-click.</td><td>You're in <b>View</b> mode. Click <span class="btn blue">Edit</span> at the top right (<a href="#edit">section 7</a>).</td></tr>
+    <tr><td>“This site can't be reached” or a blank window</td><td>The host computer's black window was closed, or the computer is off or asleep. On the host computer, double-click the Org Chart Builder icon. Everyone else: wait a minute, then press <span class="key">F5</span> to reload.</td></tr>
+    <tr><td>A red label at the top: <b>“Offline · 2 unsaved”</b></td><td>The connection dropped for a moment. <b>Don't close the window.</b> Your changes are kept and are sent as soon as the connection is back. The label then changes to “✓ Saved”.</td></tr>
+    <tr><td>The chart is tiny, or I'm lost somewhere on the page</td><td>Click <b>Fit</b> in the bottom-right corner of the chart (<a href="#around">section 5</a>).</td></tr>
+    <tr><td>I made a change by mistake</td><td>Click <b>Undo</b> on the green message, or press <span class="key">Ctrl</span> + <span class="key">Z</span> (<a href="#undo">section 10</a>).</td></tr>
+    <tr><td>I need yesterday's version back</td><td>Go to <b>Publish</b> and scroll down to <b>Snapshots</b> (automatic backups) or <b>Published versions</b>. Click the <b>⋯</b> next to the one you want, then <b>Restore…</b>. The current chart is backed up first, so this is safe. <i>Tip: tell your colleagues before you do this.</i></td></tr>
+    <tr><td>Someone is on the wrong page or missing from a page</td><td>Pages are built from each person's <b>Department</b> and <b>Reports to</b>. Click the person and check those two boxes (<a href="#change">section 8</a>).</td></tr>
+    <tr><td>A message says “Updated with Pat's changes”</td><td>Nothing to do. A colleague changed something and your screen caught up.</td></tr>
+    <tr><td>The yellow label says “Draft · unpublished changes”</td><td>There are changes that aren't official yet. Publish when they're checked (<a href="#publish">section 14</a>).</td></tr>
+    <tr><td>Where did my PDF / Excel / PowerPoint go?</td><td>Into your <b>Downloads</b> folder. Open File Explorer and click <b>Downloads</b> on the left.</td></tr>
+    <tr><td>The black window says “Python is not installed”</td><td>Ask your IT contact to install Python on the host computer. This is a one-time setup.</td></tr>
+  </table>
+  <p>Still stuck? Click the <b>?</b> button at the top right of the Org Chart Builder for a short reminder, or contact your Org Chart coordinator.</p>
+  <a class="backtop noprint" href="#">↑ Back to top</a>
+</section>
+
+<!-- 19 -->
+<section id="cheat">
+  <h2><span class="num">19</span>One-page cheat sheet</h2>
+  <p class="lead">Print this page and keep it next to your keyboard.</p>
+  <table>
+    <tr><th>I want to…</th><th>How</th></tr>
+    <tr><td>Open the Org Chart Builder</td><td>Double-click the desktop icon. Host: leave the black window open.</td></tr>
+    <tr><td>Find someone</td><td>Type their name in <b>Search</b> (top), then click them.</td></tr>
+    <tr><td>See the whole page</td><td>Click <b>Fit</b> (bottom right of the chart).</td></tr>
+    <tr><td>Move around a big chart</td><td>Drag an empty spot, or scroll.</td></tr>
+    <tr><td>Make changes</td><td>Click <span class="btn blue">Edit</span> (top right). Changes save by themselves.</td></tr>
+    <tr><td>Change a title or name</td><td>Click the person, type in the panel on the right, press <span class="key">Enter</span>.</td></tr>
+    <tr><td>Change someone's manager</td><td>Drag their card onto the new manager's card.</td></tr>
+    <tr><td>Add a person</td><td>Right-click the manager, then <b>Add a direct report…</b></td></tr>
+    <tr><td>Add an open position</td><td>Right-click the manager, then <b>Add a vacant position under them…</b></td></tr>
+    <tr><td>Fill an open position</td><td>Right-click the Vacant card, then <b>Fill this vacancy…</b></td></tr>
+    <tr><td>Someone leaves</td><td>Right-click them, then <b>Remove…</b>, then keep the position as a vacancy.</td></tr>
+    <tr><td>Undo a mistake</td><td><b>Undo</b> on the green message, or <span class="key">Ctrl</span> + <span class="key">Z</span>.</td></tr>
+    <tr><td>Make it official</td><td><b>Publish</b> tab, then <span class="btn green">Publish changes</span>, type a note, then <span class="btn green">Publish</span>.</td></tr>
+    <tr><td>Print or make a PDF</td><td><b>⋯</b> (top right of a page), then <b>Print / save as PDF…</b></td></tr>
+    <tr><td>Get the list in Excel</td><td><b>People</b> tab, then <b>Export ▾</b>, then <b>Excel workbook</b>.</td></tr>
+    <tr><td>Share the chart</td><td><b>Publish</b> tab, then <span class="btn">Copy link</span>, and paste it in an email.</td></tr>
+  </table>
+  <div class="ok"><b>Remember:</b>you can't break it. Everything can be undone, and the chart keeps backups.</div>
+  <p class="foot">Org Chart Builder · Step-by-step guide</p>
+</section>
+
+</main>
+</body>
+</html>

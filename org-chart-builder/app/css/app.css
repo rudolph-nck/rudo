@@ -374,6 +374,7 @@ body.editing .oc-canvas.editable .oc-card { cursor: grab; }
 .settings h3 { margin-top: 18px; }
 .unit-table-wrap { max-height: 300px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; margin-top: 6px; }
 .unit-table td { padding: 4px 8px; } .unit-table .inp { width: auto; min-width: 140px; }
+.guide-link { display: flex; margin: 2px 0 12px; }
 .guide ul { padding-left: 20px; } .guide li { margin: 4px 0; } .guide p { margin: 6px 0; }
 .kb { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
 .kb-row { display: flex; gap: 10px; align-items: center; font-size: 13px; } .kb-keys { min-width: 70px; display: flex; gap: 3px; }

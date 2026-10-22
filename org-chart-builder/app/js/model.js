@@ -45,7 +45,7 @@ OC.model = (() => {
     p.organization = p.organization || "My Organization";
     p.title = p.title || `${p.organization} Organizational Chart`;
     for (const [id, x] of Object.entries(p.people)) {
-      x.id = id; x.name = x.name || "Unnamed"; x.title = x.title || ""; x.department = x.department || "";
+      x.id = id; if (!x.name && x.type !== "vacant") x.name = "Unnamed"; x.name = x.name || ""; x.title = x.title || ""; x.department = x.department || "";
       x.managerId = x.managerId || ""; x.status = x.status || "active"; x.type = x.type || "employee";
     }
     return p;
