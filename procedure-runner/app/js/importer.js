@@ -12,7 +12,7 @@ PR.importer = (() => {
     const dv = new DataView(buf); const u8 = new Uint8Array(buf);
     let eocd = -1;
     for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 70000); i--) if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
-    if (eocd < 0) throw new Error("Not a valid .xlsx file");
+    if (eocd < 0) throw new Error("Not a valid Office file (.xlsx / .docx)");
     const count = dv.getUint16(eocd + 10, true); let off = dv.getUint32(eocd + 16, true);
     const files = {};
     const dec = new TextDecoder();
@@ -32,6 +32,15 @@ PR.importer = (() => {
         if (!("DecompressionStream" in window)) throw new Error("This browser can't read .xlsx — save the sheet as CSV, or paste the rows instead.");
         const ds = new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
         return await new Response(ds).text();
+      },
+      async bytes(name) {
+        const f = files[name]; if (!f) return null;
+        const ln = dv.getUint16(f.lho + 26, true), le = dv.getUint16(f.lho + 28, true);
+        const data = u8.subarray(f.lho + 30 + ln + le, f.lho + 30 + ln + le + f.csize);
+        if (f.method === 0) return data.slice();
+        if (!("DecompressionStream" in window)) throw new Error("This browser can't unpack this file");
+        const ds = new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+        return new Uint8Array(await new Response(ds).arrayBuffer());
       },
     };
   }
@@ -305,5 +314,5 @@ PR.importer = (() => {
     });
   }
 
-  return { open, openPaste, readXlsx, parseDelimited, build, commandBlocks, locKey };
+  return { open, openPaste, unzip, readXlsx, parseDelimited, build, commandBlocks, locKey };
 })();

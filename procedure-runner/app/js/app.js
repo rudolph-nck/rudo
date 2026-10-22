@@ -132,6 +132,7 @@ PR.app = (() => {
       ...PR.templates.list().map((t) => ({ icon: t.icon, label: t.title, hint: t.hint, onClick: () => saveNewProcedure(t.build()) })),
       { sep: true }, { header: "Import" },
       { icon: "▦", label: "From Excel / CSV…", hint: ".xlsx .xlsm .csv", onClick: () => PR.importer.open() },
+      { icon: "W", label: "From Word…", hint: ".docx", onClick: () => PR.word.open() },
       { icon: "⎘", label: "Paste rows from Excel…", onClick: () => PR.importer.openPaste() },
       { icon: "{}", label: "Procedure or run JSON…", onClick: importJSON },
     ]);
@@ -189,10 +190,11 @@ PR.app = (() => {
       if (!shown.length) {
         wrap.appendChild(h("div.empty",
           h("div.empty-title", procs.length ? "No procedures match" : "No procedures yet"),
-          h("div.muted", procs.length ? "Try a different search or filter." : "Start from the Symitar failover template, import your Excel playbook, or build one from scratch."),
+          h("div.muted", procs.length ? "Try a different search or filter." : "Start from the Symitar failover template, import your Excel playbook or Word document, or build one from scratch."),
           procs.length ? null : h("div.empty-actions",
             h("button.btn.btn-primary", { onclick: () => saveNewProcedure(PR.templates.get("failover").build()) }, "🔁 Use failover template"),
             h("button.btn", { onclick: () => PR.importer.open() }, "▦ Import Excel playbook"),
+            h("button.btn", { onclick: () => PR.word.open() }, "W Import Word document"),
             h("button.btn", { onclick: (e) => newProcedureMenu(e.currentTarget) }, "More options…"))));
         return;
       }
@@ -221,6 +223,7 @@ PR.app = (() => {
         { icon: "📈", label: "History & insights", onClick: () => go(`#/history/${encodeURIComponent(p.id)}`) },
         { icon: "⧉", label: "Duplicate", onClick: async () => { const d = await S().getProcedure(p.id); const c = clone(d.draft); c.id = uid("proc"); c.title += " (copy)"; await saveNewProcedure(c, { open: false }); toast("Duplicated", "ok"); render(); } },
         { icon: "📄", label: "Export PDF (for SharePoint)", onClick: () => go(`#/print/${encodeURIComponent(p.id)}`) },
+        { icon: "W", label: "Export Word (.docx)", onClick: () => PR.word.exportProcedure(p.id) },
         { icon: "⇩", label: "Export JSON", onClick: () => exportProcedure(p.id) },
         { sep: true },
         p.status === "archived"

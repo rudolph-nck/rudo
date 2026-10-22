@@ -12,24 +12,34 @@
   const setDocTitle = (t) => { if (savedTitle == null) savedTitle = document.title; document.title = t; };
   const restoreTitle = () => { if (savedTitle != null) { document.title = savedTitle; savedTitle = null; } };
 
+  /* Resolve a procedure version ("draft" or a number; default = latest published) plus who/when last modified it
+     and the export file name "<title> - vN - <date> - last modified by <name>". Shared by the PDF and Word exports. */
+  PR.loadProcedureVersion = async (procId, which) => {
+    const doc = await S().getProcedure(procId);
+    if (!doc) return null;
+    const versions = (doc.versions || []).slice().sort((a, b) => b.version - a.version);
+    which = which || (doc.publishedVersion ? String(doc.publishedVersion) : "draft");
+    let data, verLabel, modBy, modAt;
+    if (which === "draft") { data = doc.draft; verLabel = doc.publishedVersion ? `Draft (after v${doc.publishedVersion})` : "Draft"; modBy = doc.updatedBy; modAt = doc.updatedAt; }
+    else {
+      data = await S().getVersion(procId, Number(which));
+      const v = versions.find((x) => String(x.version) === which) || {};
+      verLabel = `v${which}`; modBy = v.by || doc.updatedBy; modAt = v.at || doc.publishedAt;
+      if (!data) { data = doc.draft; verLabel = "Draft"; which = "draft"; modBy = doc.updatedBy; modAt = doc.updatedAt; }
+    }
+    const p = M().normalize(JSON.parse(JSON.stringify(data)));
+    const fileTitle = safeName(`${p.title} - ${verLabel.replace(/\s*\(.*\)/, "")} - ${fmtDate(now())} - last modified by ${modBy || "unknown"}`);
+    return { doc, versions, which, p, verLabel, modBy, modAt, fileTitle };
+  };
+
   /* ======================= PROCEDURE → PDF ======================= */
   PR.views.print = {
     async mount(el, procId, which) {
-      const doc = await S().getProcedure(procId);
-      if (!doc) { el.append(h("div.empty", h("div.empty-title", "Procedure not found"))); return; }
-      const versions = (doc.versions || []).slice().sort((a, b) => b.version - a.version);
-      which = which || (doc.publishedVersion ? String(doc.publishedVersion) : "draft");
-      let data, verLabel, modBy, modAt;
-      if (which === "draft") { data = doc.draft; verLabel = doc.publishedVersion ? `Draft (after v${doc.publishedVersion})` : "Draft"; modBy = doc.updatedBy; modAt = doc.updatedAt; }
-      else {
-        data = await S().getVersion(procId, Number(which));
-        const v = versions.find((x) => String(x.version) === which) || {};
-        verLabel = `v${which}`; modBy = v.by || doc.updatedBy; modAt = v.at || doc.publishedAt;
-        if (!data) { data = doc.draft; verLabel = "Draft"; which = "draft"; modBy = doc.updatedBy; modAt = doc.updatedAt; }
-      }
-      const p = M().normalize(JSON.parse(JSON.stringify(data)));
+      const src = await PR.loadProcedureVersion(procId, which);
+      if (!src) { el.append(h("div.empty", h("div.empty-title", "Procedure not found"))); return; }
+      const { doc, versions, p, verLabel, modBy, modAt, fileTitle } = src;
+      which = src.which;
       const cfg = await PR.comms.load().catch(() => ({}));
-      const fileTitle = safeName(`${p.title} - ${verLabel.replace(/\s*\(.*\)/, "")} - ${fmtDate(now())} - last modified by ${modBy || "unknown"}`);
       setDocTitle(fileTitle); // Edge / Chrome use the page title as the default PDF file name
 
       const ctx = { var: {}, run: {}, site: {} }; // leave {{variables}} visible — they resolve when the procedure is run
@@ -44,6 +54,7 @@
           h("option", { value: "draft", selected: which === "draft" }, "Current draft")),
         h("div.spacer"),
         h("span.small.muted", "File name: ", h("b", fileTitle + ".pdf")),
+        h("button.btn", { type: "button", title: "Download as a Word document in the same layout", onclick: () => PR.word.exportProcedure(procId, which) }, "⇩ Word (.docx)"),
         h("button.btn.btn-primary", { type: "button", onclick: () => { toast("Choose “Save as PDF” as the printer", "info", 3000); setTimeout(() => window.print(), 300); } }, "⇩ Save as PDF"));
 
       const role = (step, section) => {

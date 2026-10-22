@@ -305,6 +305,7 @@ PR.views.builder = (() => {
       h("button.btn.btn-ghost", { type: "button", onclick: () => openSettings() }, "⚙ Settings"),
       h(`button.btn.btn-ghost${lint.length ? ".lint" : ""}`, { type: "button", title: "Checks before publishing", onclick: () => showLint() }, lint.length ? `${errs ? "⛔" : "⚠"} ${lint.length}` : "✓ Checks"),
       h("button.btn.btn-ghost", { type: "button", title: "Export the procedure as a PDF document (name, version, date, last modified by)", onclick: async () => { await save.flush(); PR.app.go(`#/print/${encodeURIComponent(proc.id)}/${doc.publishedVersion && !doc.dirtySincePublish ? doc.publishedVersion : "draft"}`); } }, "📄 PDF"),
+      h("button.btn.btn-ghost", { type: "button", title: "Download as a Word document (same name, version, date and last modified by as the PDF)", onclick: async () => { await save.flush(); PR.word.exportProcedure(proc.id, doc.publishedVersion && !doc.dirtySincePublish ? String(doc.publishedVersion) : "draft"); } }, "W Word"),
       h("button.btn", { type: "button", title: "Try the draft in the runner (not counted in history)", onclick: async () => { await save.flush(); PR.runner.startNew(proc.id, { practice: true }); } }, "🧪 Practice"),
       h("button.btn.btn-primary", { type: "button", onclick: publish }, "Publish"));
   }

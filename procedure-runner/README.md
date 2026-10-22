@@ -24,6 +24,7 @@ Several people can run `server.py` against the same `--data` folder on a shared 
 - **Variables** work in any text, command, path or link: `{{primary.name}}`, `{{primary.partition}}`, `{{secondary.hmc}}`, `{{newPrimary.hostname}}`, `{{run.changeId}}`. Values you capture also become variables, e.g. step 48 records `{{var.nextAccountNumber}}` and step 85 shows it.
 - **Undo/redo** (Ctrl+Z / Ctrl+Y), autosave, **🧪 Practice** runs of the draft, **Publish** with a change note. Publishing creates an immutable version, and runs always record which version they used.
 - **Import**: New procedure ▾ → *From Excel / CSV*. This reads `.xlsx` and `.xlsm` directly. Location cells written as formulas (`=E2` vs `=IF(E2=…)`) become *Current Primary* / *Current Secondary* automatically. You can also paste rows from Excel.
+- **Import from Word**: New procedure ▾ → *From Word…* (`.docx`). See [Word import & export](#word-import--export).
 
 ## How failover direction works
 
@@ -125,6 +126,35 @@ Use **📄 PDF** in the builder, or **⋯ → Export PDF** on a library card. Ch
 - chairs, readiness checklist, milestones and member-impact markers;
 - every step with its details and a checkbox.
 
+## Word import & export
+
+**Import** (New procedure ▾ → *From Word…*) maps an existing Word procedure into steps:
+
+| In the Word document | Becomes |
+|---|---|
+| Headings, or a short bold line that introduces a list | Sections |
+| Top-level numbered or bulleted items | Steps. Long items get their first sentence as the title and keep the full text as details. |
+| Deeper list levels | Bullets inside the step |
+| A short bold line followed by text or code (e.g. *Token endpoint :-*) | A step with that title |
+| `NOTE!` / `IMPORTANT!` / `TIP!` / `KNOWN ISSUE:` / `WARNING!` paragraphs | Callouts |
+| Consolas or Courier text, `curl …`, PowerShell and similar | Console blocks with copy |
+| Tables | Table components |
+| Screenshots | Screenshot components. EMF/WMF images can't be shown in a browser, so a note marks where to paste a replacement. |
+| Bold, italic, hyperlinks, Wingdings arrows (à → →) | Kept |
+| Header fields such as *Index*, *Rev. Date*, *Rvw. Date* | The procedure description |
+
+The preview lets you choose where steps come from: top-level items (the default), every list item, or one step per heading. Text that isn't a step is kept on the nearest step, so nothing is dropped. Old `.doc` files need *Save As .docx* in Word first.
+
+**Export**: use **W Word** in the builder, **⋯ → Export Word (.docx)** on a library card, or **⇩ Word (.docx)** on the PDF page. The file has the same name as the PDF (*Procedure name - version - date - last modified by Name*). The layout matches the department's controlled documents:
+- a grey header band with the team, procedure title, version, revision date and who last modified it;
+- a details table and contents list;
+- environments, chairs, run setup and member impact;
+- numbered steps with checkboxes and a details line (target, chair, owner, estimate);
+- console boxes, callouts, tables and screenshots;
+- a *Page X of Y* footer.
+
+It is a normal Word file, so people can comment on it or edit it there. The procedure itself also rides along inside the file. Re-importing an export that hasn't been edited offers **Restore exactly as exported**, which brings back environments, chairs, decisions and timers. If someone edited it in Word, **Rebuild from the Word text** picks up their changes.
+
 ## Records
 
 - **📄 Report** (per run, printable and exportable to CSV/JSON) covers run setup, environment verification, readiness, step execution and timing source, parallel operations with a timeline, problems and exceptions with evidence, communications, critical decisions, validations, final completion, lessons learned, captured values, and the full audit log.
@@ -138,6 +168,8 @@ app/js/                 util, store (local + server), model, blocks (components)
                         templates, importer, app (library), builder, runner, report
 app/js/comms.js         communication plan, composer, Comms page
 app/js/live.js          follow-along view
+app/js/print.js         procedure PDF and run comparison
+app/js/word.js          Word (.docx) import and export, no libraries
 app/css/app.css         styles (brand-aligned, light + dark)
 app/fonts/              Open Sans (SIL Open Font License)
 app/icons/              app icon set (.svg, .png, .ico)
