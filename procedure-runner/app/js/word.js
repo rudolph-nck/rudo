@@ -565,7 +565,7 @@ PR.word = (() => {
       case "callout": {
         let [lbl, fill, edge] = CALLOUT_LABEL[b.tone] || CALLOUT_LABEL.info;
         // A title that is itself a label (Note, Known issue…) becomes the label, like "KNOWN ISSUE: …" in the old documents
-        if (b.title && new RegExp(`^(${Object.keys(TONE).join("|")})$`, "i").test(b.title.trim())) { lbl = b.title.trim().toUpperCase() + (/issue/i.test(b.title) ? ":" : "!"); b = { ...b, title: "" }; }
+        if (b.title && new RegExp(`^(${Object.keys(TONE).join("|")})$`, "i").test(b.title.trim())) { lbl = b.title.trim().replace(/^notes$/i, "Note").toUpperCase() + (/issue/i.test(b.title) ? ":" : "!"); b = { ...b, title: "" }; }
         const lines = String(b.text || "").split("\n").filter((l) => l.trim());
         const o = { style: "ProcCallout", shd: fill, border: `<w:left w:val="single" w:sz="24" w:space="6" w:color="${edge}"/>` };
         const first = b.title ? [run(lbl + " ", { b: true }) + run(b.title + (lines.length ? ":" : ""), { b: true })] : [run(lbl + " ", { b: true }) + inlineRuns(wr, (lines.shift() || "").replace(/^\s*-+\s+/, "• "))];
