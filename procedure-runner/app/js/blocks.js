@@ -331,21 +331,37 @@ PR.blocks = (() => {
     summary: (b, v) => `${b.label}: ${v && v.at ? "approved by " + v.approver + " @ " + fmtDateTime(v.at) : "not approved"}`,
   });
 
+  /* Timer value: { startedAt, by, auto?, endedEarly?, endedAt?, endedBy?, reason?, leftMs?, skipped? } */
+  const timerLeft = (b, v) => (v && v.startedAt ? Math.max(0, v.startedAt + (Number(b.minutes) || 0) * 60000 - now()) : null);
+  const timerState = (b, v) => !v || (!v.startedAt && !v.skipped) ? "idle" : v.skipped ? "skipped" : v.endedEarly ? "early" : timerLeft(b, v) > 0 ? "running" : "done";
   reg("timer", {
-    label: "Wait / countdown", icon: "⏳", group: "Operations", desc: "Countdown with an alert when done (e.g. wait 5 minutes)",
-    defaults: () => ({ label: "Wait for replication to stop", minutes: 3 }),
-    fields: [{ key: "label", label: "Label" }, { key: "minutes", label: "Minutes", type: "number" }],
-    preview: (b) => h("div.blk-timer", h("span.tm-ic", "⏳"), h("span", b.label), h("span.tm-val", PR.u.fmtDur((b.minutes || 0) * 60000))),
+    label: "Wait / countdown", icon: "⏳", group: "Operations", desc: "Countdown that can start itself with the step; finishing early can require a reason",
+    defaults: () => ({ label: "Wait for replication to stop", minutes: 3, autoStart: true, required: false }),
+    fields: [{ key: "label", label: "Label" }, { key: "minutes", label: "Minutes", type: "number" },
+      { key: "autoStart", label: "Start automatically when the step starts", type: "checkbox" },
+      { key: "required", label: "Must run to the end — finishing early or skipping needs a reason", type: "checkbox" }],
+    preview: (b) => h("div.blk-timer", h("span.tm-ic", "⏳"), h("span", b.label), h("span.tm-val", PR.u.fmtDur((b.minutes || 0) * 60000)),
+      b.autoStart !== false ? h("span.chip.c-gray", "auto-starts") : null, b.required ? h("span.chip.c-amber-o", "must finish") : null),
     run: (b, r) => {
       const v = r.value || {};
       const total = (Number(b.minutes) || 0) * 60000;
-      const el = h("div.blk-timer", h("span.tm-ic", "⏳"), h("span", b.label),
-        v.startedAt ? h("span.tm-val", { dataset: { countdown: String(v.startedAt + total) } }, PR.u.fmtDur(Math.max(0, v.startedAt + total - now()))) : h("span.tm-val", PR.u.fmtDur(total)),
-        r.readonly ? null : (v.startedAt ? h("button.mini-btn", { type: "button", onclick: () => r.set(null) }, "Reset") :
-          h("button.btn.btn-sm", { type: "button", onclick: () => r.set({ startedAt: now(), by: r.me }) }, "Start countdown")));
-      return el;
+      const state = timerState(b, v);
+      const end = v.startedAt ? v.startedAt + total : 0;
+      return h(`div.blk-timer.tm-${state}${state === "done" ? ".fired" : ""}`, { dataset: state === "running" ? { tmEnd: String(end), tmTotal: String(total) } : {} },
+        h("span.tm-ic", "⏳"), h("span", b.label, b.required ? h("span.req", " *") : null),
+        state === "running" ? h("span.tm-val", { dataset: { countdown: String(end) } }, PR.u.fmtDur(Math.max(0, end - now()))) : h("span.tm-val", state === "idle" ? PR.u.fmtDur(total) : state === "done" ? "✓ done" : ""),
+        state === "early" ? h("span.small.muted", `Ended early ${fmtTime(v.endedAt)} by ${v.endedBy || ""} with ${PR.u.fmtDur(v.leftMs || 0)} left${v.reason ? " — " + v.reason : ""}`) : null,
+        state === "skipped" ? h("span.small.muted", `Skipped by ${v.endedBy || ""}${v.reason ? " — " + v.reason : ""}`) : null,
+        state === "running" ? h("div.tm-bar", h("i", { style: { width: `${Math.min(100, ((now() - v.startedAt) / (total || 1)) * 100)}%` } })) : null,
+        r.readonly ? null : state === "idle" ? h("button.btn.btn-sm.tm-start", { type: "button", onclick: () => r.set({ startedAt: now(), by: r.me }) }, "▶ Start countdown")
+          : state === "running" ? h("span.tm-acts", r.finishTimer ? h("button.btn.btn-sm", { type: "button", onclick: () => r.finishTimer(b) }, "Finish early…") : null, h("button.mini-btn", { type: "button", title: "Restart the countdown", onclick: () => r.set(null) }, "Reset"))
+            : h("button.mini-btn", { type: "button", onclick: () => r.set(null) }, "Reset"));
     },
-    summary: (b, v) => `${b.label}: ${v && v.startedAt ? "started " + fmtTime(v.startedAt) : "not started"}`,
+    needs: (b) => !!b.required,
+    complete: (b, v) => ["done", "early", "skipped"].includes(timerState(b, v)),
+    summary: (b, v) => { const st = timerState(b, v);
+      return `${b.label}: ${st === "idle" ? "not started" : st === "skipped" ? "skipped — " + (v.reason || "no reason") : st === "early" ? `started ${fmtTime(v.startedAt)}, ended early with ${PR.u.fmtDur(v.leftMs || 0)} left — ${v.reason || "no reason"}` : `started ${fmtTime(v.startedAt)}${st === "done" ? ", ran to the end" : ", running"}`}`; },
+    timerLeft, timerState,
   });
 
   const def = (t) => defs[t];

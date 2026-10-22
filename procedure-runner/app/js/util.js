@@ -233,7 +233,7 @@ PR.u = (() => {
      modal({ title, body: Node|fn(close)->Node, actions:[{label, kind, onClick(close)->bool|void, value}], size:'sm'|'md'|'lg'|'xl', onClose })
      Resolves with the action value (or null on dismiss). */
   const modalStack = [];
-  function modal({ title, subtitle, body, actions = [], size = "md", dismissable = true, onClose, className = "" }) {
+  function modal({ title, subtitle, body, actions = [], size = "md", dismissable = true, onClose, className = "", enter = false }) {
     return new Promise((resolve) => {
       let done = false;
       const close = (val = null) => {
@@ -263,7 +263,7 @@ PR.u = (() => {
           dismissable ? h("button.icon-btn.modal-x", { type: "button", title: "Close (Esc)", onclick: () => close(null) }, "✕") : null),
         h("div.modal-body", bodyNode), foot);
       const back = h("div.modal-back", { onmousedown: (e) => { if (e.target === back && dismissable) close(null); } }, dlg);
-      back._close = close; back._dismissable = dismissable;
+      back._close = close; back._dismissable = dismissable; back._enter = enter;
       document.body.appendChild(back);
       modalStack.push(close);
       requestAnimationFrame(() => {
@@ -275,6 +275,12 @@ PR.u = (() => {
   }
   function topModalOpen() { return modalStack.length > 0; }
   document.addEventListener("keydown", (e) => {
+    // enter:true modals (confirmations) take Enter as their primary button, so keyboard flows never need the mouse
+    if (e.key === "Enter" && !e.shiftKey && modalStack.length) {
+      const backs = $$(".modal-back"); const top = backs[backs.length - 1];
+      const t = e.target;
+      if (top && top._enter && !(t && (t.tagName === "TEXTAREA" || t.tagName === "BUTTON" || t.tagName === "SELECT"))) { const b = top.querySelector(".modal-foot .btn-primary"); if (b) { e.preventDefault(); b.click(); } }
+    }
     if (e.key === "Escape" && modalStack.length) {
       const backs = $$(".modal-back");
       const top = backs[backs.length - 1];
@@ -284,7 +290,7 @@ PR.u = (() => {
 
   function confirmBox(title, message, { ok = "Confirm", kind = "primary", cancel = "Cancel" } = {}) {
     return modal({
-      title, size: "sm", body: h("div.confirm-msg", message),
+      title, size: "sm", body: h("div.confirm-msg", message), enter: true,
       actions: [{ spacer: true }, { label: cancel, value: false }, { label: ok, kind, value: true }],
     }).then((v) => v === true);
   }

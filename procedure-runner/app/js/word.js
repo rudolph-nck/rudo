@@ -588,7 +588,7 @@ PR.word = (() => {
       case "validation": return L("✔ Validate:", `**${b.test || ""}**`) + para(run("Expected: ", { color: BRAND.muted }) + inlineRuns(wr, b.expected || "") + run("     Actual: ____________     ☐ Pass   ☐ Fail", { color: BRAND.muted }), { style: "ProcBody" });
       case "decision": return L("⚖ Go / No-Go:", `**${b.question || ""}**`) + mdParas(wr, b.criteria) + para(run(`Decision maker: ${b.decisionMaker || "—"} · If NO-GO: ${b.noGo === "halt" ? "halt the run" : b.noGo || "halt"}      ☐ GO    ☐ NO-GO`, { color: BRAND.muted }), { style: "ProcBody" });
       case "approval": return L("✍ Approval:", `${b.label || ""} — ${b.approverRole || "Approver"}: ____________________   Date: __________`);
-      case "timer": return L("⏱ Wait:", `${b.label || ""} — ${b.minutes || 0} min`);
+      case "timer": return L("⏱ Wait:", `${b.label || ""} — ${b.minutes || 0} min${b.autoStart !== false ? " (starts with the step)" : ""}${b.required ? " — must run to the end; finishing early needs a reason" : ""}`);
       default: { const d = PR.blocks.def(b.type); return d ? L(`${d.icon || "•"} ${d.label}:`, "") : ""; }
     }
   }

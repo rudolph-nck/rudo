@@ -62,6 +62,8 @@ PR.runner = (() => {
     dueT = setInterval(checkDue, 30000); // interval-based updates become due with time
     document.addEventListener("keydown", onKey);
     document.addEventListener("focusout", onFocusOut);
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("pr:countdown-done", onCountdownDone);
     chairView = hasTracks() ? PR.app.LS.get(`chair_${run.id}`, "") || "" : "";
     if (hasTracks() && chairView && !myStepsInOrder().some((x) => x.step.id === focusId)) focusId = firstOpen();
     render();
@@ -73,6 +75,8 @@ PR.runner = (() => {
   async function unmount() {
     document.removeEventListener("keydown", onKey);
     document.removeEventListener("focusout", onFocusOut);
+    document.removeEventListener("focusin", onFocusIn);
+    document.removeEventListener("pr:countdown-done", onCountdownDone);
     clearInterval(pollT); clearInterval(dueT);
     // The outbox keeps retrying in the background; nothing to wait for here.
   }
@@ -218,7 +222,8 @@ PR.runner = (() => {
   function priorFor(stepId) { return priorLessons.filter((p) => p.lesson.stepId === stepId); }
 
   /* ======================= step actions ======================= */
-  async function startStep(id, { quiet } = {}) {
+  async function startStep(id, opts = {}) {
+    const { quiet } = opts;
     const f = M().findStep(proc, id); if (!f) return;
     if (run.status === "paused") { toast("Run is halted — resume it first", "warn"); return; }
     const w = waitingOn(f.step);
@@ -233,13 +238,51 @@ PR.runner = (() => {
       if (blockers.length) commit([], { render: false, event: { type: "override", stepId: id, text: `Hold point overridden with ${blockers.length} open step(s)` } });
     }
     const impBefore = M().impactState(run);
-    commit([{ op: "merge", path: ["steps", id], ifStatus: ["pending"], value: { status: "active", startedAt: now(), startedBy: me(), timing: "auto", finishedAt: null } }], { event: { type: "start", stepId: id, text: `Started ${f.step.num} ${f.step.title}` } });
+    const t0 = now();
+    commit([{ op: "merge", path: ["steps", id], ifStatus: ["pending"], value: { status: "active", startedAt: t0, startedBy: me(), timing: "auto", finishedAt: null } }], { render: false, event: { type: "start", stepId: id, text: `Started ${f.step.num} ${f.step.title}` } });
+    // Countdowns set to start with the step begin now (only if this click actually started it)
+    const vals = st(id).values || {};
+    const autoT = st(id).startedAt === t0 ? (f.step.blocks || []).filter((b) => b.type === "timer" && b.autoStart !== false && !vals[b.id]) : [];
+    if (autoT.length) commit(autoT.map((b) => ({ op: "set", path: ["steps", id, "values", b.id], value: { startedAt: t0, by: me(), auto: true } })), { render: false, event: { type: "timer", stepId: id, text: `Countdown started: ${autoT.map((b) => `${b.label} (${b.minutes} min)`).join(", ")}` } });
     announceImpact(impBefore);
-    if (!quiet) setFocus(id);
+    if (!quiet) { focusId = id; saveUi(); }
+    render();
+    if (!quiet) { scrollToFocus(); if (opts.guide) setTimeout(() => guideNext(id, { fromStart: true }), 30); }
   }
-  function completeStep(id) {
+
+  /* Timers that are still running (or required and never started) when a step is being finished.
+     Asks before cutting them short; a "must finish" timer needs a reason. Returns false to keep waiting. */
+  async function timerGate(step, only) {
+    const T = PR.blocks.def("timer");
+    const vals = st(step.id).values || {};
+    const list = (step.blocks || []).filter((b) => b.type === "timer" && (!only || b.id === only.id))
+      .map((b) => ({ b, v: vals[b.id], state: T.timerState(b, vals[b.id]) }))
+      .filter((x) => x.state === "running" || (x.state === "idle" && x.b.required));
+    if (!list.length) return true;
+    const needReason = list.some((x) => x.b.required);
+    let why;
+    const ok = await modal({
+      title: list.every((x) => x.state === "idle") ? "Required wait not started" : list.length > 1 ? "Timers still running" : "Timer still running", size: "sm", enter: true,
+      body: h("div",
+        list.map((x) => h("div.tg-timer", "⏳ ", h("b", x.b.label), x.state === "running" ? h("span", " — ", h("b", { dataset: { countdown: String(x.v.startedAt + x.b.minutes * 60000) } }, fmtDur(T.timerLeft(x.b, x.v))), " left") : " — never started", x.b.required ? h("span.chip.c-amber-o", "must finish") : null)),
+        h("div.field", h("label.lbl", needReason ? "Why finish early? (required — recorded in the run report)" : "Reason (optional — recorded in the run report)"),
+          why = h("input.inp", { autofocus: true, placeholder: "e.g. Replication confirmed stopped on the console" })),
+        h("div.help", "Enter to confirm · Esc to keep waiting")),
+      actions: [{ spacer: true }, { label: "Keep waiting", value: false },
+        { label: only ? "Finish timer now" : "Finish early & complete", kind: "primary", value: true, onClick: () => { if (needReason && !why.value.trim()) { why.classList.add("err"); why.focus(); toast("This wait is marked “must finish” — give a reason", "warn"); return false; } } }],
+    });
+    if (ok !== true) return false;
+    const reason = why.value.trim(); const t = now();
+    commit(list.map((x) => ({ op: "set", path: ["steps", step.id, "values", x.b.id], value: x.state === "running"
+      ? { ...x.v, endedEarly: true, endedAt: t, endedBy: me(), reason, leftMs: T.timerLeft(x.b, x.v) }
+      : { skipped: true, endedAt: t, endedBy: me(), reason } })), { render: !!only, event: { type: "timer-early", stepId: step.id,
+      text: `Step ${step.num}: ${list.map((x) => x.state === "running" ? `“${x.b.label}” ended early with ${fmtDur(T.timerLeft(x.b, x.v), { short: true })} left` : `“${x.b.label}” skipped`).join("; ")}${reason ? " — " + reason : ""}` } });
+    return true;
+  }
+  async function completeStep(id) {
     const f = M().findStep(proc, id); if (!f) return;
     if (run.status === "paused") { toast("Run is halted — resume it first", "warn"); return; }
+    if (!(await timerGate(f.step))) return;
     const s = st(id);
     const missing = missingFor(f.step);
     let incomplete = null;
@@ -305,6 +348,43 @@ PR.runner = (() => {
     const s = statusOf(M().findStep(proc, id).step);
     if (s === "pending") startStep(id);
     else if (s === "active") completeStep(id);
+  }
+
+  /* ---------- keyboard flow inside a step ----------
+     Enter starts the step and jumps to the first thing that still needs doing (checklist item, value, check, sign-off…).
+     Enter in a field saves it and moves on; when nothing is left, Enter completes the step and focus moves to the next step. */
+  let passed = { id: null, keys: new Set() }; // fields the operator stepped past with Enter (left empty on purpose)
+  const ctlKey = (el) => { const blk = el.closest(".fc-blk"); return blk ? blk.dataset.bid + ":" + [...blk.querySelectorAll("input,select,textarea,button,.drop-zone")].indexOf(el) : ""; };
+  function actionables(id) {
+    if (passed.id !== id) passed = { id, keys: new Set() };
+    const f = M().findStep(proc, id); if (!f) return [];
+    const missing = new Set(missingFor(f.step).map((b) => b.id));
+    const out = [];
+    $$(`.fcard[data-fc="${id}"] .fc-blk`).forEach((blk) => {
+      if (!missing.has(blk.dataset.bid)) return;
+      const ctl = blk.querySelector("input[type=checkbox]:not(:checked):not(:disabled)") ||
+        [...blk.querySelectorAll("input:not([type=checkbox]):not(:disabled), select:not(:disabled), textarea:not(:disabled)")].find((x) => !String(x.value || "").trim() && !x.classList.contains("ok")) ||
+        blk.querySelector(".tm-start, .drop-zone, .seg-btn:not(:disabled), .btn:not(:disabled)");
+      const all = [...blk.querySelectorAll("input[type=checkbox]:not(:checked):not(:disabled), input:not([type=checkbox]):not(:disabled), select:not(:disabled), textarea:not(:disabled), .tm-start, .drop-zone, .seg-btn:not(:disabled), .btn:not(:disabled)")]
+        .filter((x) => !passed.keys.has(ctlKey(x)) && !(x.matches("input:not([type=checkbox]), select, textarea") && (String(x.value || "").trim() || x.classList.contains("ok"))));
+      const pick = ctl && !passed.keys.has(ctlKey(ctl)) ? ctl : all[0];
+      if (pick) out.push(pick);
+    });
+    return out;
+  }
+  function guideNext(id, { fromStart } = {}) {
+    if (focusId !== id || statusOf(M().findStep(proc, id).step) !== "active") return false;
+    const next = actionables(id)[0];
+    if (next) {
+      next.focus({ preventScroll: true }); next.scrollIntoView({ block: "nearest" });
+      return true;
+    }
+    if (!fromStart) { const b = $(`.fcard[data-fc="${id}"] .act-primary`); if (b) { b.focus({ preventScroll: true }); b.classList.add("kb-ready"); } }
+    return false;
+  }
+  function onFocusIn(e) {
+    $$(".fc-blk.kb-cur").forEach((n) => n.classList.remove("kb-cur"));
+    const blk = e.target.closest && e.target.closest(".fcard .fc-blk"); if (blk) blk.classList.add("kb-cur");
   }
   function setFocus(id, { scroll = true } = {}) {
     focusId = id; saveUi(); render(); if (scroll) scrollToFocus();
@@ -563,6 +643,7 @@ PR.runner = (() => {
       set: (v, o = {}) => setValue(step.id, b.id, v, o.render !== false),
       patch: (d, o = {}) => patchValue(step.id, b.id, d, o.render !== false),
       onDecision: (blk, v) => onDecision(step, blk, v),
+      finishTimer: (blk) => timerGate(step, blk),
       onFail: (blk) => setTimeout(async () => { if (await confirmBox("Validation failed", "Log an issue for this failed check?", { ok: "Log issue" })) issueModal({ stepId: step.id, title: `Validation failed: ${M().interpolate(blk.test, c, false)}` }); }, 50),
       putFile: async (f) => S().putAttachment(run.id, f.type && f.type.startsWith("image/") ? PR.u.dataURLToBlob(await PR.u.compressImage(f)) : f, f.name),
     });
@@ -602,6 +683,9 @@ PR.runner = (() => {
           { icon: "🕘", label: "Edit times / executed by", onClick: () => editTimes(step.id) },
           { icon: "∅", label: "Mark not applicable", disabled: !live, onClick: () => skipStep(step.id, "na") },
           { icon: "↺", label: "Reopen", disabled: !live || status === "pending" || status === "active", onClick: () => reopenStep(step.id) }], { align: "right" }) }, "⋯")),
+      live && (status === "pending" || status === "active") ? h("div.kb-hint",
+        status === "pending" ? [h("kbd", "Enter"), " start"] : [h("kbd", "Enter"), " next item / complete"], " · ", h("kbd", "Shift"), "+", h("kbd", "Enter"), " complete now · ",
+        h("kbd", "↑"), h("kbd", "↓"), " steps · ", h("kbd", "S"), " skip · ", h("kbd", "I"), " issue · ", h("kbd", "N"), " note · ", h("button.linkish", { type: "button", onclick: () => keysHelp() }, h("kbd", "?"), " all keys")) : null,
       h("div.fc-note", h("span", "💡"), noteInp = h("input.inp#noteInp", { placeholder: "Improvement note for next time — press Enter to save (N)", onkeydown: (e) => {
         if (e.key === "Enter" && noteInp.value.trim()) { const id = uid("nt"); commit([{ op: "set", path: ["notes", id], value: { id, stepId: step.id, at: now(), by: me(), kind: "improve", text: noteInp.value.trim() } }], { render: false }); toast("Note saved — it will appear in lessons learned", "ok", 1600); noteInp.value = ""; render(); }
         if (e.key === "Escape") noteInp.blur();
@@ -992,21 +1076,66 @@ PR.runner = (() => {
 
   /* ======================= keyboard ======================= */
   function onKey(e) {
-    if (!run || run.status === "setup" || editingSetup || PR.u.topModalOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!run || run.status === "setup" || editingSetup || PR.u.topModalOpen() || e.metaKey || e.altKey) return;
+    const a = document.activeElement;
+    const inCard = a && a.closest && a.closest(".fcard .fc-blocks");
+    // Inside a step's components: Enter saves the field / ticks the box and moves to the next item
+    if (e.key === "Enter" && inCard && !e.shiftKey) {
+      const tag = a.tagName;
+      if (tag === "TEXTAREA" && !e.ctrlKey) return; // new line; Ctrl+Enter moves on
+      if (tag === "BUTTON" || (tag === "INPUT" && a.type === "checkbox") || a.classList.contains("drop-zone")) {
+        e.preventDefault(); const id = focusId; if (a.classList.contains("drop-zone")) { actionables(id); passed.keys.add(ctlKey(a)); } a.click(); setTimeout(() => { if (!PR.u.topModalOpen()) guideNext(id); }, 60); return;
+      }
+      if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") {
+        e.preventDefault(); const id = focusId; actionables(id); passed.keys.add(ctlKey(a)); a.blur(); setTimeout(() => { if (deferRender) render(); guideNext(id); }, 60); return;
+      }
+    }
+    if (e.ctrlKey) return;
     if (PR.u.isTyping(e)) { if (e.key === "Escape") document.activeElement.blur(); return; }
+    // A focused button anywhere else (e.g. a menu or "Start in parallel") handles Enter itself
+    if (e.key === "Enter" && a && a.tagName === "BUTTON" && !a.classList.contains("act-primary") && $("#run") && $("#run").contains(a)) return;
     const all = stepsInOrder().filter(({ step, section }) => visible(step, section));
     const i = all.findIndex((x) => x.step.id === focusId);
     switch (e.key) {
-      case "Enter": e.preventDefault(); if (focusId) primaryAction(focusId); break;
+      case "Enter": {
+        e.preventDefault(); if (!focusId) break;
+        const stt = statusOf(M().findStep(proc, focusId).step);
+        if (e.shiftKey) { if (stt === "pending") startStep(focusId); else if (stt === "active") completeStep(focusId); break; }
+        if (stt === "pending") startStep(focusId, { guide: true });
+        else if (stt === "active") { if (!guideNext(focusId, { fromStart: true })) completeStep(focusId); }
+        break;
+      }
       case "ArrowDown": case "j": e.preventDefault(); if (all[i + 1]) setFocus(all[i + 1].step.id); break;
       case "ArrowUp": case "k": e.preventDefault(); if (i > 0) setFocus(all[i - 1].step.id); break;
       case "i": case "I": e.preventDefault(); issueModal({ stepId: focusId }); break;
       case "n": case "N": e.preventDefault(); { const n = $("#noteInp"); n && n.focus(); } break;
+      case "s": case "S": e.preventDefault(); if (focusId && ["pending", "active"].includes(statusOf(M().findStep(proc, focusId).step))) skipStep(focusId); break;
+      case "t": case "T": e.preventDefault(); { const b = $(`.fcard[data-fc="${focusId}"] .tm-start`); if (b) b.click(); else { const f = M().findStep(proc, focusId); f && f.step.blocks.some((x) => x.type === "timer") && timerGate(f.step, f.step.blocks.find((x) => x.type === "timer")); } } break;
       case "c": case "C": e.preventDefault(); commsModal(); break;
       case "l": case "L": e.preventDefault(); mode = mode === "lanes" ? "list" : "lanes"; PR.app.LS.set("runMode", mode); render(); break;
+      case "?": e.preventDefault(); keysHelp(); break;
       case "g": case "G": e.preventDefault(); promptBox("Go to step", { label: "Step number", ok: "Go" }).then((n) => { if (!n) return; const f = stepsInOrder().find((x) => x.step.num === n.trim()); if (f) { filter = "all"; siteFilter = "all"; mode = "list"; setFocus(f.step.id); } else toast("No step " + n, "warn"); }); break;
       default:
     }
+  }
+  function keysHelp() {
+    const row = (k, d) => h("tr", h("td", k.map((x) => h("kbd", x))), h("td", d));
+    modal({ title: "Keyboard", size: "md", body: h("table.keys-tbl", h("tbody",
+      row(["Enter"], "Start the focused step. Focus jumps to the first thing that still needs doing in it."),
+      row(["Enter"], "In a field or checklist: save / tick it and move to the next item. When nothing is left: complete the step and move to the next one."),
+      row(["Shift", "Enter"], "Complete the step now (it still asks about running timers and missing items)."),
+      row(["Ctrl", "Enter"], "In a long text box: save and move on."),
+      row(["Tab"], "Next control inside the step"), row(["Esc"], "Leave a field and go back to step keys"),
+      row(["↑", "↓"], "Previous / next step (also K / J)"), row(["S"], "Skip the step (asks for a reason)"),
+      row(["T"], "Start the step's countdown, or finish it early"), row(["I"], "Log an issue (paste screenshots)"),
+      row(["N"], "Improvement note"), row(["C"], "Communications"), row(["G"], "Go to a step number"), row(["L"], "List / lanes view"), row(["?"], "This list"))),
+      actions: [{ spacer: true }, { label: "Close", kind: "primary", value: true }] });
+  }
+  function onCountdownDone(e) {
+    const card = e.detail && e.detail.el && e.detail.el.closest(".fcard"); if (!card) return;
+    const f = M().findStep(proc, card.dataset.fc); if (!f) return;
+    safeRender();
+    if (statusOf(f.step) === "active") toast(`⏳ Wait finished on step ${f.step.num} — press Enter to continue`, "ok", 6000);
   }
 
   PR.views.runner = { mount, unmount };

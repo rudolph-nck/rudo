@@ -242,8 +242,9 @@ PR.app = (() => {
     $$("[data-countdown]").forEach((el) => {
       const left = Number(el.dataset.countdown) - t;
       el.textContent = fmtDur(Math.max(0, left));
-      if (left <= 0 && !el.dataset.fired) { el.dataset.fired = "1"; el.closest(".blk-timer") && el.closest(".blk-timer").classList.add("fired"); beep(); notify("Countdown finished"); }
+      if (left <= 0 && !el.dataset.fired) { el.dataset.fired = "1"; const tb = el.closest(".blk-timer"); if (tb) { tb.classList.add("fired"); beep(); notify("Countdown finished"); document.dispatchEvent(new CustomEvent("pr:countdown-done", { detail: { el } })); } }
     });
+    $$(".blk-timer[data-tm-end]").forEach((el) => { const bar = el.querySelector(".tm-bar i"); if (bar) bar.style.width = `${Math.min(100, Math.max(0, 100 - ((Number(el.dataset.tmEnd) - t) / (Number(el.dataset.tmTotal) || 1)) * 100))}%`; });
   }, 1000);
   function beep() { try { const a = new AudioContext(), o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value = 880; g.gain.value = 0.08; o.start(); setTimeout(() => { o.stop(); a.close(); }, 350); } catch { /* no audio */ } }
   function notify(msg) { try { if ("Notification" in window && Notification.permission === "granted") new Notification("Procedure Runner", { body: msg }); } catch { /* ignore */ } }

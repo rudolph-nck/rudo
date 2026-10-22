@@ -38,12 +38,25 @@ Sections or steps marked *after cutover* switch the role labels to New Primary /
 ## Run (▶ Run)
 
 1. **Setup wizard**: date, change/exercise ID, participants and chairs, direction, mapping verification (who and when), and a readiness checklist (backups, transfers, replication, approvals).
-2. **Execute**: `Enter` starts the focused step and `Enter` again completes it. The next step is focused automatically and previewed under **Up next**.
+2. **Execute**: you can run the whole procedure from the keyboard.
+   - `Enter` starts the focused step and jumps straight to the first thing that still needs doing in it: a checklist item, a value to record, a pass/fail, a sign-off.
+   - `Enter` in a field saves it, and on a checkbox or button it ticks or clicks it, then moves to the next item. When nothing is left, focus lands on **Complete**.
+   - `Enter` once more completes the step and moves to the next one, previewed under **Up next**.
+   - `Shift+Enter` completes the step right away.
+   - Other keys: `S` skip · `T` start or finish the countdown · `↑`/`↓` move between steps · `?` shows every key.
    - Several steps can run at once. Each gets its own live timer in **Active now**, and **Lanes** (`L`) shows one column per datacenter.
    - `I` logs an issue (paste screenshots with Ctrl+V). `N` adds an improvement note without leaving the step. `C` opens the comms log. `G` jumps to a step number.
    - **Forgot to press Start?** Click **✓ Already done**. The finish time is recorded and the timing is flagged *unreliable*. Adding the real start later marks it *entered afterward*.
    - A NO-GO decision halts the run, or jumps to a rollback section if you configure that.
 3. **🏁 Finish**: milestones, remaining issues, outcome, who authorized completion, and lessons learned. Lessons are pre-filled from the notes and issues captured during the run. Lessons flagged *check next run* appear on that step next time with a "did it work?" prompt.
+
+### Wait / countdown timers
+
+- **Auto-start**: a countdown can start by itself when its step starts. This is the default, and the **⏳ Wait** step tile works this way.
+- **Finishing early**: completing a step while its countdown is still running asks first, showing the time left. Esc keeps waiting; Enter finishes early.
+- **Must run to the end**: with this option on (the default for the Wait step tile), finishing early or skipping a never-started countdown needs a reason.
+- **Records**: early finishes and skips, with the time left and the reason, go into the run log and the run report.
+- **When it hits zero**: it beeps, sends a desktop notification and prompts you to press Enter to continue.
 
 ## Concurrent chairs
 

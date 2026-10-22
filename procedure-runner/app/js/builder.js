@@ -221,7 +221,7 @@ PR.views.builder = (() => {
     { id: "decision", icon: "⚖", label: "Go / No-Go", make: () => M().newStep({ title: "Decision point", category: "Decisioning", critical: true, hold: true, blocks: [B("decision")] }) },
     { id: "record", icon: "✎", label: "Record a value", make: () => M().newStep({ title: "Record …", blocks: [B("path"), B("input", { label: "Value", variable: "" })] }) },
     { id: "command", icon: "⌘", label: "Run a command", make: () => M().newStep({ title: "Run …", category: "Processing", blocks: [B("path"), B("command")] }) },
-    { id: "wait", icon: "⏳", label: "Wait", make: () => M().newStep({ title: "Wait", blocks: [B("timer")] }) },
+    { id: "wait", icon: "⏳", label: "Wait", make: () => M().newStep({ title: "Wait", blocks: [B("timer", { required: true })] }) },
     { id: "signoff", icon: "✍", label: "Sign-off", make: () => M().newStep({ title: "Approval", category: "Approval", hold: true, blocks: [B("approval")] }) },
     { id: "milestone", icon: "🏁", label: "Milestone", make: () => M().newStep({ title: "Milestone reached", category: "Milestone", blocks: [] }) },
     { id: "impact-down", icon: "🔴", label: "System down", make: () => M().newStep({ title: "System down — members impacted", category: "Milestone", critical: true, impact: { mark: "down", on: "complete" },
