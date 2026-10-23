@@ -87,7 +87,7 @@ td:first-child{font-weight:700;color:var(--anchor);width:38%}
   section{break-before:page}
   section.keep{break-before:auto}
   figure{break-inside:avoid}
-  figure img{box-shadow:none;max-height:6.2in;width:auto}
+  figure img{box-shadow:none;max-height:5.4in;width:auto}
   .steps>li,.tip,.ok,.warn,.stop,tr,.legend li{break-inside:avoid}
   h2,h3{break-after:avoid}
   .backtop,.noprint{display:none}
@@ -161,7 +161,6 @@ td:first-child{font-weight:700;color:var(--anchor);width:38%}
 Org Chart Builder 2.0
   This PC        : http://localhost:8010/
   Teammates      : http://HR-PC-07:8010/
-  Official chart : http://HR-PC-07:8010/published
 Press Ctrl+C to stop.</pre></div>
   <div class="stop"><b>Leave the black window open.</b>It's what makes the chart work for everyone. You can make it smaller with the <b>–</b> button in its top-right corner, but <b>don't close it</b> with ✕. If it gets closed, just double-click the desktop icon again.</div>
   <div class="tip"><b>Turned the computer off?</b>No problem. After you turn it back on, double-click the icon once to start everything again. Nothing is lost.</div>
@@ -378,7 +377,7 @@ Press Ctrl+C to stop.</pre></div>
 <section id="publish">
   <h2><span class="num">14</span>Making it official (Publish)</h2>
   <p class="lead">Your changes are a <b>draft</b> until you publish. While there are unpublished changes, the top of the screen shows a yellow <b style="background:var(--amber);padding:0 6px;border-radius:5px;color:#3a2c00">Draft · unpublished changes</b> label.</p>
-  <p>Publishing is like printing the “official copy”. Everyone who opens the official chart sees the new version. Only publish when the changes have been checked.</p>
+  <p>Publishing is like signing off on the “official copy”. It saves a numbered version that you can always go back to. Only publish when the changes have been checked.</p>
   <ol class="steps">
     <li>Click <b>Publish</b> at the top of the screen.</li>
     <li>Read the <b>What changed</b> list <span class="n">2</span>. It shows exactly who was added, removed or moved since the last official version. Is it right?</li>
@@ -390,8 +389,9 @@ Press Ctrl+C to stop.</pre></div>
     <li>Click <span class="btn green">Publish</span> <span class="n">2</span>.</li>
   </ol>
   <figure><img src="img/15-publish-dialog.jpg" alt="The Publish window"></figure>
-  <p>The top now says <b>“Version 2 is the official chart”</b>, and the label at the top turns green: <b style="background:#d4f3c6;padding:0 6px;border-radius:5px;color:#2b5a1f">Published v2</b>.</p>
-  <figure><img src="img/16-published.jpg" alt="Published confirmation with the link to the official chart"></figure>
+  <p>A window confirms <b>“Version 2 is now the official chart”</b>. From there you can download it right away as a <b>PDF</b> <span class="n">1</span> or an <b>HTML file</b> <span class="n">2</span> to share it (see <a href="#share">section 16</a>), or just click <span class="btn">Done</span>.</p>
+  <p>The label at the top of the screen turns green: <b style="background:#d4f3c6;padding:0 6px;border-radius:5px;color:#2b5a1f">Published v2</b>.</p>
+  <figure><img src="img/16-share-dialog.jpg" alt="Version 2 is now the official chart, with PDF and HTML download buttons"></figure>
   <a class="backtop noprint" href="#">↑ Back to top</a>
 </section>
 
@@ -412,8 +412,6 @@ Press Ctrl+C to stop.</pre></div>
     <li>The print window opens. To print on paper, pick your printer and click <b>Print</b>.<br>To get a <b>PDF file</b>, change the <b>Destination</b> (or <b>Printer</b>) to <b>Save as PDF</b> and click <b>Save</b>.</li>
   </ol>
   <div class="tip"><b>Each chart page prints on its own sheet</b>sideways (landscape), sized to fit. Very big departments come out small, so for those you may prefer the PDF, because you can zoom in on it.</div>
-  <h3>Other files you can get</h3>
-  <p>On the <b>Publish</b> screen, under <b>Download</b>, you can also get a <b>PowerPoint</b> (one slide per page), an <b>Excel</b> list of everyone, and an <b>interactive chart</b> file that opens in any web browser.</p>
   <div class="warn"><b>“DRAFT” on your printout?</b>That means there are changes that haven't been published yet. Publish first (<a href="#publish">section 14</a>) if you want the official version.</div>
   <a class="backtop noprint" href="#">↑ Back to top</a>
 </section>
@@ -421,14 +419,26 @@ Press Ctrl+C to stop.</pre></div>
 <!-- 16 -->
 <section id="share">
   <h2><span class="num">16</span>Sharing the chart with everyone</h2>
-  <p class="lead">People who only need to <b>look</b> at the chart don't need the Org Chart Builder at all.</p>
+  <p class="lead">To share the chart, you <b>download it as a file</b> and send that file. There is no link to share. People who only need to look don't need the Org Chart Builder at all.</p>
+  <h3>Pick one of two files</h3>
+  <div class="two">
+    <div class="card"><h3>PDF</h3><p>Best for <b>printing</b> or for people who just want to flip through the pages. Every page of the chart is on its own sheet.</p></div>
+    <div class="card"><h3>HTML file</h3><p>Best for <b>looking people up</b>. It opens in any web browser (Edge, Chrome). It has every page, a search box, and contact details when you click a person.</p></div>
+  </div>
   <ol class="steps">
-    <li>Go to <b>Publish</b>. Near the top it says <b>“Everyone can open the official chart at …”</b>.</li>
-    <li>Click <span class="btn">Copy link</span> and paste it into an email or a Teams message.</li>
+    <li>Click <b>Publish</b> at the top of the screen.</li>
+    <li>Under <b>Share the chart</b> <span class="n">3</span>, click <b>PDF</b> or <b>HTML file</b>.
+      <ul>
+        <li><b>PDF:</b> choose <b>The whole chart</b>, click <span class="btn">Open print view</span>, set the <b>Destination</b> to <b>Save as PDF</b>, and click <b>Save</b>.</li>
+        <li><b>HTML file:</b> it downloads straight away.</li>
+      </ul></li>
+    <li>The file is in your <b>Downloads</b> folder. Attach it to an email, or save it to the shared folder or Teams channel where your team keeps documents.</li>
   </ol>
-  <p>Anyone who opens that link sees the latest <b>published</b> chart. They can search for a person <span class="n">1</span> and click a card to see contact details. They <b>can't</b> change anything.</p>
-  <figure><img src="img/19-official.jpg" alt="The official chart as everyone else sees it"></figure>
-  <div class="tip"><b>The link only works</b>while the host computer is on and its black window is open (see <a href="#open">section 2</a>). For people outside the office network, send the PDF or the interactive chart file instead.</div>
+  <figure><img src="img/14-publish.jpg" alt="The Publish screen with Share the chart"></figure>
+  <div class="warn"><b>A file is a copy, not a live view.</b>When the chart changes, publish again and send the new file. That way nobody keeps working from an old version. The file name has the date in it, so people can tell which one is newest.</div>
+  <div class="tip"><b>Only want to share one page or one area?</b>Use <b>Print / save as PDF…</b> from that page's <b>⋯</b> menu (<a href="#print">section 15</a>) and choose <b>This page</b> or the executive's <b>area</b>.</div>
+  <p>This is what people see when they <b>double-click the HTML file</b>. They can type a name in the search box <span class="n">1</span> and click a card to see contact details. They <b>can't</b> change anything.</p>
+  <figure><img src="img/19-official.jpg" alt="The HTML file opened in a web browser"></figure>
   <a class="backtop noprint" href="#">↑ Back to top</a>
 </section>
 
@@ -462,7 +472,7 @@ Press Ctrl+C to stop.</pre></div>
     <tr><td>Someone is on the wrong page or missing from a page</td><td>Pages are built from each person's <b>Department</b> and <b>Reports to</b>. Click the person and check those two boxes (<a href="#change">section 8</a>).</td></tr>
     <tr><td>A message says “Updated with Pat's changes”</td><td>Nothing to do. A colleague changed something and your screen caught up.</td></tr>
     <tr><td>The yellow label says “Draft · unpublished changes”</td><td>There are changes that aren't official yet. Publish when they're checked (<a href="#publish">section 14</a>).</td></tr>
-    <tr><td>Where did my PDF / Excel / PowerPoint go?</td><td>Into your <b>Downloads</b> folder. Open File Explorer and click <b>Downloads</b> on the left.</td></tr>
+    <tr><td>Where did my PDF / HTML / Excel file go?</td><td>Into your <b>Downloads</b> folder. Open File Explorer and click <b>Downloads</b> on the left.</td></tr>
     <tr><td>The black window says “Python is not installed”</td><td>Ask your IT contact to install Python on the host computer. This is a one-time setup.</td></tr>
   </table>
   <p>Still stuck? Click the <b>?</b> button at the top right of the Org Chart Builder for a short reminder, or contact your Org Chart coordinator.</p>
@@ -490,7 +500,7 @@ Press Ctrl+C to stop.</pre></div>
     <tr><td>Make it official</td><td><b>Publish</b> tab, then <span class="btn green">Publish changes</span>, type a note, then <span class="btn green">Publish</span>.</td></tr>
     <tr><td>Print or make a PDF</td><td><b>⋯</b> (top right of a page), then <b>Print / save as PDF…</b></td></tr>
     <tr><td>Get the list in Excel</td><td><b>People</b> tab, then <b>Export ▾</b>, then <b>Excel workbook</b>.</td></tr>
-    <tr><td>Share the chart</td><td><b>Publish</b> tab, then <span class="btn">Copy link</span>, and paste it in an email.</td></tr>
+    <tr><td>Share the chart</td><td><b>Publish</b> tab, then under <b>Share the chart</b> click <b>PDF</b> or <b>HTML file</b>, and attach the file to an email.</td></tr>
   </table>
   <div class="ok"><b>Remember:</b>you can't break it. Everything can be undone, and the chart keeps backups.</div>
   <p class="foot">Org Chart Builder · Step-by-step guide</p>

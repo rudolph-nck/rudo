@@ -1,5 +1,5 @@
-/* publish.js — the Publish screen: what changed since the official version, publish, downloads, earlier versions and
-   automatic snapshots (restore any of them). */
+/* publish.js — the Publish screen: what changed since the official version, publish, sharing (the chart is shared only
+   as a downloaded PDF or HTML file — never by link), earlier versions and automatic snapshots (restore any of them). */
 OC.publish = (() => {
   const { h, $, toast, modal, confirmBox, plural, fmtDateTime, ago, promptBox } = OC.u;
   const M = () => OC.model, S = () => OC.store;
@@ -40,17 +40,14 @@ OC.publish = (() => {
     view.append(root);
     const pub = p.published;
     const dirty = S().dirty();
-    const official = S().mode === "server" ? new URL("published", location.href.split("#")[0]).href : null;
 
     const status = h("div.pub-status.blue-line" + (dirty ? ".draft" : ".ok"),
       h("div",
         h("div.ps-k", dirty ? "Draft" : "Up to date"),
         h("h1", dirty ? (pub ? `Changes since version ${pub.version}` : "Not published yet") : `Version ${pub.version} is the official chart`),
-        h("div.muted", pub ? `Version ${pub.version} published ${ago(pub.at)}${pub.by ? " by " + pub.by : ""}${pub.note ? ` — “${pub.note}”` : ""}` : "Publishing saves a numbered version and the interactive chart everyone opens."),
-        official && pub ? h("div.official", "Everyone can open the official chart at ", h("a", { href: official, target: "_blank", rel: "noopener" }, official), h("button.mini-btn", { type: "button", onclick: () => OC.u.copyText(official, "Link copied") }, "Copy link")) : null),
+        h("div.muted", pub ? `Version ${pub.version} published ${ago(pub.at)}${pub.by ? " by " + pub.by : ""}${pub.note ? ` — “${pub.note}”` : ""}` : "Publishing saves the chart as a numbered, official version.")),
       h("div.ps-act",
-        h("button.btn.btn-cta.btn-xl", { type: "button", disabled: !dirty && !!pub, onclick: publishNow }, pub ? "Publish changes" : "Publish"),
-        h("button.btn", { type: "button", onclick: () => OC.exporter.downloadHtml() }, "Preview / download HTML")));
+        h("button.btn.btn-cta.btn-xl", { type: "button", disabled: !dirty && !!pub, onclick: publishNow }, pub ? "Publish changes" : "Publish")));
     root.append(status);
 
     const changes = h("div.card-box", h("h2", "What changed"), h("div.muted.small", "Loading…"));
@@ -60,11 +57,11 @@ OC.publish = (() => {
     } else changes.lastChild.replaceWith(h("div.muted", `Everything — ${plural(M().stats(p).people, "person", "people")} — will be in the first version.`));
 
     const dl = (icon, title, text, fn) => h("button.dl-card", { type: "button", onclick: fn }, h("span.dl-ic", icon), h("span", h("b", title), h("span.muted.small", text)));
-    root.append(h("div.card-box", h("h2", "Download"), h("div.dl-grid",
-      dl("◫", "Interactive chart (.html)", "One file: every page, search, contact details. Opens in any browser, works on SharePoint/Teams.", () => OC.exporter.downloadHtml()),
-      dl("⎙", "PDF / print", "Every page scaled to one landscape sheet. Choose “Save as PDF”.", () => OC.exporter.printDialog(null)),
-      dl("▭", "PowerPoint (.pptx)", "One slide per chart page.", () => OC.exporter.pptx()),
-      dl("▦", "People (.xlsx)", "The full list with managers and departments.", () => OC.directory.exportXlsx()),
+    root.append(h("div.card-box", h("h2", "Share the chart"),
+      h("p.muted.small.share-note", "Download the chart as a file, then attach it to an email or save it to a shared folder. ", dirty ? h("b", "There are unpublished changes, so the file will be marked DRAFT.") : null),
+      h("div.dl-grid", shareCards(dl))));
+    root.append(h("div.card-box", h("h2", "Other downloads"), h("div.dl-grid",
+      dl("▦", "People (.xlsx)", "The full list with managers and departments, for keeping records.", () => OC.directory.exportXlsx()),
       dl("⛁", "Project backup (.json)", "Everything, to move the chart or keep a copy.", () => OC.actions.exportProjectFile()),
       editing ? dl("⇪", "Open a project file…", "Replace the chart with a backup or a file from the old builder.", () => OC.actions.importProjectFile(false)) : null)));
 
@@ -94,7 +91,8 @@ OC.publish = (() => {
 
   function versionMenu(v) {
     return [
-      S().mode === "server" ? { label: "Open this version", icon: "↗", onClick: () => window.open(`published/v${v.version}.html`, "_blank") } : { label: "Download its HTML", icon: "⤓", onClick: async () => OC.u.download(`OrgChart_v${v.version}.html`, await S().publishedHtml(v.version), "text/html") },
+      { label: "Download it as HTML", icon: "⤓", onClick: async () => OC.u.download(`OrgChart_v${v.version}.html`, await S().publishedHtml(v.version), "text/html") },
+      { label: "Print / save it as PDF…", icon: "⎙", onClick: () => printVersion(v.version) },
       { label: "What changed since then", icon: "≠", onClick: async () => { const r = await S().publishedGet(v.version); modal({ title: `Changes since v${v.version}`, size: "lg", body: diffView(diff(r.doc, P())) }); } },
       editing ? { label: "Restore as the working draft…", icon: "↺", onClick: async () => restore(`version ${v.version}`, (await S().publishedGet(v.version)).doc) } : null,
     ];
@@ -120,16 +118,33 @@ OC.publish = (() => {
     const body = h("div",
       errors.length ? h("div.callout.warn", h("b", `${plural(errors.length, "problem")} in the people list`), h("div.small", errors.slice(0, 4).map((e) => e.msg).join(" ")), h("a.small", { href: "#/people" }, "Review on the People screen")) : null,
       h("div.field", h("label.lbl", "What changed? (shown in the version list)"), note = h("textarea.inp", { rows: 3, placeholder: "e.g. New Digital Services team; Q3 promotions", autofocus: true })),
-      h("p.muted.small", S().mode === "server" ? "Publishing replaces the official chart at /published for everyone, and keeps every earlier version." : "Local mode: the version is kept in this browser and the official HTML downloads to your computer."));
+      h("p.muted.small", "Publishing saves this as the next official version and keeps every earlier one. Afterwards you can download it as a PDF or HTML file to share."));
     const v = await modal({ title: "Publish the chart", size: "md", body, actions: [{ spacer: true }, { label: "Cancel", value: null }, { label: "Publish", kind: "cta", value: "ok" }] });
     if (v !== "ok") return;
     try {
       const html = await OC.exporter.buildHtml({ forPublish: true });
       const meta = await S().publish(html, note.value.trim());
-      if (S().mode !== "server") OC.u.download(OC.exporter.fileName("html").replace("_Draft", ""), html, "text/html");
-      toast(`Version ${meta.version} published`, "ok", 5000);
       OC.app.render();
+      const dl = (icon, title, text, fn) => h("button.dl-card", { type: "button", onclick: fn }, h("span.dl-ic", icon), h("span", h("b", title), h("span.muted.small", text)));
+      modal({ title: `Version ${meta.version} is now the official chart`, size: "md",
+        body: h("div", h("p", "To share it, download it as a file and attach it to an email or save it to a shared folder."), h("div.dl-grid.dl-2", shareCards(dl))),
+        actions: [{ spacer: true }, { label: "Done", kind: "primary", value: "ok" }] });
     } catch (e) { toast("Publishing failed: " + e.message, "err", 8000); }
+  }
+
+  /* The two ways to share the chart: a PDF (print view) or the single interactive HTML file. */
+  function shareCards(dl) {
+    return [
+      dl("⎙", "PDF", "Every page on its own landscape sheet. In the print window choose “Save as PDF”.", () => OC.exporter.printDialog(null)),
+      dl("◫", "HTML file", "One file with every page, search and contact details. Opens in any web browser.", () => OC.exporter.downloadHtml()),
+    ];
+  }
+  /* Print (or save as PDF) an earlier published version from its saved HTML. */
+  async function printVersion(n) {
+    const w = window.open("", "_blank");
+    if (!w) return toast("The browser blocked the print window — allow pop-ups for this site", "err", 6000);
+    const html = await S().publishedHtml(n);
+    w.document.open(); w.document.write(String(html || "").replace('"autoprint":false', '"autoprint":true')); w.document.close();
   }
 
   return { render, diff, publishNow, $ };

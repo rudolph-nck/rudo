@@ -1,5 +1,5 @@
-/* sheet.js — spreadsheets without libraries: read .xlsx/.xlsm/.csv, write real .xlsx (and .pptx, which is the same
-   zip container). The old builder exported "Excel" as XML renamed to .xls, which Excel opens with a warning. */
+/* sheet.js — spreadsheets without libraries: read .xlsx/.xlsm/.csv, write real .xlsx.
+   The old builder exported "Excel" as XML renamed to .xls, which Excel opens with a warning. */
 OC.sheet = (() => {
   /* ---------------- zip reader ---------------- */
   async function unzip(buf) {

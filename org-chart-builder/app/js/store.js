@@ -316,7 +316,7 @@ OC.store = (() => {
     return iget("published", Number(n));
   }
   async function publishedHtml(n) {
-    if (mode === "server") return (await fetch(`published/v${n}.html`, { cache: "no-store" })).text();
+    if (mode === "server") { const r = await fetch(`api/published/${n}/html`, { cache: "no-store" }); if (!r.ok) throw new Error("That version's file wasn't found"); return r.text(); }
     const r = await iget("published", Number(n)); return r && r.html;
   }
   const dirty = () => !!doc && (!doc.published || (doc.rev || 0) > (doc.published.rev || 0) || outbox.length > 0);

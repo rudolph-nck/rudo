@@ -249,8 +249,7 @@ OC.app = (() => {
   function pageMenu(pg) {
     const items = [
       { label: "Print / save as PDF…", icon: "⎙", onClick: () => OC.exporter.printDialog(pg.id) },
-      pg.kind === "chart" ? { label: "Download this page as PNG", icon: "▣", onClick: () => OC.exporter.pagePng(pg) } : null,
-      { label: "Copy link to this page", icon: "🔗", onClick: () => OC.u.copyText(location.href.split("#")[0] + pageHash(pg.id), "Link copied") },
+      { label: "Download the chart as HTML", icon: "◫", onClick: () => OC.exporter.downloadHtml() },
     ];
     if (editing) {
       items.push({ sep: true },
@@ -421,7 +420,7 @@ OC.app = (() => {
       h("h3", "Pages"),
       h("p", "Pages are built for you from the reporting lines: the Executive Overview, each executive's direct reports, then every department and branch grouped by executive area. In Edit mode use ", h("b", "Arrange"), " in the page list to reorder or hide pages, and ", h("b", "+ New page"), " for a custom page or a section divider."),
       h("h3", "Publishing"),
-      h("p", "The chart you edit is the draft. ", h("b", "Publish"), " makes it official: it saves a numbered version and the interactive HTML that everyone can open at ", h("code", "/published"), ". Earlier versions and automatic snapshots can be restored from the Publish screen."),
+      h("p", "The chart you edit is the draft. ", h("b", "Publish"), " makes it official and saves a numbered version. To share the chart, download it from the Publish screen as a ", h("b", "PDF"), " or an ", h("b", "HTML file"), " and attach it to an email or save it to a shared folder. Earlier versions and automatic snapshots can be restored from the Publish screen."),
       h("h3", "Keys"),
       h("div.kb", row("/", "Search"), row("E", "View / Edit"), row("← →", "Previous / next page"), row("+ − 0", "Zoom in / out / 100%"), row("F W", "Fit chart / fit width"), row("Space", "Hold and drag to move around"), row("Ctrl Z", "Undo"), row("Ctrl Y", "Redo"), row("Esc", "Close the panel")),
       h("p.muted.small", `Version ${window.OC_BUILD} · ${S().mode === "server" ? "Team server " + S().server.host + " · data in " + S().server.dataDir : "Local mode (this browser only)"}`)) });

@@ -2,7 +2,7 @@
 
 Build, review and publish the organizational chart as a team. This replaces the single-file Org Chart Builder (v31–v44). It has the same pages and the same idea (executive overview, executive direct reports, then every department and branch by executive area), rebuilt so that it works reliably:
 
-- **The chart is drawn from computed positions.** Connector lines can't break, wide teams don't clip, and the screen, the HTML export, the PDF and PowerPoint all come from the same layout.
+- **The chart is drawn from computed positions.** Connector lines can't break, wide teams don't clip, and the screen, the HTML file and the PDF all come from the same layout.
 - **One page at a time, with real pan and zoom**, instead of one 85-page scroll that resized itself.
 - **A small team server** replaces "Connect Folder", check-out locks and "a newer copy exists" warnings. Several people can edit at once, every change saves on its own, and everyone sees the others' changes within seconds.
 - **Undo for everything.** There are automatic snapshots and numbered published versions, and any of them can be restored.
@@ -17,7 +17,7 @@ No install and no build step. It's plain HTML/JS plus a Python server that uses 
 | `py server.py --data I:\HR\OrgChart\data` | Same, with the data on a shared drive. |
 | Open `index.html` directly | **Local mode**: the chart lives in this browser only. Good for trying things out. Use Publish → *Project backup* / *Open a project file* to move it. |
 
-The official chart (the last version published) is at **`http://<server>:8010/published`**. Share that link with anyone who only needs to look.
+The server is only for the people who maintain the chart. Nothing is hosted for anyone else: the chart is shared by downloading it as a **PDF** or a single **HTML file** (see *Sharing* below).
 
 ### Bring over the old chart
 
@@ -52,15 +52,15 @@ For the people who use it day to day there is a **step-by-step guide with pictur
 
 The chart you edit is the draft. The top bar shows whether it has unpublished changes.
 
-**Publish** lists what changed since the last version (people added, removed, moved and updated). Publishing then saves a numbered version and the interactive HTML, which becomes the official chart at `/published`. Earlier versions stay available and can be compared or restored.
+**Publish** lists what changed since the last version (people added, removed, moved and updated). Publishing then saves a numbered version, and its HTML is kept with it. Earlier versions stay available: you can compare them, download them again as HTML or PDF, or restore them.
 
-**Downloads** (on the Publish screen):
-- **Interactive chart (.html)**: one file with every page, search, and contact details when you click a person. It fits any screen, works on SharePoint and Teams, and prints one page per sheet.
-- **PDF**: every page scaled to one landscape sheet. Choose *Save as PDF* in the print window. You can print just this page, an executive area, or everything.
-- **PowerPoint (.pptx)**: one slide per chart page.
-- **People (.xlsx)**, and a **project backup (.json)**.
+## Sharing
 
-Downloads made while there are unpublished changes are marked **DRAFT**.
+The chart is shared **only as a downloaded file**. There is no hosted page and no link. On the Publish screen, under **Share the chart** (also offered right after publishing):
+- **PDF**: every page scaled to one landscape sheet. Choose *Save as PDF* in the print window. From a page's **⋯** menu you can also print just that page or an executive area.
+- **HTML file**: one file with every page, search, and contact details when you click a person. It opens in any browser from an email attachment or a shared folder, fits any screen, and prints one page per sheet.
+
+Files made while there are unpublished changes are marked **DRAFT**. **Other downloads** has the **People (.xlsx)** list and a **project backup (.json)**. These are for keeping records, not for sharing the chart.
 
 ## Safety nets
 
@@ -91,15 +91,15 @@ The app follows the Addition Financial brand guide (rev. 8.25.25), like the Proc
 index.html                 app shell
 app/js/util.js             DOM helper, modals, menus, toasts
 app/js/model.js            project model, migration from v31–v44, hierarchy, pages, health checks
-app/js/layout.js           card/connector geometry (shared by screen, HTML, PDF, PNG, PowerPoint)
+app/js/layout.js           card/connector geometry (shared by the screen, the HTML file and the PDF)
 app/js/store.js            saving (server or this browser), undo/redo, live sync, history, publishing
 app/js/chartstyle.js       card and connector styles (shared with exports)
 app/js/chart.js            chart view: pan/zoom, select, drag to re-assign
 app/js/actions.js          every change (people, layouts, pages)
 app/js/panel.js            person panel
 app/js/directory.js        People screen, spreadsheet import/export
-app/js/sheet.js            .xlsx/.csv read, .xlsx/.pptx write (no libraries)
-app/js/export.js           interactive HTML, print/PDF, PNG, PowerPoint
+app/js/sheet.js            .xlsx/.csv read, .xlsx write (no libraries)
+app/js/export.js           the HTML file and print/PDF
 app/js/publish.js          Publish screen: changes, versions, snapshots
 app/js/app.js              routes, top bar, search, page list, settings, first run
 app/css/app.css            app styles (brand-aligned, light + dark)

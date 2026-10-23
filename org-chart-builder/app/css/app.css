@@ -387,12 +387,13 @@ body.editing .oc-canvas.editable .oc-card { cursor: grab; }
 .ps-k { font-size: 11.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-2); }
 .pub-status.draft .ps-k { color: var(--amber); }
 .ps-act { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
-.official { margin-top: 8px; font-size: 13px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .card-box { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 4px 20px 18px; margin-top: 16px; }
 .card-box h2 { font-size: 16px; margin: 16px 0 10px; }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; } .two-col .card-box { margin-top: 16px; min-width: 0; }
 .dl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
 .dl-card { display: flex; gap: 12px; align-items: flex-start; text-align: left; font: inherit; color: inherit; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; cursor: pointer; }
+.dl-grid.dl-2 { grid-template-columns: 1fr 1fr; }
+.share-note { margin: -4px 0 12px; }
 .dl-card:hover { border-color: var(--vivid); background: var(--accent-soft); }
 .dl-card > span:last-child { display: flex; flex-direction: column; gap: 2px; } .dl-card b { color: var(--head); }
 .dl-ic { width: 34px; height: 34px; border-radius: 8px; background: var(--anchor); color: #fff; display: grid; place-items: center; font-size: 16px; flex: none; }

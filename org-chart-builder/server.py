@@ -5,15 +5,15 @@ Org Chart Builder — team server (Python 3.8+, standard library only).
     py server.py                      # serve on http://<this-pc>:8010, data in ./data
     py server.py --port 8080 --data I:\\HR\\OrgChart\\data
 
-Everyone who edits or views the chart opens the printed address. The server is the single source of truth, so
+Everyone who works on the chart opens the printed address. The chart itself is shared only as downloaded files
+(PDF or a single HTML file); the server never hosts a public copy of it. The server is the single source of truth, so
 there is no folder to "connect", no lock file to claim and no "newer copy" warning: every change is a small op
 (set / merge at a path) applied under a lock, and every open browser picks up the others' changes within seconds.
 
   data/project.json                   the working chart (people, pages, layouts, settings) with a revision number
   data/history/<timestamp>.json       automatic snapshots (every 10 minutes of editing, before imports/restores)
   data/published/v<N>.json            each published version (immutable)
-  data/published/v<N>.html            the interactive chart exported at publish time
-  data/published/OrgChart.html        the current official chart — also served at /published
+  data/published/v<N>.html            the interactive chart exported at publish time (download only)
 """
 import argparse
 import json
@@ -194,7 +194,7 @@ class Handler(SimpleHTTPRequestHandler):
         sys.stderr.write("%s  %s\n" % (time.strftime("%H:%M:%S"), fmt % args))
 
     def end_headers(self):
-        # never let browsers keep an old copy of the app (or of the official chart) after an update
+        # never let browsers keep an old copy of the app after an update
         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
         super().end_headers()
 
@@ -209,7 +209,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def send_file(self, path, ctype, download_name=None):
         if not os.path.isfile(path):
-            return self.send_error(404, "Nothing has been published yet")
+            return self.send_error(404, "File not found")
         with open(path, "rb") as f:
             data = f.read()
         self.send_response(200)
@@ -250,8 +250,6 @@ class Handler(SimpleHTTPRequestHandler):
     # -- verbs
     def do_GET(self):
         parts, q = self.route()
-        if parts and parts[0] == "published":
-            return self.serve_published(parts[1:])
         if parts and parts[0] == "data":
             return self.send_error(404)  # data folder is only reachable through the API
         if not parts or parts[0] != "api":
@@ -269,14 +267,6 @@ class Handler(SimpleHTTPRequestHandler):
         if not parts or parts[0] != "api":
             return self.send_json(404, {"error": "Unknown endpoint"})
         self.guard(lambda: self.api_put(parts[1:], q))
-
-    def serve_published(self, rest):
-        if not rest:
-            return self.send_file(p("published", "OrgChart.html"), "text/html; charset=utf-8")
-        name = os.path.basename(rest[0])
-        if not re.match(r"^v\d+\.html$", name):
-            return self.send_error(404)
-        return self.send_file(p("published", name), "text/html; charset=utf-8")
 
     def presence(self):
         cutoff = now_ms() - PRESENCE_MS
@@ -313,6 +303,10 @@ class Handler(SimpleHTTPRequestHandler):
             n = int(parts[1])
             doc = read_json(p("published", "v%d.json" % n))
             return self.send_json(200, doc) if doc else self.send_json(404, {"error": "Version not found"})
+        if len(parts) == 3 and parts[0] == "published" and parts[2] == "html":
+            # a published version's chart, as a file download (sharing is by file, not by link)
+            n = int(parts[1])
+            return self.send_file(p("published", "v%d.html" % n), "text/html; charset=utf-8", download_name="OrgChart_v%d.html" % n)
         self.send_json(404, {"error": "Unknown endpoint"})
 
     def api_post(self, parts, q):
@@ -364,7 +358,6 @@ class Handler(SimpleHTTPRequestHandler):
                 pub.pop("published", None)
                 write_json(p("published", "v%d.json" % n), {"meta": meta, "doc": pub})
                 write_text(p("published", "v%d.html" % n), html)
-                write_text(p("published", "OrgChart.html"), html)
                 doc["published"] = meta
                 doc["rev"] = new_rev
                 doc["updatedAt"], doc["updatedBy"] = now_ms(), by
@@ -417,7 +410,6 @@ def main():
     print("  This PC        : http://localhost:%d/" % args.port)
     if args.host != "127.0.0.1":
         print("  Teammates      : http://%s:%d/" % (host, args.port))
-        print("  Official chart : http://%s:%d/published" % (host, args.port))
     print("Press Ctrl+C to stop.")
     try:
         httpd.serve_forever()

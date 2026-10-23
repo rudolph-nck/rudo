@@ -2,7 +2,7 @@
    • Interactive HTML: one self-contained file (pages, search, click a person for contact details, fits any screen,
      prints one page per sheet). This is also what Publish saves as the official chart.
    • Print / PDF: the same document with only the chosen pages, each scaled to one landscape sheet.
-   • PNG of a page and PowerPoint (one slide per page), drawn from the same layout numbers. */
+   These two files are the only way the chart is shared: nothing is hosted for people to open by link. */
 OC.exporter = (() => {
   const { h, esc, toast, modal, slug, fmtDate, fmtLong, now, plural } = OC.u;
   const M = () => OC.model, S = () => OC.store;
@@ -197,121 +197,5 @@ ${draft ? '<div class="x-draft x-draft-screen">DRAFT — not the official organi
     w.document.open(); w.document.write(html); w.document.close();
   }
 
-  /* ---------------------------------------------------------------- canvas rendering (PNG, PowerPoint) */
-  function roundRect(ctx, x, y, w, hh, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + hh, r); ctx.arcTo(x + w, y + hh, x, y + hh, r); ctx.arcTo(x, y + hh, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
-  function fitText(ctx, text, maxW) {
-    if (ctx.measureText(text).width <= maxW) return text;
-    let lo = 0, hi = text.length;
-    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (ctx.measureText(text.slice(0, mid) + "…").width <= maxW) lo = mid; else hi = mid - 1; }
-    return text.slice(0, lo).trimEnd() + "…";
-  }
-  function wrap2(ctx, text, maxW) {
-    const words = String(text || "").split(/\s+/); const lines = [""];
-    for (const w of words) { const t = lines[lines.length - 1] ? lines[lines.length - 1] + " " + w : w; if (ctx.measureText(t).width <= maxW || !lines[lines.length - 1]) lines[lines.length - 1] = t; else lines.push(w); }
-    if (lines.length > 2) { lines.length = 2; lines[1] = fitText(ctx, lines[1] + "…", maxW); }
-    return lines.map((l) => fitText(ctx, l, maxW));
-  }
-  async function pageCanvas(pg, { scale = 2, maxPx = 12000 } = {}) {
-    const p = P();
-    await document.fonts.ready;
-    const tree = M().pageTree(p, pg);
-    const L = OC.layout.layout(tree, { density: p.settings.cardDensity });
-    const SZ = L.S;
-    const classic = p.settings.theme === "classic";
-    const pad = 36, headH = 96;
-    const W = Math.max(L.w + pad * 2, 900), H = L.h + pad * 2 + headH;
-    const s = Math.min(scale, maxPx / Math.max(W, H));
-    const c = document.createElement("canvas");
-    c.width = Math.ceil(W * s); c.height = Math.ceil(H * s);
-    const ctx = c.getContext("2d");
-    ctx.scale(s, s);
-    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
-    const F = (wgt, size) => `${wgt} ${size}px "Open Sans", Calibri, "Segoe UI", Arial, sans-serif`;
-    // header: blue line + label + title + description
-    ctx.fillStyle = "#00b2e3"; ctx.fillRect(pad - 18, pad - 4, 6, 64);
-    ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
-    ctx.fillStyle = "#00a0cc"; ctx.font = F(800, 12); ctx.fillText(String(pg.label || "").toUpperCase(), pad, pad + 10);
-    ctx.fillStyle = "#53575a"; ctx.font = F(800, 28); ctx.fillText(pg.title, pad, pad + 42);
-    if (pg.subtitle) { ctx.fillStyle = "#767b7e"; ctx.font = F(400, 14); ctx.fillText(fitText(ctx, pg.subtitle, W - pad * 2), pad, pad + 64); }
-    const ox = pad + Math.max(0, (W - pad * 2 - L.w) / 2), oy = pad + headH;
-    // lines
-    ctx.strokeStyle = classic ? "#0e5a73" : "#a3a8ab"; ctx.lineWidth = 1.6; ctx.beginPath();
-    L.segs.forEach((g) => { ctx.moveTo(ox + g[0], oy + g[1]); ctx.lineTo(ox + g[2], oy + g[3]); });
-    ctx.stroke();
-    // cards
-    for (const cd of L.cards) {
-      const n = cd.node, x = n.p, X = ox + cd.x, Y = oy + cd.y, w = SZ.CW, hh = SZ.CH;
-      const passive = n.style === "passive", vac = x.type === "vacant", top = n.level === 0 && !n.context && !passive;
-      let bg = "#fff", border = "#d6d9db", nameC = "#53575a", textC = "#45494c", deptC = "#8b9093", dash = false, bar = !classic;
-      if (classic) { bg = passive || vac ? "#fff" : top ? "#0a4558" : "#0e5a73"; border = "#0e5a73"; nameC = textC = passive || vac ? "#0e5a73" : "#fff"; deptC = passive || vac ? "#4d7d8c" : "#bfe0ea"; dash = vac; }
-      else if (passive) { border = "#b4b9bb"; nameC = "#6f7477"; textC = "#767b7e"; dash = true; bar = false; }
-      else if (vac) { bg = "#f3fbfe"; border = "#7fd3ee"; nameC = "#00538b"; dash = true; }
-      else if (top) { bg = "#53575a"; border = "#53575a"; nameC = textC = "#fff"; deptC = "#cfd2d3"; }
-      roundRect(ctx, X, Y, w, hh, 5); ctx.fillStyle = bg; ctx.fill();
-      ctx.setLineDash(dash ? [5, 4] : []); ctx.strokeStyle = border; ctx.lineWidth = passive ? 1.5 : 1; ctx.stroke(); ctx.setLineDash([]);
-      if (bar) { ctx.save(); roundRect(ctx, X, Y, w, hh, 5); ctx.clip(); ctx.fillStyle = "#00b2e3"; ctx.fillRect(X, Y, w, 4); ctx.restore(); }
-      ctx.textAlign = "center";
-      const name = vac ? (x.name ? `Vacant · ${x.name}` : "Vacant position") : x.name;
-      ctx.font = F(vac ? "italic 800" : 800, 13.5);
-      const titleLines = (() => { ctx.font = F(400, 11.8); return wrap2(ctx, x.title, w - 20); })();
-      const showDept = p.settings.showDept && x.department;
-      const blockH = 17 + titleLines.length * 15 + (showDept ? 15 : 0);
-      let ty = Y + 2 + (hh - blockH) / 2 + 13;
-      ctx.fillStyle = nameC; ctx.font = F(vac ? "italic 800" : 800, 13.5); ctx.fillText(fitText(ctx, name, w - 20), X + w / 2, ty);
-      ctx.fillStyle = textC; ctx.font = F(400, 11.8); titleLines.forEach((l) => { ty += 15; ctx.fillText(l, X + w / 2, ty); });
-      if (showDept) { ty += 15; ctx.fillStyle = deptC; ctx.font = F(700, 9.6); ctx.fillText(fitText(ctx, x.department.toUpperCase(), w - 20), X + w / 2, ty); }
-      if (vac && !classic) { ctx.font = F(800, 9.5); const bw = ctx.measureText("Vacant").width + 12; roundRect(ctx, X + w - bw - 6, Y - 8, bw, 15, 7); ctx.fillStyle = "#00b2e3"; ctx.fill(); ctx.fillStyle = "#fff"; ctx.fillText("Vacant", X + w - bw / 2 - 6, Y + 3); }
-      ctx.textAlign = "left";
-    }
-    return c;
-  }
-  async function pagePng(pg) {
-    try {
-      const c = await pageCanvas(pg);
-      const blob = await new Promise((r) => c.toBlob(r, "image/png"));
-      OC.u.download(fileName("png", "_" + slug(pg.title)), blob);
-    } catch (e) { toast("Couldn't draw this page: " + e.message, "err"); }
-  }
-
-  /* ---------------------------------------------------------------- PowerPoint: one picture slide per chart page */
-  async function pptx() {
-    const p = P();
-    const pages = M().pages(p, { includeHidden: false }).filter((pg) => pg.kind === "chart");
-    if (!pages.length) return toast("No chart pages to export", "info");
-    toast(`Drawing ${plural(pages.length, "slide")}…`, "info", 2500);
-    const SW = 12192000, SH = 6858000, EMU = 9525; // 16:9, EMU per px at 96 dpi
-    const files = [], slides = [];
-    for (let i = 0; i < pages.length; i++) {
-      const c = await pageCanvas(pages[i], { scale: 1.5, maxPx: 5000 });
-      const blob = await new Promise((r) => c.toBlob(r, "image/png"));
-      const data = new Uint8Array(await blob.arrayBuffer());
-      files.push({ name: `ppt/media/image${i + 1}.png`, data });
-      const margin = 0.25 * 914400;
-      const sc = Math.min((SW - margin * 2) / (c.width * EMU), (SH - margin * 2) / (c.height * EMU));
-      const w = Math.round(c.width * EMU * sc), hh = Math.round(c.height * EMU * sc);
-      slides.push({ w, hh, x: Math.round((SW - w) / 2), y: Math.round((SH - hh) / 2), title: pages[i].title });
-    }
-    const X = OC.sheet.xe;
-    const NS = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"';
-    const head = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
-    files.push({ name: "[Content_Types].xml", data: `${head}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>${slides.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`).join("")}</Types>` });
-    files.push({ name: "_rels/.rels", data: `${head}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/></Relationships>` });
-    files.push({ name: "ppt/presentation.xml", data: `${head}<p:presentation ${NS} saveSubsetFonts="1"><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst><p:sldIdLst>${slides.map((_, i) => `<p:sldId id="${256 + i}" r:id="rId${i + 3}"/>`).join("")}</p:sldIdLst><p:sldSz cx="${SW}" cy="${SH}"/><p:notesSz cx="6858000" cy="9144000"/><p:defaultTextStyle/></p:presentation>` });
-    files.push({ name: "ppt/_rels/presentation.xml.rels", data: `${head}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="slideMasters/slideMaster1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>${slides.map((_, i) => `<Relationship Id="rId${i + 3}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide${i + 1}.xml"/>`).join("")}</Relationships>` });
-    const spTree = (inner = "") => `<p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>${inner}</p:spTree></p:cSld>`;
-    files.push({ name: "ppt/slideMasters/slideMaster1.xml", data: `${head}<p:sldMaster ${NS}>${spTree()}<p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/><p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst></p:sldMaster>` });
-    files.push({ name: "ppt/slideMasters/_rels/slideMaster1.xml.rels", data: `${head}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="../theme/theme1.xml"/></Relationships>` });
-    files.push({ name: "ppt/slideLayouts/slideLayout1.xml", data: `${head}<p:sldLayout ${NS} type="blank" preserve="1"><p:cSld name="Blank"><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/></p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>` });
-    files.push({ name: "ppt/slideLayouts/_rels/slideLayout1.xml.rels", data: `${head}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>` });
-    const clr = (n, v) => `<a:${n}><a:srgbClr val="${v}"/></a:${n}>`;
-    files.push({ name: "ppt/theme/theme1.xml", data: `${head}<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Brand"><a:themeElements><a:clrScheme name="Brand"><a:dk1><a:srgbClr val="45494C"/></a:dk1><a:lt1><a:srgbClr val="FFFFFF"/></a:lt1>${clr("dk2", "53575A")}${clr("lt2", "CFD2D3")}${clr("accent1", "00B2E3")}${clr("accent2", "53575A")}${clr("accent3", "6ABF4B")}${clr("accent4", "00538B")}${clr("accent5", "CFD2D3")}${clr("accent6", "F6BF26")}${clr("hlink", "00538B")}${clr("folHlink", "53575A")}</a:clrScheme><a:fontScheme name="Brand"><a:majorFont><a:latin typeface="Open Sans ExtraBold"/><a:ea typeface=""/><a:cs typeface=""/></a:majorFont><a:minorFont><a:latin typeface="Open Sans"/><a:ea typeface=""/><a:cs typeface=""/></a:minorFont></a:fontScheme><a:fmtScheme name="Brand"><a:fillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:fillStyleLst><a:lnStyleLst><a:ln w="9525"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln><a:ln w="25400"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln><a:ln w="38100"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:bgFillStyleLst></a:fmtScheme></a:themeElements></a:theme>` });
-    slides.forEach((s, i) => {
-      const pic = `<p:pic><p:nvPicPr><p:cNvPr id="2" name="${X(s.title)}" descr="${X(s.title)} organizational chart"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="rId2"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x="${s.x}" y="${s.y}"/><a:ext cx="${s.w}" cy="${s.hh}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>`;
-      files.push({ name: `ppt/slides/slide${i + 1}.xml`, data: `${head}<p:sld ${NS}>${spTree(pic)}<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>` });
-      files.push({ name: `ppt/slides/_rels/slide${i + 1}.xml.rels`, data: `${head}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image${i + 1}.png"/></Relationships>` });
-    });
-    OC.u.download(fileName("pptx"), OC.sheet.zip(files, "application/vnd.openxmlformats-officedocument.presentationml.presentation"));
-  }
-
-  return { buildHtml, downloadHtml, printDialog, pagePng, pageCanvas, pptx, fileName, h };
+  return { buildHtml, downloadHtml, printDialog, fileName, h };
 })();

@@ -1,7 +1,7 @@
 /* layout.js — positions every card of a page and the connector lines between them.
    The old builder drew connectors with CSS borders and then tried to "fix" them after the browser laid things out,
    which is why lines broke, charts clipped and printing drifted. Here the geometry is computed once, in chart units,
-   and the same numbers drive the screen, the exported HTML, print/PDF, PNG and PowerPoint.
+   and the same numbers drive the screen, the exported HTML and print/PDF.
 
    layout(tree, opts) -> { w, h, cards: [{ node, x, y }], segs: [[x1, y1, x2, y2]] }
 
