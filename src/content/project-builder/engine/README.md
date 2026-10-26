@@ -14,7 +14,7 @@ hand-built page; don't copy its structure, copy `guides/outlet-gfci.json`.
 | `slug` | string | matches the file name and registry entry |
 | `title` | string | 2–4 words, e.g. "Replace an Outlet or GFCI" |
 | `eyebrow` | string | short header label, e.g. "Electrical · outlets" |
-| `category` | string | Flooring, Plumbing, Electrical, Walls, Carpentry, Painting |
+| `category` | string | Bathroom, Flooring, Plumbing, Electrical, Walls, Carpentry, Painting |
 | `difficulty` | string | Beginner, Intermediate, Advanced |
 | `time` | string | e.g. "1–2 hours", "2 weekends" |
 | `summary` | html | 1–3 sentences: what you'll end up with |
