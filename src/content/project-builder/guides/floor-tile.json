@@ -1,0 +1,1356 @@
+{
+ "slug": "floor-tile",
+ "title": "Tile a Floor",
+ "eyebrow": "Flooring · porcelain tile",
+ "category": "Flooring",
+ "difficulty": "Intermediate",
+ "time": "4–6 days (2 weekends)",
+ "summary": "Tile a bathroom or kitchen floor over plywood with porcelain tile: a stiff, flat base, a crack-resistant underlayment, flush tiles and clean grout lines.",
+ "safety": "Cutting and grinding tile makes <b>silica dust</b>: cut wet when you can, wear an N95 mask, safety glasses and hearing protection. Thinset and grout are caustic: wear <b>nitrile gloves</b> and wash splashes off skin. Shut off water before removing a toilet. Get help lifting the toilet.",
+ "pro": "the floor bounces or the joists may be undersized, the subfloor is rotten, old flooring may contain asbestos, or the drain or flange needs moving. Plumbing changes and structural work usually need a permit; check your local building department.",
+ "questions": [
+  {
+   "id": "length",
+   "label": "Room length",
+   "type": "number",
+   "unit": "ft",
+   "default": 8,
+   "step": 0.5
+  },
+  {
+   "id": "width",
+   "label": "Room width",
+   "type": "number",
+   "unit": "ft",
+   "default": 6,
+   "step": 0.5
+  },
+  {
+   "id": "tile",
+   "label": "Tile size (inches)",
+   "type": "choice",
+   "default": "12x24",
+   "options": [
+    {
+     "v": "12x12",
+     "label": "12 × 12"
+    },
+    {
+     "v": "12x24",
+     "label": "12 × 24"
+    },
+    {
+     "v": "6x24",
+     "label": "6 × 24",
+     "hint": "wood-look"
+    },
+    {
+     "v": "24x24",
+     "label": "24 × 24"
+    }
+   ]
+  },
+  {
+   "id": "box",
+   "label": "Sq ft per box (on the label)",
+   "type": "number",
+   "unit": "sq ft",
+   "default": 16,
+   "step": 0.1
+  },
+  {
+   "id": "pattern",
+   "label": "Layout",
+   "type": "choice",
+   "default": "straight",
+   "options": [
+    {
+     "v": "straight",
+     "label": "Straight grid",
+     "hint": "10% waste"
+    },
+    {
+     "v": "offset",
+     "label": "Offset (brick)",
+     "hint": "15% waste"
+    }
+   ]
+  },
+  {
+   "id": "joint",
+   "label": "Grout joint",
+   "type": "choice",
+   "default": "0.125",
+   "options": [
+    {
+     "v": "0.0625",
+     "label": "1/16\"",
+     "hint": "rectified only"
+    },
+    {
+     "v": "0.125",
+     "label": "1/8\""
+    },
+    {
+     "v": "0.1875",
+     "label": "3/16\""
+    }
+   ]
+  },
+  {
+   "id": "under",
+   "label": "Underlayment",
+   "type": "choice",
+   "default": "membrane",
+   "options": [
+    {
+     "v": "membrane",
+     "label": "Uncoupling membrane",
+     "hint": "thinner, faster"
+    },
+    {
+     "v": "backer",
+     "label": "1/4\" cement board"
+    }
+   ]
+  },
+  {
+   "id": "grout",
+   "label": "Grout",
+   "type": "choice",
+   "default": "cement",
+   "options": [
+    {
+     "v": "cement",
+     "label": "Cement grout",
+     "hint": "seal it"
+    },
+    {
+     "v": "premixed",
+     "label": "Premixed",
+     "hint": "no sealing"
+    }
+   ]
+  },
+  {
+   "id": "toilet",
+   "label": "Is there a toilet?",
+   "type": "choice",
+   "default": "yes",
+   "options": [
+    {
+     "v": "yes",
+     "label": "Yes"
+    },
+    {
+     "v": "no",
+     "label": "No"
+    }
+   ]
+  },
+  {
+   "id": "doors",
+   "label": "Doorways needing a transition",
+   "type": "number",
+   "unit": "doors",
+   "default": 1,
+   "step": 1
+  }
+ ],
+ "calcs": [
+  {
+   "id": "sqft",
+   "label": "Floor area",
+   "expr": "Math.round(a.length*a.width)",
+   "fmt": "{{c.sqft}} sq ft"
+  },
+  {
+   "id": "tL",
+   "expr": "({'12x12':12,'12x24':24,'6x24':24,'24x24':24})[a.tile]"
+  },
+  {
+   "id": "tW",
+   "expr": "({'12x12':12,'12x24':12,'6x24':6,'24x24':24})[a.tile]"
+  },
+  {
+   "id": "tileA",
+   "expr": "c.tL*c.tW/144"
+  },
+  {
+   "id": "large",
+   "expr": "Math.max(c.tL,c.tW)>=15"
+  },
+  {
+   "id": "tiles",
+   "label": "Tiles (with waste)",
+   "expr": "Math.ceil(c.sqft*(a.pattern==='offset'?1.15:1.10)/c.tileA)",
+   "fmt": "{{c.tiles}} tiles"
+  },
+  {
+   "id": "boxes",
+   "label": "Boxes",
+   "expr": "Math.ceil(c.tiles*c.tileA/a.box)",
+   "fmt": "{{c.boxes}} boxes"
+  },
+  {
+   "id": "notch",
+   "label": "Trowel to start with",
+   "expr": "c.large?'1/2\" x 1/2\"':'1/4\" x 3/8\"'",
+   "fmt": "{{c.notch}} square-notch"
+  },
+  {
+   "id": "setBags",
+   "label": "Thinset for the tile",
+   "expr": "Math.ceil(c.sqft/(c.large?40:60))",
+   "fmt": "{{c.setBags}} × 50 lb"
+  },
+  {
+   "id": "underBags",
+   "label": "Thinset under the underlayment",
+   "expr": "Math.ceil(c.sqft/90)",
+   "fmt": "{{c.underBags}} × 50 lb"
+  },
+  {
+   "id": "sheets",
+   "label": "Backer board",
+   "expr": "Math.ceil(c.sqft*1.1/15)",
+   "fmt": "{{c.sheets}} sheets (3×5 ft)",
+   "when": "a.under==='backer'"
+  },
+  {
+   "id": "screws",
+   "expr": "Math.ceil(c.sheets*50/100)*100"
+  },
+  {
+   "id": "mrolls",
+   "label": "Membrane",
+   "expr": "Math.ceil(c.sqft*1.1/54)",
+   "fmt": "{{c.mrolls}} × 54 sq ft roll",
+   "when": "a.under==='membrane'"
+  },
+  {
+   "id": "grout",
+   "label": "Grout",
+   "expr": "Math.max(5,Math.ceil(c.sqft*144*(c.tL+c.tW)/(c.tL*c.tW)*Number(a.joint)*0.375*0.07*1.2))",
+   "fmt": "about {{c.grout}} lb",
+   "when": "a.grout==='cement'"
+  },
+  {
+   "id": "clips",
+   "label": "Leveling clips",
+   "expr": "Math.ceil(c.tiles*(c.large?3:2)/100)*100",
+   "fmt": "{{c.clips}} clips"
+  },
+  {
+   "id": "perim",
+   "label": "Perimeter to caulk or trim",
+   "expr": "Math.ceil(2*(a.length+a.width))",
+   "fmt": "{{c.perim}} ft"
+  }
+ ],
+ "calcNote": "Thinset estimates assume the starting trowel and back-buttering; real use depends on how flat the floor is, so buy one extra bag and return it unopened. Grout assumes 3/8\" thick tile. Always check coverage charts on the bags.",
+ "overviewFig": [
+  "stack",
+  "trowel"
+ ],
+ "tools": [
+  {
+   "id": "tile",
+   "c": "Materials",
+   "n": "Porcelain floor tile, {{a.tile.replace('x',' × ')}}",
+   "must": true,
+   "w": "Floor-rated, slip-resistant (wet DCOF 0.42 or higher). Same lot on every box.",
+   "q": "porcelain floor tile {{a.tile.replace('x',' x ')}}",
+   "qty": "{{c.tiles}} tiles ({{c.boxes}} boxes)"
+  },
+  {
+   "id": "setmortar",
+   "c": "Materials",
+   "n": "{{c.large?'Large-format (LHT) tile mortar':'Polymer-modified thinset'}}, 50 lb",
+   "must": true,
+   "w": "Holds the tile. Over a membrane, use one the membrane maker approves.",
+   "q": "{{c.large?'large format tile mortar':'modified thinset mortar'}} 50 lb",
+   "qty": "{{c.setBags}} bags"
+  },
+  {
+   "id": "undermortar",
+   "c": "Materials",
+   "n": "Modified thinset for under the {{a.under==='backer'?'backer board':'membrane'}}",
+   "must": true,
+   "w": "Bonds the underlayment to the plywood. Check the type it calls for.",
+   "q": "modified thinset 50 lb",
+   "qty": "{{c.underBags}} bags"
+  },
+  {
+   "id": "backer",
+   "c": "Materials",
+   "n": "1/4\" cement backer board, 3×5 ft",
+   "must": true,
+   "w": "A stable, tile-ready layer over the plywood.",
+   "q": "1/4 cement board 3x5",
+   "qty": "{{c.sheets}} sheets",
+   "when": "a.under==='backer'"
+  },
+  {
+   "id": "bscrews",
+   "c": "Materials",
+   "n": "1-1/4\" backer board screws",
+   "must": true,
+   "w": "Coated, with ribbed heads that sit flush. Drywall screws rust and snap.",
+   "q": "cement board screws 1-1/4",
+   "qty": "about {{c.screws}}",
+   "when": "a.under==='backer'"
+  },
+  {
+   "id": "mesh",
+   "c": "Materials",
+   "n": "Alkali-resistant mesh tape, 2\"",
+   "must": true,
+   "w": "Reinforces backer board seams.",
+   "q": "cement board mesh tape",
+   "qty": "1 roll",
+   "when": "a.under==='backer'"
+  },
+  {
+   "id": "membrane",
+   "c": "Materials",
+   "n": "Uncoupling membrane (e.g. Schluter DITRA)",
+   "must": true,
+   "w": "Thin plastic sheet that lets the floor move without cracking the tile.",
+   "q": "uncoupling membrane tile underlayment",
+   "qty": "{{c.mrolls}} rolls (54 sq ft)",
+   "when": "a.under==='membrane'"
+  },
+  {
+   "id": "clipsT",
+   "c": "Materials",
+   "n": "Tile leveling clips + caps/wedges",
+   "must": true,
+   "w": "Keeps tile edges flush. Clips are single-use; wedges reusable.",
+   "q": "tile leveling system {{a.joint==='0.0625'?'1/16':a.joint==='0.125'?'1/8':'3/16'}}",
+   "qty": "{{c.clips}} clips"
+  },
+  {
+   "id": "spacers",
+   "c": "Materials",
+   "n": "Tile spacers ({{frac(Number(a.joint))}})",
+   "must": false,
+   "w": "Keeps joints even where clips aren't used.",
+   "q": "tile spacers"
+  },
+  {
+   "id": "grout",
+   "c": "Materials",
+   "n": "{{a.grout==='cement'?(Number(a.joint)>=0.125?'Sanded grout':'Unsanded grout'):'Premixed (urethane/acrylic) grout'}}",
+   "must": true,
+   "w": "{{a.grout==='cement'?'Sanded for joints 1/8\" and wider, unsanded for narrower.':'Ready to use, no sealing; slower to clean up.'}}",
+   "q": "{{a.grout==='cement'?(Number(a.joint)>=0.125?'sanded grout':'unsanded grout'):'premixed grout'}}",
+   "qty": "{{a.grout==='cement'?c.grout+' lb':'see pail coverage for '+c.sqft+' sq ft'}}"
+  },
+  {
+   "id": "caulk",
+   "c": "Materials",
+   "n": "Color-matched siliconized or 100% silicone caulk",
+   "must": true,
+   "w": "Fills the perimeter and corners where grout would crack.",
+   "q": "color matched tile caulk",
+   "qty": "1–2 tubes"
+  },
+  {
+   "id": "sealer",
+   "c": "Materials",
+   "n": "Penetrating grout sealer",
+   "must": true,
+   "w": "Helps cement grout resist stains.",
+   "q": "grout sealer penetrating",
+   "when": "a.grout==='cement'"
+  },
+  {
+   "id": "edge",
+   "c": "Materials",
+   "n": "Transition / edge profile (sized to the tile)",
+   "must": true,
+   "w": "Finishes the tile edge at doorways.",
+   "q": "tile edge transition profile",
+   "qty": "{{a.doors}}"
+  },
+  {
+   "id": "wax",
+   "c": "Materials",
+   "n": "New wax ring or wax-free seal (+ flange spacer if needed)",
+   "must": true,
+   "w": "The old seal never reseals.",
+   "q": "toilet wax ring extra thick",
+   "when": "a.toilet==='yes'"
+  },
+  {
+   "id": "tape",
+   "c": "Measure",
+   "n": "Tape measure, pencil, chalk line, framing square",
+   "must": true,
+   "w": "Layout lines and square checks.",
+   "q": "chalk line framing square"
+  },
+  {
+   "id": "straight",
+   "c": "Measure",
+   "n": "4 ft level and 6–8 ft straightedge",
+   "must": true,
+   "w": "Checks flatness of the floor and the tile.",
+   "q": "aluminum straightedge 8 ft"
+  },
+  {
+   "id": "trowels",
+   "c": "Setting",
+   "n": "Trowels: {{c.notch}} square-notch + 1/4\" × {{a.under==='membrane'?'3/16\" V-notch (or the membrane maker\\'s)':'1/4\" square-notch'}}",
+   "must": true,
+   "w": "Notch size controls how much thinset ends up under the tile.",
+   "q": "tile trowel {{c.notch}} square notch"
+  },
+  {
+   "id": "mixer",
+   "c": "Setting",
+   "n": "Drill (1/2\" low-speed preferred) + mixing paddle, two 5-gal buckets",
+   "must": true,
+   "w": "Mixes thinset and grout properly.",
+   "q": "mixing paddle thinset"
+  },
+  {
+   "id": "float",
+   "c": "Setting",
+   "n": "Grout float, 2 sponges, bucket, microfiber cloths",
+   "must": true,
+   "w": "Spreads and cleans the grout.",
+   "q": "grout float sponge kit"
+  },
+  {
+   "id": "mallet",
+   "c": "Setting",
+   "n": "Rubber mallet",
+   "must": true,
+   "w": "Beds tiles and knocks off clip tops.",
+   "q": "rubber mallet"
+  },
+  {
+   "id": "cutter",
+   "c": "Cutting",
+   "n": "Manual snap tile cutter (longer than your tile)",
+   "must": true,
+   "w": "Fast, clean straight cuts.",
+   "q": "tile cutter 24 inch",
+   "rent": true
+  },
+  {
+   "id": "wetsaw",
+   "c": "Cutting",
+   "n": "Wet tile saw",
+   "must": true,
+   "w": "Notches, L-cuts and thin strips.",
+   "q": "wet tile saw",
+   "rent": true
+  },
+  {
+   "id": "grinder",
+   "c": "Cutting",
+   "n": "4-1/2\" angle grinder + diamond blade (or hole saw)",
+   "must": true,
+   "w": "Curved cuts around the toilet flange and pipes.",
+   "q": "angle grinder diamond blade tile"
+  },
+  {
+   "id": "jambsaw",
+   "c": "Cutting",
+   "n": "Jamb saw",
+   "must": true,
+   "w": "Undercuts door casing so tile slides under.",
+   "q": "jamb saw undercut"
+  },
+  {
+   "id": "drill",
+   "c": "Cutting",
+   "n": "Drill/driver",
+   "must": true,
+   "w": "Drives subfloor and backer screws.",
+   "q": "cordless drill driver"
+  },
+  {
+   "id": "pry",
+   "c": "Demo",
+   "n": "Flat pry bar, putty knife, scraper",
+   "must": true,
+   "w": "Removes baseboard and old flooring.",
+   "q": "flat pry bar"
+  },
+  {
+   "id": "vac",
+   "c": "Demo",
+   "n": "Shop vac",
+   "must": true,
+   "w": "Floors must be dust-free before thinset.",
+   "q": "shop vacuum"
+  },
+  {
+   "id": "ppe",
+   "c": "Safety",
+   "n": "Safety glasses, N95 mask, hearing protection, knee pads, nitrile gloves",
+   "must": true,
+   "w": "Cutting tile makes silica dust; thinset and grout burn skin.",
+   "q": "N95 mask knee pads nitrile gloves"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Plan and buy",
+   "steps": [
+    {
+     "id": "t1",
+     "t": "Measure and buy the tile",
+     "time": "1 hour",
+     "idea": "Get the right tile in the right amount, from one lot.",
+     "fig": "count",
+     "need": [
+      "tape",
+      "tile"
+     ],
+     "b": "<ol><li>Measure the room length and width wall to wall. Add closets or alcoves. Enter them on the Start tab.</li><li>Choose porcelain rated for floors. Look for a wet DCOF of 0.42 or higher (slip resistance) for a bathroom.</li><li>Pick tile size, layout and joint width on the Start tab.</li><li>Buy <b>{{c.tiles}} tiles ({{c.boxes}} boxes)</b>. Check that all boxes show the same lot or shade code.</li><li>Open a box and lay 3 tiles face to face: if they rock, they're bowed. Plan a 1/3 offset or straight layout.</li><li>Buy thinset, grout, {{a.under==='backer'?'backer board':'membrane'}} and caulk from the list.</li></ol>",
+     "faq": [
+      [
+       "Porcelain or ceramic?",
+       "Porcelain is denser, absorbs less water and is tougher. Both work on a bathroom floor."
+      ],
+      [
+       "What does rectified mean?",
+       "The edges are ground perfectly square, so you can use a thin 1/16\" or 1/8\" joint."
+      ]
+     ]
+    },
+    {
+     "id": "t2",
+     "t": "Check the floor is stiff enough",
+     "time": "30 min",
+     "idea": "Tile and grout crack on a floor that bounces. Check before you spend money.",
+     "fig": "deflect",
+     "need": [
+      "tape"
+     ],
+     "b": "<ol><li>Jump lightly in the middle of the room. A floor that visibly bounces or rattles things isn't ready.</li><li>From the basement or crawlspace, measure the joists: size (2x8, 2x10), spacing (usually 16\") and span (unsupported length).</li><li>Check that size and span against a joist span table for L/360 (tile) or L/720 (natural stone). An online \"deflection calculator\" does this.</li><li>Measure the subfloor thickness at a vent or the edge. A common goal is 1-1/8\" total (3/4\" plywood plus a second layer), but membranes like DITRA allow a single 5/8\" plywood layer on 16\" joists. Check your underlayment's rules.</li></ol>",
+     "stop": "If the floor bounces, joists are under-sized, or the subfloor is thinner than your underlayment allows, stop. Stiffening joists (sistering, blocking) or adding a plywood layer comes first. Ask a contractor if unsure.",
+     "faq": [
+      [
+       "What's L/360?",
+       "How far the floor may bend under load: the span length divided by 360. On a 12 ft span that's less than 1/2\"."
+      ]
+     ]
+    },
+    {
+     "id": "t3",
+     "t": "Plan for the new floor height",
+     "time": "15 min",
+     "idea": "Tile raises the floor. Plan doors, transitions and the toilet flange now.",
+     "fig": "stack",
+     "need": [
+      "tape"
+     ],
+     "b": "<ol><li>Your new floor will sit {{a.under==='backer'?'about 1\"':'about 3/4\"'}} above the bare subfloor.</li><li>Check the door: will it still swing over the tile? If not, plan to trim the bottom.</li><li>Check the next room's floor height and pick a transition that bridges the step.</li><li>Check the toilet flange: it should end up level with or just above the tile. If not, plan a flange spacer or extender.</li></ol>"
+    }
+   ]
+  },
+  {
+   "name": "Prepare the room",
+   "steps": [
+    {
+     "id": "r1",
+     "t": "Remove the toilet",
+     "time": "45 min",
+     "idea": "The toilet comes out so tile runs underneath and the seal can be replaced.",
+     "when": "a.toilet==='yes'",
+     "fig": "toilet",
+     "need": [
+      "wax"
+     ],
+     "ppe": [
+      "Gloves"
+     ],
+     "b": "<ol><li>Turn off the water at the valve behind the toilet (clockwise). Flush and hold the handle to drain the tank.</li><li>Sponge out the water left in the tank and bowl.</li><li>Unscrew the supply line from the tank.</li><li>Remove the nuts on the floor bolts. Rock the toilet gently side to side to break the wax seal and lift it straight up. It's heavy (60–100 lb): get help.</li><li>Set it on cardboard or an old towel.</li><li>Scrape off the old wax and stuff a rag in the drain to block sewer gas.</li></ol>",
+     "faq": [
+      [
+       "The bolts are rusted on.",
+       "Cut them with a hacksaw blade or an oscillating tool. You'll install new bolts with the new seal."
+      ]
+     ]
+    },
+    {
+     "id": "r2",
+     "t": "Remove baseboard and old flooring",
+     "time": "2–4 hours",
+     "idea": "Get down to clean, solid plywood.",
+     "need": [
+      "pry",
+      "vac"
+     ],
+     "ppe": [
+      "Glasses",
+      "Gloves",
+      "Mask"
+     ],
+     "b": "<ol><li>Score the paint line on the baseboard, pry it off gently against a putty knife, number each piece.</li><li>Pull up carpet, vinyl or old floor. Remove staples and nails.</li><li>Scrape off old adhesive lumps.</li><li>Take off the door if it swings over the floor.</li><li>Decide on the vanity: tile up to it, or remove it and tile under. Shut off water and disconnect the drain first.</li></ol>",
+     "stop": "Old vinyl, its backing and black glue from before about 1980 may contain asbestos, and old tile mortar can too. Don't sand, grind or tear them up until a sample is tested. Covering over them may be an option."
+    },
+    {
+     "id": "r3",
+     "t": "Undercut the door casings",
+     "time": "10 min per door",
+     "idea": "Trim the casing so tile slides under it instead of being notched around it.",
+     "fig": "jamb",
+     "need": [
+      "jambsaw",
+      "tile"
+     ],
+     "b": "<ol><li>Stack a tile on a scrap of your {{a.under==='backer'?'backer board':'membrane'}} against the casing. Add a piece of cardboard for the thinset.</li><li>Rest the jamb saw flat on the stack and saw into the casing.</li><li>Cut both sides of every opening.</li><li>Knock the cut piece out and vacuum.</li></ol>"
+    },
+    {
+     "id": "r4",
+     "t": "Fix and flatten the subfloor",
+     "time": "1–3 hours",
+     "idea": "Tile needs a solid, flat base. Fix loose spots and bumps now.",
+     "fig": "flat",
+     "need": [
+      "drill",
+      "straight"
+     ],
+     "ppe": [
+      "Mask"
+     ],
+     "timers": [
+      [
+       "Floor patch dry (check bag)",
+       120
+      ]
+     ],
+     "b": "<ol><li>Drive 1-5/8\" screws into the joists every 6\" along each joist to stop movement.</li><li>Cut out and replace soft or water-damaged plywood, especially around the toilet.</li><li>Check flatness with the straightedge in all directions.</li><li>Sand down high seams. Fill lows with floor patch (or the membrane maker's leveling method) and let it harden.</li><li>Vacuum thoroughly.</li></ol>",
+     "stop": "Black, soft or crumbling subfloor around the toilet means a long-term leak. Replace that section of plywood (down to the joists) before tiling.",
+     "faq": [
+      [
+       "Can thick thinset fix the dips?",
+       "Not under large tile. Fix the floor first. Thinset is a glue, not a leveler."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Underlayment",
+   "steps": [
+    {
+     "id": "b1",
+     "t": "Lay out and cut the backer board",
+     "time": "1 hour",
+     "idea": "Plan sheets so seams are staggered and don't line up with plywood seams.",
+     "when": "a.under==='backer'",
+     "fig": "backer",
+     "need": [
+      "backer",
+      "tape"
+     ],
+     "ppe": [
+      "Glasses",
+      "Mask"
+     ],
+     "b": "<ol><li>Dry-fit the sheets on the floor, printed side up, like bricks: no four corners meet.</li><li>Keep backer seams at least 8\" from plywood seams.</li><li>Leave 1/8\" between sheets and 1/4\" from walls and the tub.</li><li>To cut: score the line with a carbide scoring knife, snap it, then cut the mesh on the back.</li><li>Cut the toilet flange hole with a jigsaw or hole saw.</li><li>Number the sheets and set them aside.</li></ol>",
+     "faq": [
+      [
+       "Can I use a circular saw?",
+       "Only with a fiber-cement blade, outside, with a dust collector and N95 mask. Score-and-snap makes almost no dust."
+      ]
+     ]
+    },
+    {
+     "id": "b2",
+     "t": "Set the backer board in thinset and screw it",
+     "time": "2 hours",
+     "idea": "Thinset fills voids under the board; screws hold it tight to the plywood.",
+     "when": "a.under==='backer'",
+     "fig": "screws",
+     "need": [
+      "undermortar",
+      "bscrews",
+      "trowels",
+      "mixer",
+      "drill"
+     ],
+     "ppe": [
+      "Gloves"
+     ],
+     "help": [
+      "mixHelp"
+     ],
+     "b": "<ol><li>Mix thinset (see the mixing help).</li><li>Spread it on the plywood for one sheet with a 1/4\" square-notch trowel.</li><li>Lay the sheet in the fresh thinset in its spot.</li><li>Drive backer screws every 8\" across the sheet, 3/8\"–1/2\" in from the edges and 2\" from corners. Heads flush.</li><li>Repeat sheet by sheet. Keep thinset out of the 1/8\" seams.</li><li>Scrape off any thinset that squeezes up.</li></ol>"
+    },
+    {
+     "id": "b3",
+     "t": "Tape and fill the seams",
+     "time": "45 min",
+     "idea": "Mesh tape and thinset lock the sheets together so seams don't crack the tile.",
+     "when": "a.under==='backer'",
+     "need": [
+      "mesh",
+      "undermortar"
+     ],
+     "timers": [
+      [
+       "Seams harden overnight",
+       720
+      ]
+     ],
+     "b": "<ol><li>Fill each seam with thinset using a flat trowel.</li><li>Press mesh tape over the seam while it's wet.</li><li>Skim a thin coat over the tape and feather it flat.</li><li>Don't leave ridges: they'll push up the tile.</li><li>Let it harden overnight before tiling.</li></ol>"
+    },
+    {
+     "id": "d1",
+     "t": "Cut the membrane to fit",
+     "time": "45 min",
+     "idea": "Pre-cut every piece so you can work fast once the thinset is mixed.",
+     "when": "a.under==='membrane'",
+     "need": [
+      "membrane",
+      "tape"
+     ],
+     "b": "<ol><li>Unroll the membrane fleece side down and let it relax flat.</li><li>Cut pieces to fit the room with a utility knife and straightedge, leaving 1/4\" at walls.</li><li>Cut around the toilet flange.</li><li>Number the pieces and roll them back up loosely in order.</li></ol>"
+    },
+    {
+     "id": "d2",
+     "t": "Bond the membrane to the subfloor",
+     "time": "1–2 hours",
+     "idea": "The membrane must be fully bedded in thinset, with no hollow spots.",
+     "when": "a.under==='membrane'",
+     "fig": "membrane",
+     "need": [
+      "membrane",
+      "undermortar",
+      "trowels",
+      "mixer",
+      "float"
+     ],
+     "ppe": [
+      "Gloves"
+     ],
+     "help": [
+      "mixHelp"
+     ],
+     "b": "<ol><li>Mix the thinset the membrane maker calls for to bond it to plywood (usually a modified thinset).</li><li>Key a thin coat into the plywood with the flat side of the trowel, then comb ridges with the notch it specifies.</li><li>Lay the first piece fleece-down into the wet thinset.</li><li>Press it in with a float, working from the middle out to push out air.</li><li>Lift a corner: the fleece should be fully covered. If not, use more thinset or a bigger notch.</li><li>Butt seams tightly; don't overlap them. Then the next piece.</li></ol>",
+     "faq": [
+      [
+       "Can I tile right away?",
+       "Most membranes let you tile right after. Lay boards to kneel on so you don't push it out of the wet thinset."
+      ],
+      [
+       "Does it need waterproof seams?",
+       "Only if you want a waterproof floor. That takes the maker's seam band over every seam and up the walls."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Lay it out",
+   "steps": [
+    {
+     "id": "l1",
+     "t": "Snap layout lines and check square",
+     "time": "30 min",
+     "idea": "Two straight, square lines guide every tile.",
+     "fig": "square",
+     "need": [
+      "tape"
+     ],
+     "b": "<ol><li>Find the middle of each wall and snap a chalk line between opposite midpoints, both ways.</li><li>Check square: mark 3 ft along one line and 4 ft along the other from the crossing. The diagonal must be exactly 5 ft.</li><li>Adjust one line until it is.</li><li>In a bathroom, also check the line looks right along the tub or the doorway, which you'll see most.</li></ol>"
+    },
+    {
+     "id": "l2",
+     "t": "Dry-lay and shift to avoid slivers",
+     "time": "30 min",
+     "idea": "Lay tiles without thinset first so you can move the layout before it's permanent.",
+     "fig": "drylay",
+     "need": [
+      "tile",
+      "spacers",
+      "tape"
+     ],
+     "b": "<ol><li>Lay a row of tiles with spacers from the center line to each wall, both directions.</li><li>Look at the cuts at the walls. Anything under about half a tile, shift the whole layout by half a tile.</li><li>Put full or near-full tiles at the doorway and the front of the toilet, where you see them most.</li><li>Snap new working lines at the final position. Mark them clearly.</li><li>Pick up the tiles and stack them where you can reach them.</li></ol>"
+    },
+    {
+     "id": "l3",
+     "t": "Choose your pattern and offset",
+     "time": "10 min",
+     "idea": "Long tiles are slightly bowed. A 1/3 offset keeps edges from sticking up.",
+     "fig": "offset",
+     "b": "<ol><li>{{a.pattern==='offset'?'For an offset (brick) pattern with long tiles, offset each row by 1/3 of a tile, not 1/2, unless the box says otherwise.':'For a straight grid, line up every joint along your chalk lines.'}}</li><li>Mark the offset on a scrap stick so you repeat it the same each row.</li><li>Plan to start at the wall farthest from the door and work out, so you never have to step on fresh tile.</li></ol>"
+    }
+   ]
+  },
+  {
+   "name": "Set the tile",
+   "steps": [
+    {
+     "id": "s1",
+     "t": "Mix the thinset",
+     "time": "15 min",
+     "idea": "Thinset mixed to the right thickness holds tile for decades. Too wet or too dry, it fails.",
+     "fig": "mix",
+     "need": [
+      "setmortar",
+      "mixer"
+     ],
+     "ppe": [
+      "Mask",
+      "Gloves",
+      "Glasses"
+     ],
+     "timers": [
+      [
+       "Thinset slake",
+       10
+      ],
+      [
+       "Thinset pot life (check bag)",
+       120
+      ]
+     ],
+     "help": [
+      "mixHelp"
+     ],
+     "b": "<ol><li>Pour the water amount from the bag into a clean bucket. Start with about a third of a bag.</li><li>Add powder while mixing with the paddle on low speed.</li><li>Mix 3–5 minutes to a peanut-butter thickness with no lumps.</li><li>Let it rest (slake) for the time on the bag, often 5–10 minutes.</li><li>Remix for a minute, without adding water.</li><li>Use it within its pot life. If it stiffens, remix once; don't add water.</li></ol>",
+     "faq": [
+      [
+       "Can I use premixed tile adhesive (mastic)?",
+       "Not on floors, not with large tile and not on a membrane. Use cement thinset."
+      ]
+     ]
+    },
+    {
+     "id": "s2",
+     "t": "Spread thinset and back-butter",
+     "time": "practice 10 min",
+     "idea": "A full bed of thinset under every tile stops cracks and hollow spots.",
+     "fig": "trowel",
+     "need": [
+      "trowels",
+      "setmortar"
+     ],
+     "help": [
+      "trowelHelp"
+     ],
+     "b": "<ol><li>Spread only as much as you can cover in about 10 minutes (2–3 tiles).</li><li>Flat side first: press a thin coat hard into the {{a.under==='backer'?'board':'membrane, filling its little squares'}}.</li><li>Add more and comb it with the {{c.notch}} notch held at 45°, ridges in straight lines in one direction.</li><li>Back-butter: spread a thin, flat coat on the back of each tile with the flat side.</li><li>Keep the chalk line visible: don't cover it.</li></ol>"
+    },
+    {
+     "id": "s3",
+     "t": "Set the first tiles and check coverage",
+     "time": "30 min",
+     "idea": "Set the first tiles on the line and pull one up to prove the thinset is touching everywhere.",
+     "fig": [
+      "trowel",
+      "clips"
+     ],
+     "need": [
+      "tile",
+      "clipsT",
+      "mallet",
+      "straight"
+     ],
+     "help": [
+      "trowelHelp"
+     ],
+     "b": "<ol><li>Set the first tile on the corner of your lines. Press down and slide it about 1/4\" across the ridges and back.</li><li>Put leveling clips under its edges about every 12\", plus spacers where clips don't go.</li><li>Set the next tile tight to the clips. Push the caps or wedges on until the edges are flush.</li><li>After 2–3 tiles, lift one straight up and look: thinset should cover nearly the whole back, with ridges collapsed.</li><li>Aim for at least 95% coverage in a bathroom. Less? Use more thinset, a bigger notch or back-butter better.</li><li>Scrape the thinset back into the bucket from a lifted tile and reset it with fresh.</li></ol>",
+     "faq": [
+      [
+       "One corner sticks up.",
+       "Press it down or tap with a rubber mallet. If it won't come down, lift the tile and add thinset under the low side."
+      ],
+      [
+       "How long can I adjust tiles?",
+       "About 10–20 minutes, until the thinset starts to stiffen."
+      ]
+     ]
+    },
+    {
+     "id": "s4",
+     "t": "Keep setting tile",
+     "time": "4–8 hours",
+     "idea": "Same rhythm, tile by tile, checking lines and flatness as you go.",
+     "fig": "clips",
+     "need": [
+      "tile",
+      "clipsT",
+      "mallet",
+      "straight"
+     ],
+     "b": "<ol><li>Work in small sections from the far wall toward the door.</li><li>Every few tiles, lay a level across them: all should be flush and the joints straight on the line.</li><li>Clean thinset out of the joints with a toothpick or spacer before it sets, at least two-thirds of the depth.</li><li>Wipe thinset off tile faces with a damp sponge right away.</li><li>Mix fresh thinset when the bucket stiffens.</li></ol>"
+    },
+    {
+     "id": "s5",
+     "t": "Make straight cuts",
+     "time": "as needed",
+     "idea": "Most cuts at walls are straight: a snap cutter is faster and cleaner than a saw.",
+     "fig": "cutter",
+     "need": [
+      "cutter",
+      "wetsaw"
+     ],
+     "ppe": [
+      "Glasses",
+      "Ears"
+     ],
+     "help": [
+      "cutHelp"
+     ],
+     "b": "<ol><li>Measure from the last tile to the wall, minus 1/4\" for the gap, minus the joint.</li><li>Mark on the tile with a pencil or marker.</li><li>Set the tile in the snap cutter on the line, score once with steady pressure, then snap.</li><li>Smooth sharp edges with a rubbing stone.</li><li>Strips under 1\" and L-shaped cuts go on the wet saw.</li></ol>"
+    },
+    {
+     "id": "s6",
+     "t": "Cut around the toilet flange and pipes",
+     "time": "30 min",
+     "idea": "Curved cuts take a grinder or hole saw. They're hidden under the toilet and pipe covers.",
+     "when": "a.toilet==='yes'",
+     "fig": "flange",
+     "need": [
+      "grinder",
+      "wetsaw"
+     ],
+     "ppe": [
+      "Glasses",
+      "Mask",
+      "Ears",
+      "Gloves"
+     ],
+     "b": "<ol><li>Lay the tiles that meet at the flange in place dry and mark the flange outline on them, plus 1/4\".</li><li>Clamp the tile or set it on a firm surface.</li><li>With the grinder, make several shallow passes along the curve, then cut straight in from the edge to remove the waste.</li><li>For pipes, drill with a diamond hole saw slightly bigger than the pipe.</li><li>Test-fit before spreading thinset.</li></ol>",
+     "stop": "A grinder kicks if the blade binds. Hold it with both hands, stand to the side, wear glasses and a mask (silica dust), and never remove the guard."
+    },
+    {
+     "id": "s7",
+     "t": "Set the doorway edge",
+     "time": "20 min",
+     "idea": "Edge profiles or thresholds are set in the thinset with the last tiles, not added later.",
+     "fig": "edge",
+     "need": [
+      "edge",
+      "setmortar"
+     ],
+     "b": "<ol><li>Pick an edge profile the height of your tile, or a threshold.</li><li>Cut it to the doorway width with a hacksaw.</li><li>Press its perforated leg into the thinset where the last tiles will go.</li><li>Set the tiles over it so the tile top sits flush with the profile edge.</li><li>Leave a joint-width gap between tile and profile for grout.</li></ol>"
+    },
+    {
+     "id": "s8",
+     "t": "Leave the perimeter gap and let it cure",
+     "time": "15 min",
+     "idea": "A gap at every wall lets the floor move. Grout in it would crack.",
+     "fig": "perim",
+     "need": [
+      "vac"
+     ],
+     "timers": [
+      [
+       "Thinset cure before grouting",
+       1440
+      ]
+     ],
+     "b": "<ol><li>Check there's about 1/4\" between tile and every wall, tub, cabinet and pipe.</li><li>Clean any thinset out of that gap.</li><li>Wipe all tile faces once more.</li><li>Keep off the floor for at least 24 hours (check the bag). Put a sign on the door.</li></ol>"
+    }
+   ]
+  },
+  {
+   "name": "Grout and seal",
+   "steps": [
+    {
+     "id": "g1",
+     "t": "Remove clips and clean joints",
+     "time": "30 min",
+     "idea": "Clear and clean joints so grout fills them fully.",
+     "need": [
+      "mallet",
+      "vac"
+     ],
+     "b": "<ol><li>After the thinset has cured, kick or tap the clip tops off with a rubber mallet in the direction of the joint, never across it.</li><li>Pull out spacers.</li><li>Dig out any thinset in the joints to at least two-thirds depth.</li><li>Vacuum the joints.</li></ol>"
+    },
+    {
+     "id": "g2",
+     "t": "Mix the grout",
+     "time": "15 min",
+     "idea": "Grout mixed to a stiff paste is strong and colors evenly.",
+     "need": [
+      "grout",
+      "mixer"
+     ],
+     "ppe": [
+      "Mask",
+      "Gloves"
+     ],
+     "timers": [
+      [
+       "Grout slake",
+       10
+      ]
+     ],
+     "b": "<ol><li>{{a.grout==='cement'?'Mix only what you can use in 20–30 minutes, with the water on the bag. Measure the water so every batch is the same color.':'Stir the premixed grout well in the pail. No water.'}}</li><li>{{a.grout==='cement'?'Mix to a smooth, stiff paste, like cake frosting. Let it slake for the time on the bag, then remix.':'Open only what you need; reseal the lid tight.'}}</li><li>Dampen the tile surface lightly with a sponge (not puddles) on hot or dry days.</li></ol>",
+     "faq": [
+      [
+       "Sanded or unsanded?",
+       "Sanded for joints 1/8\" and wider; unsanded for narrower. Test sanded grout on a spare first on polished tile; it can scratch."
+      ]
+     ]
+    },
+    {
+     "id": "g3",
+     "t": "Spread the grout",
+     "time": "1–2 hours",
+     "idea": "Pack every joint full, then strip the extra off the face.",
+     "fig": "grout",
+     "need": [
+      "float",
+      "grout"
+     ],
+     "help": [
+      "groutHelp"
+     ],
+     "b": "<ol><li>Drop some grout on the tile. Spread it with the float held at about 45°, pushing it diagonally across the joints.</li><li>Go over each joint from two directions to pack it full.</li><li>Tilt the float almost upright and drag it diagonally to scrape off the extra.</li><li>Work in 3 ft x 3 ft areas.</li><li>Don't grout the perimeter gap or the joint at the tub: that gets caulk.</li></ol>"
+    },
+    {
+     "id": "g4",
+     "t": "Sponge and buff",
+     "time": "1 hour",
+     "idea": "Clean the face without washing grout out of the joints.",
+     "need": [
+      "float"
+     ],
+     "timers": [
+      [
+       "Grout firms before sponging",
+       20
+      ],
+      [
+       "Buff the haze",
+       60
+      ]
+     ],
+     "b": "<ol><li>Wait until the grout is firm: press a finger on a joint; it should leave only a faint mark (often 15–30 min).</li><li>Wring the sponge nearly dry. Wipe diagonally across the joints in light passes.</li><li>Rinse the sponge often in clean water. Change the water when it's cloudy.</li><li>Shape the joints with the sponge edge so they're smooth and even.</li><li>After about an hour, buff the dry film (haze) off with a microfiber cloth.</li></ol>",
+     "faq": [
+      [
+       "Haze won't come off.",
+       "Next day, try a dry cloth or a haze remover made for your grout type."
+      ]
+     ]
+    },
+    {
+     "id": "g5",
+     "t": "Caulk the edges",
+     "time": "30 min",
+     "idea": "Flexible caulk goes where tile meets walls, tub or cabinets, because those spots move.",
+     "fig": "perim",
+     "need": [
+      "caulk"
+     ],
+     "b": "<ol><li>Wait until the grout has cured (check the bag, often 24 hours).</li><li>Clean the perimeter gap and the tub-to-tile joint of dust.</li><li>Run a bead of color-matched caulk in the joint at the tub, shower and any exposed edge. Gaps hidden under baseboard can stay open.</li><li>Smooth with a wet finger or a caulk tool and wipe extra right away.</li><li>Rooms longer than about 20–25 ft need a soft (caulked) joint in the field too. Ask a tile pro about placement.</li></ol>"
+    },
+    {
+     "id": "g6",
+     "t": "Seal the grout",
+     "time": "30 min",
+     "idea": "Sealer helps cement grout resist stains and dirt.",
+     "when": "a.grout==='cement'",
+     "need": [
+      "sealer"
+     ],
+     "b": "<ol><li>Wait for the time on the sealer and grout labels (often 48–72 hours).</li><li>Make sure the grout is clean and fully dry.</li><li>Apply sealer to the grout lines with the applicator bottle or a small brush.</li><li>Wipe any sealer off the tile within a few minutes.</li><li>Let it cure as the label says before mopping.</li></ol>"
+    }
+   ]
+  },
+  {
+   "name": "Finish",
+   "steps": [
+    {
+     "id": "f1",
+     "t": "Reset the toilet",
+     "time": "45 min",
+     "idea": "The toilet goes back on a new seal, at the right flange height.",
+     "when": "a.toilet==='yes'",
+     "fig": "toilet",
+     "need": [
+      "wax",
+      "caulk"
+     ],
+     "b": "<ol><li>Wait until the grout can take weight (check the bag; often 24–72 hours).</li><li>Remove the rag from the drain.</li><li>Check the flange height: level with or above the tile. Below? Add a spacer ring or use an extra-thick wax ring or a wax-free seal.</li><li>Put new bolts in the flange, set the seal, then lower the toilet straight down onto the bolts.</li><li>Press it down by sitting on it. Tighten the nuts a little at a time, side to side, until it doesn't rock. Over-tightening cracks porcelain.</li><li>Reconnect the water, flush several times and check for leaks.</li><li>Caulk around the base. Many plumbers leave a small gap at the back so a leak shows; check local rules.</li></ol>",
+     "faq": [
+      [
+       "The toilet rocks.",
+       "Slip plastic toilet shims under the low side, then tighten. Cut them off flush and caulk."
+      ]
+     ]
+    },
+    {
+     "id": "f2",
+     "t": "Put the baseboard back",
+     "time": "1 hour",
+     "idea": "Baseboard covers the perimeter gap.",
+     "need": [
+      "pry"
+     ],
+     "b": "<ol><li>Hold each numbered piece on its spot, resting lightly on the tile.</li><li>Nail into the wall studs and bottom plate.</li><li>Fill nail holes and caulk the top edge to the wall.</li><li>Rehang the door and trim its bottom if it drags.</li></ol>"
+    },
+    {
+     "id": "f3",
+     "t": "Care for the new floor",
+     "time": "5 min",
+     "idea": "Give it time to cure fully, and clean it gently.",
+     "b": "<ol><li>Light foot traffic after 24 hours, heavy furniture after 72 hours (or as the grout bag says).</li><li>Clean with a pH-neutral tile cleaner. No bleach or acid on cement grout.</li><li>Keep a few spare tiles and a note of the grout color for repairs.</li><li>Reseal cement grout every year or two, or when water stops beading.</li></ol>"
+    }
+   ]
+  }
+ ],
+ "days": [
+  {
+   "t": "Plan, check and buy",
+   "ids": [
+    "t1",
+    "t2",
+    "t3"
+   ],
+   "wait": "Tile and supplies arrive"
+  },
+  {
+   "t": "Tear out and prep",
+   "ids": [
+    "r1",
+    "r2",
+    "r3",
+    "r4"
+   ],
+   "wait": "Patch hardens"
+  },
+  {
+   "t": "Underlayment",
+   "ids": [
+    "b1",
+    "b2",
+    "b3",
+    "d1",
+    "d2"
+   ],
+   "wait": "Backer seams harden overnight (membrane can be tiled the same day)"
+  },
+  {
+   "t": "Lay out and set tile",
+   "ids": [
+    "l1",
+    "l2",
+    "l3",
+    "s1",
+    "s2",
+    "s3",
+    "s4",
+    "s5",
+    "s6",
+    "s7",
+    "s8"
+   ],
+   "wait": "Thinset cures at least 24 hours"
+  },
+  {
+   "t": "Grout and caulk",
+   "ids": [
+    "g1",
+    "g2",
+    "g3",
+    "g4",
+    "g5"
+   ],
+   "wait": "Grout cures (often 48–72 hours before sealing)"
+  },
+  {
+   "t": "Seal and put the room back",
+   "ids": [
+    "g6",
+    "f1",
+    "f2",
+    "f3"
+   ]
+  }
+ ],
+ "help": {
+  "mixHelp": {
+   "t": "Mix thinset",
+   "fig": "mix",
+   "b": "<ol><li>Water first, then powder, in the ratio on the bag.</li><li>Mix on low speed (about 300 rpm) so you don't whip in air.</li><li>Rest 5–10 minutes (slake), then remix briefly.</li><li>Right: peanut butter. Ridges hold their shape and it hangs on an upside-down trowel for a second.</li><li>Never add water once it starts to stiffen.</li></ol>"
+  },
+  "trowelHelp": {
+   "t": "Trowel and back-butter",
+   "fig": "trowel",
+   "b": "<ol><li>Flat side: press a thin coat hard into the surface.</li><li>Notched side at 45°: comb straight ridges in one direction.</li><li>Back-butter: a thin flat coat on the tile back.</li><li>Set, press and slide 1/4\" across the ridges.</li><li>Lift one tile now and then to check full coverage.</li></ol>"
+  },
+  "cutHelp": {
+   "t": "Use a snap cutter and wet saw",
+   "fig": "cutter",
+   "b": "<ol><li>Snap cutter: line on the guide, one firm score pushing away, then press the handle to snap.</li><li>Wet saw: fill the water tray, feed the tile slowly, keep fingers clear of the blade.</li><li>Notches: two saw cuts, then snap out the piece or nibble it.</li><li>Smooth cut edges with a rubbing stone.</li></ol>"
+  },
+  "groutHelp": {
+   "t": "Grout cleanly",
+   "fig": "grout",
+   "b": "<ol><li>Float at 45°, diagonally across joints, packing them full.</li><li>Scrape off extra with the float almost upright.</li><li>Wait until firm, then sponge diagonally with a nearly dry sponge.</li><li>Buff haze with microfiber after about an hour.</li></ol>"
+  }
+ },
+ "figs": {
+  "count": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Count full tiles and cut tiles</text><rect x=\"30\" y=\"30\" width=\"200\" height=\"120\" class=\"tl\"/><rect x=\"30\" y=\"30\" width=\"0\" height=\"20\" class=\"mos\"/><rect x=\"30\" y=\"30\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"70\" y=\"30\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"110\" y=\"30\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"150\" y=\"30\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"190\" y=\"30\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"30\" y=\"50\" width=\"13\" height=\"20\" class=\"mos\"/><rect x=\"43\" y=\"50\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"83\" y=\"50\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"123\" y=\"50\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"163\" y=\"50\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"203\" y=\"50\" width=\"27\" height=\"20\" class=\"mos\"/><rect x=\"30\" y=\"70\" width=\"26\" height=\"20\" class=\"mos\"/><rect x=\"56\" y=\"70\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"96\" y=\"70\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"136\" y=\"70\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"176\" y=\"70\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"216\" y=\"70\" width=\"14\" height=\"20\" class=\"mos\"/><rect x=\"30\" y=\"90\" width=\"0\" height=\"20\" class=\"mos\"/><rect x=\"30\" y=\"90\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"70\" y=\"90\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"110\" y=\"90\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"150\" y=\"90\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"190\" y=\"90\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"30\" y=\"110\" width=\"13\" height=\"20\" class=\"mos\"/><rect x=\"43\" y=\"110\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"83\" y=\"110\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"123\" y=\"110\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"163\" y=\"110\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"203\" y=\"110\" width=\"27\" height=\"20\" class=\"mos\"/><rect x=\"30\" y=\"130\" width=\"26\" height=\"20\" class=\"mos\"/><rect x=\"56\" y=\"130\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"96\" y=\"130\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"136\" y=\"130\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"176\" y=\"130\" width=\"40\" height=\"20\" class=\"tl\"/><rect x=\"216\" y=\"130\" width=\"14\" height=\"20\" class=\"mos\"/><rect x=\"30\" y=\"30\" width=\"200\" height=\"120\" class=\"o\" fill=\"none\"/><text x=\"240\" y=\"60\">shaded =</text><text x=\"240\" y=\"72\">cut pieces</text><text x=\"240\" y=\"110\">cut-offs</text><text x=\"240\" y=\"122\">rarely reuse</text><text x=\"130\" y=\"170\" class=\"ac\" text-anchor=\"middle\">{{a.length}} ft x {{a.width}} ft = {{c.sqft}} sq ft</text><text x=\"10\" y=\"190\">Buy extra: tiles break, and lots change.</text>",
+   "h": 198,
+   "cap": "Buy {{c.tiles}} tiles ({{c.boxes}} boxes) including waste, all from one lot. Keep a few spares for future repairs."
+  },
+  "deflect": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Tile needs a stiff floor</text><rect x=\"30\" y=\"120\" width=\"16\" height=\"40\" class=\"w\"/><rect x=\"270\" y=\"120\" width=\"16\" height=\"40\" class=\"w\"/><path d=\"M20 110 Q158 136 296 110 L296 120 Q158 146 20 120Z\" class=\"b\"/><path d=\"M20 110 L296 110\" class=\"o d\"/><line x1=\"158\" y1=\"50\" x2=\"158\" y2=\"112\" class=\"a\" style=\"stroke-width:2\"/><polygon points=\"158,118 154,112 162,112\" class=\"af\"/><text x=\"166\" y=\"62\">weight</text><text x=\"166\" y=\"74\">(a person)</text><text x=\"38\" y=\"176\" text-anchor=\"middle\">joist</text><text x=\"278\" y=\"176\" text-anchor=\"middle\">joist</text><text x=\"158\" y=\"176\" text-anchor=\"middle\">span</text><line x1=\"56\" y1=\"172\" x2=\"130\" y2=\"172\" class=\"o d\"/><line x1=\"186\" y1=\"172\" x2=\"262\" y2=\"172\" class=\"o d\"/><text x=\"10\" y=\"40\" class=\"wa\">Floor sags = tile and grout crack</text><text x=\"10\" y=\"192\">Ceramic/porcelain: L/360 or stiffer. Stone: L/720.</text>",
+   "h": 200,
+   "cap": "Bouncy floors crack tile. Joist size, spacing and span decide stiffness; the subfloor thickness covers the space between joists."
+  },
+  "stack": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">What the new floor is made of</text><rect x=\"10\" y=\"150\" width=\"220\" height=\"18\" class=\"w\"/><text x=\"236\" y=\"163\">plywood</text><rect x=\"10\" y=\"140\" width=\"220\" height=\"10\" class=\"th\"/><text x=\"236\" y=\"148\">thinset</text><rect x=\"10\" y=\"130\" width=\"220\" height=\"10\" class=\"{{a.under==='backer'?'b':'m'}}\"/><text x=\"236\" y=\"136\">{{a.under==='backer'?'backer board':'membrane'}}</text><rect x=\"10\" y=\"120\" width=\"220\" height=\"10\" class=\"th\"/><text x=\"236\" y=\"124\">thinset</text><rect x=\"10\" y=\"98\" width=\"220\" height=\"22\" class=\"tl\"/><text x=\"236\" y=\"112\">tile</text><line x1=\"80\" y1=\"98\" x2=\"80\" y2=\"120\" class=\"o\"/><line x1=\"160\" y1=\"98\" x2=\"160\" y2=\"120\" class=\"o\"/><line x1=\"20\" y1=\"96\" x2=\"20\" y2=\"150\" class=\"a\"/><polygon points=\"20,96 16,102 24,102\" class=\"af\"/><polygon points=\"20,150 16,144 24,144\" class=\"af\"/><text x=\"30\" y=\"80\" class=\"ac\">{{a.under==='backer'?'about 1\" higher than the subfloor':'about 3/4\" higher than the subfloor'}}</text><text x=\"10\" y=\"190\">Check doors, the toilet flange and the next floor.</text>",
+   "h": 198,
+   "cap": "Add up the layers before you start. You may need to trim doors, undercut casings and pick a transition that covers the height step."
+  },
+  "toilet": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Toilet: flange, wax ring, floor</text><rect x=\"10\" y=\"140\" width=\"300\" height=\"16\" class=\"w\"/><rect x=\"10\" y=\"130\" width=\"112\" height=\"10\" class=\"tl\"/><rect x=\"198\" y=\"130\" width=\"112\" height=\"10\" class=\"tl\"/><rect x=\"140\" y=\"140\" width=\"40\" height=\"50\" class=\"o\"/><text x=\"186\" y=\"182\">drain pipe</text><rect x=\"124\" y=\"124\" width=\"72\" height=\"8\" class=\"bk\"/><rect x=\"136\" y=\"110\" width=\"48\" height=\"14\" rx=\"6\" class=\"y\"/><path d=\"M110 106 L110 70 Q110 50 160 50 Q210 50 210 70 L210 106Z\" class=\"tb\"/><text x=\"220\" y=\"72\" class=\"k\">toilet</text><text x=\"220\" y=\"118\" class=\"k\">wax ring</text><line x1=\"218\" y1=\"115\" x2=\"186\" y2=\"117\" class=\"o\"/><text x=\"14\" y=\"112\" class=\"k\">flange</text><line x1=\"52\" y1=\"110\" x2=\"124\" y2=\"127\" class=\"o\"/><text x=\"14\" y=\"174\">tile cut 1/4\" from flange</text>",
+   "h": 198,
+   "cap": "The flange top should end up level with or slightly above the finished tile. Use a new wax ring or wax-free seal every time."
+  },
+  "jamb": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Undercut the door casing</text><rect x=\"150\" y=\"24\" width=\"24\" height=\"128\" class=\"w\"/><text x=\"180\" y=\"40\">casing</text><rect x=\"10\" y=\"152\" width=\"300\" height=\"14\" class=\"w\"/><text x=\"300\" y=\"180\" text-anchor=\"end\">subfloor</text><rect x=\"90\" y=\"146\" width=\"120\" height=\"6\" class=\"{{a.under==='backer'?'b':'m'}}\"/><rect x=\"90\" y=\"134\" width=\"120\" height=\"12\" class=\"tl\"/><text x=\"16\" y=\"144\" class=\"k\">tile scrap</text><text x=\"16\" y=\"156\">+ underlayment</text><g><rect x=\"104\" y=\"122\" width=\"96\" height=\"10\" class=\"bk\"/><rect x=\"60\" y=\"120\" width=\"44\" height=\"14\" rx=\"4\" class=\"y\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 0;22 0;0 0\" dur=\"1.2s\" repeatCount=\"indefinite\"/></g><text x=\"210\" y=\"64\">saw rests flat</text><text x=\"210\" y=\"76\">on the scrap</text><line x1=\"222\" y1=\"82\" x2=\"190\" y2=\"122\" class=\"a\"/><text x=\"10\" y=\"194\">Add 1/16\" for the thinset under the tile.</text>",
+   "h": 200,
+   "title": "Cut the casing with a jamb saw",
+   "cap": "Stack a tile and a piece of your membrane or backer, plus a little for thinset, against the casing. Rest the saw on top and cut."
+  },
+  "flat": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Check flatness with a straightedge</text><path d=\"M10 120 C60 120 80 106 120 106 S170 122 200 128 S260 120 310 120 L310 150 L10 150Z\" class=\"w\"/><rect x=\"20\" y=\"98\" width=\"280\" height=\"7\" class=\"y\"/><line x1=\"200\" y1=\"105\" x2=\"200\" y2=\"127\" class=\"bad\"/><text x=\"206\" y=\"142\" class=\"wa\">low spot: fill</text><text x=\"120\" y=\"90\" class=\"k\" text-anchor=\"middle\">rocks on a hump = high spot</text><text x=\"10\" y=\"170\">Tile under 15\": about 1/4\" in 10 ft.</text><text x=\"10\" y=\"184\">Edge 15\" or more: 1/8\" in 10 ft, 1/16\" in 2 ft.</text>",
+   "h": 192,
+   "cap": "Large tiles need a flatter floor or the corners stick up (lippage). Check your tile and membrane instructions for the exact limit."
+  },
+  "backer": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Stagger backer board seams</text><rect x=\"10\" y=\"30\" width=\"240\" height=\"120\" class=\"o\" fill=\"none\"/><rect x=\"12\" y=\"32\" width=\"100\" height=\"50\" class=\"b\"/><rect x=\"114\" y=\"32\" width=\"100\" height=\"50\" class=\"b\"/><rect x=\"216\" y=\"32\" width=\"32\" height=\"50\" class=\"b\"/><rect x=\"12\" y=\"84\" width=\"50\" height=\"50\" class=\"b\"/><rect x=\"64\" y=\"84\" width=\"100\" height=\"50\" class=\"b\"/><rect x=\"166\" y=\"84\" width=\"82\" height=\"50\" class=\"b\"/><rect x=\"12\" y=\"136\" width=\"100\" height=\"12\" class=\"b\"/><rect x=\"114\" y=\"136\" width=\"100\" height=\"12\" class=\"b\"/><rect x=\"216\" y=\"136\" width=\"32\" height=\"12\" class=\"b\"/><line x1=\"140\" y1=\"30\" x2=\"140\" y2=\"150\" class=\"bad\"/><line x1=\"10\" y1=\"108\" x2=\"250\" y2=\"108\" class=\"bad\"/><text x=\"258\" y=\"52\">red =</text><text x=\"258\" y=\"64\">plywood</text><text x=\"258\" y=\"76\">seams</text><text x=\"258\" y=\"110\">no 4-way</text><text x=\"258\" y=\"122\">corners</text><text x=\"10\" y=\"168\">1/8\" gap between sheets, 1/4\" from walls.</text><text x=\"10\" y=\"182\">Keep backer seams 8\"+ from plywood seams.</text>",
+   "h": 190,
+   "cap": "Lay sheets like bricks, so no four corners meet, and so backer seams never sit on top of plywood seams."
+  },
+  "screws": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Screw every 8\"</text><rect x=\"20\" y=\"30\" width=\"200\" height=\"120\" class=\"b\"/><circle cx=\"26.7\" cy=\"31.7\" r=\"2.2\" class=\"inkf\"/><circle cx=\"26.7\" cy=\"56.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"26.7\" cy=\"83.3\" r=\"2.2\" class=\"inkf\"/><circle cx=\"26.7\" cy=\"109.9\" r=\"2.2\" class=\"inkf\"/><circle cx=\"26.7\" cy=\"136.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"26.7\" cy=\"148.2\" r=\"2.2\" class=\"inkf\"/><circle cx=\"53.3\" cy=\"31.7\" r=\"2.2\" class=\"inkf\"/><circle cx=\"53.3\" cy=\"56.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"53.3\" cy=\"83.3\" r=\"2.2\" class=\"inkf\"/><circle cx=\"53.3\" cy=\"109.9\" r=\"2.2\" class=\"inkf\"/><circle cx=\"53.3\" cy=\"136.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"53.3\" cy=\"148.2\" r=\"2.2\" class=\"inkf\"/><circle cx=\"79.9\" cy=\"31.7\" r=\"2.2\" class=\"inkf\"/><circle cx=\"79.9\" cy=\"56.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"79.9\" cy=\"83.3\" r=\"2.2\" class=\"inkf\"/><circle cx=\"79.9\" cy=\"109.9\" r=\"2.2\" class=\"inkf\"/><circle cx=\"79.9\" cy=\"136.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"79.9\" cy=\"148.2\" r=\"2.2\" class=\"inkf\"/><circle cx=\"106.6\" cy=\"31.7\" r=\"2.2\" class=\"inkf\"/><circle cx=\"106.6\" cy=\"56.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"106.6\" cy=\"83.3\" r=\"2.2\" class=\"inkf\"/><circle cx=\"106.6\" cy=\"109.9\" r=\"2.2\" class=\"inkf\"/><circle cx=\"106.6\" cy=\"136.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"106.6\" cy=\"148.2\" r=\"2.2\" class=\"inkf\"/><circle cx=\"133.2\" cy=\"31.7\" r=\"2.2\" class=\"inkf\"/><circle cx=\"133.2\" cy=\"56.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"133.2\" cy=\"83.3\" r=\"2.2\" class=\"inkf\"/><circle cx=\"133.2\" cy=\"109.9\" r=\"2.2\" class=\"inkf\"/><circle cx=\"133.2\" cy=\"136.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"133.2\" cy=\"148.2\" r=\"2.2\" class=\"inkf\"/><circle cx=\"159.9\" cy=\"31.7\" r=\"2.2\" class=\"inkf\"/><circle cx=\"159.9\" cy=\"56.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"159.9\" cy=\"83.3\" r=\"2.2\" class=\"inkf\"/><circle cx=\"159.9\" cy=\"109.9\" r=\"2.2\" class=\"inkf\"/><circle cx=\"159.9\" cy=\"136.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"159.9\" cy=\"148.2\" r=\"2.2\" class=\"inkf\"/><circle cx=\"186.5\" cy=\"31.7\" r=\"2.2\" class=\"inkf\"/><circle cx=\"186.5\" cy=\"56.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"186.5\" cy=\"83.3\" r=\"2.2\" class=\"inkf\"/><circle cx=\"186.5\" cy=\"109.9\" r=\"2.2\" class=\"inkf\"/><circle cx=\"186.5\" cy=\"136.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"186.5\" cy=\"148.2\" r=\"2.2\" class=\"inkf\"/><circle cx=\"213.1\" cy=\"31.7\" r=\"2.2\" class=\"inkf\"/><circle cx=\"213.1\" cy=\"56.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"213.1\" cy=\"83.3\" r=\"2.2\" class=\"inkf\"/><circle cx=\"213.1\" cy=\"109.9\" r=\"2.2\" class=\"inkf\"/><circle cx=\"213.1\" cy=\"136.6\" r=\"2.2\" class=\"inkf\"/><circle cx=\"213.1\" cy=\"148.2\" r=\"2.2\" class=\"inkf\"/><text x=\"230\" y=\"44\">8\" apart</text><text x=\"230\" y=\"56\">both ways</text><text x=\"230\" y=\"84\">3/8\"–1/2\"</text><text x=\"230\" y=\"96\">from edges</text><text x=\"230\" y=\"124\">2\" from</text><text x=\"230\" y=\"136\">corners</text><text x=\"10\" y=\"172\">Heads flush with the surface, not sunk deep.</text><text x=\"10\" y=\"186\">Use backer screws, not drywall screws.</text>",
+   "h": 194,
+   "cap": "Follow the spacing printed on your brand of board. Drive screws while the thinset under the sheet is still wet."
+  },
+  "membrane": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Embed the membrane</text><rect x=\"10\" y=\"130\" width=\"300\" height=\"20\" class=\"w\"/><text x=\"300\" y=\"164\" text-anchor=\"end\">plywood</text><path d=\"M10 130 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 l5 -8 l5 8 Z\" class=\"th\"/><path d=\"M10 122 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 h6 v-8 h6 v8 L310 126 L10 126Z\" class=\"m\"/><g><rect x=\"60\" y=\"96\" width=\"70\" height=\"8\" class=\"bk\"/><rect x=\"82\" y=\"84\" width=\"26\" height=\"12\" rx=\"4\" class=\"y\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 0;140 0;0 0\" dur=\"3s\" repeatCount=\"indefinite\"/></g><text x=\"10\" y=\"40\" class=\"k\">Fleece side down into fresh thinset.</text><text x=\"10\" y=\"54\">Press with a float from the middle out.</text><text x=\"10\" y=\"180\">Lift a corner: the fleece should be fully covered.</text>",
+   "h": 188,
+   "title": "Press the membrane in",
+   "cap": "Work from the center toward the edges to push out air. Spread only as much thinset as you can cover in about 10 minutes."
+  },
+  "square": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Check your lines are square: 3-4-5</text><rect x=\"20\" y=\"26\" width=\"240\" height=\"150\" class=\"tl\"/><line x1=\"140\" y1=\"26\" x2=\"140\" y2=\"176\" class=\"a d\"/><line x1=\"20\" y1=\"101\" x2=\"260\" y2=\"101\" class=\"a d\"/><path d=\"M140 101 L140 41 L220 101Z\" class=\"mos\" fill-opacity=\"0.5\"/><line x1=\"140\" y1=\"101\" x2=\"140\" y2=\"41\" class=\"a\" style=\"stroke-width:2\"/><line x1=\"140\" y1=\"101\" x2=\"220\" y2=\"101\" class=\"a\" style=\"stroke-width:2\"/><line x1=\"140\" y1=\"41\" x2=\"220\" y2=\"101\" class=\"good\" style=\"stroke-width:2\"/><text x=\"132\" y=\"74\" class=\"ac\" text-anchor=\"end\">3 ft</text><text x=\"180\" y=\"116\" class=\"ac\" text-anchor=\"middle\">4 ft</text><text x=\"186\" y=\"64\" class=\"gd\">5 ft</text><text x=\"30\" y=\"40\">center lines</text><text x=\"10\" y=\"192\">Exactly 5 ft? The lines are square.</text>",
+   "h": 200,
+   "cap": "Measure 3 ft along one line and 4 ft along the other from where they cross. The diagonal must be exactly 5 ft. Use 6-8-10 for more accuracy."
+  },
+  "drylay": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Shift the layout: no slivers</text><rect x=\"10\" y=\"30\" width=\"130\" height=\"110\" class=\"o\" fill=\"none\"/><rect x=\"10\" y=\"30\" width=\"30\" height=\"110\" class=\"tl\"/><rect x=\"40\" y=\"30\" width=\"30\" height=\"110\" class=\"tl\"/><rect x=\"70\" y=\"30\" width=\"30\" height=\"110\" class=\"tl\"/><rect x=\"100\" y=\"30\" width=\"30\" height=\"110\" class=\"tl\"/><rect x=\"130\" y=\"30\" width=\"10\" height=\"110\" class=\"tl\"/><rect x=\"50\" y=\"140\" width=\"50\" height=\"6\" class=\"w\"/><rect x=\"175\" y=\"30\" width=\"130\" height=\"110\" class=\"o\" fill=\"none\"/><rect x=\"175\" y=\"30\" width=\"20\" height=\"110\" class=\"tl\"/><rect x=\"195\" y=\"30\" width=\"30\" height=\"110\" class=\"tl\"/><rect x=\"225\" y=\"30\" width=\"30\" height=\"110\" class=\"tl\"/><rect x=\"255\" y=\"30\" width=\"30\" height=\"110\" class=\"tl\"/><rect x=\"285\" y=\"30\" width=\"20\" height=\"110\" class=\"tl\"/><rect x=\"215\" y=\"140\" width=\"50\" height=\"6\" class=\"w\"/><text x=\"75\" y=\"160\" text-anchor=\"middle\">door</text><text x=\"240\" y=\"160\" text-anchor=\"middle\">door</text><text x=\"10\" y=\"178\" class=\"wa\">sliver at the wall</text><text x=\"175\" y=\"178\" class=\"gd\">equal cuts both sides</text><text x=\"10\" y=\"192\">Dry-lay a row both ways before mixing.</text>",
+   "h": 200,
+   "cap": "Cuts under about half a tile look like mistakes. Shift the whole grid so both sides get equal cuts, and so the doorway shows full or large tiles."
+  },
+  "offset": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Long tiles: offset 1/3, not 1/2</text><rect x=\"10\" y=\"30\" width=\"0\" height=\"16\" class=\"tl\"/><rect x=\"10\" y=\"30\" width=\"60\" height=\"16\" class=\"tl\"/><rect x=\"70\" y=\"30\" width=\"60\" height=\"16\" class=\"tl\"/><rect x=\"130\" y=\"30\" width=\"20\" height=\"16\" class=\"tl\"/><rect x=\"170\" y=\"30\" width=\"0\" height=\"16\" class=\"tl\"/><rect x=\"170\" y=\"30\" width=\"60\" height=\"16\" class=\"tl\"/><rect x=\"230\" y=\"30\" width=\"60\" height=\"16\" class=\"tl\"/><rect x=\"290\" y=\"30\" width=\"20\" height=\"16\" class=\"tl\"/><rect x=\"10\" y=\"46\" width=\"20\" height=\"16\" class=\"tl\"/><rect x=\"30\" y=\"46\" width=\"60\" height=\"16\" class=\"tl\"/><rect x=\"90\" y=\"46\" width=\"60\" height=\"16\" class=\"tl\"/><rect x=\"170\" y=\"46\" width=\"30\" height=\"16\" class=\"tl\"/><rect x=\"200\" y=\"46\" width=\"60\" height=\"16\" class=\"tl\"/><rect x=\"260\" y=\"46\" width=\"50\" height=\"16\" class=\"tl\"/><rect x=\"10\" y=\"62\" width=\"40\" height=\"16\" class=\"tl\"/><rect x=\"50\" y=\"62\" width=\"60\" height=\"16\" class=\"tl\"/><rect x=\"110\" y=\"62\" width=\"40\" height=\"16\" class=\"tl\"/><rect x=\"170\" y=\"62\" width=\"0\" height=\"16\" class=\"tl\"/><rect x=\"170\" y=\"62\" width=\"60\" height=\"16\" class=\"tl\"/><rect x=\"230\" y=\"62\" width=\"60\" height=\"16\" class=\"tl\"/><rect x=\"290\" y=\"62\" width=\"20\" height=\"16\" class=\"tl\"/><rect x=\"10\" y=\"78\" width=\"0\" height=\"16\" class=\"tl\"/><rect x=\"10\" y=\"78\" width=\"60\" height=\"16\" class=\"tl\"/><rect x=\"70\" y=\"78\" width=\"60\" height=\"16\" class=\"tl\"/><rect x=\"130\" y=\"78\" width=\"20\" height=\"16\" class=\"tl\"/><rect x=\"170\" y=\"78\" width=\"30\" height=\"16\" class=\"tl\"/><rect x=\"200\" y=\"78\" width=\"60\" height=\"16\" class=\"tl\"/><rect x=\"260\" y=\"78\" width=\"50\" height=\"16\" class=\"tl\"/><text x=\"10\" y=\"112\" class=\"gd\">1/3 offset</text><text x=\"170\" y=\"112\" class=\"wa\">1/2 offset (half)</text><path d=\"M30 156 Q80 140 130 156\" class=\"o\" fill=\"none\" style=\"stroke-width:4\"/><path d=\"M80 152 L180 152\" class=\"o\" style=\"stroke-width:4\"/><text x=\"10\" y=\"174\">Tiles are slightly bowed. A tile middle next</text><text x=\"10\" y=\"186\">to a tile edge sticks up. Less offset = less lip.</text>",
+   "h": 194,
+   "cap": "For tiles with an edge longer than about 18\", most tile makers limit the offset to 1/3 (some to 20%). Check the box."
+  },
+  "mix": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Mix thinset like peanut butter</text><path d=\"M40 70 L50 170 L130 170 L140 70Z\" class=\"bk\"/><path d=\"M44 100 L136 100 L131 168 L49 168Z\" class=\"th\"/><rect x=\"84\" y=\"30\" width=\"12\" height=\"40\" class=\"y\"/><line x1=\"90\" y1=\"70\" x2=\"90\" y2=\"150\" class=\"o\" style=\"stroke-width:3\"/><path d=\"M76 150 h28 v12 h-28z\" class=\"o\" fill=\"none\"/><text x=\"160\" y=\"50\" class=\"k\">1  Water in the bucket first</text><text x=\"160\" y=\"64\">2  Add powder, mix slow</text><text x=\"160\" y=\"78\">   (low speed, about 300 rpm)</text><text x=\"160\" y=\"100\" class=\"k\">3  Rest 5–10 min (slake)</text><text x=\"160\" y=\"114\">4  Remix briefly</text><text x=\"160\" y=\"136\" class=\"gd\">Ridges stand up on</text><text x=\"160\" y=\"148\">the trowel: right</text><text x=\"10\" y=\"190\">Never add water after it starts to stiffen.</text>",
+   "h": 198,
+   "cap": "Use the water amount on the bag. Too wet and tiles sink and slide; too dry and it won't stick."
+  },
+  "trowel": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Comb straight ridges, back-butter</text><rect x=\"10\" y=\"150\" width=\"300\" height=\"14\" class=\"{{a.under==='backer'?'b':'m'}}\"/><path d=\"M10 150 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 l4 -10 l4 0 l4 10 Z\" class=\"th\"/><g><rect x=\"60\" y=\"70\" width=\"200\" height=\"16\" class=\"tl\"/><rect x=\"60\" y=\"86\" width=\"200\" height=\"4\" class=\"th\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 0;0 52;6 52;0 0\" keyTimes=\"0;0.45;0.7;1\" dur=\"3s\" repeatCount=\"indefinite\"/></g><text x=\"64\" y=\"64\" class=\"k\">tile, thin flat coat on its back</text><text x=\"10\" y=\"180\">Press down and slide 1/4\" across the ridges.</text><text x=\"10\" y=\"194\">The ridges collapse into a solid bed.</text>",
+   "h": 202,
+   "title": "Set a tile",
+   "cap": "Comb ridges in one direction, parallel to the short side of the tile, so air can escape. Never swirl."
+  },
+  "clips": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Leveling clips keep edges even</text><rect x=\"10\" y=\"130\" width=\"300\" height=\"14\" class=\"{{a.under==='backer'?'b':'m'}}\"/><rect x=\"10\" y=\"122\" width=\"300\" height=\"8\" class=\"th\"/><rect x=\"20\" y=\"100\" width=\"128\" height=\"22\" class=\"tl\"/><rect x=\"156\" y=\"100\" width=\"134\" height=\"22\" class=\"tl\"/><rect x=\"120\" y=\"123\" width=\"64\" height=\"4\" class=\"y\"/><rect x=\"149\" y=\"88\" width=\"6\" height=\"38\" class=\"y\"/><path d=\"M130 88 L174 88 L170 76 L134 76Z\" class=\"af\"/><text x=\"10\" y=\"50\" class=\"k\">cap or wedge pushes both tiles</text><text x=\"10\" y=\"62\">flush with each other</text><text x=\"196\" y=\"148\">clip base under</text><text x=\"196\" y=\"160\">both tiles</text><text x=\"10\" y=\"184\">Snap the tops off sideways after 24 hours.</text>",
+   "h": 192,
+   "cap": "Clips fix the small height differences between tiles. They don't fix a floor that isn't flat."
+  },
+  "cutter": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Straight cuts: snap cutter</text><rect x=\"20\" y=\"60\" width=\"280\" height=\"50\" class=\"bk\"/><line x1=\"20\" y1=\"85\" x2=\"300\" y2=\"85\" class=\"o d\"/><rect x=\"60\" y=\"64\" width=\"180\" height=\"42\" class=\"tl\"/><circle cx=\"60\" cy=\"85\" r=\"8\" class=\"y\"/><line x1=\"74\" y1=\"85\" x2=\"200\" y2=\"85\" class=\"a\" style=\"stroke-width:2\"/><polygon points=\"206,85 200,81 200,89\" class=\"af\"/><text x=\"20\" y=\"50\" class=\"k\">1  Score once, push away, steady pressure</text><text x=\"20\" y=\"130\">2  Set the breaker foot near the middle,</text><text x=\"20\" y=\"142\">   press the handle: it snaps on the line</text><text x=\"20\" y=\"170\">Wet saw for notches, L-cuts and thin strips.</text>",
+   "h": 178,
+   "cap": "One clean score beats several. Going over the line twice usually makes a ragged break."
+  },
+  "flange": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Cut around the toilet flange</text><rect x=\"20\" y=\"30\" width=\"130\" height=\"110\" class=\"tl\"/><rect x=\"154\" y=\"30\" width=\"130\" height=\"110\" class=\"tl\"/><circle cx=\"152\" cy=\"100\" r=\"34\" class=\"bk\"/><circle cx=\"152\" cy=\"100\" r=\"28\" class=\"b\"/><circle cx=\"152\" cy=\"100\" r=\"16\" class=\"o\"/><circle cx=\"152\" cy=\"100\" r=\"34\" class=\"a d\" fill=\"none\"/><text x=\"160\" y=\"156\" class=\"ac\" text-anchor=\"middle\">cut line: flange + 1/4\" gap</text><text x=\"10\" y=\"176\">Mark from the flange center, cut half-circles</text><text x=\"10\" y=\"188\">with a grinder or a hole saw on the joint.</text>",
+   "h": 196,
+   "cap": "The toilet base covers the cut, so it doesn't need to be perfect. It needs to be clear of the flange."
+  },
+  "perim": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Leave a gap at walls: caulk, not grout</text><rect x=\"256\" y=\"20\" width=\"40\" height=\"150\" class=\"b\"/><text x=\"276\" y=\"36\" text-anchor=\"middle\">wall</text><rect x=\"10\" y=\"150\" width=\"300\" height=\"20\" class=\"w\"/><rect x=\"10\" y=\"142\" width=\"236\" height=\"8\" class=\"th\"/><rect x=\"10\" y=\"124\" width=\"236\" height=\"18\" class=\"tl\"/><text x=\"30\" y=\"118\" class=\"k\">tile</text><rect x=\"240\" y=\"96\" width=\"16\" height=\"46\" class=\"w\" fill-opacity=\"0.85\"/><rect x=\"246\" y=\"128\" width=\"10\" height=\"14\" class=\"mp\"/><text x=\"170\" y=\"64\" class=\"ac\" text-anchor=\"middle\">baseboard covers it</text><line x1=\"190\" y1=\"68\" x2=\"244\" y2=\"98\" class=\"a\"/><text x=\"170\" y=\"190\" class=\"ac\" text-anchor=\"middle\">1/4\" gap, no grout or thinset</text><line x1=\"250\" y1=\"180\" x2=\"251\" y2=\"144\" class=\"a\"/>",
+   "h": 198,
+   "cap": "Tile grows and shrinks. The gap at walls, tubs and cabinets is filled with flexible caulk (or left under the baseboard), never with grout."
+  },
+  "grout": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Grout: float at 45°, diagonal</text><rect x=\"20\" y=\"30\" width=\"200\" height=\"120\" class=\"tl\"/><line x1=\"20\" y1=\"30\" x2=\"20\" y2=\"150\" class=\"o\"/><line x1=\"60\" y1=\"30\" x2=\"60\" y2=\"150\" class=\"o\"/><line x1=\"100\" y1=\"30\" x2=\"100\" y2=\"150\" class=\"o\"/><line x1=\"140\" y1=\"30\" x2=\"140\" y2=\"150\" class=\"o\"/><line x1=\"180\" y1=\"30\" x2=\"180\" y2=\"150\" class=\"o\"/><line x1=\"220\" y1=\"30\" x2=\"220\" y2=\"150\" class=\"o\"/><line x1=\"20\" y1=\"30\" x2=\"220\" y2=\"30\" class=\"o\"/><line x1=\"20\" y1=\"70\" x2=\"220\" y2=\"70\" class=\"o\"/><line x1=\"20\" y1=\"110\" x2=\"220\" y2=\"110\" class=\"o\"/><line x1=\"20\" y1=\"150\" x2=\"220\" y2=\"150\" class=\"o\"/><g transform=\"rotate(-35 120 90)\"><rect x=\"70\" y=\"80\" width=\"100\" height=\"22\" rx=\"4\" class=\"y\"/><rect x=\"104\" y=\"64\" width=\"32\" height=\"16\" rx=\"4\" class=\"bk\"/></g><line x1=\"170\" y1=\"140\" x2=\"214\" y2=\"96\" class=\"a\"/><polygon points=\"220,90 214,86 214,94\" class=\"af\"/><text x=\"230\" y=\"60\">pack joints</text><text x=\"230\" y=\"72\">full, then</text><text x=\"230\" y=\"84\">scrape off</text><text x=\"230\" y=\"96\">the extra</text><text x=\"10\" y=\"174\">Hold the float almost upright to strip,</text><text x=\"10\" y=\"186\">across the joints so you don't dig them out.</text>",
+   "h": 194,
+   "cap": "Work in small areas, about 3 ft x 3 ft, so the grout doesn't harden before you sponge it."
+  },
+  "edge": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Doorway: finish the tile edge</text><rect x=\"10\" y=\"150\" width=\"300\" height=\"16\" class=\"w\"/><rect x=\"10\" y=\"142\" width=\"170\" height=\"8\" class=\"th\"/><rect x=\"10\" y=\"124\" width=\"170\" height=\"18\" class=\"tl\"/><path d=\"M180 124 h4 v22 h-60 v-3 h56z\" class=\"bk\"/><rect x=\"196\" y=\"138\" width=\"114\" height=\"12\" class=\"w\"/><text x=\"250\" y=\"132\" text-anchor=\"middle\">other floor</text><text x=\"10\" y=\"56\" class=\"k\">metal edge profile: its perforated</text><text x=\"10\" y=\"68\">leg goes in the thinset under the tile</text><line x1=\"120\" y1=\"74\" x2=\"170\" y2=\"140\" class=\"a\"/><text x=\"10\" y=\"190\">Or a marble threshold set in thinset.</text>",
+   "h": 198,
+   "cap": "Profiles are set during tiling, not after. Pick one that matches the tile thickness so the edge is flush."
+  }
+ },
+ "glossary": [
+  [
+   "Thinset",
+   "Cement-based mortar that glues tile down. \"Modified\" has added polymers for better grip."
+  ],
+  [
+   "LHT / large-format mortar",
+   "Thinset made for large and heavy tile; it holds a thick bed without slumping."
+  ],
+  [
+   "Uncoupling membrane",
+   "A thin plastic layer (like DITRA) that lets the subfloor move a little without cracking the tile."
+  ],
+  [
+   "Backer board",
+   "Cement board screwed over plywood as a stable base for tile."
+  ],
+  [
+   "Back-butter",
+   "Spreading a thin coat of thinset on the back of the tile."
+  ],
+  [
+   "Slake",
+   "Letting mixed thinset or grout rest so the chemicals activate before final mixing."
+  ],
+  [
+   "Coverage",
+   "How much of a tile's back is in contact with thinset."
+  ],
+  [
+   "Lippage",
+   "One tile edge sitting higher than its neighbor."
+  ],
+  [
+   "Rectified",
+   "Tile with edges ground perfectly square for thin joints."
+  ],
+  [
+   "Deflection",
+   "How much a floor bends under weight. L/360 means span ÷ 360."
+  ],
+  [
+   "Flange",
+   "The ring on the drain pipe that the toilet bolts to."
+  ],
+  [
+   "DCOF",
+   "A slip-resistance rating. 0.42 or higher is the usual minimum for level indoor floors that get wet."
+  ],
+  [
+   "Haze",
+   "The thin film of grout left on the tile face after cleaning."
+  ]
+ ]
+}

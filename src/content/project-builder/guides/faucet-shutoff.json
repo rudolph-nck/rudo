@@ -48,6 +48,7 @@
   },
   {
    "id": "spread",
+   "when": "a.room==='bath'",
    "label": "Bathroom: spread of the outer holes",
    "type": "choice",
    "default": "4",

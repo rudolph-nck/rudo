@@ -89,7 +89,7 @@ function renderTools(){
 /* ---------- start tab ---------- */
 function renderStart(){
   calc();
-  var qs=(G.questions||[]).map(function(q){
+  var qs=(G.questions||[]).filter(on).map(function(q){
     if(q.type==="number") return '<div class="q"><label for="q_'+q.id+'">'+esc(q.label)+'</label><div class="num"><input id="q_'+q.id+'" data-qnum="'+q.id+'" type="number" inputmode="decimal" step="'+(q.step||"any")+'" value="'+esc(S.answers[q.id])+'"><span>'+esc(q.unit||"")+'</span></div>'+(q.hint?'<div class="hint">'+esc(q.hint)+'</div>':'')+'</div>';
     return '<div class="q"><span class="ql">'+esc(q.label)+'</span><div class="chips">'+q.options.map(function(o){return '<button class="chip" data-qid="'+q.id+'" data-v="'+esc(o.v)+'" aria-pressed="'+(String(S.answers[q.id])===String(o.v))+'">'+esc(o.label)+(o.hint?'<small>'+esc(o.hint)+'</small>':'')+'</button>';}).join("")+'</div>'+(q.hint?'<div class="hint">'+esc(q.hint)+'</div>':'')+'</div>';
   }).join("");

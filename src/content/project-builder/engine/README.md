@@ -40,7 +40,7 @@ question id), `c` (calc results), `frac(x)` (inches to the nearest 1/16 with a
 `[[warn|Tag|html]]`, `[[info|Tag|html]]`, `[[ok|Tag|html]]` inside html become
 callout boxes.
 
-Steps, tools and calcs may have `"when": "a.method==='sweat'"`; they are
+Steps, tools, calcs and questions may have `"when": "a.method==='sweat'"`; they are
 hidden when it is false.
 
 ## questions
