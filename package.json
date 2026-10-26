@@ -2,10 +2,13 @@
   "name": "rudo",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "postinstall": "prisma generate",
     "dev": "next dev",
-    "build": "prisma generate && prisma db push --accept-data-loss && next build",
+    "build": "prisma generate && (prisma db push --accept-data-loss || echo 'WARNING: prisma db push failed (database unreachable?); building without schema sync') && next build",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
@@ -25,7 +28,7 @@
     "@runwayml/sdk": "^3.11.0",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
-    "inngest": "^3.52.1",
+    "inngest": "^3.54.2",
     "jsonwebtoken": "^9.0.3",
     "next": "^15.1.0",
     "next-auth": "^4.24.11",

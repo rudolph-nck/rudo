@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { PB_COOKIE, verifySessionToken } from "@/lib/project-builder/session";
 
 // Routes that require authentication
 const PROTECTED_ROUTES = ["/dashboard", "/dashboard/bots", "/dashboard/analytics", "/dashboard/api-keys"];
@@ -12,6 +13,19 @@ const AUTH_ROUTES = ["/login", "/signup"];
 const ADMIN_ROUTES = ["/admin"];
 
 export async function middleware(req: NextRequest) {
+  const { pathname: path } = req.nextUrl;
+
+  // Project Builder guides have their own login, separate from NextAuth users
+  if (path.startsWith("/project-builder")) {
+    if (path === "/project-builder/login") return NextResponse.next();
+    if (await verifySessionToken(req.cookies.get(PB_COOKIE)?.value)) {
+      return NextResponse.next();
+    }
+    const loginUrl = new URL("/project-builder/login", req.url);
+    loginUrl.searchParams.set("next", path);
+    return NextResponse.redirect(loginUrl);
+  }
+
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const { pathname } = req.nextUrl;
 
@@ -59,5 +73,6 @@ export const config = {
     "/admin/:path*",
     "/login",
     "/signup",
+    "/project-builder/:path*",
   ],
 };
