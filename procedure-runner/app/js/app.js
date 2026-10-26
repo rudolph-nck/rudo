@@ -175,7 +175,7 @@ PR.app = (() => {
             h("div.live-top", statusChip(r.status), r.practice ? h("span.chip.c-gray", "Practice") : null, h("span.muted.small", ago(r.updatedAt))),
             h("div.live-title", r.name || r.procTitle), h("div.muted.small", r.procTitle),
             h("div.bar", h("div.bar-fill", { style: { width: pct + "%" } })),
-            h("div.live-meta", h("span", `${r.done}/${r.total} steps`), r.openIssues ? h("span.c-red-t", `⚠ ${r.openIssues} open issue${r.openIssues > 1 ? "s" : ""}`) : null, r.startedAt ? h("span", "⏱ ", h("span", { dataset: { since: String(r.startedAt) } }, fmtDur(now() - r.startedAt))) : null),
+            h("div.live-meta", h("span", `${r.done}/${r.total} steps`), r.openIssues ? h("span.c-red-t", `⚠ ${r.openIssues} open issue${r.openIssues > 1 ? "s" : ""}`) : null, r.startedAt ? h("span", "⏱ ", h("span", { dataset: { since: String(r.startedAt) } }, fmtDur(Math.max(0, now() - r.startedAt)))) : null),
             h("div.live-actions", h("button.btn.btn-primary.btn-sm", { type: "button" }, r.status === "setup" ? "Continue setup" : "Resume ▶"),
               h("button.btn.btn-sm", { type: "button", title: "Read-only view for teammates, leadership or a war-room screen", onclick: (e) => { e.stopPropagation(); go(`#/live/${r.id}`); } }, "📺 Follow along")));
         })));
@@ -238,7 +238,7 @@ PR.app = (() => {
   /* ---------------- timers (one interval for the whole app) ---------------- */
   setInterval(() => {
     const t = now();
-    $$("[data-since]").forEach((el) => { el.textContent = fmtDur(t - Number(el.dataset.since)); });
+    $$("[data-since]").forEach((el) => { el.textContent = fmtDur(Math.max(0, t - Number(el.dataset.since))); }); // never negative if PC clocks disagree
     $$("[data-countdown]").forEach((el) => {
       const left = Number(el.dataset.countdown) - t;
       el.textContent = fmtDur(Math.max(0, left));

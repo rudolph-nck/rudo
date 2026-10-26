@@ -32,7 +32,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, unquote
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-VERSION = "3.9"  # keep in sync with BUILD in index.html
+VERSION = "3.10"  # keep in sync with BUILD in index.html
 MAX_BODY = 60 * 1024 * 1024
 ID_RE = re.compile(r"^[A-Za-z0-9_.\-]{1,120}$")
 
@@ -441,6 +441,39 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_json(404, {"error": "Unknown endpoint"})
 
 
+def seed_procedures():
+    """Procedures shipped in seed/*.procedure.json are added to a data folder (published as v1) the first time it
+    sees them. data/seeded.json remembers what was added, so a seeded procedure you delete stays deleted."""
+    sd = os.path.join(APP_DIR, "seed")
+    if not os.path.isdir(sd):
+        return
+    marker = p("seeded.json")
+    with _lock, FileLock(marker):
+        done = read_json(marker, {}) or {}
+        changed = False
+        for name in sorted(os.listdir(sd)):
+            if not name.endswith(".procedure.json"):
+                continue
+            raw = read_json(os.path.join(sd, name))
+            proc = raw.get("procedure", raw) if isinstance(raw, dict) else None
+            pid = proc.get("id") if isinstance(proc, dict) else None
+            if not pid or not ID_RE.match(pid) or pid.startswith(".") or pid in done:
+                continue
+            t = now_ms()
+            fp = p("procedures", pid + ".json")
+            if not os.path.exists(fp):
+                steps = sum(len(sec.get("steps") or []) for sec in proc.get("sections") or [])
+                write_json(p("procedures", pid, "v1.json"), proc)
+                write_json(fp, {"id": pid, "status": "published", "draft": proc, "publishedVersion": 1, "publishedAt": t,
+                                "versions": [{"version": 1, "at": t, "by": "Procedure Runner", "note": "Included with the app (%s)" % name, "steps": steps}],
+                                "createdAt": t, "updatedAt": t, "updatedBy": "Procedure Runner", "dirtySincePublish": False, "rev": 1})
+                print("  Added       : %s (%d steps)" % (proc.get("title") or pid, steps))
+            done[pid] = {"file": name, "at": t}
+            changed = True
+        if changed:
+            write_json(marker, done)
+
+
 def main():
     global DATA
     ap = argparse.ArgumentParser(description="Procedure Runner team server")
@@ -451,6 +484,7 @@ def main():
     DATA = os.path.abspath(args.data)
     for sub in ("procedures", "runs", "attachments"):
         os.makedirs(p(sub), exist_ok=True)
+    seed_procedures()
     try:
         httpd = ThreadingHTTPServer((args.host, args.port), Handler)
     except OSError:

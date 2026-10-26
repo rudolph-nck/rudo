@@ -22,6 +22,11 @@ No install and no build step. It's plain HTML/JS plus a small Python server from
 
 Several people can run `server.py` against the same `--data` folder on a shared drive; writes are file-locked. The simplest setup is still one person hosting and everyone else connecting to that address.
 
+**Procedures included with the app**: anything in `seed/` (files ending `.procedure.json`) is added to the data folder, published as v1, the first time the server starts with that folder.
+- Your later edits are kept.
+- A seeded procedure you delete stays deleted.
+- Seed files aren't committed to git, because they usually contain internal links.
+
 ## Build (✎ Edit)
 
 - **Left panel → Add**: drag *steps* (Blank, Communication, Validation, Go/No-Go, Record a value, Run a command, Wait, Sign-off, Milestone, Section) or *components* onto the canvas. You can also click a tile to add it after the current selection.

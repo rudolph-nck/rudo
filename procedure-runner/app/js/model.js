@@ -145,6 +145,17 @@ PR.model = (() => {
     const rank = (v) => (holiday && v.holidays ? 0 : !holiday && (v.days || []).includes(date.getDay()) ? 1 : 2);
     return { holiday, due: o.variants.filter(due).sort((a, b) => rank(a) - rank(b)) };
   }
+  /* "Daily (Mon–Sat) · only if Rate change today? · optional (Jan, Apr…)" for documents */
+  function sheetLabel(p, section, step) {
+    const o = runOptions(p); if (!o.quickStart) return "";
+    const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const obj = step || section; const parts = [];
+    const vs = (obj.variants || []).map((id) => (o.variants.find((v) => v.id === id) || {}).name).filter(Boolean);
+    if (vs.length && vs.length < o.variants.length) parts.push(vs.join(" / "));
+    const fl = obj.flag && o.flags.find((x) => x.id === obj.flag); if (fl) parts.push(`only if “${fl.label}” is Yes`);
+    if (!step && section.optional) parts.push(`optional${(section.optional.months || []).length ? " — " + section.optional.months.map((m) => MON[m - 1]).join(", ") : ""}`);
+    return parts.join(" · ");
+  }
   const sectionDue = (section, date = new Date()) => !section.optional || !(section.optional.months || []).length || section.optional.months.includes(date.getMonth() + 1);
 
   /* ---------- approvals ----------
@@ -329,7 +340,9 @@ PR.model = (() => {
     for (const { step, section } of allSteps(p)) {
       const ref = { stepId: step.id };
       if (!step.title || !step.title.trim()) issues.push({ level: "error", msg: `Step in "${section.title}" has no title.`, ...ref });
-      if (step.num) { if (nums.has(step.num)) issues.push({ level: "warn", msg: `Step number ${step.num} is used more than once.`, ...ref }); nums.set(step.num, 1); }
+      if (step.num) { // run sheets number their steps separately, so only clash within one sheet
+        const key = (runOptions(p).variants.length > 1 ? ((step.variants && step.variants[0]) || (section.variants && section.variants[0]) || "*") : "*") + "|" + step.num;
+        if (nums.has(key)) issues.push({ level: "warn", msg: `Step number ${step.num} is used more than once.`, ...ref }); nums.set(key, 1); }
       if (p.environments.enabled && (step.target === "primary" || step.target === "secondary") && !p.environments.directional)
         issues.push({ level: "warn", msg: `Step ${step.num || step.title}: role targets need "directional" enabled.`, ...ref });
       for (const b of step.blocks || []) {
@@ -421,7 +434,7 @@ PR.model = (() => {
     return { id: data.id, status: "draft", draft: data, publishedVersion: 0, versions: [], createdAt: now(), updatedAt: now(), updatedBy: by || "", dirtySincePublish: true };
   }
 
-  return { runOptions, excludedSteps, variantsDue, sectionDue, ymd, approvalsCfg, approversFor, needsApproval, canApprove, pendingApprovals, sameName, APPROVAL_TYPES,
+  return { runOptions, sheetLabel, excludedSteps, variantsDue, sectionDue, ymd, approvalsCfg, approversFor, needsApproval, canApprove, pendingApprovals, sameName, APPROVAL_TYPES,
     CATEGORIES, catMeta, DEFAULT_CHAIRS, BUILTIN_VARS, defaultEnvironments, newProcedure, newSection, newStep, newBlock, normalize, fromLegacy,
     allSteps, findStep, findBlock, estimateMinutes, renumber, sites, siteById, otherSite, primarySite, directionLabel, phaseOf,
     resolveTarget, isApplicable, countRunnable, varContext, interpolate, variablesDeclared, lint, newDoc, impactName, hasImpact, impactEvents, impactState, tracks, trackOf, trackById, trackProgress, TRACK_COLORS,

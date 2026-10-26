@@ -641,6 +641,7 @@ PR.word = (() => {
     for (const [si, section] of p.sections.entries()) {
       const tk = M().trackById(p, section.track);
       parts.push(para(run(`${si + 1}. ${section.title}`) + (tk ? run(`  [${tk.name}]`, { color: BRAND.muted, sz: 20 }) : "") + (section.phase === "post" && env.directional ? run("  (after cutover)", { color: "B07800", sz: 20 }) : ""), { style: "Heading2" }));
+      if (M().sheetLabel(p, section)) parts.push(para(run("Run sheet: " + M().sheetLabel(p, section), { color: BRAND.muted, sz: 18, i: true }), { style: "ProcBody", ind: 0, keepNext: true }));
       if (section.description) parts.push(mdParas(wr, section.description, 0));
       for (const step of section.steps) {
         const t = M().trackById(p, M().trackOf(step, section));

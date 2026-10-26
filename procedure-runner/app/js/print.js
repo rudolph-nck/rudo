@@ -98,6 +98,7 @@
           h("h2.pd-sec-h", h("span.rp-n", String(si + 1)), section.title,
             (() => { const t = M().trackById(p, section.track); return t ? h("span.track-chip", { style: { "--c": t.color } }, t.name) : null; })(),
             section.phase === "post" && env.directional ? h("span.chip.c-amber-o", "after cutover") : null),
+          M().sheetLabel(p, section) ? h("div.pd-sheet", "Run sheet: ", M().sheetLabel(p, section)) : null,
           section.description ? h("p.muted", section.description) : null,
           section.steps.map((step) => {
             const t = M().trackById(p, M().trackOf(step, section));

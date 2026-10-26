@@ -1251,6 +1251,13 @@ PR.runner = (() => {
     if (v !== "done") return;
     const comp = { outcome: openIss.length || remaining.length ? "Successful with issues" : "Successful", authorizedBy: me(), authorizedAt: now(), summary: note.value.trim(), milestones: {} };
     const ops = [{ op: "set", path: ["completion"], value: comp }];
+    // Improvement notes and issues become lessons, so the next run shows them on the step ("did it work?")
+    if (!Object.keys(run.lessons || {}).length) {
+      const lessons = {};
+      Object.values(run.notes || {}).forEach((n) => { const id = uid("ls"); lessons[id] = { id, kind: "change", text: n.text, stepId: n.stepId, owner: "", verifyNext: true, status: "open", from: "note" }; });
+      Object.values(run.issues || {}).forEach((i) => { const id = uid("ls"); lessons[id] = { id, kind: "wrong", text: i.title + (i.resolution ? ` — resolved: ${i.resolution}` : ""), stepId: i.stepId, owner: "", verifyNext: false, status: "open", from: "issue" }; });
+      if (Object.keys(lessons).length) ops.push({ op: "set", path: ["lessons"], value: lessons });
+    }
     remaining.forEach(({ step }) => ops.push({ op: "merge", path: ["steps", step.id], value: { status: "skipped", skipReason: "Not done at close-out", finishedAt: now(), finishedBy: me() } }));
     ops.push({ op: "set", path: ["status"], value: "completed" }, { op: "set", path: ["completedAt"], value: now() });
     commit(ops, { render: false, event: { type: "complete-run", text: `Run sheet completed by ${me()} — ${comp.outcome}${comp.summary ? " · " + comp.summary : ""}` } });
