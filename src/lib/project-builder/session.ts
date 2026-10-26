@@ -58,12 +58,27 @@ export async function verifySessionToken(
   return safeEqual(sig, await hmac(secret, `pb:${exp}`));
 }
 
+// Values pasted into a dashboard on a phone often pick up stray spaces or
+// quote marks (including curly ones), so strip those before comparing.
+export function normalize(value: string | undefined | null): string {
+  return (value ?? "").trim().replace(/^["'\u201C\u201D\u2018\u2019]+|["'\u201C\u201D\u2018\u2019]+$/g, "").trim();
+}
+
+/** Says which server setting is missing, or null when login can work. */
+export function loginConfigProblem(): string | null {
+  const missing: string[] = [];
+  if (!normalize(process.env.PROJECT_BUILDER_USERNAME)) missing.push("PROJECT_BUILDER_USERNAME");
+  if (!normalize(process.env.PROJECT_BUILDER_PASSWORD)) missing.push("PROJECT_BUILDER_PASSWORD");
+  if (!getSecret()) missing.push("NEXTAUTH_SECRET or PROJECT_BUILDER_SECRET");
+  return missing.length ? `missing ${missing.join(", ")}` : null;
+}
+
 /** Username is case-insensitive (phones auto-capitalize); password is exact. */
 export function checkCredentials(username: string, password: string): boolean {
-  const expectedUser = process.env.PROJECT_BUILDER_USERNAME;
-  const expectedPass = process.env.PROJECT_BUILDER_PASSWORD;
+  const expectedUser = normalize(process.env.PROJECT_BUILDER_USERNAME);
+  const expectedPass = normalize(process.env.PROJECT_BUILDER_PASSWORD);
   if (!expectedUser || !expectedPass) return false;
-  const userOk = safeEqual(username.trim().toLowerCase(), expectedUser.trim().toLowerCase());
-  const passOk = safeEqual(password, expectedPass);
+  const userOk = safeEqual(normalize(username).toLowerCase(), expectedUser.toLowerCase());
+  const passOk = safeEqual(normalize(password), expectedPass);
   return userOk && passOk;
 }

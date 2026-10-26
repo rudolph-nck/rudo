@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   checkCredentials,
   createSessionToken,
+  loginConfigProblem,
   safeEqual,
   verifySessionToken,
 } from "../project-builder/session";
@@ -41,6 +42,20 @@ describe("project builder credentials", () => {
     expect(checkCredentials(" Some.User ", "Secret1!")).toBe(true);
     expect(checkCredentials("some.user", "secret1!")).toBe(false);
     expect(checkCredentials("other", "Secret1!")).toBe(false);
+  });
+
+  it("ignores stray spaces and quote marks pasted into the settings", () => {
+    process.env.PROJECT_BUILDER_USERNAME = " Some.User\n";
+    process.env.PROJECT_BUILDER_PASSWORD = "\u201CSecret1!\u201D ";
+    expect(checkCredentials("some.user", "Secret1!")).toBe(true);
+    expect(checkCredentials("some.user ", " Secret1!")).toBe(true);
+  });
+
+  it("names missing settings", () => {
+    delete process.env.PROJECT_BUILDER_USERNAME;
+    process.env.PROJECT_BUILDER_PASSWORD = "x";
+    process.env.NEXTAUTH_SECRET = "s";
+    expect(loginConfigProblem()).toBe("missing PROJECT_BUILDER_USERNAME");
   });
 
   it("refuses everyone when not configured", () => {
