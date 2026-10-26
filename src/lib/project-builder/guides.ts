@@ -123,6 +123,33 @@ export const GUIDES: Guide[] = [
     tags: ["Faucet", "Shutoff valves", "Intermediate"],
   },
   {
+    slug: "sink-drain-trap",
+    title: "Fix a Sink Drain Trap",
+    description:
+      "Stop a leaking P-trap, clear a clog, or replace an old trap under a kitchen or bathroom sink, with dishwasher and disposal hookups.",
+    category: "Plumbing",
+    data: "sink-drain-trap.json",
+    tags: ["Sink drain", "P-trap", "Beginner"],
+  },
+  {
+    slug: "pvc-drain-pipe",
+    title: "Repair PVC Drain Pipe",
+    description:
+      "Cut out and replace a section of PVC or ABS drain pipe, or add a cleanout, using glued joints or a rubber coupling, sloped and supported.",
+    category: "Plumbing",
+    data: "pvc-drain-pipe.json",
+    tags: ["PVC / ABS", "Drain pipe", "Intermediate"],
+  },
+  {
+    slug: "add-drain-line",
+    title: "Add a Drain Line",
+    description:
+      "Plan, permit and rough in a new vented drain for a sink, washer standpipe or utility sink, tied into your existing drain and tested.",
+    category: "Plumbing",
+    data: "add-drain-line.json",
+    tags: ["Drains", "Venting", "Advanced"],
+  },
+  {
     slug: "light-fixture-switch",
     title: "Replace a Light or Switch",
     description:
