@@ -67,6 +67,10 @@
         sec("1", "Run setup",
           kv([["Date", su.exerciseDate], ["Change / exercise ID", su.changeId], ["Started", fmtDateTime(run.startedAt)], ["Completed", fmtDateTime(run.completedAt)],
             directional ? ["Direction", h("b", M().directionLabel(p, su))] : null,
+            su.variantName ? ["Run sheet", h("b", su.variantName)] : null,
+            su.quick && M().runOptions(p).flags.length ? ["Answers", M().runOptions(p).flags.map((x) => `${x.label} ${su.flags && su.flags[x.id] ? "Yes" : "No"}`).join(" · ")] : null,
+            su.quick && Object.keys(su.include || {}).length ? ["Also included", p.sections.filter((x) => su.include[x.id]).map((x) => x.title).join(", ") || "—"] : null,
+            run.completion && run.completion.summary ? ["Note", run.completion.summary] : null,
             ["Participants", (su.participants || []).filter((x) => x.name).map((x) => `${x.name}${x.chair ? " — " + x.chair : ""}`).join("; ")]]),
           directional ? mapTable(p, su.primarySiteId) : null),
 

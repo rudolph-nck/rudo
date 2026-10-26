@@ -547,11 +547,28 @@ PR.views.builder = (() => {
       h("div.kbd-list", [["Ctrl+Z / Ctrl+Y", "Undo / redo"], ["Ctrl+D", "Duplicate selection"], ["Del", "Delete selection"], ["Enter in a title", "New step below"], ["Ctrl+click", "Select several steps"], ["Esc", "Clear selection"]].map(([k, d]) => h("div", h("kbd", k), " ", d))));
   }
 
+  /* Run-sheet options on a section or step (only for quick-start procedures) */
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function runSheetFields(obj, section) {
+    const ro = M().runOptions(proc);
+    if (!ro.quickStart) return null;
+    const toggle = (key, val, on) => mutate(() => { const a = new Set(obj[key] || []); on ? a.add(val) : a.delete(val); obj[key] = [...a]; });
+    return [h("div.ins-sec", "Run sheet"),
+      ro.variants.length ? field("On which run sheets", h("div.chk-wrap", ro.variants.map((v) => h("label.ck", h("input", { type: "checkbox", checked: (obj.variants || []).includes(v.id), onchange: (e) => toggle("variants", v.id, e.target.checked) }), " ", v.name))),
+        section ? "None ticked = on every sheet." : "None ticked = same as the section.") : null,
+      ro.flags.length ? field("Only when", h("select.inp", { onchange: (e) => mutate(() => { obj.flag = e.target.value || ""; }) }, h("option", { value: "" }, "Always"), ro.flags.map((x) => h("option", { value: x.id, selected: obj.flag === x.id }, `${x.label} → Yes`))),
+        "Answered on the start screen; otherwise the step is left off.") : null,
+      section ? h("label.ck", h("input", { type: "checkbox", checked: !!obj.optional, onchange: (e) => mutate(() => { obj.optional = e.target.checked ? { months: [], note: "" } : null; }) }), " Optional — ask “Also include?” on the start screen") : null,
+      section && obj.optional ? field("Pre-tick in these months", h("div.chk-wrap.months", MONTHS.map((m, i) => h("label.ck", h("input", { type: "checkbox", checked: (obj.optional.months || []).includes(i + 1), onchange: (e) => mutate(() => { const a = new Set(obj.optional.months || []); e.target.checked ? a.add(i + 1) : a.delete(i + 1); obj.optional.months = [...a].sort((x, y) => x - y); }) }), " ", m))), "None ticked = always pre-ticked.") : null,
+      section && obj.optional ? field("Note on the start screen", h("input.inp", { value: obj.optional.note || "", placeholder: "e.g. Dec 1 and Jun 1", ...bind(obj.optional, "note") })) : null];
+  }
+
   function sectionPanel(sec) {
     return h("div.ins",
       insHead("Section", `${sec.steps.length} steps`, [h("button.icon-btn", { type: "button", title: "Duplicate", onclick: duplicateSel }, "⧉"), h("button.icon-btn.danger", { type: "button", title: "Delete", onclick: deleteSel }, "🗑")]),
       field("Title", h("input.inp", { value: sec.title, ...bind(sec, "title", () => { const t = $(`[data-sec-id="${sec.id}"] .sec-title`); if (t) t.value = sec.title; renderOutline(); }) })),
       field("Description", h("textarea.inp", { rows: 3, ...bind(sec, "description") }, sec.description)),
+      runSheetFields(sec, true),
       M().tracks(proc).length ? field("Chair for this section", trackSelect(sec.track || "", (v) => { sec.track = v === "shared" ? "" : v; editing(); renderCanvas(); }, null), "Steps inherit this unless they set their own chair.") : null,
       proc.environments.enabled && proc.environments.directional ? field("Role labels in this section",
         h("select.inp", { ...bind(sec, "phase", () => renderCanvas(), { type: "select" }) },
@@ -604,6 +621,7 @@ PR.views.builder = (() => {
       env.enabled && env.directional ? field("Only run when", h("select.inp", { ...bind(st, "condition", refresh, { type: "select" }) },
         h("option", { value: "", selected: !st.condition }, "Always (both directions)"),
         M().sites(proc).map((s) => h("option", { value: `dir:${s.id}`, selected: st.condition === `dir:${s.id}` }, `${s.name} is primary at start`))), "Steps that don't apply are shown as N/A for that direction.") : null,
+      runSheetFields(st, false),
       h("div.ins-sec", "Who & when"),
       row(field("Owner team", h("input.inp", { value: st.owner, placeholder: "Core", list: "ownerList", ...bind(st, "owner", refresh) })), field("Escalation contact", h("input.inp", { value: st.contact, placeholder: "Name", list: "peopleList", ...bind(st, "contact", refresh) }))),
       row(field("Timing window", h("input.inp", { value: st.window, placeholder: "e.g. Morning of failover", list: "windowList", ...bind(st, "window", refresh) })), field("Est. minutes", h("input.inp.w-num", { type: "number", min: 0, value: st.estMin || "", ...bind(st, "estMin", refresh, { parse: (v) => Number(v) || 0 }) }))),
@@ -711,7 +729,7 @@ PR.views.builder = (() => {
     const draft = clone(proc);
     let cur = tab;
     const body = h("div.settings");
-    const tabs = [["general", "General"], ["env", "Environments"], ["setup", "Run setup"], ["chairs", "👥 Chairs"], ["approvals", "✍ Approvals"], ["comms", "📣 Comms plan"], ["contacts", "Contacts"], ["versions", "Versions"]];
+    const tabs = [["general", "General"], ["env", "Environments"], ["setup", "Run setup"], ["chairs", "👥 Chairs"], ["approvals", "✍ Approvals"], ["quick", "⚡ Quick start"], ["comms", "📣 Comms plan"], ["contacts", "Contacts"], ["versions", "Versions"]];
     const draw = () => {
       body.innerHTML = "";
       body.append(h("div.tabs", tabs.map(([k, l]) => h(`button.tab${cur === k ? ".on" : ""}`, { type: "button", onclick: () => { cur = k; draw(); } }, l))), h("div.settings-body", SETTINGS[cur](draft, draw)));
@@ -777,6 +795,35 @@ PR.views.builder = (() => {
           d.tracks.length > 1 ? h("button.icon-btn.danger", { type: "button", title: "Remove", onclick: () => { d.tracks.splice(i, 1); draw(); } }, "🗑") : null)),
         d.tracks.length ? h("button.btn", { type: "button", onclick: () => { d.tracks.push({ id: uid("chair"), name: `${d.tracks.length + 1}${["st", "nd", "rd"][d.tracks.length] || "th"} chair`, desc: "" }); draw(); } }, "＋ Add chair") : null,
         d.tracks.length ? h("div.help", "Assign a whole section to a chair (select the section) or individual steps (step inspector → Chair). Steps with no chair are shared and appear for everyone.") : null);
+    },
+    quick: (d, draw) => {
+      const o = d.runOptions = M().runOptions(d);
+      const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const flip = (arr, v, on) => { const a = new Set(arr || []); on ? a.add(v) : a.delete(v); return [...a].sort((x, y) => x - y); };
+      return h("div",
+        h("div.help", "For routine checklists like daily run sheets: skip run setup and go straight into the steps."),
+        h("label.ck.big", h("input", { type: "checkbox", checked: o.quickStart, onchange: (e) => { o.quickStart = e.target.checked; draw(); } }), " ", h("b", "Quick start — no run setup")),
+        h("label.ck", h("input", { type: "checkbox", checked: o.quickFinish, onchange: (e) => { o.quickFinish = e.target.checked; } }), " One-click finish (no close-out wizard)"),
+        o.quickStart ? [
+          h("div.ins-sec", "Run sheets — “Which run sheet?” is the first question"),
+          h("div.help", "Tag sections or steps with the sheets they belong to (select a section → Run sheet). Today's sheet is pre-selected using the days below."),
+          o.variants.map((v, i) => h("div.site-row",
+            h("div.site-fields",
+              row(field("Icon", tf(v, "icon", "📋", { class: "inp w-num" })), field("Name", tf(v, "name", "Daily (Mon–Sat)")), field("Description", tf(v, "desc", "Morning checks"))),
+              h("div.frow",
+                field("Suggest on", h("div.chk-wrap", DAYS.map((dn, di) => h("label.ck", h("input", { type: "checkbox", checked: (v.days || []).includes(di), onchange: (e) => (v.days = flip(v.days, di, e.target.checked)) }), " ", dn)),
+                  h("label.ck", h("input", { type: "checkbox", checked: !!v.holidays, onchange: (e) => (v.holidays = e.target.checked) }), " Holidays"))),
+                field("…or day of month", h("input.inp.w-num", { value: (v.dom || []).join(", "), placeholder: "1", oninput: (e) => (v.dom = e.target.value.split(",").map((x) => Number(x.trim())).filter((x) => x >= 1 && x <= 31)) })))),
+            h("button.icon-btn.danger", { type: "button", title: "Remove", onclick: () => { o.variants.splice(i, 1); draw(); } }, "🗑"))),
+          h("button.btn", { type: "button", onclick: () => { o.variants.push({ id: uid("var"), name: "", desc: "", icon: "📋", days: [], dom: [], holidays: false }); draw(); } }, "＋ Add run sheet"),
+          h("div.ins-sec", "Quick questions (yes / no)"),
+          h("div.help", "Steps set to “Only when …” are left off unless the answer is Yes — e.g. “Rate change today?”"),
+          o.flags.map((x, i) => h("div.frow", field("Question", tf(x, "label", "Rate change today?")), field("Help", tf(x, "help", "")),
+            h("label.ck", h("input", { type: "checkbox", checked: !!x.default, onchange: (e) => (x.default = e.target.checked) }), " Default Yes"),
+            h("button.icon-btn.danger", { type: "button", onclick: () => { o.flags.splice(i, 1); draw(); } }, "🗑"))),
+          h("button.btn", { type: "button", onclick: () => { o.flags.push({ id: uid("flag"), label: "", help: "", default: false }); draw(); } }, "＋ Add question"),
+          field("Holidays (one date per line, YYYY-MM-DD)", h("textarea.inp", { rows: 5, oninput: (e) => (o.holidays = e.target.value.split(/\s+/).map((x) => x.trim()).filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x))) }, o.holidays.join("\n")),
+            "Used to pre-select the holiday run sheet.")] : null);
     },
     approvals: (d, draw) => {
       const a = d.approvals = M().approvalsCfg(d);

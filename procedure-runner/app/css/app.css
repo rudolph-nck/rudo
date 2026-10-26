@@ -802,3 +802,17 @@ tr.row-added td { background: color-mix(in srgb, var(--green-soft) 60%, transpar
 .chk-wrap { display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .lv-approvals { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .ap-setup { border-left: 3px solid var(--amber-bright); padding-left: 10px; }
+
+/* ---------- quick start (run sheets) ---------- */
+.qs { display: grid; gap: 10px; }
+.qs-q { font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-top: 4px; }
+.qs-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.qs-card { font: inherit; text-align: left; display: grid; gap: 4px; align-content: start; padding: 12px 14px; border: 2px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--text); cursor: pointer; }
+.qs-card:hover { border-color: var(--vivid); }
+.qs-card.on { border-color: var(--vivid); background: color-mix(in srgb, var(--vivid) 10%, var(--panel)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--vivid) 25%, transparent); }
+.qs-top { display: flex; align-items: center; gap: 6px; } .qs-ic { font-size: 22px; } .qs-name { font-size: 15px; }
+.qs-flag { display: flex; align-items: center; gap: 12px; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.qs-opt { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.qs-sum { color: var(--muted); font-size: 13px; }
+.qs-cap th { width: 45%; }
+.chk-wrap.months .ck { min-width: 52px; }

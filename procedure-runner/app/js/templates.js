@@ -141,6 +141,47 @@ PR.templates = (() => {
     return p;
   }
 
+  /* Run sheet: quick start (no setup wizard) — "which sheet?" picks weekday / weekend / month-end; counts are captured as numbers. */
+  function runsheet() {
+    n = 0;
+    const W = "var_weekday", E = "var_weekend", ME = "var_monthend";
+    const sec = (title, variants, steps, o = {}) => ({ ...S(title, "", "", steps), variants, ...o });
+    const p = M().newProcedure({
+      title: "Daily run sheet",
+      description: "Morning checks. Pick the sheet when you start — today's is pre-selected.",
+      tags: ["Run sheet", "Daily"],
+      setup: { requireChangeId: false, requireVerification: false, chairs: ["Operator"], readiness: [], milestones: [] },
+    });
+    p.runOptions = { quickStart: true, quickFinish: true, holidays: [],
+      variants: [
+        { id: W, name: "Weekday", desc: "Mon–Sat morning checks", icon: "🌅", days: [1, 2, 3, 4, 5, 6], dom: [], holidays: false },
+        { id: E, name: "Sunday & holiday", desc: "On-call checks", icon: "📟", days: [0], dom: [], holidays: true },
+        { id: ME, name: "Month-end", desc: "1st of the month", icon: "🗓", days: [], dom: [1], holidays: false }],
+      flags: [{ id: "flag_rate", label: "Rate change today?", help: "Only then are the rate-change steps included", default: false }] };
+    const core = { owner: "Core", estMin: 1 };
+    p.sections = [
+      sec("Core system", [W, E], [
+        T("Verify the core is on the current date", "none", core, [path(["Navigate", "Information Systems", "Device Control"])]),
+        T("Review the overnight error reports", "none", core, [path(["Navigate", "Information Systems", "Print Control"]), inp("Errors found (if any)", "", "text", { required: false })]),
+        T("SYMOP SPOOLSTATUS", "none", core, [B("console", { label: "Symop", prompt: "Enter:", code: "Enter: SPOOLSTATUS", note: "" })])]),
+      sec("Rate change (only when there is one)", [W], [
+        T("Verify the rate change applied", "none", core, [path(["Navigate", "Management", "Parameter Manager", "Dividend Type Definitions"])])], { flag: "flag_rate" }),
+      sec("Item processing", [W, E], [
+        T("Verify the item count", "none", core, [inp("Total items", "totalItems", "number")]),
+        T("Verify on-us and transit counts", "none", core, [inp("On us", "onUs", "number"), inp("Transit", "transit", "number"), co("info", "On us + Transit should equal {{var.totalItems}}.", "Check")])]),
+      sec("Scheduler", [W, E], [
+        T("Verify all scheduled jobs completed for the previous day", "none", core, [inp("Exceptions (if any)", "", "text", { required: false })]),
+        T("Mark the run sheet complete in the scheduler", "none", { ...core, critical: true }, [])]),
+      sec("Month-end", [ME], [
+        T("Run the monthly statement job", "none", core, [cmd("GN.MONTHLY.AFTER.ONLINE", "Job")]),
+        T("Verify replication is in sync", "none", core, [val("Primary vs secondary startup.timestamp", "Timestamps match")]),
+        T("If unsynced: restart replication services", "none", { ...core, required: false }, [txt("Only if the timestamps didn't match — otherwise press **Not needed**.")])]),
+      sec("Quarterly", [ME], [T("Run the quarterly audit", "none", core, [])], { optional: { months: [1, 4, 7, 10], note: "quarter-end months" } }),
+    ];
+    M().renumber(p);
+    return M().normalize(p);
+  }
+
   function checklist() {
     n = 0;
     const p = M().newProcedure({ title: "Simple checklist", description: "" });
@@ -152,6 +193,7 @@ PR.templates = (() => {
     { id: "failover", icon: "🔁", title: "Symitar failover (two datacenters)", hint: "direction-aware", build: failover },
     { id: "release", icon: "🚀", title: "Release / upgrade", build: release },
     { id: "checklist", icon: "☑", title: "Simple checklist", build: checklist },
+    { id: "runsheet", icon: "⚡", title: "Daily run sheet (quick start)", hint: "no setup", build: runsheet },
   ];
   return { list: () => list_, get: (id) => list_.find((t) => t.id === id) };
 })();

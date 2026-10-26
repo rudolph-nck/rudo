@@ -83,6 +83,7 @@ PR.model = (() => {
     };
     p.contacts = Array.isArray(p.contacts) ? p.contacts : [];
     p.approvals = approvalsCfg(p);
+    p.runOptions = runOptions(p);
     p.sections = (p.sections || []).map((s) => ({
       ...newSection(), ...s, id: s.id || uid("sec"),
       steps: (s.steps || []).map((st) => ({ ...newStep(), ...st, id: st.id || uid("st"), blocks: (st.blocks || []).map((b) => ({ id: b.id || uid("b"), ...b })) })),
@@ -116,6 +117,35 @@ PR.model = (() => {
     }));
     return normalize(p);
   }
+
+  /* ---------- run options ----------
+     Quick start for routine checklists (run sheets): no setup wizard, just "which sheet?" plus a few yes/no questions.
+     procedure.runOptions = { quickStart, quickFinish, variants:[{id,name,desc,icon,days:[0-6],dom:[1-31],holidays}], flags:[{id,label,help}], holidays:["YYYY-MM-DD"] }
+     section/step.variants = [variantId…] (empty = every sheet) · section/step.flag = flagId (only when answered yes)
+     section.optional = { months:[1-12], note } → a "also include?" toggle, pre-ticked in those months */
+  function runOptions(p) {
+    const o = (p && p.runOptions) || {};
+    return { quickStart: !!o.quickStart, quickFinish: !!o.quickFinish, variants: Array.isArray(o.variants) ? o.variants : [], flags: Array.isArray(o.flags) ? o.flags : [], holidays: Array.isArray(o.holidays) ? o.holidays : [] };
+  }
+  const inList = (arr, v) => !Array.isArray(arr) || !arr.length || arr.includes(v);
+  function excludedSteps(p, setup) {
+    const out = [];
+    allSteps(p).forEach(({ step, section }) => {
+      if (setup.variant && (!inList(section.variants, setup.variant) || !inList(step.variants, setup.variant))) return out.push(step.id);
+      for (const fl of [section.flag, step.flag]) if (fl && !(setup.flags || {})[fl]) return out.push(step.id);
+      if (section.optional && !(setup.include || {})[section.id]) return out.push(step.id);
+    });
+    return out;
+  }
+  const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  /* Which sheets are due on a date: holidays first, then the day of the week, then day-of-month sheets (e.g. month-end on the 1st). */
+  function variantsDue(p, date = new Date()) {
+    const o = runOptions(p); const holiday = o.holidays.includes(ymd(date));
+    const due = (v) => (holiday && v.holidays) || (!holiday && (v.days || []).includes(date.getDay())) || (v.dom || []).includes(date.getDate());
+    const rank = (v) => (holiday && v.holidays ? 0 : !holiday && (v.days || []).includes(date.getDay()) ? 1 : 2);
+    return { holiday, due: o.variants.filter(due).sort((a, b) => rank(a) - rank(b)) };
+  }
+  const sectionDue = (section, date = new Date()) => !section.optional || !(section.optional.months || []).length || section.optional.months.includes(date.getMonth() + 1);
 
   /* ---------- approvals ----------
      procedure.approvals = { enforced, approvers:[names], chairs:[run chairs whose people approve], selfApprove }
@@ -167,8 +197,14 @@ PR.model = (() => {
     return allSteps(p || {}).reduce((a, { step }) => a + (Number(step.estMin) || 0), 0);
   }
   function renumber(p) {
-    let n = 1;
-    allSteps(p).forEach(({ step }) => { step.num = String(n++); });
+    // Run sheets: each sheet counts from 1 (steps on every sheet share one count)
+    const multi = runOptions(p).variants.length > 1;
+    const counters = {};
+    allSteps(p).forEach(({ step, section }) => {
+      const key = multi ? ((step.variants && step.variants[0]) || (section.variants && section.variants[0]) || "*") : "*";
+      counters[key] = (counters[key] || 0) + 1;
+      step.num = String(counters[key]);
+    });
   }
 
   /* ---------- environments / failover direction ---------- */
@@ -217,6 +253,7 @@ PR.model = (() => {
   }
 
   function isApplicable(step, setup) {
+    if (setup && setup.excluded && setup.excluded.includes(step.id)) return false; // not part of the run sheet / options chosen at start
     if (!step.condition) return true;
     if (step.condition.startsWith("dir:")) return !setup || !setup.primarySiteId || setup.primarySiteId === step.condition.slice(4);
     return true;
@@ -384,7 +421,7 @@ PR.model = (() => {
     return { id: data.id, status: "draft", draft: data, publishedVersion: 0, versions: [], createdAt: now(), updatedAt: now(), updatedBy: by || "", dirtySincePublish: true };
   }
 
-  return { approvalsCfg, approversFor, needsApproval, canApprove, pendingApprovals, sameName, APPROVAL_TYPES,
+  return { runOptions, excludedSteps, variantsDue, sectionDue, ymd, approvalsCfg, approversFor, needsApproval, canApprove, pendingApprovals, sameName, APPROVAL_TYPES,
     CATEGORIES, catMeta, DEFAULT_CHAIRS, BUILTIN_VARS, defaultEnvironments, newProcedure, newSection, newStep, newBlock, normalize, fromLegacy,
     allSteps, findStep, findBlock, estimateMinutes, renumber, sites, siteById, otherSite, primarySite, directionLabel, phaseOf,
     resolveTarget, isApplicable, countRunnable, varContext, interpolate, variablesDeclared, lint, newDoc, impactName, hasImpact, impactEvents, impactState, tracks, trackOf, trackById, trackProgress, TRACK_COLORS,

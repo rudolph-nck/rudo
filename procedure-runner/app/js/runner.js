@@ -28,6 +28,9 @@ PR.runner = (() => {
       practice = true; data = doc.draft; version = "draft";
     }
     data = M().normalize(clone(data));
+    const ro = M().runOptions(data);
+    const quick = ro.quickStart ? await quickStartModal(data) : null;
+    if (ro.quickStart && !quick) return;
     const env = data.environments;
     const run = {
       id: uid("run"), procId, procVersion: version, procTitle: data.title, practice,
@@ -40,8 +43,57 @@ PR.runner = (() => {
       steps: {}, issues: {}, notes: {}, comms: {}, events: [{ at: now(), by: me(), type: "created", text: `Run created from ${version === "draft" ? "draft" : "v" + version}` }],
       completion: {}, lessons: {}, carried: {}, progress: { done: 0, total: M().countRunnable({ snapshot: data, setup: {} }) },
     };
+    if (quick) { // run sheet: no setup wizard — straight into the steps
+      const v = ro.variants.find((x) => x.id === quick.variant);
+      const flagsYes = ro.flags.filter((x) => quick.flags[x.id]).map((x) => x.label);
+      const extra = data.sections.filter((x) => quick.include[x.id]).map((x) => x.title);
+      Object.assign(run.setup, { quick: true, variant: quick.variant, variantName: v ? v.name : "", flags: quick.flags, include: quick.include });
+      run.setup.excluded = M().excludedSteps(data, run.setup);
+      run.status = "active"; run.startedAt = now();
+      run.name = `${v ? v.name : data.title} — ${new Date().toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" })}`;
+      run.progress.total = M().countRunnable(run);
+      run.events.push({ at: now(), by: me(), type: "begin", text: `Started ${v ? v.name : "run"}${flagsYes.length ? " · " + flagsYes.join(", ") : ""}${extra.length ? " · also: " + extra.join(", ") : ""}` });
+    }
     await S().createRun(run);
     PR.app.go(`#/run/${run.id}`);
+  }
+
+  /* Quick start: "Which run sheet?" (today's is pre-selected), a few yes/no questions, and optional sections due this month. */
+  async function quickStartModal(p) {
+    const o = M().runOptions(p); const today = new Date();
+    const { holiday, due } = M().variantsDue(p, today);
+    const inV = (arr, v) => !Array.isArray(arr) || !arr.length || !v || arr.includes(v);
+    const q = { variant: (due[0] || o.variants[0] || {}).id || "", flags: {}, include: {} };
+    o.flags.forEach((x) => (q.flags[x.id] = !!x.default));
+    const inVariant = () => M().allSteps(p).filter(({ step, section }) => inV(section.variants, q.variant) && inV(step.variants, q.variant));
+    const optSecs = () => p.sections.filter((x) => x.optional && inV(x.variants, q.variant) && x.steps.some((y) => inV(y.variants, q.variant)));
+    const pickIncludes = () => { q.include = {}; optSecs().forEach((x) => (q.include[x.id] = M().sectionDue(x, today))); };
+    pickIncludes();
+    const body = h("div.qs");
+    const draw = () => {
+      body.innerHTML = "";
+      const usedFlags = new Set(inVariant().flatMap(({ step, section }) => [step.flag, section.flag]).filter(Boolean));
+      const flags = o.flags.filter((x) => usedFlags.has(x.id));
+      const n = M().allSteps(p).length - M().excludedSteps(p, q).length;
+      body.append(
+        o.variants.length ? [h("div.qs-q", "Which run sheet?"), h("div.qs-cards", o.variants.map((v, i) => h(`button.qs-card${q.variant === v.id ? ".on" : ""}`, { type: "button", onclick: () => { q.variant = v.id; pickIncludes(); draw(); } },
+          h("span.qs-top", h("span.qs-ic", v.icon || "📋"), h("kbd", String(i + 1)), due.includes(v) ? h("span.chip.c-green", due[0] === v ? "Today" : "Also due today") : null),
+          h("b.qs-name", v.name), v.desc ? h("span.small.muted", v.desc) : null)))] : null,
+        holiday ? h("div.help", "📅 Today is on the holiday list.") : null,
+        flags.length ? [h("div.qs-q", "Quick questions"), flags.map((x) => h("div.qs-flag", h("div", h("b", x.label), x.help ? h("div.small.muted", x.help) : null),
+          h("div.seg", [[true, "Yes"], [false, "No"]].map(([val, l]) => h(`button.seg-btn${!!q.flags[x.id] === val ? ".on" : ""}`, { type: "button", onclick: () => { q.flags[x.id] = val; draw(); } }, l)))))] : null,
+        optSecs().length ? [h("div.qs-q", "Also include"), optSecs().map((x) => h("label.ck.qs-opt", h("input", { type: "checkbox", checked: !!q.include[x.id], onchange: (e) => { q.include[x.id] = e.target.checked; draw(); } }),
+          " ", h("b", x.title), M().sectionDue(x, today) && (x.optional.months || []).length ? h("span.chip.c-green", "due this month") : null, x.optional.note ? h("span.small.muted", ` — ${x.optional.note}`) : null))] : null,
+        h("div.qs-sum", `${n} step${n === 1 ? "" : "s"} · `, h("kbd", "Enter"), " to start"));
+      requestAnimationFrame(() => { const b = document.querySelector(".modal-foot .btn-primary"); b && b.focus(); });
+    };
+    const keys = (e) => { const i = Number(e.key) - 1; if (o.variants[i] && !e.ctrlKey && !e.altKey && !PR.u.isTyping(e)) { e.preventDefault(); q.variant = o.variants[i].id; pickIncludes(); draw(); } };
+    document.addEventListener("keydown", keys);
+    draw();
+    const v = await modal({ title: p.title, subtitle: today.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }), size: "md", body, enter: true, className: "qs-modal",
+      onClose: () => document.removeEventListener("keydown", keys),
+      actions: [{ spacer: true }, { label: "Cancel", value: null }, { label: "▶ Start", kind: "primary", value: "go" }] });
+    return v === "go" ? q : null;
   }
 
   /* ======================= mount ======================= */
@@ -204,6 +256,7 @@ PR.runner = (() => {
   const hasTracks = () => M().tracks(proc).length > 0;
   /* In a chair's view: their own steps plus shared ones. */
   function inMyChair(step, section) {
+    if (run.setup.excluded && run.setup.excluded.includes(step.id)) return false; // not on the run sheet chosen at start
     if (!chairView || !hasTracks()) return true;
     const t = M().trackOf(step, section);
     return !t || t === "shared" || t === chairView || !M().trackById(proc, t);
@@ -333,12 +386,13 @@ PR.runner = (() => {
     saveUi();
     render();
     scrollToFocus();
-    if (!next && progressOf().done === progressOf().total) setTimeout(() => toast("All steps finished — click 🏁 Finish to close out the run", "ok", 5000), 300);
+    if (!next && progressOf().done === progressOf().total) setTimeout(() => (useQuickFinish() ? quickFinish() : toast("All steps finished — click 🏁 Finish to close out the run", "ok", 5000)), 300);
   }
   async function skipStep(id, kind = "skipped") {
     const f = M().findStep(proc, id);
     if (acfg().enforced && M().needsApproval(f.step) && applicable(f.step)) return toast(`Step ${f.step.num} has an approval or Go / No-Go and can't be skipped in this procedure`, "err", 4500);
-    const reason = await promptBox(kind === "na" ? `Mark step ${f.step.num} not applicable` : `Skip step ${f.step.num}`, { label: "Reason (recorded in the run report)", ok: kind === "na" ? "Mark N/A" : "Skip", required: true });
+    const reason = kind === "skipped" && f.step.required === false ? "Not needed" // optional steps: one click, no questions
+      : await promptBox(kind === "na" ? `Mark step ${f.step.num} not applicable` : `Skip step ${f.step.num}`, { label: "Reason (recorded in the run report)", ok: kind === "na" ? "Mark N/A" : "Skip", required: true });
     if (reason == null) return;
     const next = nextOpenAfter(id);
     commit([{ op: "merge", path: ["steps", id], value: { status: kind, skipReason: reason, finishedAt: now(), finishedBy: me() } }], { render: false, event: { type: kind, stepId: id, text: `${kind === "na" ? "N/A" : "Skipped"} ${f.step.num}: ${reason}` } });
@@ -731,6 +785,7 @@ PR.runner = (() => {
       h("div.seg.seg-sm.seg-wide", [["list", "☰ List"], ["lanes", "▥ Lanes"]].map(([k, l]) => h(`button.seg-btn${mode === k ? ".on" : ""}`, { type: "button", title: k === "lanes" ? "One column per datacenter (L)" : "Single list (L)", onclick: () => { mode = k; PR.app.LS.set("runMode", k); render(); } }, l))),
       h("div.nav-secs", proc.sections.map((sec) => {
         const steps = sec.steps.filter(applicable);
+        if (!steps.length && (run.setup.excluded || []).length) return null;
         const done = steps.filter((s) => ["done", "skipped", "na"].includes(statusOf(s))).length;
         const act = steps.filter((s) => statusOf(s) === "active").length;
         const hasFocus = sec.steps.some((s) => s.id === focusId);
@@ -836,7 +891,7 @@ PR.runner = (() => {
       h("div.fc-actions",
         primaryBtn,
         status === "pending" ? h("button.btn", { type: "button", disabled: !live, title: "Already did it but forgot to press Start — records the finish time and flags timing as unreliable", onclick: () => completeStep(step.id) }, "✓ Already done") : null,
-        status === "pending" || status === "active" ? h("button.btn.btn-ghost", { type: "button", disabled: !live, onclick: () => skipStep(step.id) }, "⤼ Skip") : null,
+        status === "pending" || status === "active" ? h("button.btn.btn-ghost", { type: "button", disabled: !live, title: step.required === false ? "Optional step — skip it without a reason" : "Skip (asks for a reason)", onclick: () => skipStep(step.id) }, step.required === false ? "⤼ Not needed" : "⤼ Skip") : null,
         h("button.btn.btn-warn-o", { type: "button", onclick: () => issueModal({ stepId: step.id }) }, "⚠ Issue", h("kbd", "I")),
         h("div.spacer"),
         h("button.icon-btn", { type: "button", title: "More", onclick: (e) => menu(e.currentTarget, [
@@ -1178,7 +1233,33 @@ PR.runner = (() => {
   };
 
   /* ======================= completion & lessons ======================= */
+  /* Run sheets: one screen, one click — what was captured, anything left, an optional note. */
+  async function quickFinish() {
+    const pg = progressOf();
+    const remaining = stepsInOrder().filter(({ step, section }) => inMyChair(step, section) && ["pending", "active"].includes(statusOf(step)));
+    const openIss = Object.values(run.issues || {}).filter((i) => i.status !== "resolved");
+    const captured = [];
+    stepsInOrder().forEach(({ step }) => (step.blocks || []).forEach((b) => { const v = (st(step.id).values || {})[b.id]; if (b.type === "input" && v && String(v.value || "").trim()) captured.push([b.label, v.value]); }));
+    let note;
+    const v = await modal({ title: `Complete ${run.name}?`, size: "md", enter: true,
+      body: h("div",
+        h("div.fin-stats", stat("Time", run.startedAt ? fmtDur(now() - run.startedAt) : "—"), stat("Done", `${pg.done}/${pg.total}`), stat("Open issues", String(openIss.length))),
+        remaining.length ? h("div.banner.b-warn.sm", `${remaining.length} step(s) not finished (${remaining.map((x) => x.step.num).join(", ")}) — they'll be marked “not done”.`) : null,
+        captured.length ? h("table.kv.qs-cap", h("tbody", captured.map(([k, val]) => h("tr", h("th", k), h("td", String(val)))))) : null,
+        h("div.field", h("label.lbl", "Note for the next person (optional)"), note = h("input.inp", { autofocus: true, placeholder: "e.g. Periodic mortgage download not found — ticket opened" }))),
+      actions: [{ spacer: true }, { label: "Keep working", value: null }, { label: "✓ Complete run sheet", kind: "primary", value: "done" }] });
+    if (v !== "done") return;
+    const comp = { outcome: openIss.length || remaining.length ? "Successful with issues" : "Successful", authorizedBy: me(), authorizedAt: now(), summary: note.value.trim(), milestones: {} };
+    const ops = [{ op: "set", path: ["completion"], value: comp }];
+    remaining.forEach(({ step }) => ops.push({ op: "merge", path: ["steps", step.id], value: { status: "skipped", skipReason: "Not done at close-out", finishedAt: now(), finishedBy: me() } }));
+    ops.push({ op: "set", path: ["status"], value: "completed" }, { op: "set", path: ["completedAt"], value: now() });
+    commit(ops, { render: false, event: { type: "complete-run", text: `Run sheet completed by ${me()} — ${comp.outcome}${comp.summary ? " · " + comp.summary : ""}` } });
+    await drain();
+    PR.app.go(`#/report/${run.id}`);
+  }
+  const useQuickFinish = () => M().runOptions(proc).quickFinish && !acfg().enforced && !hasTracks();
   async function finishWizard() {
+    if (useQuickFinish()) return quickFinish();
     const pg = progressOf();
     const unsigned = M().tracks(proc).filter((t) => !M().trackProgress(run, t.id).signoff);
     let override = false, overrideWhy = "";
@@ -1308,7 +1389,7 @@ PR.runner = (() => {
       case "a": case "A": e.preventDefault(); if (focusId && ["pending", "active"].includes(statusOf(M().findStep(proc, focusId).step))) addAdhocApproval(focusId); break;
       case "l": case "L": e.preventDefault(); mode = mode === "lanes" ? "list" : "lanes"; PR.app.LS.set("runMode", mode); render(); break;
       case "?": e.preventDefault(); keysHelp(); break;
-      case "g": case "G": e.preventDefault(); promptBox("Go to step", { label: "Step number", ok: "Go" }).then((n) => { if (!n) return; const f = stepsInOrder().find((x) => x.step.num === n.trim()); if (f) { filter = "all"; siteFilter = "all"; mode = "list"; setFocus(f.step.id); } else toast("No step " + n, "warn"); }); break;
+      case "g": case "G": e.preventDefault(); promptBox("Go to step", { label: "Step number", ok: "Go" }).then((n) => { if (!n) return; const f = myStepsInOrder().find((x) => x.step.num === n.trim()) || stepsInOrder().find((x) => x.step.num === n.trim() && applicable(x.step)); if (f) { filter = "all"; siteFilter = "all"; mode = "list"; setFocus(f.step.id); } else toast("No step " + n, "warn"); }); break;
       default:
     }
   }

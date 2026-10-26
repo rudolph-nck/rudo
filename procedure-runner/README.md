@@ -66,6 +66,19 @@ Sections or steps marked *after cutover* switch the role labels to New Primary /
 - **Records**: early finishes and skips, with the time left and the reason, go into the run log and the run report.
 - **When it hits zero**: it beeps, sends a desktop notification and prompts you to press Enter to continue.
 
+## Run sheets & quick start (⚡)
+
+For routine checklists, like the daily core run sheet, there's no run setup. ⚙ Settings → ⚡ Quick start:
+- **Quick start**: press **▶ Run** and the only screen is **Which run sheet?**
+  - The sheet due today is pre-selected: by day of the week, the holiday list, or day of the month. For example, Daily Mon–Sat, Sunday & Holiday on Sundays and holidays, Month-End on the 1st. Other sheets due today are marked *Also due today*.
+  - Press `1`/`2`/`3` to pick a sheet and `Enter` to start. You land on the first step.
+- **Quick questions**: yes/no questions such as *Rate change today?* leave out steps that only apply on a Yes.
+- **Also include**: optional sections, such as quarterly, semi-annual or annual items, are pre-ticked in the months they're due.
+- **Tagging sections and steps**: select a section or step → *Run sheet* to set which sheets it belongs to, *Only when* (a question), or *Optional* (with the months to pre-tick). Each sheet numbers its steps from 1.
+- **Optional steps** (not *Required*) have a **Not needed** button that skips them without asking for a reason.
+- **One-click finish**: a summary of the values captured (counts, totals), anything left, an optional note for the next person, then `Enter`. It opens by itself after the last step.
+- **Starting point**: New procedure ▾ → *Daily run sheet (quick start)*.
+
 ## Concurrent chairs
 
 Split any procedure between chairs that work at the same time, for example a 1st chair on the core failover and a 2nd chair on vendors and other parties.
