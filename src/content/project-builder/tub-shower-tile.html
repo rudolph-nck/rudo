@@ -1830,6 +1830,7 @@ function renderAll(){renderPlan();renderSteps();renderTools();renderNiche();}
 /* ---------- events ---------- */
 document.addEventListener("click",function(e){
   if(e.target.id==="sheet"){closeSheet();return;}
+  if(e.target.id==="cele"||(e.target.closest&&e.target.closest(".celein")&&!e.target.closest(".celecard"))){$("#cele").hidden=true;return;}
   var t=e.target.closest("button"); if(!t) return;
   var grp=t.closest("[data-key]");
   if(grp && t.classList.contains("chip")){
