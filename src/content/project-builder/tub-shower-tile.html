@@ -19,6 +19,7 @@
   --tape:#F4C20D; --tape-ink:#2A2100;
   --warn:#B3421A; --warn-soft:#FBE7DE; --ok:#25744A; --ok-soft:#DDF1E5;
   --tile:#FBFCFD; --grout:#AEB8C1; --niche:#C9DAF5; --tub:#E3E8EC; --stud:#B98A55;
+  --wood:#DDB57E; --board:#C3C9CE; --mem:#C8372D; --memwet:#F3A9BB; --thin:#D3CEC4; --water:#9BCBF2;
   --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
   --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -30,6 +31,7 @@
   --tape:#E9BA0E; --tape-ink:#211A00;
   --warn:#FF8E62; --warn-soft:#3A1F15; --ok:#61C686; --ok-soft:#14301F;
   --tile:#D7DDE2; --grout:#7D8994; --niche:#5C7FB8; --tub:#2A343D; --stud:#9C7444;
+  --wood:#9A7647; --board:#5A6570; --mem:#E05A4F; --memwet:#B9707F; --thin:#6E6A62; --water:#3F6E94;
   color-scheme:dark }}
 :root[data-theme="dark"]{
   --bg:#0E1419; --surface:#161E26; --sunk:#111920; --ink:#E5EAEE; --muted:#97A5B0; --line:#2B3742;
@@ -37,6 +39,7 @@
   --tape:#E9BA0E; --tape-ink:#211A00;
   --warn:#FF8E62; --warn-soft:#3A1F15; --ok:#61C686; --ok-soft:#14301F;
   --tile:#D7DDE2; --grout:#7D8994; --niche:#5C7FB8; --tub:#2A343D; --stud:#9C7444;
+  --wood:#9A7647; --board:#5A6570; --mem:#E05A4F; --memwet:#B9707F; --thin:#6E6A62; --water:#3F6E94;
   color-scheme:dark }
 
 *{box-sizing:border-box}
@@ -172,6 +175,78 @@ details.step.done .ck svg{opacity:1}
 .tbl td.r{font-family:var(--f-mono);white-space:nowrap}
 
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;z-index:9;font-size:.9rem}
+
+/* tutorial */
+.hbtn{appearance:none;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-weight:700;font-size:.85rem;border-radius:8px;padding:6px 10px;cursor:pointer;margin-top:6px}
+.segs{display:flex;gap:2px;height:6px}
+.segs i{flex:1;background:var(--line);border-radius:2px}
+.segs i.gap{margin-left:4px}
+.segs i.done{background:var(--ok)} .segs i.skip{background:var(--muted);opacity:.5} .segs i.cur{background:var(--accent)}
+.ptop{display:flex;justify-content:space-between;gap:8px}
+.ptitle{font-size:1.9rem}
+.pmeta,.cues{display:flex;flex-wrap:wrap;gap:6px}
+.cue{font-family:var(--f-mono);font-size:.74rem;font-weight:600;border-radius:999px;padding:3px 9px;background:var(--sunk);border:1px solid var(--line);color:var(--ink)}
+.cue.ppe{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+.cue.wait{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
+.cue.okc{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.cue.sk{opacity:.7}
+#player{display:flex;flex-direction:column;gap:12px}
+#player .body{padding:0}
+.fig{background:var(--sunk);border-radius:10px;padding:12px;margin:0;border:1px solid var(--line)}
+.fig svg{display:block;width:100%;height:auto}
+.fig.plain svg{max-height:340px}
+.fig figcaption{font-size:.84rem;color:var(--muted);margin-top:8px}
+.fig .o{fill:none;stroke:var(--ink);stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
+.fig .d{stroke-dasharray:4 3}
+.fig .a{stroke:var(--accent);fill:none;stroke-width:1.7}
+.fig .af{fill:var(--accent)} .fig .inkf{fill:var(--ink)}
+.fig .w{fill:var(--wood);stroke:var(--ink);stroke-width:1}
+.fig .b{fill:var(--board);stroke:var(--ink);stroke-width:1}
+.fig .tl{fill:var(--tile);stroke:var(--ink);stroke-width:1}
+.fig .m{fill:var(--mem)} .fig .mp{fill:var(--memwet)}
+.fig .th{fill:var(--thin);stroke:var(--ink);stroke-width:.6}
+.fig .th-l{stroke:var(--ink);stroke-width:1.2;opacity:.45}
+.fig .tb{fill:var(--tub);stroke:var(--ink);stroke-width:1}
+.fig .y{fill:var(--tape);stroke:var(--ink);stroke-width:1}
+.fig .bk{fill:var(--surface);stroke:var(--ink);stroke-width:1}
+.fig .wt{fill:var(--water)} .fig .mos{fill:var(--niche)}
+.fig .bad{stroke:var(--warn);fill:none;stroke-width:2} .fig .badf{fill:var(--warn)}
+.fig .good{stroke:var(--ok);fill:none;stroke-width:2} .fig .goodf{fill:var(--ok)}
+.fig:not(.plain) text{font-family:var(--f-mono);font-size:9px;fill:var(--muted)}
+.fig:not(.plain) text.k{fill:var(--ink);font-weight:600}
+.fig:not(.plain) text.wa{fill:var(--warn);font-weight:600}
+.fig:not(.plain) text.ac{fill:var(--accent);font-weight:600}
+.fig:not(.plain) text.gd{fill:var(--ok);font-weight:600}
+.fig:not(.plain) text.nm{fill:var(--accent-ink);font-weight:700;font-size:10px}
+.needs ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}
+.need{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:.92rem}
+.need .nd{width:10px;height:10px;border-radius:50%;border:2px solid var(--line)}
+.need.st-have .nd{background:var(--ok);border-color:var(--ok)} .need.st-need .nd{background:var(--warn);border-color:var(--warn)}
+.need .q{font-family:var(--f-mono);font-size:.78rem;color:var(--accent)}
+.need .ns{font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
+.need.st-need .ns{color:var(--warn)}
+.pnav{position:sticky;bottom:calc(68px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:auto auto 1fr;gap:8px;background:var(--bg);padding-block:10px;border-top:1px solid var(--line);z-index:4;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px))}
+.btn:disabled{opacity:.4;cursor:default}
+.iphase{display:flex;flex-direction:column}
+.iph{display:flex;align-items:baseline;gap:8px;padding:14px 0 6px;font-family:var(--f-display);font-size:1.15rem}
+.iph .pn{font-family:var(--f-mono);font-size:.7rem;color:var(--muted)}
+.iph .pc{margin-left:auto;font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.irow{appearance:none;background:var(--surface);border:1px solid var(--line);border-top:none;color:var(--ink);font:inherit;text-align:left;display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 12px;cursor:pointer}
+.iph+.irow{border-top:1px solid var(--line);border-radius:8px 8px 0 0}
+.irow:last-child{border-radius:0 0 8px 8px}
+.irow .ist{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--line);color:var(--muted);font-family:var(--f-mono);font-size:.7rem;font-style:normal}
+.irow .ist i{font-style:normal}
+.irow .ist svg{width:14px;height:14px}
+.irow.done .ist{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.irow.done .it{color:var(--muted)}
+.irow.skip .ist{border-style:dashed}
+.irow.cur{box-shadow:inset 3px 0 0 var(--accent)}
+.irow.cur .ist{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.irow .time{font-family:var(--f-mono);font-size:.72rem;color:var(--muted);white-space:nowrap}
+.tagsk{font-family:var(--f-mono);font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border:1px dashed var(--line);border-radius:4px;padding:0 4px}
+.sheet{position:fixed;inset:0;z-index:20;background:rgba(10,16,22,.5);display:flex;align-items:flex-end;justify-content:center}
+.sheet-in{background:var(--bg);width:100%;max-width:720px;max-height:86vh;overflow:auto;border-radius:16px 16px 0 0;padding-block:14px calc(18px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet-hd{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:-14px;background:var(--bg);padding-block:4px 6px;z-index:1}
 @media (prefers-reduced-motion:no-preference){ details.step[open] .body{animation:fade .18s ease-out} @keyframes fade{from{opacity:.4}to{opacity:1}} }
 </style>
 </head>
@@ -179,7 +254,7 @@ details.step.done .ck svg{opacity:1}
 
 <header class="top"><div class="in">
   <div><div class="eyebrow"><a href="/project-builder" style="color:inherit">← All guides</a> · Tub + 12×24 tile + niche</div><h1>Tub Shower Tile Build</h1></div>
-  <div class="prog"><span id="progTxt">0 of 0 steps</span><div class="bar"><i id="progBar"></i></div></div>
+  <div class="prog"><span id="progTxt">0 of 0 steps</span><div class="bar"><i id="progBar"></i></div><button class="hbtn" data-open-index>Index</button></div>
 </div></header>
 
 <main class="wrap" id="app">
@@ -268,9 +343,13 @@ details.step.done .ck svg{opacity:1}
 
 <!-- ============ STEPS ============ -->
 <section id="v-steps" data-view="steps" class="wrap" hidden style="padding-top:14px">
-  <div class="card flat intro"><p>Tap a step to open it. Tap the box to check it off. Do them in order: each one sets up the next. Times are working time for one person; cure times are separate and listed in the step.</p></div>
-  <div class="note warn"><b class="tag">Rule</b><div>Read the label on every product you buy. Where a label disagrees with this guide (mix water, cure time, trowel size), the label wins.</div></div>
-  <div id="stepList" style="display:flex;flex-direction:column;gap:22px"></div>
+  <div class="card" id="resume"></div>
+  <div id="player" hidden></div>
+  <div id="stepIndexWrap" style="display:flex;flex-direction:column;gap:12px">
+    <div class="note warn"><b class="tag">Rule</b><div>Read the label on every product you buy. Where a label disagrees with this guide (mix water, cure time, trowel size), the label wins.</div></div>
+    <p class="muted small">Tap any step to open it in the tutorial. You can skip steps and come back to them. Your place is saved on this phone.</p>
+    <div id="stepIndex"></div>
+  </div>
 </section>
 
 <!-- ============ NICHE ============ -->
@@ -292,6 +371,8 @@ details.step.done .ck svg{opacity:1}
 
 </main>
 
+<div class="sheet" id="sheet" hidden><div class="sheet-in" role="dialog" aria-label="Step index"><div class="sheet-hd"><h2>Index</h2><button class="btn sm" data-close-sheet>Close</button></div><div id="sheetList"></div></div></div>
+
 <nav class="tabs" role="tablist" aria-label="Sections"><div class="in">
   <button role="tab" data-tab="plan">Plan<span class="n" id="nPlan">sizes</span></button>
   <button role="tab" data-tab="tools">Tools<span class="n" id="nTools">0 to buy</span></button>
@@ -305,10 +386,10 @@ details.step.done .ck svg{opacity:1}
 var KEY="tubTileBuild.v1";
 var DEF={backW:60,sideD:30,tileH:72,toCeiling:false,tile:"12x24",orient:"h",pattern:"third",grout:0.125,
   nicheWall:"back",nicheX:30,nicheSill:36,bayW:14.5,nicheRows:1,nicheBack:"mosaic",wp:"redgard",edge:"metal",groutType:"premix",viewWall:"back",
-  studDepth:3.5,cleat:0.75,board:0.5,setBed:0.25,tileThk:0.375,backThk:0.25,tools:{},done:{},tab:"plan",quizSkip:{}};
+  studDepth:3.5,cleat:0.75,board:0.5,setBed:0.25,tileThk:0.375,backThk:0.25,tools:{},done:{},skipped:{},cur:null,stepMode:"index",lastAt:null,tab:"plan",quizSkip:{}};
 var S;
 try{S=Object.assign({},DEF,JSON.parse(localStorage.getItem(KEY)||"{}"));}catch(e){S=Object.assign({},DEF);}
-S.tools=S.tools||{};S.done=S.done||{};S.quizSkip=S.quizSkip||{};
+S.tools=S.tools||{};S.done=S.done||{};S.skipped=S.skipped||{};S.quizSkip=S.quizSkip||{};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 
 var TILES={
@@ -773,19 +854,362 @@ function renderTools(){
 function links(q){var e=encodeURIComponent(q);return '<div class="links"><a href="https://www.lowes.com/search?searchTerm='+e+'" target="_blank" rel="noopener">Lowe\'s</a><a href="https://www.homedepot.com/s/'+e+'" target="_blank" rel="noopener">Home Depot</a><a href="https://www.amazon.com/s?k='+e+'" target="_blank" rel="noopener">Amazon</a></div>';}
 
 /* ---------- render: steps ---------- */
-var CHECK='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="var(--surface)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+/* ---------- illustrations ---------- */
+function sv(inner,h){return '<svg viewBox="0 0 320 '+(h||180)+'" role="img" aria-hidden="true">'+inner+'</svg>';}
+function tx(x,y,s,c,a){return '<text x="'+x+'" y="'+y+'"'+(c?' class="'+c+'"':'')+(a?' text-anchor="'+a+'"':'')+'>'+s+'</text>';}
+function rc(x,y,w,h,c,extra){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" class="'+c+'"'+(extra||'')+'/>';}
+function ln(x1,y1,x2,y2,c){return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" class="'+(c||'o')+'"/>';}
+function ar(x1,y1,x2,y2,c){c=c||'a';var a=Math.atan2(y2-y1,x2-x1),h=6,f=c==='bad'?'badf':c==='good'?'goodf':c==='o'?'inkf':'af';
+  return ln(x1,y1,x2,y2,c)+'<polygon class="'+f+'" points="'+x2+','+y2+' '+(x2-h*Math.cos(a-0.45)).toFixed(1)+','+(y2-h*Math.sin(a-0.45)).toFixed(1)+' '+(x2-h*Math.cos(a+0.45)).toFixed(1)+','+(y2-h*Math.sin(a+0.45)).toFixed(1)+'"/>';}
+function dim(x1,y1,x2,y2,label,lx,ly,a){return ar((x1+x2)/2,(y1+y2)/2,x1,y1)+ar((x1+x2)/2,(y1+y2)/2,x2,y2)+tx(lx,ly,label,'ac',a);}
+function num(x,y,n){return '<circle cx="'+x+'" cy="'+y+'" r="8" class="af"/>'+'<text x="'+x+'" y="'+(y+3.2)+'" text-anchor="middle" class="nm">'+n+'</text>';}
+function F(svg,cap){return '<figure class="fig">'+svg+(cap?'<figcaption>'+cap+'</figcaption>':'')+'</figure>';}
+function FP(svg,cap){return '<figure class="fig plain">'+svg+'<figcaption>'+cap+'</figcaption></figure>';}
+function fr(x){return frac(x).replace(/"/g,'&quot;');}
+
+var FIGS={
+ ppe:function(){
+  var s='';
+  // respirator
+  s+='<path class="bk" d="M30 70 q25 -30 50 0 q4 28 -25 38 q-29 -10 -25 -38z"/><circle cx="44" cy="84" r="6" class="b"/><circle cx="66" cy="84" r="6" class="b"/>'+ln(22,70,30,74)+ln(88,70,80,74)+tx(55,128,'Respirator','k','middle')+tx(55,140,'N95 / P100','', 'middle');
+  // glasses
+  s+='<rect x="112" y="72" width="30" height="20" rx="7" class="bk"/><rect x="148" y="72" width="30" height="20" rx="7" class="bk"/>'+ln(142,80,148,80)+ln(112,78,104,74)+ln(178,78,186,74)+tx(145,128,'Glasses','k','middle')+tx(145,140,'cut & snap','', 'middle');
+  // knee pads
+  s+='<rect x="200" y="60" width="22" height="40" rx="9" class="b"/><rect x="228" y="60" width="22" height="40" rx="9" class="b"/>'+ln(200,70,222,70)+ln(228,70,250,70)+tx(225,128,'Knee pads','k','middle')+tx(225,140,'kneeling','', 'middle');
+  // gloves
+  s+='<path class="bk" d="M276 100 v-28 q0-6 5-6 q5 0 5 6 v-8 q0-6 5-6 q5 0 5 6 v6 q0-5 5-5 q5 0 5 5 v30 z"/>'+tx(292,128,'Gloves','k','middle')+tx(292,140,'wet work','', 'middle');
+  return F(sv(tx(10,20,'GEAR UP BEFORE EVERY DUSTY OR WET STEP','k')+s,160),'Silica dust from cement board and porcelain is the real hazard. Wear the respirator whenever you cut or sand.');
+ },
+ studs:function(){
+  var s=tx(10,16,'TOP VIEW: looking down on the studs','k');
+  s+=rc(18,40,284,12,'y')+tx(160,49,'4 ft level','k','middle');
+  [30,110,190,270].forEach(function(x,i){s+=rc(x,i===2?66:52,14,34,'w');});
+  s+=ln(198,53,198,65,'bad')+tx(186,96,'gap over 1/8"','wa','end');
+  s+=ln(10,52,310,52,'o d');
+  s+=tx(10,120,'Wall plane (what tile needs)')+ar(80,113,80,56,'o');
+  s+=tx(170,124,'Sunk stud: shim its face','wa')+tx(170,136,'Proud stud: plane it down','wa');
+  s+=tx(10,160,'Check top, middle and bottom on every wall.');
+  return F(sv(s,170),'Any stud out of line by more than 1/8" shows up as tile edges sticking out.');
+ },
+ layers:function(c){
+  var s=tx(10,16,'SECTION through the finished wall at the valve','k');
+  s+=ln(90,26,90,150,'o d')+tx(92,160,'stud face');
+  s+=rc(90,30,20,116,'b')+rc(110,30,3,116,'m')+rc(113,30,10,116,'th')+rc(123,30,16,116,'tl');
+  s+=rc(28,70,50,36,'bk')+tx(53,92,'valve','', 'middle')+rc(78,64,64,48,'a d','fill="none"')+ln(142,88,165,88,'o');
+  s+=ar(172,40,132,40,'o')+tx(176,43,'Tile '+fr(c.T.thk))+ar(172,62,118,62,'o')+tx(176,65,'Thinset + membrane '+fr(S.setBed))+ar(172,84,100,84,'o')+tx(176,87,'Durock '+fr(S.board))+ar(172,108,142,100,'a')+tx(176,111,'Plaster guard','ac')+tx(176,122,'face must land in range');
+  s+=dim(90,170,139,170,'',0,0)+tx(150,174,'= '+fr(S.board+S.setBed+S.tileThk)+' total','ac');
+  return F(sv(s,182),'Measure from the stud face to the valve and compare with the plaster guard before any board goes up.');
+ },
+ blocking:function(){
+  var s=tx(10,16,'Blocking between studs, before the board','k');
+  [40,120,200,280].forEach(function(x){s+=rc(x,24,12,140,'w');});
+  s+=rc(52,92,68,12,'w')+rc(132,92,68,12,'w')+rc(212,60,68,12,'w');
+  s+=tx(86,118,'grab bar','ac','middle')+tx(86,130,'33–36" up','ac','middle')+tx(246,86,'rod / door','ac','middle')+tx(246,98,'bracket','ac','middle');
+  s+=tx(10,176,'Photograph blocking with a tape measure in view.');
+  return F(sv(s,182));
+ },
+ tub:function(){
+  var s=tx(10,16,'Set the tub level on its rim','k');
+  s+=rc(20,20,14,140,'w')+rc(34,96,8,10,'w')+tx(46,80,'ledger (if tub needs one)');
+  s+='<path class="tb" d="M34 100 h270 v10 q0 40 -30 46 h-200 q-30 -6 -40 -46z"/>';
+  s+=rc(90,86,150,10,'y')+tx(165,94,'level on rim','k','middle');
+  s+='<polygon class="w" points="70,160 100,160 70,166"/><polygon class="w" points="230,160 260,160 260,166"/>'+tx(85,176,'shims','', 'middle')+tx(245,176,'shims','', 'middle');
+  return F(sv(s,182),'Mark the lowest point of the rim on each wall with an "L". You will measure from it later.');
+ },
+ flange:function(){
+  var s=tx(10,16,'SIDE SECTION at the tub','k');
+  s+=rc(40,24,30,150,'w')+tx(30,34,'stud','', 'end');
+  s+=rc(70,28,6,88,'w')+rc(70,118,6,34,'tb')+rc(76,28,14,118,'b');
+  s+='<path class="tb" d="M70 152 h240 v24 h-240z"/>';
+  s+=ar(130,60,74,60,'o')+tx(134,63,'furring strip')+tx(134,74,'same thickness as flange');
+  s+=ar(130,128,74,132,'o')+tx(134,131,'tub flange');
+  s+=ar(130,40,90,40,'o')+tx(134,43,'Durock: flat over both','k');
+  s+=ar(130,104,90,148,'a')+tx(134,107,'1/4" gap above tub','ac')+tx(134,118,'(silicone at the very end)');
+  // inset: wrong
+  s+=rc(275,24,10,50,'w')+rc(285,58,4,16,'tb')+'<polygon class="b" points="285,24 293,24 297,58 289,58"/>'+tx(286,90,'no furring:','wa','middle')+tx(286,100,'board','wa','middle')+tx(286,110,'kicks out','wa','middle');
+  return F(sv(s,182));
+ },
+ nicheFrame:function(c){
+  if(!c.N) return '';
+  var G=c.G,N=c.N,roughH=N.h+2*G.wallLayer,blockTop=N.sill-G.wallLayer;
+  var s=tx(10,16,'FRONT VIEW of the stud bay','k');
+  s+=rc(80,22,14,148,'w')+rc(226,22,14,148,'w')+ln(40,170,300,170,'o')+tx(318,166,'tub rim','','end');
+  s+=rc(94,50,132,10,'w')+rc(94,114,132,10,'w')+tx(160,57,'top block (2×4 flat)','k','middle')+tx(160,121,'bottom block (2×4 flat)','k','middle');
+  s+=dim(94,87,226,87,'opening '+fr(S.bayW)+' wide',160,82,'middle');
+  s+=dim(254,60,254,114,'',0,0)+tx(258,90,fr(roughH),'ac');
+  s+=dim(66,114,66,170,'',0,0)+tx(10,146,fr(blockTop),'ac')+tx(10,156,'block top');
+  s+='<text x="88" y="56" class="k">×</text><text x="230" y="56" class="k">×</text><text x="88" y="120" class="k">×</text><text x="230" y="120" class="k">×</text>';
+  return F(sv(s,180),'The × marks are 3" screws driven through the studs into the block ends. Check each block with the level.');
+ },
+ cleats:function(c){
+  var s=tx(10,16,'TOP VIEW of the niche','k');
+  s+=rc(0,22,55,8,'tl')+rc(265,22,55,8,'tl')+rc(0,30,55,10,'b')+rc(265,30,55,10,'b');
+  s+=rc(40,40,15,70,'w')+rc(265,40,15,70,'w');
+  s+=rc(55,30,10,56,'b')+rc(255,30,10,56,'b')+rc(55,86,210,10,'b')+rc(55,96,12,14,'w')+rc(253,96,12,14,'w');
+  s+=rc(0,110,320,6,'bk')+tx(160,130,"other room's wall (must be an interior wall)",'', 'middle');
+  s+=tx(160,100,'back panel','k','middle')+tx(78,108,'cleat')+tx(206,108,'cleat')+tx(70,60,'side')+tx(250,60,'side','','end');
+  if(c.N) s+=dim(160,30,160,86,'',0,0)+tx(166,58,fr(c.G.finD),'ac')+tx(166,69,'deep','ac');
+  s+=tx(160,150,'Install order: back, shelf, top, then the two sides','', 'middle');
+  return F(sv(s,160),'Side, shelf and top pieces run from the back panel out to the face of the wall board, covering its cut edges.');
+ },
+ sheets:function(){
+  var s=tx(10,16,'Plan the sheets on each wall','k');
+  [10,70,130,190,250,310].forEach(function(x){s+=ln(x,24,x,160,'o d');});
+  s+=rc(10,96,180,60,'b')+rc(190,96,120,60,'b')+rc(10,36,60,60,'b')+rc(70,36,180,60,'b')+rc(250,36,60,60,'b');
+  s+=ln(190,96,190,156,'a')+ln(70,36,70,96,'a')+ln(250,36,250,96,'a');
+  s+=rc(0,160,320,14,'tb')+tx(160,170,'TUB','', 'middle');
+  s+=tx(196,128,'seam on a stud','ac')+tx(76,70,'staggered','ac')+tx(14,152,'1/4" gap above tub','k')+tx(14,32,'dashed = studs, 16" apart')+tx(316,30,'rough side out','k','end');
+  return F(sv(s,178),'Vertical seams always land on a stud. Never let four corners meet at one point.');
+ },
+ score:function(){
+  var s='';
+  s+=rc(10,40,90,70,'b')+rc(48,28,6,94,'y')+ln(58,40,58,110,'a d')+num(20,140,1)+tx(32,143,'score 3–4×','k');
+  s+='<polygon class="b" points="115,40 160,40 160,110 115,110"/><polygon class="b" points="162,44 205,30 205,100 162,114"/>'+ar(212,60,212,90,'a')+num(125,140,2)+tx(137,143,'snap it away','k');
+  s+=rc(225,40,85,70,'b')+'<path class="a" d="M232 50 l6 6 m6 -6 l-6 6 M252 50 l6 6 m6 -6 l-6 6 M272 50 l6 6 m6 -6 l-6 6" />'+ln(268,40,268,110,'a d')+num(235,140,3)+tx(247,143,'cut back mesh','k');
+  s+=tx(10,18,'Cut cement board like a chocolate bar','k')+tx(10,165,'Carbide knife + T-square. Smooth the edge with the rasp.');
+  return F(sv(s,174));
+ },
+ holes:function(){
+  var s=tx(10,16,'Lipstick trick: foolproof pipe holes','k');
+  s+=rc(10,60,50,14,'bk')+rc(60,58,8,18,'m')+num(18,40,1)+tx(30,43,'lipstick on pipe end','k');
+  s+=rc(120,30,70,90,'b')+'<circle cx="155" cy="66" r="7" class="m" opacity=".85"/>'+num(128,140,2)+tx(140,143,'press on','k')+tx(140,155,'pull away');
+  s+=rc(220,30,90,90,'b')+'<circle cx="265" cy="66" r="13" class="bk"/>'+'<circle cx="265" cy="66" r="7" class="a d" fill="none"/>'+num(228,140,3)+tx(240,143,'drill hole','k')+tx(240,155,'1/2" oversize');
+  s+=tx(10,174,'Measuring instead? On the board, mark:','k');
+  s+=tx(10,186,'up from bottom edge: V − 1/4" (tub gap)')+tx(10,198,'in from side edge: H');
+  return F(sv(s,204),'Drill from the front until the pilot bit pokes through, then finish from the back so the face does not blow out.');
+ },
+ screws:function(){
+  var s=tx(10,16,'Screw pattern','k');
+  [20,100,180,260].forEach(function(x){s+=ln(x,24,x,150,'o d');});
+  s+=rc(20,26,240,118,'b');
+  [24,100,180,256].forEach(function(x){for(var y=32;y<140;y+=21) s+='<circle cx="'+x+'" cy="'+y+'" r="2.6" class="inkf"/>';});
+  s+=dim(286,32,286,53,'',0,0)+tx(292,46,'8"','ac')+tx(268,74,'3/8–5/8"')+tx(268,85,'from edges');
+  s+=rc(0,152,320,14,'tb')+tx(160,162,'TUB  (1/4" gap)','', 'middle');
+  s+=tx(10,180,'Heads flush with the face. Sinking them tears the mesh.');
+  return F(sv(s,186));
+ },
+ tape:function(){
+  var s=tx(10,16,'SECTION of a seam','k');
+  s+=rc(10,70,140,16,'b')+rc(154,70,156,16,'b')+tx(152,100,'1/8" gap','', 'middle');
+  s+='<path class="th" d="M70 70 q82 -14 164 0 z"/>';
+  s+=ln(110,66,198,66,'a')+tx(154,54,'mesh tape embedded','ac','middle')+tx(154,44,'thinset skimmed flat over it','k','middle');
+  s+=tx(10,130,'Inside corners: fold the tape in half lengthwise,','k')+tx(10,142,'press into the corner, skim both sides.');
+  s+=tx(10,166,'Scrape off lumps. Nothing should stick up under tile.');
+  return F(sv(s,174));
+ },
+ membrane:function(){
+  var s=tx(10,16,'Waterproofing: fabric, then two coats','k');
+  s+=rc(10,30,60,100,'b')+rc(70,30,60,100,'b')+rc(62,30,16,100,'mp')+'<path class="o d" d="M62 30 v100 M78 30 v100"/>'+num(20,146,1)+tx(32,149,'fabric in corners','k');
+  s+=rc(150,30,70,100,'b')+rc(150,30,40,100,'mp')+'<rect x="186" y="56" width="12" height="40" rx="6" class="bk"/>'+ln(198,76,214,110)+num(160,146,2)+tx(172,149,'coat 1','k');
+  s+=rc(240,30,30,45,'mp')+tx(255,88,'wet','', 'middle')+tx(255,99,'pink','', 'middle')+rc(275,30,30,45,'m')+tx(290,88,'dry','', 'middle')+tx(290,99,'red','', 'middle')+num(250,146,3)+tx(262,149,'coat 2 ⟂','k');
+  s+=tx(10,174,'Each coat about as thick as a credit card.')+tx(10,186,'No board showing through anywhere.');
+  return F(sv(s,194));
+ },
+ ledger:function(c){
+  var L=c.Lb;
+  var s=tx(10,16,'Start from a level ledger, not the tub','k');
+  s+='<path class="tb" d="M0 160 L120 166 L200 164 L320 158 V180 H0Z"/>'+'<circle cx="120" cy="166" r="3" class="badf"/>'+tx(124,178,'lowest point','wa');
+  s+=ln(0,118,320,118,'a d')+rc(0,118,320,8,'y')+tx(316,114,'level line = ledger top','ac','end');
+  for(var r=0;r<3;r++){var y=118-(r+1)*30,off=(r%3)*30;for(var x=-90+off;x<320;x+=90) s+=rc(x+1,y+1,88,28,'tl');}
+  for(var x2=0;x2<320;x2+=90) s+=rc(x2+1,128,88,30,'tl','stroke-dasharray="3 3" opacity=".6"');
+  s+=tx(160,146,'cut row: goes in LAST','wa','middle');
+  if(L.ledgerTop) s+=dim(296,162,296,118,'',0,0)+tx(292,146,fr(L.ledgerTop),'ac','end');
+  return F(sv(s,182),'Tubs are never perfectly level. The ledger gives you a perfect first row, and the bottom cut row absorbs the tub\'s dips.');
+ },
+ layout:function(c){return FP(wallSVG(c.Lb),'Your back wall, from the Plan tab. Pink tiles are cuts. Yellow is the ledger.');},
+ layoutSide:function(c){return FP(wallSVG(c.Ls),'Side wall: full tile at the open front edge, cuts go into the back corner.');},
+ mix:function(){
+  var s=tx(10,16,'Mixing thinset','k');
+  s+='<path class="bk" d="M20 60 h60 l-6 80 h-48z"/><path class="wt" d="M24 112 h52 l-2 26 h-48z"/>'+num(30,40,1)+tx(42,43,'water','k');
+  s+=rc(100,52,40,52,'bk')+tx(120,82,'LFT','k','middle')+ar(142,78,172,96)+num(110,40,2)+tx(122,43,'powder','k');
+  s+=rc(178,50,22,30,'bk')+ln(189,80,189,128)+'<path class="o" d="M181 128 h16 M183 120 h12"/>'+num(190,40,3)+tx(202,43,'mix slow','k');
+  s+='<circle cx="270" cy="96" r="24" class="bk"/>'+ln(270,96,270,80)+ln(270,96,282,102)+num(258,40,4)+tx(270,43,'rest','k');
+  s+=tx(10,160,'Water first, then powder. Mix slow 3–5 min.')+tx(10,172,'Rest 10 min, remix 1 min. Ready = holds a ridge.')+tx(10,186,'Never add water to stiffening thinset. Mix fresh.','wa');
+  return F(sv(s,194));
+ },
+ trowel:function(){
+  var s=tx(10,16,'Trowel technique','k');
+  s+=rc(10,28,110,80,'b');for(var y=36;y<104;y+=8) s+=ln(14,y,116,y,'th-l');
+  s+='<polygon class="bk" points="70,70 110,50 118,64 78,84"/>'+num(20,124,1)+tx(32,127,'ridges one way','k');
+  s+=rc(140,36,70,60,'tl')+rc(146,42,58,48,'th')+num(150,124,2)+tx(162,127,'butter tile','k');
+  s+=rc(232,40,60,50,'tl')+ar(232,100,262,100,'a')+ar(262,100,232,100,'a')+num(240,124,3)+tx(252,127,'slide 1/4"','k');
+  s+=rc(30,140,50,34,'th')+rc(34,144,6,6,'bk')+tx(90,156,'95%+ covered','gd')+tx(90,168,'PASS','gd');
+  s+=rc(180,140,50,34,'th')+'<circle cx="196" cy="152" r="7" class="bk"/><circle cx="214" cy="164" r="6" class="bk"/><circle cx="218" cy="148" r="4" class="bk"/>'+tx(240,156,'swirls = voids','wa')+tx(240,168,'FAIL','wa');
+  return F(sv(s,182),'Pull a tile off now and then and look. Hollow spots crack later.');
+ },
+ clips:function(){
+  var s=tx(10,16,'Leveling clips keep edges flush','k');
+  s+=rc(20,70,120,10,'tl')+rc(144,70,120,10,'tl')+rc(20,80,244,6,'th')+rc(20,86,244,8,'b');
+  s+=rc(128,82,28,3,'af')+rc(140,48,4,36,'af')+'<polygon class="y" points="118,62 168,56 168,68 118,68"/>'+ar(186,62,170,62,'o');
+  s+=tx(190,58,'wedge / cap pushes','k')+tx(190,70,'both edges level','k')+tx(100,110,'clip base under both tiles','', 'middle');
+  s+=tx(10,136,'Every 8–12" along each edge:')+tx(10,148,'about 2 per short side, 3 per long side.')+tx(10,164,'Next day: knock clips off along the joint.');
+  return F(sv(s,172));
+ },
+ cuts:function(){
+  var s=tx(10,16,'Three cuts you will make','k');
+  s+=rc(10,40,90,8,'bk')+rc(14,48,82,46,'tl')+ln(56,48,56,94,'a d')+'<circle cx="56" cy="44" r="6" class="y"/>'+num(20,116,1)+tx(32,119,'straight','k')+tx(32,131,'score, snap');
+  s+='<path class="tl" d="M120 40 h80 v54 h-80z"/><path class="bk" d="M170 40 h30 v24 h-30z"/>'+ln(170,40,170,64,'a')+ln(170,64,200,64,'a')+num(130,116,2)+tx(142,119,'L-cut','k')+tx(142,131,'wet saw');
+  s+=rc(220,52,90,42,'tl')+'<circle cx="265" cy="73" r="10" class="bk"/><polygon class="y" points="252,30 262,26 276,62 266,66"/>'+num(230,116,3)+tx(242,119,'pipe hole','k')+tx(242,131,'core bit, wet');
+  s+=tx(10,160,'Smooth every cut edge with the diamond hand pad.');
+  return F(sv(s,168));
+ },
+ nicheTile:function(){
+  var s=tx(10,16,'Niche tile order','k');
+  s+='<g transform="translate(-40 0)">';
+  s+=rc(60,26,200,140,'tl')+rc(110,50,100,80,'bk');
+  for(var x=112;x<208;x+=8) for(var y=52;y<128;y+=8) s+=rc(x,y,6,6,'mos');
+  s+=rc(104,130,112,8,'tl')+rc(104,42,112,8,'tl')+rc(104,50,6,80,'tl')+rc(210,50,6,80,'tl');
+  s+=num(160,90,1)+num(80,40,2)+num(160,148,3)+num(96,90,4)+num(224,90,4)+num(160,34,5)+'</g>';
+  s+=tx(234,60,'1 back','k')+tx(234,74,'2 wall tile')+tx(234,88,'3 shelf')+tx(234,102,'4 sides')+tx(234,116,'5 top + tape');
+  s+=ar(100,158,80,162,'a')+tx(10,176,'Shelf slopes slightly toward you so water runs out.','ac');
+  return F(sv(s,182));
+ },
+ grout:function(){
+  var s=tx(10,16,'Grouting','k');
+  s+='<clipPath id="gclip"><rect x="0" y="20" width="196" height="140"/></clipPath><g clip-path="url(#gclip)">';for(var r=0;r<3;r++) for(var x=-60+(r%3)*40;x<200;x+=120) s+=rc(x+2,28+r*42,116,38,'tl');s+='</g>';
+  s+='<g transform="rotate(-35 120 80)">'+rc(80,66,80,26,'y')+rc(110,46,20,20,'bk')+'</g>';
+  s+=ar(40,140,170,40)+ar(170,40,40,140);
+  s+=tx(210,50,'float at 45°','k')+tx(210,64,'move diagonally')+tx(210,78,'across the joints')+tx(210,100,'NOT in the tub joint','wa')+tx(210,112,'or inside corners','wa');
+  return F(sv(s,160),'Wipe with a barely damp sponge, diagonally. Too much water weakens grout.');
+ },
+ caulk:function(){
+  var s=tx(10,16,'Silicone goes where surfaces meet','k');
+  s+=rc(20,26,140,110,'tl')+rc(160,26,140,110,'tl','opacity=".8"')+rc(0,140,320,22,'tb');
+  s+=rc(20,126,280,3,'y')+rc(20,142,280,3,'y')+rc(154,26,3,110,'y')+rc(163,26,3,110,'y');
+  s+=rc(20,135,280,5,'af')+rc(157,26,6,110,'af');
+  s+=tx(30,48,'tape both sides','k')+tx(30,62,'bead, smooth,')+tx(30,74,'pull tape wet')+tx(170,48,'inside corner','ac')+tx(170,118,'tub joint','ac')+tx(10,176,'Fill the tub with water before caulking the tub joint.','k');
+  return F(sv(s,182));
+ }
+};
+var META={
+ a1:{need:["tape","marker"]},
+ a2:{fig:"ppe",need:["resp","glasses","knee","gloves"]},
+ a3:{fig:"studs",need:["lvl4","tape"]},
+ a4:{fig:"layers",need:["tape"]},
+ a5:{fig:"blocking",need:["lumber","fscrew","drill","saw"]},
+ b1:{fig:"tub",need:["lvl4","lvl2","drill"]},
+ b2:{need:["tubp","ptape"]},
+ b3:{fig:"flange",need:["furr","lvl4","drill"]},
+ c1:{fig:"nicheFrame",need:["tape","lvl2","marker"]},
+ c2:{fig:"nicheFrame",need:["lumber","saw","fscrew","impact","lvl2"]},
+ c3:{fig:"cleats",need:["cleats","saw","fscrew"]},
+ d1:{fig:"sheets",need:["tape","marker"]},
+ d2:{fig:"score",need:["knife","tsq","rasp"],ppe:["Respirator","Glasses"]},
+ d3:{fig:"holes",need:["holesaw","drill","jig","rasp"],ppe:["Respirator","Glasses"]},
+ d4:{fig:"screws",need:["durock","bscrew","drill"]},
+ d5:{fig:"cleats",need:["durock","bscrew"],ppe:["Respirator"]},
+ d6:{fig:"tape",need:["mesh","thinset","knife6","bucket","paddle"],ppe:["Gloves"],wait:"Overnight before membrane"},
+ e1:{need:["vac","sponge","ptape"]},
+ e2:{fig:"membrane",need:["redgard","fabric","roller"],ppe:["Gloves"]},
+ e3:{fig:"membrane",need:["redgard","roller"],ppe:["Gloves"],wait:"1–2 hr, until red"},
+ e4:{fig:"membrane",need:["redgard"],wait:"12–24 hr before tile (see label)"},
+ f1:{fig:"ledger",need:["laser","lvl4","tape","marker"]},
+ f2:{fig:"ledger",need:["ledger","fscrew","drill","lvl4"]},
+ f3:{fig:"layout",need:["lvl4","laser","marker"]},
+ f4:{fig:"layout",need:["tape","marker"]},
+ g1:{fig:"mix",need:["thinset","bucket","paddle"],ppe:["Respirator","Gloves"]},
+ g2:{fig:"trowel",need:["trowel","margin","tile"],ppe:["Gloves"]},
+ g3:{fig:"clips",need:["clips","spacers","lvl4","mallet","suction"],ppe:["Gloves","Knee pads"]},
+ g4:{fig:"clips",need:["sponge","margin"],ppe:["Gloves","Knee pads"]},
+ g5:{fig:"cuts",need:["cutter","wetsaw","grinder","core","rub"],ppe:["Respirator","Glasses","Hearing"]},
+ g6:{fig:"layoutSide",need:["edge"],ppe:["Gloves","Knee pads"]},
+ g7:{fig:"nicheTile",need:["mosaic","trowel2","ptape","lvl2"],ppe:["Gloves"],wait:"Tape holds the top piece overnight"},
+ g8:{fig:"ledger",need:["spacers","cutter"],ppe:["Knee pads"],wait:"24 hr after the last tile"},
+ g9:{fig:"clips",need:["mallet"],ppe:["Glasses"]},
+ h1:{fig:"caulk",need:["vac","ptape"]},
+ h2:{fig:"grout",need:["grout","float","sponge","bucket","micro"],ppe:["Gloves","Knee pads"]},
+ h3:{fig:"caulk",need:["silicone","gun","ptape"],wait:"24 hr before water"},
+ h4:{need:["sealer"],wait:"48–72 hr after grouting"},
+ i1:{need:["ptape"]},
+ i2:{wait:"About 72 hr before first shower"}
+};
+
+/* ---------- render: steps (tutorial + index) ---------- */
+var CHECK='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var SKIPI='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4l5 4-5 4zM9 4l5 4-5 4z" fill="currentColor"/></svg>';
+var PLAYI='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3l9 5-9 5z" fill="currentColor"/></svg>';
+function flatSteps(){
+  var out=[];
+  steps().forEach(function(p,pi){p.steps.forEach(function(s,si){out.push({s:s,phase:p.name,pi:pi,si:si,pn:p.steps.length});});});
+  return out;
+}
+function stepState(id){return S.done[id]?"done":S.skipped[id]?"skip":"todo";}
+function resumeIndex(list){
+  var i=list.findIndex(function(x){return x.s.id===S.cur;});
+  if(i>=0 && stepState(S.cur)==="todo") return i;
+  var j=list.findIndex(function(x){return stepState(x.s.id)==="todo";});
+  return j>=0?j:(i>=0?i:0);
+}
+function figCtx(){var Lb=layoutFor("back"),Ls=layoutFor("side");return {T:TILES[S.tile],G:geo(),Lb:Lb,Ls:Ls,N:Lb.niche||Ls.niche};}
+function needHTML(ids){
+  if(!ids||!ids.length) return "";
+  var cat={}; catalog().forEach(function(i){cat[i.id]=i;});
+  var items=ids.filter(function(id){return cat[id];}).map(function(id){
+    var i=cat[id], st=S.tools[id];
+    return '<li class="need'+(st?' st-'+st:'')+'"><span class="nd"></span><span>'+esc(i.n)+(i.qty?' <span class="q">'+esc(i.qty)+'</span>':'')+'</span><span class="ns">'+(st==="have"?"have":st==="need"?"to buy":"")+'</span></li>';
+  });
+  return items.length?'<div class="needs"><div class="eyebrow">Have these within reach</div><ul>'+items.join("")+'</ul></div>':"";
+}
+function cueHTML(meta){
+  var c=[];
+  (meta.ppe||[]).forEach(function(p){c.push('<span class="cue ppe">Wear: '+esc(p)+'</span>');});
+  if(meta.wait) c.push('<span class="cue wait">Wait: '+esc(meta.wait)+'</span>');
+  return c.length?'<div class="cues">'+c.join("")+'</div>':"";
+}
+function indexHTML(list,cur){
+  var html="",lastP=-1;
+  list.forEach(function(x,i){
+    if(x.pi!==lastP){ if(lastP>=0) html+='</div>';
+      var ph=list.filter(function(y){return y.pi===x.pi;}), d=ph.filter(function(y){return S.done[y.s.id];}).length;
+      html+='<div class="iphase"><div class="iph"><span class="pn">PHASE '+(x.pi+1)+'</span><b>'+esc(x.phase)+'</b><span class="pc">'+d+'/'+ph.length+'</span></div>'; lastP=x.pi; }
+    var st=stepState(x.s.id), isCur=i===cur;
+    html+='<button class="irow '+st+(isCur?" cur":"")+'" data-go="'+x.s.id+'"><span class="ist">'+(st==="done"?CHECK:st==="skip"?SKIPI:isCur?PLAYI:'<i>'+(i+1)+'</i>')+'</span><span class="it">'+esc(x.s.t)+(st==="skip"?' <span class="tagsk">skipped</span>':'')+'</span><span class="time">'+esc(x.s.time||"")+'</span></button>';
+  });
+  return html+'</div>';
+}
 function renderSteps(){
-  var open={}; $$("details.step[open]").forEach(function(d){open[d.getAttribute("data-id")]=1;});
-  var ph=steps(), total=0, done=0;
-  $("#stepList").innerHTML=ph.map(function(p,pi){
-    return '<div class="phase"><h2><span class="pn">PHASE '+(pi+1)+'</span>'+esc(p.name)+'</h2>'+p.steps.map(function(s){
-      total++; var d=!!S.done[s.id]; if(d) done++;
-      return '<details class="step'+(d?" done":"")+'" data-id="'+s.id+'"'+(open[s.id]?" open":"")+'><summary><button class="ck" data-check="'+s.id+'" aria-label="Mark step done" aria-pressed="'+d+'">'+CHECK+'</button><span class="t">'+esc(s.t)+'</span><span class="time">'+esc(s.time||"")+'</span></summary><div class="body">'+s.b+
-        '<button class="btn sm '+(d?"":"good")+' done-btn" data-check="'+s.id+'">'+(d?"Mark not done":"Done, next step")+'</button></div></details>';
-    }).join("")+'</div>';
-  }).join("");
+  var list=flatSteps(), total=list.length, done=list.filter(function(x){return S.done[x.s.id];}).length, skipped=list.filter(function(x){return S.skipped[x.s.id];}).length;
   var pct=total?Math.round(done/total*100):0;
   $("#progTxt").textContent=done+" of "+total+" steps"; $("#progBar").style.width=pct+"%"; $("#nSteps").textContent=pct+"%";
+  var ri=resumeIndex(list), cx=list.findIndex(function(x){return x.s.id===S.cur;}); if(cx<0) cx=ri;
+  // resume card
+  var r=list[ri], last=S.lastAt?new Date(S.lastAt):null;
+  $("#resume").innerHTML=(done===total?'<div class="eyebrow">All steps done</div><h2>Finished. Nice work.</h2>':
+    '<div class="eyebrow">'+(done||skipped?"Pick up where you left off":"Ready when you are")+(last?' · last worked '+last.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):'')+'</div>'+
+    '<h2>Step '+(ri+1)+': '+esc(r.s.t)+'</h2><p class="muted small">Phase '+(r.pi+1)+' · '+esc(r.phase)+' · '+done+' done'+(skipped?', '+skipped+' skipped':'')+'</p>')+
+    '<div class="btnrow"><button class="btn primary" data-go="'+r.s.id+'">'+(done||skipped?"Resume":"Start the tutorial")+'</button><button class="btn" data-open-index>Index</button></div>';
+  $("#stepIndex").innerHTML=indexHTML(list,cx);
+  $("#sheetList").innerHTML=indexHTML(list,cx);
+  // player
+  var pl=$("#player");
+  if(S.stepMode!=="player"){ pl.hidden=true; $("#stepIndexWrap").hidden=false; $("#resume").hidden=false; return; }
+  pl.hidden=false; $("#stepIndexWrap").hidden=true; $("#resume").hidden=true;
+  var x=list[cx], s=x.s, meta=META[s.id]||{}, st=stepState(s.id), ctx=figCtx();
+  var fig=meta.fig&&FIGS[meta.fig]?FIGS[meta.fig](ctx):"";
+  var segs=list.map(function(y,i){return '<i class="'+stepState(y.s.id)+(i===cx?" cur":"")+(y.pi!==(list[i-1]||{}).pi&&i?" gap":"")+'"></i>';}).join("");
+  pl.innerHTML='<div class="ptop"><button class="btn ghost sm" data-mode="index">← All steps</button></div>'+
+    '<div class="segs" aria-hidden="true">'+segs+'</div>'+
+    '<div class="eyebrow">Phase '+(x.pi+1)+' · '+esc(x.phase)+' · step '+(x.si+1)+' of '+x.pn+'</div>'+
+    '<h2 class="ptitle">'+esc(s.t)+'</h2>'+
+    '<div class="pmeta">'+(s.time?'<span class="cue time">Time: '+esc(s.time)+'</span>':'')+(st==="done"?'<span class="cue okc">Done</span>':st==="skip"?'<span class="cue sk">Skipped</span>':'')+'</div>'+
+    cueHTML(meta)+fig+needHTML(meta.need)+'<div class="body">'+s.b+'</div>'+
+    '<div class="pnav"><button class="btn" data-nav="prev"'+(cx===0?' disabled':'')+'>Back</button>'+
+      (st==="done"?'<button class="btn ghost" data-nav="undo">Mark not done</button>':st==="skip"?'<button class="btn ghost" data-nav="unskip">Unskip</button>':'<button class="btn ghost" data-nav="skip">Skip</button>')+
+      '<button class="btn '+(st==="done"?"primary":"good")+'" data-nav="'+(st==="done"?"next":"done")+'">'+(cx===total-1?(st==="done"?"Finish":"Done, finish"):(st==="done"?"Next step":"Done, next step"))+'</button></div>';
+}
+function goStep(id){S.cur=id;S.stepMode="player";save();closeSheet();show("steps");}
+function openSheet(){$("#sheet").hidden=false;var c=$("#sheetList .irow.cur");if(c)c.scrollIntoView({block:"center"});}
+function closeSheet(){$("#sheet").hidden=true;}
+function navStep(a){
+  var list=flatSteps(), i=list.findIndex(function(x){return x.s.id===S.cur;}); if(i<0) i=resumeIndex(list);
+  var id=list[i].s.id;
+  if(a==="done"){S.done[id]=true;delete S.skipped[id];S.lastAt=Date.now();}
+  if(a==="skip"){S.skipped[id]=true;S.lastAt=Date.now();}
+  if(a==="undo"){delete S.done[id];}
+  if(a==="unskip"){delete S.skipped[id];}
+  if(a==="prev"&&i>0) i--;
+  else if(a==="done"||a==="skip"||a==="next"){ if(i<list.length-1) i++; else {S.stepMode="index";} }
+  S.cur=list[i].s.id; save(); renderSteps(); window.scrollTo(0,0);
 }
 
 /* ---------- render: niche ---------- */
@@ -831,6 +1255,7 @@ function renderAll(){renderPlan();renderSteps();renderTools();renderNiche();}
 
 /* ---------- events ---------- */
 document.addEventListener("click",function(e){
+  if(e.target.id==="sheet"){closeSheet();return;}
   var t=e.target.closest("button"); if(!t) return;
   var grp=t.closest("[data-key]");
   if(grp && t.classList.contains("chip")){
@@ -850,20 +1275,11 @@ document.addEventListener("click",function(e){
     save(); renderTools(); return;
   }
   if(t.hasAttribute("data-set")){var id2=t.getAttribute("data-id"),v2=t.getAttribute("data-set");S.tools[id2]=S.tools[id2]===v2?undefined:v2;if(!S.tools[id2])delete S.tools[id2];save();renderTools();return;}
-  if(t.hasAttribute("data-check")){
-    e.preventDefault(); var sid=t.getAttribute("data-check");
-    S.done[sid]=!S.done[sid]; if(!S.done[sid]) delete S.done[sid]; save();
-    var wasBody=t.classList.contains("done-btn");
-    var det=t.closest("details");
-    renderSteps();
-    if(wasBody && S.done[sid]){ // open next step
-      var all=$$("details.step"), ix=all.findIndex(function(d){return d.getAttribute("data-id")===sid;});
-      if(all[ix]) all[ix].open=false;
-      var nx=all.slice(ix+1).find(function(d){return !d.classList.contains("done");});
-      if(nx){nx.open=true; nx.scrollIntoView({block:"start",behavior:"smooth"});}
-    }
-    return;
-  }
+  if(t.hasAttribute("data-go")){goStep(t.getAttribute("data-go"));return;}
+  if(t.hasAttribute("data-nav")){navStep(t.getAttribute("data-nav"));return;}
+  if(t.hasAttribute("data-mode")){S.stepMode=t.getAttribute("data-mode");save();renderSteps();window.scrollTo(0,0);return;}
+  if(t.hasAttribute("data-open-index")){renderSteps();openSheet();return;}
+  if(t.hasAttribute("data-close-sheet")){closeSheet();return;}
   if(t.id==="copyShop"){
     var ta=$("#shopTxt");
     var p=navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(ta.value):Promise.reject();
