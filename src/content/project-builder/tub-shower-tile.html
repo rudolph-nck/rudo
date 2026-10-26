@@ -265,6 +265,61 @@ dl.gloss dt{font-weight:700} dl.gloss dd{margin:0;color:var(--muted)}
 .sheet{position:fixed;inset:0;z-index:20;background:rgba(10,16,22,.5);display:flex;align-items:flex-end;justify-content:center}
 .sheet-in{background:var(--bg);width:100%;max-width:720px;max-height:86vh;overflow:auto;border-radius:16px 16px 0 0;padding-block:14px calc(18px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .sheet-hd{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:-14px;background:var(--bg);padding-block:4px 6px;z-index:1}
+
+/* jobsite layer */
+.timerbar{max-width:720px;margin:8px auto 0;display:flex;flex-direction:column;gap:6px}
+.tm{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;background:var(--accent-soft);border-radius:8px;padding:6px 6px 6px 12px}
+.tm .tml{font-weight:600;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tm .tmv{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums}
+.tm.due{background:var(--ok);color:var(--surface)}
+.tm.due .btn{color:var(--surface);border-color:var(--surface)}
+@media (prefers-reduced-motion:no-preference){.tm.due{animation:pulse 1s ease-in-out infinite alternate}@keyframes pulse{from{opacity:1}to{opacity:.7}}}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.phchip{display:inline-block;font-family:var(--f-mono);font-size:.74rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--ph,var(--accent));border-radius:4px;padding:3px 8px;margin-bottom:4px}
+.phdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ph,var(--accent));margin-right:6px}
+#resume{border-top:4px solid var(--ph,var(--accent))}
+.rhead{display:flex;justify-content:flex-end;margin-top:-28px}
+.segs i.cur{background:var(--ph,var(--accent))}
+.where{display:flex;align-items:center;gap:8px;flex:none}
+.where b{font-size:.85rem}
+.wmap svg{width:84px;height:auto;display:block}
+.wmap .wz{fill:var(--board);stroke:var(--ink);stroke-width:.8}
+.wmap .wz.on{fill:var(--ph,var(--accent))}
+.wmap .wt-tub{fill:var(--tub);stroke:var(--ink);stroke-width:.8}
+.wmap .wt-tub.on{fill:var(--ph,var(--accent))}
+.wmap .wn{fill:var(--surface);stroke:var(--ink);stroke-width:.8}
+.wmap .wn.on{fill:var(--tape)}
+.wmap .wv{fill:var(--ink)}
+.fig.anim{border-color:var(--ph,var(--accent))}
+.animtag{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ph,var(--accent));font-weight:600}
+.animt{font-family:var(--f-display);font-size:1.15rem;font-weight:700;margin-bottom:6px}
+.day{border-left:5px solid var(--ph,var(--accent))}
+.day.dayok{opacity:.7}
+.day.daynext{box-shadow:0 0 0 2px var(--accent)}
+.dayhd{display:flex;gap:8px;align-items:center}
+.dayn{font-family:var(--f-mono);font-size:.78rem;font-weight:600;color:var(--ph,var(--accent));text-transform:uppercase;letter-spacing:.08em}
+.daysteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.daysteps li.done{color:var(--muted)} .daysteps li.done .linkbtn{color:var(--muted)}
+.linkbtn{appearance:none;background:none;border:none;padding:4px 0;font:inherit;color:var(--accent);text-align:left;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.wtxt{color:var(--warn)}
+.phs{display:flex;flex-wrap:wrap;gap:8px}
+.phs.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+.ph{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;width:140px}
+.phs.grid .ph{width:auto}
+.ph img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;max-width:100%}
+.ph figcaption{font-size:.76rem;padding:6px 8px;display:flex;flex-direction:column;gap:2px;color:var(--muted)}
+.phadd{align-self:flex-start;display:inline-flex;align-items:center}
+.cele{position:fixed;inset:0;z-index:30;background:rgba(10,16,22,.55);display:grid;place-items:center;padding:16px}
+.celein{position:relative;width:100%;max-width:420px}
+.celecard{position:relative;background:var(--surface);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:10px;border-top:6px solid var(--ph,var(--accent))}
+.celein i{position:absolute;top:-40px;width:12px;height:12px;border-radius:2px;opacity:0}
+@media (prefers-reduced-motion:no-preference){.celein i{animation:drop 1.6s ease-in forwards}@keyframes drop{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(340px) rotate(260deg)}}}
+body.jobsite{font-size:19px}
+body.jobsite .ptitle{font-size:2.4rem}
+body.jobsite .btn{min-height:58px;font-size:1.08rem}
+body.jobsite .btn.sm{min-height:46px}
+body.jobsite .body li{line-height:1.65}
+body.jobsite .pnav .btn{min-height:64px}
 @media (prefers-reduced-motion:no-preference){ details.step[open] .body{animation:fade .18s ease-out} @keyframes fade{from{opacity:.4}to{opacity:1}} }
 </style>
 </head>
@@ -273,7 +328,7 @@ dl.gloss dt{font-weight:700} dl.gloss dd{margin:0;color:var(--muted)}
 <header class="top"><div class="in">
   <div><div class="eyebrow"><a href="/project-builder" style="color:inherit">← All guides</a> · Tub + 12×24 tile + niche</div><h1>Tub Shower Tile Build</h1></div>
   <div class="prog"><span id="progTxt">0 of 0 steps</span><div class="bar"><i id="progBar"></i></div><div class="hbtns"><button class="hbtn" data-open-help>Help</button><button class="hbtn" data-open-index>Index</button></div></div>
-</div></header>
+</div><div id="timerBar" class="timerbar" hidden></div></header>
 
 <main class="wrap" id="app">
 
@@ -365,8 +420,10 @@ dl.gloss dt{font-weight:700} dl.gloss dd{margin:0;color:var(--muted)}
   <div id="player" hidden></div>
   <div id="stepIndexWrap" style="display:flex;flex-direction:column;gap:12px">
     <div class="note warn"><b class="tag">Rule</b><div>Read the label on every product you buy. Where a label disagrees with this guide (mix water, cure time, trowel size), the label wins.</div></div>
-    <p class="muted small">Tap any step to open it in the tutorial. You can skip steps and come back to them. Your place is saved on this phone.</p>
+    <div class="chips" role="tablist" aria-label="View"><button class="chip" data-listmode="steps">All steps</button><button class="chip" data-listmode="days">By day</button><button class="chip" data-listmode="photos">Photos</button></div>
     <div id="stepIndex"></div>
+    <div id="days" hidden></div>
+    <div id="photoView" hidden></div>
   </div>
 </section>
 
@@ -389,6 +446,7 @@ dl.gloss dt{font-weight:700} dl.gloss dd{margin:0;color:var(--muted)}
 
 </main>
 
+<div class="cele" id="cele" hidden></div>
 <div class="sheet" id="sheet" hidden><div class="sheet-in" role="dialog" aria-label="Step index"><div class="sheet-hd"><h2 id="sheetTitle">Index</h2><button class="btn sm" data-close-sheet>Close</button></div><div id="sheetList"></div></div></div>
 
 <nav class="tabs" role="tablist" aria-label="Sections"><div class="in">
@@ -404,7 +462,7 @@ dl.gloss dt{font-weight:700} dl.gloss dd{margin:0;color:var(--muted)}
 var KEY="tubTileBuild.v1";
 var DEF={backW:60,sideD:30,tileH:72,toCeiling:false,tile:"12x24",orient:"h",pattern:"third",grout:0.125,
   nicheWall:"back",nicheX:30,nicheSill:36,bayW:14.5,nicheRows:1,nicheBack:"mosaic",wp:"redgard",edge:"metal",groutType:"premix",viewWall:"back",
-  studDepth:3.5,cleat:0.75,board:0.5,setBed:0.25,tileThk:0.375,backThk:0.25,tools:{},done:{},skipped:{},cur:null,stepMode:"index",lastAt:null,tab:"plan",quizSkip:{}};
+  studDepth:3.5,cleat:0.75,board:0.5,setBed:0.25,tileThk:0.375,backThk:0.25,tools:{},done:{},skipped:{},cur:null,stepMode:"index",lastAt:null,timers:[],bigMode:false,listMode:"steps",tab:"plan",quizSkip:{}};
 var S;
 try{S=Object.assign({},DEF,JSON.parse(localStorage.getItem(KEY)||"{}"));}catch(e){S=Object.assign({},DEF);}
 S.tools=S.tools||{};S.done=S.done||{};S.skipped=S.skipped||{};S.quizSkip=S.quizSkip||{};
@@ -1190,29 +1248,35 @@ function renderSteps(){
   var pct=total?Math.round(done/total*100):0;
   $("#progTxt").textContent=done+" of "+total+" steps"; $("#progBar").style.width=pct+"%"; $("#nSteps").textContent=pct+"%";
   var ri=resumeIndex(list), cx=list.findIndex(function(x){return x.s.id===S.cur;}); if(cx<0) cx=ri;
-  // resume card
   var r=list[ri], last=S.lastAt?new Date(S.lastAt):null;
+  $("#resume").style.setProperty("--ph",phColor(r.pi));
   $("#resume").innerHTML=(done===total?'<div class="eyebrow">All steps done</div><h2>Finished. Nice work.</h2>':
     '<div class="eyebrow">'+(done||skipped?"Pick up where you left off":"Ready when you are")+(last?' · last worked '+last.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):'')+'</div>'+
-    '<h2>Step '+(ri+1)+': '+esc(r.s.t)+'</h2><p class="muted small">Phase '+(r.pi+1)+' · '+esc(r.phase)+' · '+done+' done'+(skipped?', '+skipped+' skipped':'')+'</p>')+
+    '<div class="rhead">'+whereSVG(r.s.id)+'</div>'+
+    '<h2>Step '+(ri+1)+': '+esc(r.s.t)+'</h2><p class="muted small"><span class="phdot"></span>Phase '+(r.pi+1)+' · '+esc(r.phase)+' · '+done+' done'+(skipped?', '+skipped+' skipped':'')+'</p>')+
     '<div class="btnrow"><button class="btn primary" data-go="'+r.s.id+'">'+(done||skipped?"Resume":"Start the tutorial")+'</button><button class="btn" data-open-index>Index</button></div>';
-  $("#stepIndex").innerHTML=indexHTML(list,cx);
-    // player
+  $$("[data-listmode]").forEach(function(bn){bn.setAttribute("aria-pressed",String((S.listMode||"steps")===bn.getAttribute("data-listmode")));});
+  $("#stepIndex").hidden=(S.listMode||"steps")!=="steps"; $("#days").hidden=S.listMode!=="days"; $("#photoView").hidden=S.listMode!=="photos";
+  if((S.listMode||"steps")==="steps") $("#stepIndex").innerHTML=indexHTML(list,cx);
+  if(S.listMode==="days") $("#days").innerHTML=daysHTML();
   var pl=$("#player");
-  if(S.stepMode!=="player"){ pl.hidden=true; $("#stepIndexWrap").hidden=false; $("#resume").hidden=false; return; }
+  if(S.stepMode!=="player"){ stopSpeaking(); pl.hidden=true; $("#stepIndexWrap").hidden=false; $("#resume").hidden=false; syncWake(); if(S.listMode==="photos") fillPhotoView(); return; }
   pl.hidden=false; $("#stepIndexWrap").hidden=true; $("#resume").hidden=true;
   var x=list[cx], s=x.s, meta=META[s.id]||{}, st=stepState(s.id), ctx=figCtx();
   var fig=meta.fig&&FIGS[meta.fig]?FIGS[meta.fig](ctx):"";
-  var segs=list.map(function(y,i){return '<i class="'+stepState(y.s.id)+(i===cx?" cur":"")+(y.pi!==(list[i-1]||{}).pi&&i?" gap":"")+'"></i>';}).join("");
-  pl.innerHTML='<div class="ptop"><button class="btn ghost sm" data-mode="index">← All steps</button></div>'+
+  var segs=list.map(function(y,i){return '<i class="'+stepState(y.s.id)+(i===cx?" cur":"")+(y.pi!==(list[i-1]||{}).pi&&i?" gap":"")+'" style="--ph:'+phColor(y.pi)+'"></i>';}).join("");
+  stopSpeaking(); freeURLs();
+  pl.style.setProperty("--ph",phColor(x.pi));
+  pl.innerHTML='<div class="ptop"><button class="btn ghost sm" data-mode="index">← All steps</button><div class="btnrow"><button class="btn sm" data-speak>Read aloud</button><button class="btn sm" data-bigmode aria-pressed="'+(!!S.bigMode)+'">'+(S.bigMode?"Normal text":"Big text")+'</button></div></div>'+
     '<div class="segs" aria-hidden="true">'+segs+'</div>'+
-    '<div class="eyebrow">Phase '+(x.pi+1)+' · '+esc(x.phase)+' · step '+(x.si+1)+' of '+x.pn+'</div>'+
+    '<div class="phead"><div><div class="phchip">Phase '+(x.pi+1)+' · '+esc(x.phase)+'</div><div class="eyebrow">Step '+(x.si+1)+' of '+x.pn+' in this phase · '+(cx+1)+' of '+total+' overall</div></div>'+whereSVG(s.id)+'</div>'+
     '<h2 class="ptitle">'+esc(s.t)+'</h2>'+
     '<div class="pmeta">'+(s.time?'<span class="cue time">Time: '+esc(s.time)+'</span>':'')+(st==="done"?'<span class="cue okc">Done</span>':st==="skip"?'<span class="cue sk">Skipped</span>':'')+'</div>'+
-    bigHTML(s.id)+cueHTML(meta)+fig+needHTML(meta.need)+'<div class="body">'+s.b+'</div>'+stepHelpHTML(s.id)+
+    bigHTML(s.id)+cueHTML(meta)+fig+animHTML(s.id)+needHTML(meta.need)+'<div class="body">'+s.b+'</div>'+timerButtons(s.id)+stepHelpHTML(s.id)+photoBlock(s.id)+
     '<div class="pnav"><button class="btn" data-nav="prev"'+(cx===0?' disabled':'')+'>Back</button>'+
       (st==="done"?'<button class="btn ghost" data-nav="undo">Mark not done</button>':st==="skip"?'<button class="btn ghost" data-nav="unskip">Unskip</button>':'<button class="btn ghost" data-nav="skip">Skip</button>')+
       '<button class="btn '+(st==="done"?"primary":"good")+'" data-nav="'+(st==="done"?"next":"done")+'">'+(cx===total-1?(st==="done"?"Finish":"Done, finish"):(st==="done"?"Next step":"Done, next step"))+'</button></div>';
+  fillStepPhotos(s.id); syncWake();
 }
 function goStep(id){S.cur=id;S.stepMode="player";save();closeSheet();show("steps");}
 function openHelp(){$("#sheetTitle").textContent="Help";$("#sheetList").innerHTML=helpLibraryHTML();$("#sheet").hidden=false;$("#sheet .sheet-in").scrollTop=0;}
@@ -1221,6 +1285,7 @@ function closeSheet(){$("#sheet").hidden=true;}
 function navStep(a){
   var list=flatSteps(), i=list.findIndex(function(x){return x.s.id===S.cur;}); if(i<0) i=resumeIndex(list);
   var id=list[i].s.id;
+  var pi0=list[i].pi, wasDone=phaseDone(pi0);
   if(a==="done"){S.done[id]=true;delete S.skipped[id];S.lastAt=Date.now();}
   if(a==="skip"){S.skipped[id]=true;S.lastAt=Date.now();}
   if(a==="undo"){delete S.done[id];}
@@ -1228,6 +1293,7 @@ function navStep(a){
   if(a==="prev"&&i>0) i--;
   else if(a==="done"||a==="skip"||a==="next"){ if(i<list.length-1) i++; else {S.stepMode="index";} }
   S.cur=list[i].s.id; save(); renderSteps(); window.scrollTo(0,0);
+  if((a==="done"||a==="skip")&&!wasDone&&phaseDone(pi0)){var nx=flatSteps().find(function(y){return y.pi===pi0+1;});celebrate(pi0,list.find(function(y){return y.pi===pi0;}).phase,nx?nx.phase:null);}
 }
 
 /* ---------- beginner help: extra figures ---------- */
@@ -1491,6 +1557,235 @@ Object.assign(META.i2||(META.i2={}),{fig:"cure"});
 Object.assign(META.f1||(META.f1={}),{fig:"ledgerStory"});
 function bigHTML(id){return BIG[id]?'<div class="big"><b class="tag">The idea</b><p>'+esc(BIG[id])+'</p></div>':"";}
 
+/* ---------- jobsite layer: phase colors, where-am-I, animations ---------- */
+var PH_COLORS=["#6A7B8C","#2F86C6","#B5793A","#7C8794","#C9483B","#24907C","#1B5FD1","#7B5CC8"];
+function phColor(pi){return PH_COLORS[pi%PH_COLORS.length];}
+var REDUCED=false; try{REDUCED=window.matchMedia("(prefers-reduced-motion: reduce)").matches;}catch(e){}
+
+var ZONE={a1:"none",a2:"none",a3:"walls",a4:"left",a5:"walls",b1:"tub",b2:"tub",b3:"bottom",c0:"none",c1:"niche",c2:"niche",c3:"niche",
+ d1:"walls",d2:"none",d3:"left",d3p:"walls",d4:"walls",d5:"niche",d6:"walls",e1:"walls",e2:"walls",e3:"walls",e4:"walls",
+ f1:"bottom",f2:"bottom",f3:"back",f4:"back",g1:"none",g2:"back",g3:"back",g4:"back",g5:"none",g6:"sides",g7:"niche",g8:"bottom",g9:"walls",
+ h1:"walls",h2:"walls",h3:"bottom",h4:"walls",i1:"left",i2:"walls"};
+function whereSVG(id){
+  var z=ZONE[id]||"walls", on=function(k){return (z===k||(z==="walls"&&(k==="back"||k==="left"||k==="right"))||(z==="sides"&&(k==="left"||k==="right")))?' class="wz on"':' class="wz"';};
+  var s='<svg viewBox="0 0 120 88" aria-hidden="true">';
+  s+='<polygon points="8,2 30,10 30,58 8,70"'+on("left")+'/>';
+  s+='<rect x="30" y="10" width="60" height="48"'+on("back")+'/>';
+  s+='<polygon points="90,10 112,2 112,70 90,58"'+on("right")+'/>';
+  s+='<polygon points="8,70 30,58 90,58 112,70" class="wt-tub'+(z==="tub"?" on":"")+'"/><rect x="8" y="70" width="104" height="14" class="wt-tub'+(z==="tub"?" on":"")+'"/>';
+  if(z==="bottom") s+='<polygon points="8,62 30,51 90,51 112,62 112,70 90,58 30,58 8,70" class="wz on"/>';
+  var nb=S.nicheWall==="side";
+  s+=nb?'<polygon points="96,24 106,20 106,34 96,37" class="wn'+(z==="niche"?" on":"")+'"/>':'<rect x="54" y="24" width="12" height="12" class="wn'+(z==="niche"?" on":"")+'"/>';
+  s+='<circle cx="16" cy="34" r="3" class="wv"/>';
+  s+='</svg>';
+  var lbl={none:"Workbench / prep",walls:"All three walls",back:"Back wall",left:"Plumbing wall",sides:"Side walls",niche:"The niche",tub:"The tub",bottom:"Bottom of the walls"}[z]||"";
+  return '<div class="where"><div class="wmap">'+s+'</div><div><div class="eyebrow">Where</div><b>'+lbl+'</b></div></div>';
+}
+
+function anim(svg){return REDUCED?svg.replace(/<animate[^>]*\/>/g,"").replace(/<animateTransform[^>]*\/>/g,""):svg;}
+var ANIMS={
+ comb:{t:"Comb straight ridges",cap:"Flat side first to press thinset in, then the notched side at 45°, straight strokes in one direction.",svg:function(){
+  var s=rc(10,20,300,120,'b')+'<clipPath id="acomb"><rect x="10" y="20" height="120" width="0"><animate attributeName="width" values="0;300;300" keyTimes="0;0.8;1" dur="3s" repeatCount="indefinite"/></rect></clipPath>';
+  s+='<g clip-path="url(#acomb)">'+rc(10,20,300,120,'th');for(var x=16;x<310;x+=9) s+=ln(x,22,x,138,'th-l');s+='</g>';
+  s+='<g><polygon class="bk" points="0,40 30,26 40,48 10,62"/><rect x="18" y="8" width="8" height="26" class="w" transform="rotate(-20 22 20)"/><animateTransform attributeName="transform" type="translate" values="0 0;290 0;290 0" keyTimes="0;0.8;1" dur="3s" repeatCount="indefinite"/></g>';
+  return sv(s,150);}},
+ butter:{t:"Butter, place, slide",cap:"Skim the back, press the tile onto the ridges, slide it about 1/4\" across them and back.",svg:function(){
+  var s=rc(10,20,120,120,'th')+ln(130,20,130,140,'o')+tx(70,156,'wall (combed)','', 'middle');
+  s+='<g>'+rc(0,0,100,100,'tl')+rc(6,6,88,88,'th','opacity=".7"')+'<animateTransform attributeName="transform" type="translate" values="190 30;190 30;22 30;22 22;22 38;22 30;22 30" keyTimes="0;0.15;0.5;0.62;0.74;0.86;1" dur="4s" repeatCount="indefinite"/></g>';
+  s+=tx(250,156,'tile','', 'middle');
+  return sv(s,164);}},
+ scoreSnap:{t:"Score once, then snap",cap:"One firm pass with the wheel, then press the breaker. Going over the line twice chips porcelain.",svg:function(){
+  var s=rc(10,40,300,8,'bk');
+  s+='<g><g>'+rc(20,48,140,70,'tl')+'<animateTransform attributeName="transform" type="rotate" values="0 160 118;0 160 118;-6 160 118;0 160 118" keyTimes="0;0.6;0.75;1" dur="4s" repeatCount="indefinite"/></g>';
+  s+='<g>'+rc(160,48,140,70,'tl')+'<animateTransform attributeName="transform" type="rotate" values="0 160 118;0 160 118;6 160 118;0 160 118" keyTimes="0;0.6;0.75;1" dur="4s" repeatCount="indefinite"/></g></g>';
+  s+='<line x1="160" y1="48" x2="160" y2="48" class="a"><animate attributeName="y2" values="48;118;118;118" keyTimes="0;0.5;0.9;1" dur="4s" repeatCount="indefinite"/></line>';
+  s+='<circle cx="160" cy="48" r="7" class="y"><animate attributeName="cy" values="48;118;118;48" keyTimes="0;0.5;0.95;1" dur="4s" repeatCount="indefinite"/></circle>';
+  s+=tx(160,140,'score  →  snap','k','middle');
+  return sv(s,150);}},
+ clip:{t:"Tighten a leveling clip",cap:"The wedge pulls the high tile and the low tile flush. Snug is enough.",svg:function(){
+  var s=rc(20,90,280,10,'b')+rc(20,82,280,8,'th');
+  s+=rc(30,62,120,20,'tl');
+  s+='<g>'+rc(156,62,120,20,'tl')+'<animateTransform attributeName="transform" type="translate" values="0 8;0 8;0 0;0 0" keyTimes="0;0.3;0.7;1" dur="3s" repeatCount="indefinite"/></g>';
+  s+=rc(138,80,30,3,'af')+rc(150,36,5,46,'af');
+  s+='<g><polygon class="y" points="190,40 240,34 240,46 190,46"/><animateTransform attributeName="transform" type="translate" values="40 0;40 0;-36 0;-36 0" keyTimes="0;0.3;0.7;1" dur="3s" repeatCount="indefinite"/></g>';
+  s+=tx(160,124,'tile faces end up flush','k','middle');
+  return sv(s,134);}},
+ silicone:{t:"Smooth the silicone",cap:"One steady pass with a soapy fingertip, then pull the tape while it's wet.",svg:function(){
+  var s=rc(10,20,300,50,'tl')+rc(10,90,300,30,'tb')+rc(10,68,300,4,'y')+rc(10,88,300,4,'y');
+  s+='<path d="M10 80 q8 -8 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0" class="a" stroke-width="5"/>';
+  s+='<clipPath id="asil"><rect x="10" y="70" height="20" width="0"><animate attributeName="width" values="0;300;300" keyTimes="0;0.85;1" dur="3.5s" repeatCount="indefinite"/></rect></clipPath>';
+  s+='<rect x="10" y="74" width="300" height="12" class="af" clip-path="url(#asil)"/>';
+  s+='<g><ellipse cx="10" cy="70" rx="12" ry="16" class="bk"/><animateTransform attributeName="transform" type="translate" values="0 0;300 0;300 0" keyTimes="0;0.85;1" dur="3.5s" repeatCount="indefinite"/></g>';
+  return sv(s,130);}},
+ mix:{t:"Mix low and slow",cap:"Keep the paddle buried, low speed. Stop to scrape the sides.",svg:function(){
+  var s='<ellipse cx="160" cy="80" rx="110" ry="60" class="bk"/><ellipse cx="160" cy="80" rx="98" ry="52" class="th"/>';
+  s+='<g><path d="M160 80 q30 -40 70 -10 M160 80 q-30 40 -70 10 M160 80 q40 30 10 50 M160 80 q-40 -30 -10 -50" class="th-l" fill="none" stroke-width="3"/><animateTransform attributeName="transform" type="rotate" values="0 160 80;360 160 80" dur="2.4s" repeatCount="indefinite"/></g>';
+  s+='<circle cx="160" cy="80" r="6" class="inkf"/>'+tx(160,156,'top view of the bucket','', 'middle');
+  return sv(s,162);}}
+};
+var STEP_ANIMS={d2:["scoreSnap"],d6:["mix"],g1:["mix"],g2:["comb","butter"],g3:["clip"],g4:["butter"],g5:["scoreSnap"],g9:["clip"],h3:["silicone"]};
+function animHTML(id){
+  return (STEP_ANIMS[id]||[]).map(function(k){var a=ANIMS[k];return '<figure class="fig anim"><div class="animtag">'+(REDUCED?"Picture":"Watch the move")+'</div><div class="animt">'+esc(a.t)+'</div>'+anim(a.svg())+'<figcaption>'+esc(a.cap)+'</figcaption></figure>';}).join("");
+}
+
+/* ---------- timers ---------- */
+var TIMERS={d6:[["Thinset rest (slake)",10],["Seams cure overnight",720]],g1:[["Thinset rest (slake)",10],["Bucket is good for",120]],e3:[["Coat 1 dries",90]],e4:[["Membrane cures",1440]],g4:[["Thinset sets before grout / ledger off",1440]],g7:[["Niche top holds",720]],h2:[["Grout firms up (powder grout)",20],["Grout cures before silicone",1440]],h3:[["Silicone cures before water",1440]]};
+var audioCtx=null;
+function beep(){
+  try{ if(!audioCtx) return; var t=audioCtx.currentTime;
+    [0,0.35,0.7].forEach(function(d){var o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=880;o.connect(g);g.connect(audioCtx.destination);g.gain.setValueAtTime(0.0001,t+d);g.gain.exponentialRampToValueAtTime(0.4,t+d+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+d+0.25);o.start(t+d);o.stop(t+d+0.3);});
+  }catch(e){}
+  try{ if(navigator.vibrate) navigator.vibrate([300,150,300]); }catch(e){}
+}
+function startTimer(label,min){
+  try{ if(!audioCtx){var AC=window.AudioContext||window.webkitAudioContext; if(AC) audioCtx=new AC();} if(audioCtx&&audioCtx.state==="suspended") audioCtx.resume(); }catch(e){}
+  S.timers=(S.timers||[]).filter(function(t){return t.label!==label;});
+  S.timers.push({id:String(Date.now()),label:label,end:Date.now()+min*60000,fired:false});
+  save(); renderTimers(); toast("Timer started: "+label);
+}
+function fmtLeft(ms){
+  if(ms<=0) return "done";
+  var s=Math.round(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;
+  if(h>=3){var d=new Date(Date.now()+ms);return "ready "+d.toLocaleString(undefined,{weekday:"short",hour:"numeric",minute:"2-digit"});}
+  return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(sec).padStart(2,"0");
+}
+function renderTimers(){
+  var bar=$("#timerBar"); if(!bar) return;
+  var ts=S.timers||[];
+  bar.hidden=!ts.length;
+  bar.innerHTML=ts.map(function(t){var left=t.end-Date.now();return '<div class="tm'+(left<=0?" due":"")+'"><span class="tml">'+esc(t.label)+'</span><span class="tmv">'+fmtLeft(left)+'</span><button class="btn sm ghost" data-timer-cancel="'+t.id+'">'+(left<=0?"OK":"Cancel")+'</button></div>';}).join("");
+}
+setInterval(function(){
+  var ts=S.timers||[], changed=false;
+  ts.forEach(function(t){if(!t.fired&&t.end<=Date.now()){t.fired=true;changed=true;beep();toast("Time's up: "+t.label);}});
+  if(changed) save();
+  if(ts.length) renderTimers();
+},1000);
+function timerButtons(id){
+  var list=TIMERS[id]; if(!list) return "";
+  return '<div class="hsec"><div class="eyebrow">Timers</div><div class="btnrow">'+list.map(function(t){var lbl=t[1]>=60?(t[1]/60)+" hr":t[1]+" min";return '<button class="btn sm" data-timer="'+esc(t[0])+'|'+t[1]+'">Start '+lbl+': '+esc(t[0])+'</button>';}).join("")+'</div></div>';
+}
+
+/* ---------- read aloud + screen awake + big view ---------- */
+var speaking=false;
+function speakStep(){
+  try{
+    var syn=window.speechSynthesis; if(!syn){toast("Read-aloud isn't available in this browser.");return;}
+    if(speaking){syn.cancel();speaking=false;renderSpeakBtn();return;}
+    var p=$("#player"); var parts=[$(".ptitle",p),$(".big p",p),$(".body",p)].filter(Boolean).map(function(el){return el.innerText;});
+    var u=new SpeechSynthesisUtterance(parts.join(". ").replace(/"/g," inch").replace(/×/g," by "));
+    u.rate=0.95; u.onend=u.onerror=function(){speaking=false;renderSpeakBtn();};
+    syn.cancel(); syn.speak(u); speaking=true; renderSpeakBtn();
+  }catch(e){toast("Read-aloud isn't available here.");}
+}
+function stopSpeaking(){try{if(window.speechSynthesis) window.speechSynthesis.cancel();}catch(e){} speaking=false;}
+function renderSpeakBtn(){var b=$("[data-speak]");if(b) b.textContent=speaking?"Stop reading":"Read aloud";}
+var wakeLock=null;
+function wantAwake(){return S.tab==="steps"&&S.stepMode==="player"&&!document.hidden;}
+function syncWake(){
+  try{
+    if(wantAwake()&&!wakeLock&&navigator.wakeLock){navigator.wakeLock.request("screen").then(function(l){wakeLock=l;l.addEventListener("release",function(){wakeLock=null;});}).catch(function(){});}
+    else if(!wantAwake()&&wakeLock){wakeLock.release().catch(function(){});wakeLock=null;}
+  }catch(e){}
+}
+document.addEventListener("visibilitychange",syncWake);
+function applyBigMode(){document.body.classList.toggle("jobsite",!!S.bigMode);}
+
+/* ---------- day planner ---------- */
+var DAYS=[
+ {t:"Plan, buy and check the wall",ids:["a1","a2","a3","a4","a5"],wait:"Shopping trip may take a day"},
+ {t:"Set the tub",ids:["b1","b2","b3"],wait:"Some tubs need the mortar bed to set overnight"},
+ {t:"Frame the niche and hang board",ids:["c0","c1","c2","c3","d1","d2","d3","d3p","d4","d5","d6"],wait:"Seam thinset cures overnight"},
+ {t:"Waterproof",ids:["e1","e2","e3","e4"],wait:"Membrane cures 12–24 hr"},
+ {t:"Layout and the back wall",ids:["f1","f2","f3","f4","g1","g2","g3","g4","g5"],wait:"Thinset sets overnight"},
+ {t:"Side walls and the niche",ids:["g6","g7"],wait:"Thinset sets overnight"},
+ {t:"Bottom row and clips",ids:["g8","g9"],wait:"24 hr before grout"},
+ {t:"Grout",ids:["h1","h2"],wait:"24 hr before silicone"},
+ {t:"Silicone and seal",ids:["h3","h4"],wait:"24 hr before water (sealer: 48–72 hr after grout)"},
+ {t:"Trim out and finish",ids:["i1","i2"],wait:"About 72 hr before the first shower"}
+];
+function daysHTML(){
+  var list=flatSteps(), by={}; list.forEach(function(x,i){by[x.s.id]={x:x,i:i};});
+  var cat={}; catalog().forEach(function(i){cat[i.id]=i;});
+  var firstOpen=-1;
+  var html=DAYS.map(function(d,di){
+    var ids=d.ids.filter(function(id){return by[id];}); if(!ids.length) return "";
+    var states=ids.map(stepState), complete=states.every(function(s){return s!=="todo";});
+    if(!complete&&firstOpen<0) firstOpen=di;
+    var needs={}; ids.forEach(function(id){((META[id]||{}).need||[]).forEach(function(n){if(cat[n]) needs[n]=1;});});
+    var toBuy=Object.keys(needs).filter(function(n){return S.tools[n]==="need";}), unk=Object.keys(needs).filter(function(n){return !S.tools[n];});
+    var next=ids.find(function(id){return stepState(id)==="todo";})||ids[0];
+    var pc=phColor(by[ids[0]].x.pi);
+    return '<div class="card day'+(complete?" dayok":"")+(di===firstOpen?" daynext":"")+'" style="--ph:'+pc+'">'+
+      '<div class="dayhd"><span class="dayn">Day '+(di+1)+'</span>'+(complete?'<span class="cue okc">Done</span>':di===firstOpen?'<span class="cue wait">Up next</span>':'')+'</div>'+
+      '<h3>'+esc(d.t)+'</h3>'+
+      '<ul class="daysteps">'+ids.map(function(id){var st=stepState(id);return '<li class="'+st+'"><button class="linkbtn" data-go="'+id+'">'+(by[id].i+1)+'. '+esc(by[id].x.s.t)+'</button>'+(st==="done"?' ✓':st==="skip"?' (skipped)':'')+'</li>';}).join("")+'</ul>'+
+      (toBuy.length?'<p class="small"><b class="wtxt">Still to buy:</b> '+toBuy.map(function(n){return esc(cat[n].n);}).join(", ")+'</p>':'')+
+      (unk.length?'<p class="small muted">'+unk.length+' tool'+(unk.length>1?'s':'')+' for this day not answered in the Tools tab yet.</p>':'')+
+      '<p class="small"><span class="cue wait">Then: '+esc(d.wait)+'</span></p>'+
+      (complete?'':'<div class="btnrow"><button class="btn '+(di===firstOpen?"primary":"")+'" data-go="'+next+'">'+(states.some(function(s){return s!=="todo";})?"Continue this day":"Start this day")+'</button></div>')+
+    '</div>';
+  }).join("");
+  return '<p class="muted small">The job grouped into work sessions, with the drying time that ends each one. A "day" can be an afternoon; the waits are what matter.</p>'+html;
+}
+
+/* ---------- progress photos (stored on this phone) ---------- */
+var photoDB=null, photoURLs=[];
+function openPhotos(){
+  return new Promise(function(res,rej){
+    if(photoDB) return res(photoDB);
+    try{var r=indexedDB.open("tubTilePhotos",1);
+      r.onupgradeneeded=function(){var db=r.result;if(!db.objectStoreNames.contains("p")){var st=db.createObjectStore("p",{keyPath:"id",autoIncrement:true});st.createIndex("step","step");}};
+      r.onsuccess=function(){photoDB=r.result;res(photoDB);}; r.onerror=function(){rej(r.error);};
+    }catch(e){rej(e);}
+  });
+}
+function allPhotos(){return openPhotos().then(function(db){return new Promise(function(res,rej){var out=[],tx=db.transaction("p").objectStore("p").openCursor();tx.onsuccess=function(e){var c=e.target.result;if(c){out.push(c.value);c.continue();}else res(out);};tx.onerror=function(){rej(tx.error);};});});}
+function shrink(file){
+  return new Promise(function(res){
+    var img=new Image(),url=URL.createObjectURL(file);
+    img.onload=function(){var k=Math.min(1,1600/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);c.toBlob(function(b){res(b||file);},"image/jpeg",0.82);};
+    img.onerror=function(){URL.revokeObjectURL(url);res(file);};
+    img.src=url;
+  });
+}
+function addPhoto(step,file){
+  return shrink(file).then(function(blob){return openPhotos().then(function(db){return new Promise(function(res,rej){var t=db.transaction("p","readwrite");t.objectStore("p").add({step:step,ts:Date.now(),blob:blob});t.oncomplete=res;t.onerror=function(){rej(t.error);};});});});
+}
+function delPhoto(id){return openPhotos().then(function(db){return new Promise(function(res){var t=db.transaction("p","readwrite");t.objectStore("p").delete(Number(id));t.oncomplete=res;t.onerror=res;});});}
+function thumb(p,withStep){
+  var u=URL.createObjectURL(p.blob); photoURLs.push(u);
+  return '<figure class="ph"><img src="'+u+'" alt="Progress photo"><figcaption>'+(withStep?esc(withStep)+' · ':'')+new Date(p.ts).toLocaleDateString(undefined,{month:"short",day:"numeric"})+'<button class="linkbtn" data-del-photo="'+p.id+'">Delete</button></figcaption></figure>';
+}
+function freeURLs(){photoURLs.forEach(function(u){try{URL.revokeObjectURL(u);}catch(e){}});photoURLs=[];}
+function photoBlock(id){
+  return '<div class="hsec"><div class="eyebrow">Progress photos</div><div class="phs" id="stepPhotos"><span class="muted small">Loading…</span></div>'+
+   '<label class="btn sm phadd"><input type="file" accept="image/*" capture="environment" data-photo-step="'+id+'" hidden>Add a photo of this step</label>'+
+   '<p class="muted small">Photos stay on this phone only.</p></div>';
+}
+function fillStepPhotos(id){
+  var box=$("#stepPhotos"); if(!box) return;
+  allPhotos().then(function(ps){ps=ps.filter(function(p){return p.step===id;});box.innerHTML=ps.length?ps.map(function(p){return thumb(p);}).join(""):'<span class="muted small">No photos yet.</span>';})
+   .catch(function(){box.innerHTML='<span class="muted small">Photos aren\'t available in this browser mode.</span>';});
+}
+function fillPhotoView(){
+  var box=$("#photoView"); if(!box) return; freeURLs();
+  var names={}; flatSteps().forEach(function(x,i){names[x.s.id]=(i+1)+". "+x.s.t;});
+  allPhotos().then(function(ps){
+    ps.sort(function(a,b){return a.ts-b.ts;});
+    box.innerHTML=ps.length?'<div class="phs grid">'+ps.map(function(p){return thumb(p,names[p.step]||p.step);}).join("")+'</div>':'<div class="card"><h3>No photos yet</h3><p class="muted">Open any step and tap "Add a photo of this step". Before-and-after shots of each phase are great for spotting problems and for showing off the finished job.</p></div>';
+  }).catch(function(){box.innerHTML='<p class="muted">Photos aren\'t available in this browser mode (for example a private window).</p>';});
+}
+
+/* ---------- celebration ---------- */
+function phaseDone(pi){return flatSteps().filter(function(x){return x.pi===pi;}).every(function(x){return stepState(x.s.id)!=="todo";});}
+function celebrate(pi,name,nextName){
+  var c=$("#cele"); if(!c) return;
+  var bits=""; if(!REDUCED) for(var i=0;i<24;i++) bits+='<i style="left:'+(4+Math.random()*92)+'%;animation-delay:'+(Math.random()*0.6).toFixed(2)+'s;background:'+PH_COLORS[i%PH_COLORS.length]+'"></i>';
+  c.innerHTML='<div class="celein" style="--ph:'+phColor(pi)+'">'+bits+'<div class="celecard"><div class="eyebrow">Phase '+(pi+1)+' complete</div><h2>'+esc(name)+': done</h2>'+(nextName?'<p>Next up: <b>'+esc(nextName)+'</b></p>':'<p>That was the last phase. Enjoy your new shower.</p>')+'<button class="btn primary" data-cele-close>Keep going</button></div></div>';
+  c.hidden=false;
+}
+
 /* ---------- render: niche ---------- */
 function renderNiche(){
   var out=$("#nicheOut");
@@ -1527,7 +1822,7 @@ function show(tab){
   S.tab=tab; save();
   $$("section[data-view]").forEach(function(s){s.hidden=s.getAttribute("data-view")!==tab;});
   $$("nav.tabs button").forEach(function(b){b.setAttribute("aria-selected",String(b.getAttribute("data-tab")===tab));});
-  if(tab==="tools") renderTools(); if(tab==="steps") renderSteps(); if(tab==="niche") renderNiche(); if(tab==="plan") renderPlan();
+  stopSpeaking(); if(tab==="tools") renderTools(); if(tab==="steps") renderSteps(); syncWake(); if(tab==="niche") renderNiche(); if(tab==="plan") renderPlan();
   window.scrollTo(0,0);
 }
 function renderAll(){renderPlan();renderSteps();renderTools();renderNiche();}
@@ -1535,6 +1830,7 @@ function renderAll(){renderPlan();renderSteps();renderTools();renderNiche();}
 /* ---------- events ---------- */
 document.addEventListener("click",function(e){
   if(e.target.id==="sheet"){closeSheet();return;}
+  if(e.target.id==="cele"||(e.target.closest&&e.target.closest(".celein")&&!e.target.closest(".celecard"))){$("#cele").hidden=true;return;}
   var t=e.target.closest("button"); if(!t) return;
   var grp=t.closest("[data-key]");
   if(grp && t.classList.contains("chip")){
@@ -1555,6 +1851,16 @@ document.addEventListener("click",function(e){
   }
   if(t.hasAttribute("data-set")){var id2=t.getAttribute("data-id"),v2=t.getAttribute("data-set");S.tools[id2]=S.tools[id2]===v2?undefined:v2;if(!S.tools[id2])delete S.tools[id2];save();renderTools();return;}
   if(t.hasAttribute("data-go")){goStep(t.getAttribute("data-go"));return;}
+  if(t.hasAttribute("data-timer")){var tp=t.getAttribute("data-timer").split("|");startTimer(tp[0],+tp[1]);return;}
+  if(t.hasAttribute("data-timer-cancel")){var tid=t.getAttribute("data-timer-cancel");S.timers=(S.timers||[]).filter(function(x){return x.id!==tid;});save();renderTimers();return;}
+  if(t.hasAttribute("data-speak")){speakStep();return;}
+  if(t.hasAttribute("data-bigmode")){S.bigMode=!S.bigMode;save();applyBigMode();renderSteps();return;}
+  if(t.hasAttribute("data-listmode")){S.listMode=t.getAttribute("data-listmode");save();renderSteps();return;}
+  if(t.hasAttribute("data-cele-close")){$("#cele").hidden=true;return;}
+  if(t.hasAttribute("data-del-photo")){
+    if(t.getAttribute("data-armed")){delPhoto(t.getAttribute("data-del-photo")).then(function(){if(S.stepMode==="player"&&S.tab==="steps") fillStepPhotos(S.cur); else fillPhotoView(); toast("Photo deleted");});}
+    else {t.setAttribute("data-armed","1");t.textContent="Tap again to delete";setTimeout(function(){if(t.isConnected){t.removeAttribute("data-armed");t.textContent="Delete";}},3000);}
+    return;}
   if(t.hasAttribute("data-nav")){navStep(t.getAttribute("data-nav"));return;}
   if(t.hasAttribute("data-mode")){S.stepMode=t.getAttribute("data-mode");save();renderSteps();window.scrollTo(0,0);return;}
   if(t.hasAttribute("data-open-index")){openSheet();return;}
@@ -1566,6 +1872,11 @@ document.addEventListener("click",function(e){
     p.then(function(){toast("Copied");},function(){ta.focus();ta.select();toast("Selected. Use Copy from the menu.");});
   }
 });
+document.addEventListener("change",function(e){
+  var el=e.target; if(!el.hasAttribute||!el.hasAttribute("data-photo-step")||!el.files||!el.files[0]) return;
+  var step=el.getAttribute("data-photo-step"); toast("Saving photo…");
+  addPhoto(step,el.files[0]).then(function(){el.value="";fillStepPhotos(step);toast("Photo saved");}).catch(function(){toast("Couldn't save the photo in this browser mode.");});
+});
 document.addEventListener("input",function(e){
   var el=e.target; if(!el.id||!(el.id in DEF)||el.type!=="number") return;
   var v=parseFloat(el.value); if(!isFinite(v)) return;
@@ -1575,7 +1886,7 @@ document.addEventListener("input",function(e){
 
 var start=(location.hash||"").replace("#","");
 if(["plan","tools","steps","niche"].indexOf(start)<0) start=S.tab||"plan";
-renderAll(); show(start);
+applyBigMode(); renderTimers(); renderAll(); show(start);
 })();
 </script>
 
