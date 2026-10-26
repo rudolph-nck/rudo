@@ -1,11 +1,10 @@
-import { readFile } from "fs/promises";
-import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 import { getGuide } from "@/lib/project-builder/guides";
+import { renderGuide } from "@/lib/project-builder/render";
 import { PB_COOKIE, verifySessionToken } from "@/lib/project-builder/session";
 
-// Guides are self-contained HTML documents served as-is, behind the
-// Project Builder login (middleware checks too; this is the second gate).
+// Guides are served as complete HTML documents (hand-built or engine-rendered),
+// behind the Project Builder login (middleware checks too; this is the second gate).
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
@@ -23,10 +22,7 @@ export async function GET(
     return new NextResponse("Guide not found", { status: 404 });
   }
 
-  const html = await readFile(
-    path.join(process.cwd(), "src/content/project-builder", guide.file),
-    "utf8"
-  );
+  const html = await renderGuide(guide);
 
   return new NextResponse(html, {
     headers: {

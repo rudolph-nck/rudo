@@ -1,0 +1,974 @@
+{
+ "slug": "light-fixture-switch",
+ "title": "Replace a Light or Switch",
+ "eyebrow": "Electrical · lights and switches",
+ "category": "Electrical",
+ "difficulty": "Beginner",
+ "time": "1–2 hours",
+ "summary": "Take down an old ceiling or wall light and install a new one on a solid bracket, and/or replace its wall switch with a new single-pole, 3-way, dimmer or smart switch, wired and tested.",
+ "safety": "Turn the breaker off and <b>prove every wire dead with a tested non-contact tester</b> at both the light and the switch before touching anything. A wall switch alone does not make a box safe. Support the fixture so it never hangs by its wires. Work from a stable ladder.",
+ "pro": "there is no electrical box, the box is loose, you see cloth or crumbling insulation, aluminum wiring or scorch marks, the box holds several cables and you can't tell which wires fed the old light, a heavy fixture's box is not marked for its weight, a smart switch needs a neutral that isn't there, or you want a ceiling fan. New boxes or new wiring usually need a permit.",
+ "questions": [
+  {
+   "id": "what",
+   "label": "What are you replacing?",
+   "type": "choice",
+   "default": "both",
+   "options": [
+    {
+     "v": "fixture",
+     "label": "Light fixture"
+    },
+    {
+     "v": "switch",
+     "label": "Switch"
+    },
+    {
+     "v": "both",
+     "label": "Both"
+    }
+   ]
+  },
+  {
+   "id": "swtype",
+   "label": "What kind of switch?",
+   "type": "choice",
+   "default": "single",
+   "options": [
+    {
+     "v": "single",
+     "label": "Single-pole",
+     "hint": "one switch"
+    },
+    {
+     "v": "threeway",
+     "label": "3-way",
+     "hint": "two switches"
+    },
+    {
+     "v": "dimmer",
+     "label": "Dimmer",
+     "hint": "one switch"
+    }
+   ],
+   "hint": "Count the switches that control this light."
+  },
+  {
+   "id": "smart",
+   "label": "Is the new switch a smart switch?",
+   "type": "choice",
+   "default": "no",
+   "options": [
+    {
+     "v": "no",
+     "label": "No"
+    },
+    {
+     "v": "yes",
+     "label": "Yes",
+     "hint": "usually needs a neutral"
+    }
+   ]
+  },
+  {
+   "id": "weight",
+   "label": "How heavy is the new fixture?",
+   "type": "choice",
+   "default": "light",
+   "options": [
+    {
+     "v": "light",
+     "label": "Up to 50 lb"
+    },
+    {
+     "v": "heavy",
+     "label": "Over 50 lb",
+     "hint": "box must be rated"
+    }
+   ],
+   "hint": "Ceiling fans are a separate job."
+  },
+  {
+   "id": "bulbs",
+   "label": "Bulbs in the fixture",
+   "type": "number",
+   "unit": "bulbs",
+   "default": 3,
+   "step": 1
+  },
+  {
+   "id": "bw",
+   "label": "Watts per bulb (actual, not \"equal\")",
+   "type": "number",
+   "unit": "W",
+   "default": 9,
+   "step": 1
+  }
+ ],
+ "calcs": [
+  {
+   "id": "total",
+   "label": "Total bulb watts",
+   "expr": "Math.round(a.bulbs*a.bw)",
+   "fmt": "{{c.total}} W"
+  },
+  {
+   "id": "dimneed",
+   "label": "Dimmer LED rating needed",
+   "expr": "c.total",
+   "fmt": "at least {{c.total}} W LED",
+   "when": "a.swtype==='dimmer'"
+  }
+ ],
+ "calcNote": "Each bulb's watts must also be at or below the max printed in the fixture's socket.",
+ "overviewFig": [
+  "deadtest",
+  "wires"
+ ],
+ "tools": [
+  {
+   "id": "pen",
+   "c": "Testing",
+   "n": "Non-contact voltage tester",
+   "must": true,
+   "w": "Tells you if a wire is live before you touch it.",
+   "q": "non-contact voltage tester"
+  },
+  {
+   "id": "screwdrivers",
+   "c": "Hand tools",
+   "n": "Screwdrivers: #2 Phillips and 1/4\" flat",
+   "must": true,
+   "w": "Canopy, bracket, plate and terminal screws.",
+   "q": "insulated screwdriver set"
+  },
+  {
+   "id": "stripper",
+   "c": "Hand tools",
+   "n": "Wire stripper with gauge marks",
+   "must": true,
+   "w": "Strips insulation without nicking the copper.",
+   "q": "wire stripper 10-18 AWG"
+  },
+  {
+   "id": "needlenose",
+   "c": "Hand tools",
+   "n": "Needle-nose pliers",
+   "must": true,
+   "w": "Bends wire hooks for switch screws.",
+   "q": "needle nose pliers"
+  },
+  {
+   "id": "light",
+   "c": "Hand tools",
+   "n": "Headlamp or battery work light",
+   "must": true,
+   "w": "The light you are replacing will be off, and so is the breaker.",
+   "q": "headlamp"
+  },
+  {
+   "id": "ladder",
+   "c": "Hand tools",
+   "n": "Step ladder (fiberglass)",
+   "must": true,
+   "w": "Stand on a step, never the top. Fiberglass does not conduct electricity.",
+   "q": "fiberglass step ladder 6 ft",
+   "when": "a.what!=='switch'"
+  },
+  {
+   "id": "hanger",
+   "c": "Hand tools",
+   "n": "Wire coat hanger or S-hook (or a helper)",
+   "must": true,
+   "w": "Holds the fixture's weight while you work on the wires.",
+   "q": "S hooks",
+   "when": "a.what!=='switch'"
+  },
+  {
+   "id": "glasses",
+   "c": "Safety",
+   "n": "Safety glasses",
+   "must": true,
+   "w": "Dust and debris fall from ceiling boxes.",
+   "q": "safety glasses"
+  },
+  {
+   "id": "fixture",
+   "c": "Parts",
+   "n": "New light fixture (with its bracket and screws)",
+   "must": true,
+   "w": "Check the box: it should be listed for your location (damp-rated in bathrooms, wet-rated outdoors).",
+   "q": "ceiling light fixture",
+   "when": "a.what!=='switch'"
+  },
+  {
+   "id": "fanbox",
+   "c": "Parts",
+   "n": "Ceiling box marked for fan support or for your fixture's weight",
+   "must": true,
+   "w": "Fixtures over 50 lb and all ceiling fans need a box marked for them, or separate support. Ask a pro if unsure.",
+   "q": "fan rated ceiling box brace",
+   "when": "a.what!=='switch'&&a.weight==='heavy'"
+  },
+  {
+   "id": "sw1",
+   "c": "Parts",
+   "n": "Single-pole switch, 15 amp",
+   "must": true,
+   "w": "One switch controls the light from one place.",
+   "q": "single pole light switch 15 amp",
+   "when": "a.what!=='fixture'&&a.smart==='no'&&a.swtype==='single'"
+  },
+  {
+   "id": "sw3",
+   "c": "Parts",
+   "n": "3-way switch, 15 amp",
+   "must": true,
+   "w": "Replace only the switch you are working on; it must be a 3-way.",
+   "q": "3-way light switch 15 amp",
+   "when": "a.what!=='fixture'&&a.smart==='no'&&a.swtype==='threeway'"
+  },
+  {
+   "id": "dim",
+   "c": "Parts",
+   "n": "LED-compatible dimmer (rated {{c.total}} W LED or more)",
+   "must": true,
+   "w": "Older dimmers made for incandescent bulbs make LEDs flicker or buzz.",
+   "q": "LED dimmer switch single pole",
+   "when": "a.what!=='fixture'&&a.smart==='no'&&a.swtype==='dimmer'"
+  },
+  {
+   "id": "smart",
+   "c": "Parts",
+   "n": "Smart switch (check if it needs a neutral)",
+   "must": true,
+   "w": "Most smart switches need a neutral wire in the box. Read the box before you buy.",
+   "q": "{{a.swtype==='threeway'?'smart 3-way switch kit':(a.swtype==='dimmer'?'smart dimmer switch':'smart light switch')}}",
+   "when": "a.what!=='fixture'&&a.smart==='yes'"
+  },
+  {
+   "id": "plate",
+   "c": "Parts",
+   "n": "Switch wall plate",
+   "must": false,
+   "w": "Toggle or decorator (rectangle) style to match the new switch.",
+   "q": "light switch wall plate",
+   "when": "a.what!=='fixture'"
+  },
+  {
+   "id": "conn",
+   "c": "Parts",
+   "n": "Wire nuts or lever connectors",
+   "must": true,
+   "w": "Fixtures include a few; have spares in the right size for your wires.",
+   "q": "lever wire connectors assortment",
+   "qty": "1 pack"
+  },
+  {
+   "id": "etape",
+   "c": "Parts",
+   "n": "Black electrical tape",
+   "must": false,
+   "w": "Marks a white wire that is used as a hot.",
+   "q": "black electrical tape"
+  },
+  {
+   "id": "labels",
+   "c": "Parts",
+   "n": "Masking tape and a marker",
+   "must": true,
+   "w": "Label the breaker and every wire before you unhook it.",
+   "q": "masking tape"
+  },
+  {
+   "id": "bulbs",
+   "c": "Parts",
+   "n": "Bulbs within the fixture's max wattage{{a.swtype==='dimmer'?' (dimmable)':''}}",
+   "must": false,
+   "w": "Many fixtures do not include bulbs.",
+   "q": "{{a.swtype==='dimmer'?'dimmable LED bulb':'LED bulb'}}",
+   "qty": "{{a.bulbs}}",
+   "when": "a.what!=='switch'"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Prepare",
+   "steps": [
+    {
+     "id": "p1",
+     "t": "Check the box and buy the right parts",
+     "time": "20 min",
+     "idea": "The new parts must match the box, the wiring and the weight it has to hold.",
+     "fig": "boxes",
+     "need": [
+      "fixture",
+      "fanbox",
+      "sw1",
+      "sw3",
+      "dim",
+      "smart"
+     ],
+     "b": "<ol><li>Fixture: check its weight on the box. Up to 50 lb is normal. Over 50 lb needs a box marked for that weight or separate support.</li><li>Ceiling fan? That is a different job (see the FAQ). This guide is for lights only.</li><li>Switch: count the switches that control this light. One switch = single-pole. Two switches in different places = 3-way (buy a 3-way, not a regular one).</li><li>Dimmer: buy one marked LED-compatible, rated for at least your total bulb watts (see the Start tab).</li><li>Smart switch: read the box. If it says \"neutral required\", you must confirm there is a neutral in your switch box before it will work (step in the switch phase).</li><li>Keep the receipt: you may find a stop condition once the old parts come off.</li></ol>",
+     "faq": [
+      [
+       "Can I hang a ceiling fan the same way?",
+       "No. A fan needs a box marked as acceptable for fan support, a fan bracket, and often a brace between joists. Treat it as its own job and follow the fan's instructions, or hire an electrician."
+      ],
+      [
+       "Do I need a permit?",
+       "Swapping a fixture or switch like-for-like usually does not, but rules vary. Check with your local building department. New wiring or new boxes usually do."
+      ],
+      [
+       "Bathroom or outdoor light?",
+       "Buy a fixture listed for damp locations (bathrooms) or wet locations (exposed outdoors). It's printed on the box."
+      ]
+     ],
+     "help": []
+    },
+    {
+     "id": "p2",
+     "t": "Turn off the breaker",
+     "time": "10 min",
+     "idea": "Kill the power at the panel. A wall switch alone does not make the box safe.",
+     "fig": "breaker",
+     "need": [
+      "labels",
+      "light"
+     ],
+     "b": "<ol><li>Turn the light on.</li><li>At the panel, flip the breaker you think feeds it fully to OFF. The light should go out.</li><li>Still on? Turn that breaker back on and try the next one until the light goes out.</li><li>Put tape over the breaker handle: \"Working on light. Don't touch.\"</li><li>Flip the wall switch OFF too, and tape it down.</li><li>Tell everyone at home what you are doing.</li></ol>",
+     "faq": [
+      [
+       "Can I just turn off the switch?",
+       "No. In many boxes there is power on some wires even with the switch off (for example a switch loop or wires feeding other rooms)."
+      ],
+      [
+       "The light went off with two breakers.",
+       "Turn off both. Some boxes have more than one circuit. Your testing in the next step will catch this."
+      ]
+     ],
+     "help": []
+    },
+    {
+     "id": "p3",
+     "t": "Prove it's dead at the light and the switch",
+     "time": "10 min",
+     "idea": "Never trust a breaker label. Test before you touch, at every box you will open.",
+     "fig": "deadtest",
+     "need": [
+      "pen",
+      "screwdrivers"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "help": [
+      "testHelp"
+     ],
+     "b": "<ol><li>Test your non-contact tester on an outlet you know is live. It must beep or light.</li><li>Flip the wall switch ON (the breaker stays off). Hold the tester at the bulb socket. Silence is what you want.</li><li>Take the cover plate off the switch (two small screws). Hold the tester next to each side of the switch. Silence.</li><li>Test the tester on the live outlet again. A dead battery gives a false \"safe\".</li><li>Flip the wall switch back OFF.</li><li>You will test the bare wires again once each box is open.</li></ol>",
+     "stop": "If the tester beeps anywhere, stop. Find and turn off the right breaker before you go on.",
+     "faq": [
+      [
+       "My tester beeps everywhere, even on dead things.",
+       "Some testers react to static or nearby wires. Move away from other cables and test again. If unsure, turn off the main breaker or call an electrician."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Replace the fixture",
+   "steps": [
+    {
+     "id": "x1",
+     "t": "Remove the shade, bulbs and canopy",
+     "time": "10 min",
+     "idea": "Strip the old fixture down so you can reach the box without dropping anything.",
+     "when": "a.what!=='switch'",
+     "need": [
+      "ladder",
+      "screwdrivers",
+      "light"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "b": "<ol><li>Let the bulbs cool for a few minutes if they were on.</li><li>Set the ladder on a flat floor, fully opened and locked. Never stand on the top step.</li><li>Remove the glass shade: loosen the thumb screws or the center nut and lift it off with both hands.</li><li>Unscrew the bulbs.</li><li>Find the screws or decorative nut holding the canopy (the base against the ceiling). Support the fixture with one hand and remove them.</li><li>Lower the canopy slowly. Wires and connectors will come into view.</li></ol>",
+     "faq": [
+      [
+       "The shade is stuck.",
+       "Old paint glues it on. Run a utility knife around the edge where it meets the ceiling, then twist gently."
+      ]
+     ],
+     "help": []
+    },
+    {
+     "id": "x2",
+     "t": "Hang the fixture and test the wires",
+     "time": "5 min",
+     "idea": "Take the weight off the wires, then prove each one is dead.",
+     "when": "a.what!=='switch'",
+     "fig": "hook",
+     "need": [
+      "hanger",
+      "pen"
+     ],
+     "help": [
+      "testHelp"
+     ],
+     "b": "<ol><li>Bend a wire coat hanger into an S-hook. Hang the fixture from the bracket with it, or have a helper hold it.</li><li>Do not let the fixture dangle by its wires.</li><li>Hold the non-contact tester next to every wire and connector in the box, one at a time.</li><li>Silence on every one? Go on.</li></ol>",
+     "stop": "If any wire beeps, stop. Another breaker feeds this box. Find it and turn it off, then test again."
+    },
+    {
+     "id": "x3",
+     "t": "Photograph, label and disconnect",
+     "time": "15 min",
+     "idea": "A photo and labels are your map. You will copy the old connections exactly.",
+     "when": "a.what!=='switch'",
+     "fig": [
+      "switchloop",
+      "stopsigns"
+     ],
+     "need": [
+      "labels",
+      "etape"
+     ],
+     "b": "<ol><li>Take two photos of the wires and connectors from different angles.</li><li>Count the cables entering the box. Note which wires are joined together.</li><li>Look for a white wire with black tape or marker on it: that is a hot wire (switch loop). Put a fresh band of black tape on it so it stays marked.</li><li>Put masking tape on the house wire that went to the fixture's black: \"FIX HOT\". Mark the one that went to its white \"FIX NEUT\".</li><li>Unscrew the wire nuts on the fixture wires only (counterclockwise). Leave any other bundles in the box joined.</li><li>Unhook the fixture's ground, lift the fixture off the hook and set it aside.</li></ol>",
+     "stop": "Stop and call an electrician if you see: cloth or crumbling insulation, dull silver (aluminum) wire or \"AL\" on the cable, scorch marks or melted plastic, or a crowded box with several cables where you can't tell which wires fed the old fixture.",
+     "faq": [
+      [
+       "The insulation cracks when I bend it.",
+       "That's heat-damaged old wire. Stop. An electrician can replace the short section or the cable."
+      ],
+      [
+       "Two blacks were joined with the fixture black.",
+       "Then all three go back together with the new fixture black. Copy the photo."
+      ]
+     ],
+     "help": []
+    },
+    {
+     "id": "x4",
+     "t": "Check the box",
+     "time": "5 min",
+     "idea": "The box carries the fixture's weight, so it must be solid and the right kind.",
+     "when": "a.what!=='switch'",
+     "fig": "boxes",
+     "need": [
+      "light",
+      "fanbox"
+     ],
+     "b": "<ol><li>Grab the box edge and tug. It must not move.</li><li>Look for the box at all. If the wires come straight through a hole in the drywall, there is no box.</li><li>Check that the box edge is flush with the ceiling or no more than 1/4\" behind it in drywall.</li><li>Fixture over 50 lb? Look inside the box for a marking saying the weight it is listed for. No marking means it can't take that weight on its own.</li><li>Metal box? Find the threaded green screw hole, or plan to use the green screw on the new bracket.</li></ol>",
+     "stop": "Stop if there is no box, the box is loose or broken, or a heavy fixture's box is not marked for its weight. Installing a new or braced box is a job for an electrician (and may need a permit).",
+     "faq": [
+      [
+       "The box is a bit loose.",
+       "Tighten its mounting screws if you can see them. If it is held only by drywall or still moves, it needs a proper old-work or braced box: get help."
+      ]
+     ],
+     "help": []
+    },
+    {
+     "id": "x5",
+     "t": "Install the new mounting bracket",
+     "time": "10 min",
+     "idea": "The bracket is the bridge between the box and the new fixture.",
+     "when": "a.what!=='switch'",
+     "fig": "crossbar",
+     "need": [
+      "fixture",
+      "screwdrivers"
+     ],
+     "b": "<ol><li>Remove the old bracket: two screws into the box ears.</li><li>Find the new bracket in the fixture's parts bag. Thread the fixture screws or center post into it first, as the instructions show.</li><li>Line up the bracket's slots with the box's two threaded ears.</li><li>Drive the box screws until the bracket is snug and straight. The green screw on the bracket should face down toward you.</li><li>Tug the bracket. It must not move.</li></ol>",
+     "faq": [
+      [
+       "The new screws are too short for the canopy.",
+       "Most kits include several lengths. If not, use the bracket's center threaded post and a longer nipple from the hardware store."
+      ]
+     ],
+     "help": []
+    },
+    {
+     "id": "x6",
+     "t": "Prepare the wire ends",
+     "time": "10 min",
+     "idea": "Clean, correctly stripped ends make connections that stay tight for decades.",
+     "when": "a.what!=='switch'",
+     "need": [
+      "stripper"
+     ],
+     "help": [
+      "connectHelp"
+     ],
+     "b": "<ol><li>Read the fixture instructions for strip length. Typical: 1/2\" to 5/8\" for wire nuts, or the length shown on the lever connector (often about 7/16\").</li><li>Look at the house wire ends. Nicked, darkened or brittle? Cut them off and strip fresh, keeping at least 6\" of wire from the box.</li><li>Fixture leads are usually stranded. Twist each one tight clockwise so no strands stray.</li><li>Find the fixture's hot and neutral: black = hot, white = neutral. On a cord with matching colors, the ribbed or lettered side is neutral.</li></ol>",
+     "faq": [
+      [
+       "The house wires are too short.",
+       "Splice on a 6\" pigtail of the same size wire with a wire nut or lever connector, then connect the fixture to the pigtail."
+      ]
+     ]
+    },
+    {
+     "id": "x7",
+     "t": "Connect the ground",
+     "time": "5 min",
+     "idea": "Ground first, so the metal of the fixture is safe even if something fails.",
+     "when": "a.what!=='switch'",
+     "fig": "wires",
+     "need": [
+      "conn",
+      "screwdrivers"
+     ],
+     "help": [
+      "connectHelp"
+     ],
+     "b": "<ol><li>Hang the fixture on the S-hook again or have your helper hold it.</li><li>Join the house bare ground, the fixture's green or bare wire, and a short pigtail with a wire nut or lever connector.</li><li>Wrap the pigtail clockwise under the green screw on the bracket (or the metal box) and tighten.</li><li>Some fixtures' instructions say to put the fixture ground straight under the bracket screw. Follow the instructions.</li><li>Tug each wire.</li></ol>",
+     "faq": [
+      [
+       "There's no ground wire in the box.",
+       "With a metal box, ask an electrician if the box is grounded through metal conduit. With a plastic box and no ground, stop and get advice: options depend on local code."
+      ]
+     ]
+    },
+    {
+     "id": "x8",
+     "t": "Connect the neutral and the hot",
+     "time": "10 min",
+     "idea": "White to white, black to black (or to the taped switch wire), exactly like the old fixture.",
+     "when": "a.what!=='switch'",
+     "fig": [
+      "wires",
+      "lever"
+     ],
+     "need": [
+      "conn"
+     ],
+     "help": [
+      "connectHelp"
+     ],
+     "b": "<ol><li>Neutral: join the fixture white to the house wire you labeled \"FIX NEUT\" (a plain white).</li><li>Hot: join the fixture black to the wire labeled \"FIX HOT\" (black, or a white marked with black tape).</li><li>Wire nut: hold the ends even, let the stranded lead stick out 1/8\" past the solid one, and twist the nut clockwise until the wires twist together under it.</li><li>Lever connector: lift the lever, push the stripped end in to the stop, snap the lever down. One wire per port.</li><li>Tug each wire hard. Nothing pulls out, and no bare copper shows outside the connector.</li></ol>",
+     "stop": "Never join a taped (hot) white wire to the white neutral bundle, and never join black to white. If the old connections don't match the photo, stop and ask.",
+     "faq": [
+      [
+       "Wire nut or lever connector?",
+       "Both are fine when the size fits your wires. Lever connectors are easier with stranded fixture leads. Use what the fixture instructions allow."
+      ],
+      [
+       "Can I tape over the wire nut?",
+       "Not needed if it's tight. Tape doesn't fix a loose connection: redo it."
+      ]
+     ]
+    },
+    {
+     "id": "x9",
+     "t": "Fold the wires and mount the fixture",
+     "time": "15 min",
+     "idea": "Push the connections neatly into the box, then fasten the fixture so nothing is pinched.",
+     "when": "a.what!=='switch'",
+     "fig": "canopy",
+     "need": [
+      "screwdrivers",
+      "ladder"
+     ],
+     "b": "<ol><li>Fold the wires into the box in an S shape, connectors pointing up into the box.</li><li>Lift the fixture off the hook and line up the canopy holes with the bracket screws (or the center post).</li><li>Hold it flat to the ceiling and start the nuts or screws by hand.</li><li>Check all around the edge: no wire may be pinched between canopy and ceiling.</li><li>Tighten until snug. Overtightening cracks glass and strips threads.</li></ol>",
+     "faq": [
+      [
+       "The canopy won't sit flat.",
+       "A wire or connector is in the way, or the box is set too deep. Take it down and refold. A box set deeper than 1/4\" behind the ceiling needs a box extender."
+      ]
+     ],
+     "help": []
+    },
+    {
+     "id": "x10",
+     "t": "Install the bulbs and shade",
+     "time": "5 min",
+     "idea": "Bulbs must stay within the fixture's maximum wattage, or the fixture overheats.",
+     "when": "a.what!=='switch'",
+     "fig": "bulb",
+     "need": [
+      "bulbs"
+     ],
+     "b": "<ol><li>Find the sticker in the socket or canopy: \"MAX __ WATTS\" and bulb type.</li><li>Use bulbs whose actual watts (printed on the base) are at or below that number. LEDs use far less, so a \"60 W equal\" LED using about 9 W is fine.</li><li>Match the base type (usually E26 medium, or E12 candelabra).</li><li>On a dimmer, use bulbs marked dimmable. In a closed globe, use LEDs rated for enclosed fixtures.</li><li>Install the shade, hand-tight.</li></ol>",
+     "help": []
+    }
+   ]
+  },
+  {
+   "name": "Replace the switch",
+   "steps": [
+    {
+     "id": "s1",
+     "t": "Pull out the switch and test again",
+     "time": "10 min",
+     "idea": "Get the switch out of the box and prove every wire is dead.",
+     "when": "a.what!=='fixture'",
+     "fig": "deadtest",
+     "need": [
+      "screwdrivers",
+      "pen"
+     ],
+     "help": [
+      "testHelp"
+     ],
+     "b": "<ol><li>Remove the cover plate (if not already off).</li><li>Remove the top and bottom screws holding the switch strap to the box.</li><li>Pull the switch straight out by the strap, gently, so the wires come with it.</li><li>Hold the tester next to every wire and every screw in the box. Other switches in the same box may be on other circuits.</li><li>Silence everywhere? Go on.</li></ol>",
+     "stop": "If anything beeps, stop. Turn off the breaker for that wire too, and test again."
+    },
+    {
+     "id": "s2",
+     "t": "Identify the wires and look for a neutral",
+     "time": "10 min",
+     "idea": "Know which wire is which before you unhook anything, and check for a neutral if you bought a smart switch.",
+     "when": "a.what!=='fixture'",
+     "fig": [
+      "single",
+      "stopsigns"
+     ],
+     "need": [
+      "labels",
+      "light"
+     ],
+     "b": "<ol><li>Take two photos of the switch and box.</li><li>Single-pole: two wires on brass screws plus a ground. 3-way: three wires plus a ground, one on a darker screw. Dimmer: wires or leads.</li><li>Look in the back of the box for a bundle of white wires joined with a wire nut. That is the neutral bundle. Those whites don't go on a basic switch; leave them joined.</li><li>A white wire on a switch screw (often with black tape) is a hot, not a neutral. Mark it with black tape if it isn't already.</li><li>Look for the bare or green ground wire. Note if it's missing.</li></ol>",
+     "stop": "{{a.smart==='yes'?'Smart switch and no neutral bundle in this box? Stop. Do not borrow a neutral from another box or use the ground instead. Return it for a no-neutral model or ask an electrician.':'Stop if you see cloth or crumbling insulation, aluminum wire, scorch marks, or more wires than you can identify from the photos.'}}",
+     "faq": [
+      [
+       "What's a neutral bundle?",
+       "White wires from two or more cables joined together. They carry current back to the panel. Smart switches tap into it for their own power."
+      ],
+      [
+       "There's no ground wire.",
+       "A basic switch can still work, but a metal or plastic plate on an ungrounded switch is a code question in some areas. Check local code or ask an electrician."
+      ]
+     ],
+     "help": []
+    },
+    {
+     "id": "s3",
+     "t": "Label the COMMON wire",
+     "time": "5 min",
+     "idea": "On a 3-way switch, one wire is different. Mark it now or you'll guess later.",
+     "when": "a.what!=='fixture'&&a.swtype==='threeway'",
+     "fig": "threeway",
+     "need": [
+      "labels"
+     ],
+     "b": "<ol><li>Find the one screw that is a different, darker color (black or copper), or is marked COM.</li><li>Wrap masking tape on the wire attached to it and write \"COMMON\".</li><li>The other two wires (travelers) go on the two lighter brass screws. They don't need labels: either can go on either.</li><li>Ground wire goes on green as usual.</li></ol>",
+     "faq": [
+      [
+       "Do I need to do anything at the other 3-way switch?",
+       "Not if you only replace this one. Leave the other switch as it is."
+      ]
+     ],
+     "help": []
+    },
+    {
+     "id": "s4",
+     "t": "Disconnect the old switch",
+     "time": "5 min",
+     "idea": "Free the wires without damaging them.",
+     "when": "a.what!=='fixture'",
+     "need": [
+      "screwdrivers",
+      "stripper"
+     ],
+     "b": "<ol><li>Loosen each terminal screw and unhook the wire.</li><li>Backstabbed (pushed into a hole)? Push a small flat screwdriver into the release slot and pull, or cut the wire right at the switch.</li><li>Look at the copper. Nicked, darkened or brittle ends: cut off and strip fresh, 3/4\" for screw hooks.</li><li>Keep labels on until the new switch is wired.</li></ol>",
+     "help": []
+    },
+    {
+     "id": "s5",
+     "t": "Wire the single-pole switch",
+     "time": "10 min",
+     "idea": "Two hot wires on the two brass screws, ground on green.",
+     "when": "a.what!=='fixture'&&a.swtype==='single'",
+     "fig": "single",
+     "need": [
+      "sw1",
+      "smart",
+      "needlenose",
+      "screwdrivers"
+     ],
+     "help": [
+      "hookHelp"
+     ],
+     "b": "<ol><li>Hold the switch so \"OFF\" reads upright when the toggle is down.</li><li>Ground: bare wire clockwise around the green screw. Tighten.</li><li>Black (or taped white) wire clockwise around one brass screw. Tighten firmly.</li><li>The other black around the other brass screw. Tighten firmly.</li><li>{{a.smart==='yes'?'Smart switch: follow its diagram. Its LINE terminal or lead goes to the power-in wire. The neutral connection is the next step.':'Tighten any unused screws and tug each wire.'}}</li></ol>",
+     "faq": [
+      [
+       "Does it matter which black goes where?",
+       "Not on a basic single-pole switch. It does on smart switches: follow their LINE/LOAD marks."
+      ]
+     ]
+    },
+    {
+     "id": "s6",
+     "t": "Wire the 3-way switch",
+     "time": "15 min",
+     "idea": "COMMON on the dark screw, travelers on the brass screws, ground on green.",
+     "when": "a.what!=='fixture'&&a.swtype==='threeway'",
+     "fig": "threeway",
+     "need": [
+      "sw3",
+      "smart",
+      "needlenose",
+      "screwdrivers"
+     ],
+     "help": [
+      "hookHelp"
+     ],
+     "b": "<ol><li>Find the darker COMMON screw on the new switch (its spot may differ from the old one).</li><li>Ground: bare wire to the green screw.</li><li>Wire labeled COMMON: clockwise around the dark screw. Tighten firmly.</li><li>The two travelers: one on each light brass screw. Either way round.</li><li>Tug each wire. Remove the COMMON label only after it's tight.</li></ol>",
+     "faq": [
+      [
+       "The light only works with the other switch in one position.",
+       "The COMMON is probably on a traveler screw. Power off, prove dead, and swap so the COMMON wire is on the dark screw."
+      ],
+      [
+       "Can I put a dimmer on a 3-way?",
+       "Yes, but it must be a 3-way dimmer, and usually only one of the two switches is the dimmer. Smart 3-way kits use a companion switch: follow their instructions."
+      ]
+     ]
+    },
+    {
+     "id": "s7",
+     "t": "Wire the dimmer",
+     "time": "15 min",
+     "idea": "Most dimmers have wire leads that join the house wires with wire nuts.",
+     "when": "a.what!=='fixture'&&a.swtype==='dimmer'",
+     "fig": "dimmer",
+     "need": [
+      "dim",
+      "smart",
+      "conn",
+      "stripper"
+     ],
+     "help": [
+      "connectHelp"
+     ],
+     "b": "<ol><li>Check the rating: the dimmer's LED watts must be at least your total ({{c.total}} W). If you gang it in a box with other switches, read the instructions: breaking off side fins lowers the rating.</li><li>Ground: green lead to the bare house ground with a wire nut (or under the green screw).</li><li>Strip the house wires to the length on the dimmer instructions.</li><li>Join each black lead to one house hot wire with a wire nut. If a lead is marked LINE, it goes to the power-in wire.</li><li>Tug each lead.</li></ol>",
+     "faq": [
+      [
+       "The LEDs flicker or buzz on low.",
+       "Use dimmable bulbs and an LED-rated dimmer. Many dimmers have a low-end trim adjustment: see the instructions."
+      ],
+      [
+       "The dimmer feels warm.",
+       "Warm is normal. Too hot to keep a finger on means overloaded: turn it off and check the watts."
+      ]
+     ]
+    },
+    {
+     "id": "s8",
+     "t": "Connect the smart switch neutral",
+     "time": "10 min",
+     "idea": "A smart switch needs its own small, constant power, which it gets from the neutral bundle.",
+     "when": "a.what!=='fixture'&&a.smart==='yes'",
+     "fig": "single",
+     "need": [
+      "smart",
+      "conn",
+      "stripper"
+     ],
+     "b": "<ol><li>Unscrew the wire nut on the neutral bundle (counterclockwise).</li><li>Add a 6\" white pigtail (or the switch's white lead) to the bundle.</li><li>Put the wire nut back on, or use a lever connector big enough for all the wires. Tug every wire: none may pull out.</li><li>Connect the pigtail to the switch's neutral terminal (often silver, marked N).</li><li>Never connect the neutral to the ground wire.</li></ol>",
+     "faq": [
+      [
+       "Only some whites are bundled.",
+       "Use only a bundle of plain whites. A taped white on the old switch is hot, never neutral."
+      ]
+     ],
+     "help": []
+    },
+    {
+     "id": "s9",
+     "t": "Fold the wires and mount the switch",
+     "time": "10 min",
+     "idea": "Tuck the wires neatly so nothing loosens or gets pinched.",
+     "when": "a.what!=='fixture'",
+     "need": [
+      "screwdrivers",
+      "plate"
+     ],
+     "b": "<ol><li>Fold the wires behind the switch in an accordion shape.</li><li>Push the switch straight into the box. Dimmers and smart switches are bulky: fold tight to the back.</li><li>Screw the strap to the box until snug and straight.</li><li>Attach the cover plate. Don't overtighten; plastic plates crack.</li></ol>",
+     "help": []
+    }
+   ]
+  },
+  {
+   "name": "Finish and test",
+   "steps": [
+    {
+     "id": "t1",
+     "t": "Turn on the power and test",
+     "time": "10 min",
+     "idea": "Prove the light and switch work, and nothing smells or sparks.",
+     "need": [
+      "labels"
+     ],
+     "b": "<ol><li>Remove the tape from the breaker and the wall switch.</li><li>Turn the breaker on.</li><li>Flip the switch on and off several times. {{a.swtype==='threeway'?'Try every combination of both 3-way switches.':(a.swtype==='dimmer'?'Run the dimmer from low to high.':'The light should follow the switch.')}}</li><li>Listen for buzzing and sniff for a hot or burning smell.</li><li>Anything wrong: breaker off, prove dead, compare with your photos.</li></ol>",
+     "faq": [
+      [
+       "The breaker trips right away.",
+       "A hot wire is touching ground or neutral. Breaker off, prove dead, and check for a pinched wire or a taped white joined to the neutral bundle."
+      ],
+      [
+       "Nothing happens.",
+       "Check the bulbs are fully in, then breaker off and check each connection is tight."
+      ]
+     ],
+     "help": []
+    },
+    {
+     "id": "t2",
+     "t": "Check it again after 15 minutes",
+     "time": "15 min",
+     "idea": "A loose connection shows itself as heat or flicker within minutes of use.",
+     "timers": [
+      [
+       "Let it run",
+       15
+      ]
+     ],
+     "b": "<ol><li>Leave the light on for 15 minutes{{a.swtype==='dimmer'?' at full brightness':''}}.</li><li>Touch the switch plate: room temperature or barely warm is right.</li><li>Look for flicker.</li><li>Any heat, flicker, smell or buzzing: breaker off and recheck every connection.</li><li>Label the breaker clearly if it wasn't already.</li></ol>",
+     "help": []
+    }
+   ]
+  }
+ ],
+ "help": {
+  "testHelp": {
+   "t": "Use a non-contact voltage tester",
+   "fig": "deadtest",
+   "b": "<ol><li>Turn it on (some have a button you hold).</li><li>Touch the tip to the short slot of an outlet you know is live. It should beep or flash.</li><li>Hold the tip right against each wire or screw you are testing. Silence means no voltage detected.</li><li>Test it on the live outlet again afterward. A dead battery gives a false \"safe\".</li></ol>"
+  },
+  "connectHelp": {
+   "t": "Join wires with a nut or lever connector",
+   "fig": "lever",
+   "b": "<ol><li>Check the package: the connector must be rated for your wire sizes and for mixing solid and stranded wire.</li><li>Wire nut: strip about 1/2\", hold the ends even (stranded 1/8\" longer), twist the nut clockwise until the wires twist under it.</li><li>Lever: strip to the gauge mark, lift the lever, push in to the stop, snap down.</li><li>Tug each wire. No bare copper should show.</li></ol>"
+  },
+  "hookHelp": {
+   "t": "Hook a wire around a screw",
+   "b": "<ol><li>Strip 3/4\" of insulation using the right gauge hole.</li><li>Roll the end into a U with needle-nose pliers.</li><li>Hook it around the screw so the open end points clockwise.</li><li>Squeeze it closed around the screw, then tighten firmly.</li></ol>"
+  }
+ },
+ "figs": {
+  "breaker": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Turn off the right breaker</text><rect x=\"20\" y=\"26\" width=\"150\" height=\"150\" rx=\"4\" class=\"bk\"/><rect x=\"34\" y=\"38\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"100\" y=\"38\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"34\" y=\"64\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"100\" y=\"64\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"34\" y=\"90\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"100\" y=\"90\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"34\" y=\"116\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"100\" y=\"116\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"34\" y=\"142\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"100\" y=\"142\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"34\" y=\"90\" width=\"50\" height=\"18\" rx=\"2\" class=\"mos\"/><rect x=\"40\" y=\"94\" width=\"14\" height=\"10\" class=\"inkf\"/><rect x=\"0\" y=\"94\" width=\"30\" height=\"10\" class=\"y\"/><text x=\"186\" y=\"52\" class=\"k\">1  Flip breakers</text><text x=\"186\" y=\"64\">until the light dies</text><text x=\"186\" y=\"90\" class=\"k\">2  Tape the breaker</text><text x=\"186\" y=\"102\">\"Working on light\"</text><text x=\"186\" y=\"128\" class=\"k\">3  Wall switch OFF too</text><text x=\"186\" y=\"140\">and tape it down</text>",
+   "h": 186,
+   "cap": "A switch alone is not enough: the box can still hold live wires with the switch off. The breaker must be off."
+  },
+  "deadtest": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Prove it dead in both boxes</text><rect x=\"10\" y=\"26\" width=\"150\" height=\"10\" class=\"b\"/><rect x=\"55\" y=\"36\" width=\"50\" height=\"24\" class=\"bk\"/><rect x=\"67\" y=\"60\" width=\"6\" height=\"50\" class=\"inkf\"/><rect x=\"87\" y=\"60\" width=\"6\" height=\"50\" class=\"bk\"/><g transform=\"rotate(-35 80 104)\"><rect x=\"74\" y=\"104\" width=\"12\" height=\"50\" rx=\"5\" class=\"y\"/><rect x=\"77\" y=\"98\" width=\"6\" height=\"7\" class=\"badf\"/></g><g><path d=\"M92 88 q6 -6 0 -12 M100 92 q10 -10 0 -20\" class=\"bad\"/><animate attributeName=\"opacity\" values=\"1;0;1\" dur=\"1.2s\" repeatCount=\"indefinite\"/></g><text x=\"10\" y=\"166\" class=\"k\">At the light</text><text x=\"10\" y=\"178\">test every wire in the box</text><rect x=\"200\" y=\"36\" width=\"60\" height=\"100\" rx=\"4\" class=\"bk\"/><rect x=\"216\" y=\"50\" width=\"28\" height=\"72\" rx=\"3\" class=\"b\"/><rect x=\"225\" y=\"70\" width=\"10\" height=\"20\" rx=\"2\" class=\"inkf\"/><circle cx=\"252\" cy=\"62\" r=\"5\" class=\"y\"/><circle cx=\"252\" cy=\"110\" r=\"5\" class=\"y\"/><g transform=\"rotate(-35 264 66)\"><rect x=\"258\" y=\"66\" width=\"12\" height=\"50\" rx=\"5\" class=\"y\"/><rect x=\"261\" y=\"60\" width=\"6\" height=\"7\" class=\"badf\"/></g><text x=\"180\" y=\"166\" class=\"k\">At the switch too</text><text x=\"180\" y=\"178\">every screw, every wire</text>",
+   "h": 186,
+   "title": "Test with a non-contact tester",
+   "cap": "Silence on every wire means dead. One box can hold wires from two circuits, so test them all, not just one."
+  },
+  "hook": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Never let it hang by its wires</text><rect x=\"10\" y=\"26\" width=\"300\" height=\"10\" class=\"b\"/><rect x=\"130\" y=\"36\" width=\"40\" height=\"14\" class=\"bk\"/><path d=\"M150 50 V70 a6 6 0 1 1 -10 4\" class=\"o\" fill=\"none\" style=\"stroke-width:2.5\"/><path d=\"M110 86 H190 L176 116 H124 Z\" class=\"tb\"/><circle cx=\"140\" cy=\"82\" r=\"4\" class=\"o\" fill=\"none\"/><path d=\"M136 50 C110 60 112 80 128 88\" class=\"o\" fill=\"none\"/><path d=\"M164 50 C188 62 186 80 172 88\" class=\"o\" fill=\"none\"/><text x=\"200\" y=\"64\" class=\"k\">S-hook from a</text><text x=\"200\" y=\"76\">wire coat hanger</text><text x=\"10\" y=\"64\" class=\"k\">wires stay slack</text><text x=\"10\" y=\"76\">no pull on them</text><text x=\"10\" y=\"146\">Or have a helper hold the fixture</text><text x=\"10\" y=\"158\">while you undo the connections.</text>",
+   "h": 166,
+   "cap": "A fixture hanging by its wires can pull them out of the box or off the connectors. Support the weight first."
+  },
+  "boxes": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">A light needs a real box</text><rect x=\"10\" y=\"70\" width=\"60\" height=\"8\" class=\"b\"/><rect x=\"90\" y=\"70\" width=\"60\" height=\"8\" class=\"b\"/><path d=\"M76 30 C70 50 86 60 80 90\" class=\"o\" fill=\"none\" style=\"stroke-width:3\"/><line x1=\"40\" y1=\"34\" x2=\"120\" y2=\"64\" class=\"bad\" style=\"stroke-width:3\"/><line x1=\"120\" y1=\"34\" x2=\"40\" y2=\"64\" class=\"bad\" style=\"stroke-width:3\"/><text x=\"10\" y=\"104\" class=\"wa\">NO BOX</text><text x=\"10\" y=\"116\">wires poke through drywall</text><text x=\"10\" y=\"128\">Stop: needs a box first</text><rect x=\"170\" y=\"70\" width=\"50\" height=\"8\" class=\"b\"/><rect x=\"270\" y=\"70\" width=\"40\" height=\"8\" class=\"b\"/><rect x=\"220\" y=\"40\" width=\"50\" height=\"38\" class=\"bk\"/><rect x=\"270\" y=\"26\" width=\"18\" height=\"44\" class=\"w\"/><circle cx=\"268\" cy=\"52\" r=\"3\" class=\"inkf\"/><circle cx=\"268\" cy=\"64\" r=\"3\" class=\"inkf\"/><text x=\"170\" y=\"104\" class=\"gd\">box fixed to framing</text><text x=\"170\" y=\"116\">Fan or over 50 lb: box</text><text x=\"170\" y=\"128\">must be marked for it</text>",
+   "h": 140,
+   "cap": "Every fixture must mount to an electrical box that is fastened to the framing. Ceiling fans need a box marked for fan support."
+  },
+  "crossbar": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Bracket (crossbar) on the box</text><circle cx=\"110\" cy=\"104\" r=\"52\" class=\"bk\"/><circle cx=\"110\" cy=\"104\" r=\"40\" class=\"o d\" fill=\"none\"/><rect x=\"50\" y=\"97\" width=\"120\" height=\"14\" rx=\"3\" class=\"b\"/><circle cx=\"62\" cy=\"104\" r=\"4\" class=\"inkf\"/><circle cx=\"158\" cy=\"104\" r=\"4\" class=\"inkf\"/><circle cx=\"84\" cy=\"104\" r=\"4\" class=\"y\"/><circle cx=\"136\" cy=\"104\" r=\"4\" class=\"y\"/><circle cx=\"110\" cy=\"104\" r=\"5\" class=\"goodf\"/><circle cx=\"62\" cy=\"84\" r=\"7\" class=\"af\"/><text x=\"62\" y=\"87\" class=\"nm\" text-anchor=\"middle\">1</text><circle cx=\"136\" cy=\"84\" r=\"7\" class=\"af\"/><text x=\"136\" y=\"87\" class=\"nm\" text-anchor=\"middle\">2</text><circle cx=\"110\" cy=\"126\" r=\"7\" class=\"af\"/><text x=\"110\" y=\"129\" class=\"nm\" text-anchor=\"middle\">3</text><text x=\"184\" y=\"60\" class=\"k\">1 Bar screws to</text><text x=\"184\" y=\"72\">the box ears</text><text x=\"184\" y=\"98\" class=\"k\">2 Fixture screws</text><text x=\"184\" y=\"110\">thread into the bar</text><text x=\"184\" y=\"136\" class=\"k\">3 Green screw</text><text x=\"184\" y=\"148\">= ground</text>",
+   "h": 168,
+   "cap": "Use the bracket that comes with the new fixture. The old one may not match its screw spacing."
+  },
+  "wires": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Like colors go together</text><text x=\"10\" y=\"36\" class=\"k\">HOUSE CABLE</text><text x=\"310\" y=\"36\" class=\"k\" text-anchor=\"end\">FIXTURE</text><rect x=\"10\" y=\"48\" width=\"110\" height=\"6\" class=\"inkf\"/><rect x=\"152\" y=\"48\" width=\"110\" height=\"6\" class=\"inkf\"/><path d=\"M120 42 h26 l6 9 l-6 9 h-26z\" class=\"y\"/><rect x=\"10\" y=\"88\" width=\"110\" height=\"6\" class=\"bk\"/><rect x=\"152\" y=\"88\" width=\"110\" height=\"6\" class=\"bk\"/><path d=\"M120 82 h26 l6 9 l-6 9 h-26z\" class=\"y\"/><line x1=\"10\" y1=\"131\" x2=\"120\" y2=\"131\" class=\"o\" style=\"stroke-width:3\"/><line x1=\"152\" y1=\"131\" x2=\"262\" y2=\"131\" class=\"good\" style=\"stroke-width:3\"/><path d=\"M120 122 h26 l6 9 l-6 9 h-26z\" class=\"y\"/><line x1=\"136\" y1=\"140\" x2=\"136\" y2=\"156\" class=\"o\" style=\"stroke-width:3\"/><circle cx=\"136\" cy=\"163\" r=\"6\" class=\"goodf\"/><text x=\"10\" y=\"70\">black = hot</text><text x=\"10\" y=\"110\">white = neutral</text><text x=\"10\" y=\"150\">bare = ground</text><text x=\"268\" y=\"55\">black</text><text x=\"268\" y=\"95\">white</text><text x=\"268\" y=\"135\">green</text><text x=\"150\" y=\"168\" class=\"gd\">pigtail to green screw</text>",
+   "h": 176,
+   "cap": "On a fixture cord with two same-color wires, the ribbed or lettered one is neutral (goes to white). The smooth one is hot."
+  },
+  "switchloop": {
+   "svg": "<text x=\"10\" y=\"14\" class=\"k\">Switch loop: a white wire can be hot</text><rect x=\"40\" y=\"36\" width=\"60\" height=\"44\" rx=\"3\" class=\"bk\"/><rect x=\"100\" y=\"46\" width=\"118\" height=\"6\" class=\"inkf\"/><rect x=\"212\" y=\"46\" width=\"6\" height=\"54\" class=\"inkf\"/><rect x=\"100\" y=\"60\" width=\"104\" height=\"6\" class=\"bk\"/><rect x=\"198\" y=\"60\" width=\"6\" height=\"40\" class=\"bk\"/><rect x=\"194\" y=\"84\" width=\"14\" height=\"8\" class=\"inkf\"/><rect x=\"108\" y=\"57\" width=\"8\" height=\"12\" class=\"inkf\"/><rect x=\"190\" y=\"100\" width=\"60\" height=\"70\" rx=\"3\" class=\"bk\"/><rect x=\"206\" y=\"112\" width=\"28\" height=\"44\" rx=\"3\" class=\"b\"/><text x=\"40\" y=\"96\" class=\"k\">LIGHT BOX</text><text x=\"40\" y=\"108\">power arrives here</text><text x=\"226\" y=\"76\" class=\"ac\">taped white</text><text x=\"226\" y=\"88\">= switched HOT</text><text x=\"10\" y=\"140\">Treat it like a black wire.</text><text x=\"10\" y=\"152\">Reconnect it exactly as before.</text><text x=\"220\" y=\"184\" class=\"k\" text-anchor=\"middle\">SWITCH</text>",
+   "h": 190,
+   "cap": "In a switch loop only two wires run to the switch and both can be hot. Never join a taped white wire to the neutral bundle."
+  },
+  "lever": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Lift, insert, snap down</text><rect x=\"120\" y=\"66\" width=\"80\" height=\"40\" rx=\"4\" class=\"bk\"/><line x1=\"128\" y1=\"100\" x2=\"128\" y2=\"106\" class=\"o\"/><line x1=\"146\" y1=\"100\" x2=\"146\" y2=\"106\" class=\"o\"/><g><rect x=\"10\" y=\"83\" width=\"110\" height=\"7\" class=\"inkf\"/><rect x=\"120\" y=\"84\" width=\"40\" height=\"5\" class=\"y\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"-40 0;-40 0;0 0;0 0\" keyTimes=\"0;0.3;0.55;1\" dur=\"3s\" repeatCount=\"indefinite\"/></g><g><rect x=\"124\" y=\"58\" width=\"76\" height=\"8\" rx=\"3\" class=\"af\"/><animateTransform attributeName=\"transform\" type=\"rotate\" values=\"40 198 62;40 198 62;40 198 62;0 198 62;0 198 62\" keyTimes=\"0;0.3;0.55;0.75;1\" dur=\"3s\" repeatCount=\"indefinite\"/></g><text x=\"210\" y=\"64\" class=\"k\">lever</text><text x=\"210\" y=\"92\">clear body:</text><text x=\"210\" y=\"104\">see copper inside</text><text x=\"122\" y=\"120\">strip gauge</text><text x=\"10\" y=\"146\">Strip to the gauge mark on the side.</text><text x=\"10\" y=\"158\">Tug each wire: it must not pull out.</text>",
+   "h": 166,
+   "title": "Use a lever connector",
+   "cap": "Lever connectors (Wago style) are a good option for joining a solid house wire to a stranded fixture lead. Check the package for the wire sizes it accepts."
+  },
+  "canopy": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Fold, then lift the canopy</text><rect x=\"10\" y=\"40\" width=\"110\" height=\"10\" class=\"b\"/><rect x=\"200\" y=\"40\" width=\"110\" height=\"10\" class=\"b\"/><rect x=\"120\" y=\"20\" width=\"80\" height=\"30\" class=\"bk\"/><rect x=\"200\" y=\"10\" width=\"20\" height=\"30\" class=\"w\"/><path d=\"M130 46 l10 -16 l10 14 l10 -14 l10 14 l10 -14 l10 14\" class=\"o\" fill=\"none\" style=\"stroke-width:2.5\"/><rect x=\"116\" y=\"50\" width=\"88\" height=\"5\" class=\"b\"/><path d=\"M80 56 H240 Q230 96 160 98 Q90 96 80 56 Z\" class=\"tb\"/><line x1=\"130\" y1=\"56\" x2=\"130\" y2=\"66\" class=\"o\"/><line x1=\"190\" y1=\"56\" x2=\"190\" y2=\"66\" class=\"o\"/><text x=\"250\" y=\"84\" class=\"k\">canopy</text><text x=\"10\" y=\"120\">1 Fold the wires into the box in an S.</text><text x=\"10\" y=\"132\">2 Hold the canopy flat to the ceiling.</text><text x=\"10\" y=\"144\">3 No wire pinched at the edge.</text><text x=\"10\" y=\"156\">4 Snug the screws. Do not crack glass.</text>",
+   "h": 164,
+   "cap": "If the canopy will not sit flat, a wire is in the way. Take it down and fold again. Never force it."
+  },
+  "bulb": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Stay under the max wattage</text><rect x=\"20\" y=\"30\" width=\"120\" height=\"50\" rx=\"3\" class=\"y\"/><text x=\"80\" y=\"52\" class=\"k\" text-anchor=\"middle\">MAX 60 WATTS</text><text x=\"80\" y=\"68\" text-anchor=\"middle\">TYPE A</text><text x=\"20\" y=\"100\" class=\"k\">Sticker is inside</text><text x=\"20\" y=\"112\">the socket or canopy</text><circle cx=\"200\" cy=\"54\" r=\"20\" class=\"bk\"/><rect x=\"192\" y=\"72\" width=\"16\" height=\"14\" class=\"b\"/><circle cx=\"276\" cy=\"54\" r=\"20\" class=\"bk\"/><rect x=\"268\" y=\"72\" width=\"16\" height=\"14\" class=\"b\"/><line x1=\"258\" y1=\"36\" x2=\"294\" y2=\"72\" class=\"bad\" style=\"stroke-width:3\"/><line x1=\"294\" y1=\"36\" x2=\"258\" y2=\"72\" class=\"bad\" style=\"stroke-width:3\"/><text x=\"200\" y=\"104\" class=\"gd\" text-anchor=\"middle\">9 W LED</text><text x=\"200\" y=\"116\" text-anchor=\"middle\">(60 W equal)</text><text x=\"276\" y=\"104\" class=\"wa\" text-anchor=\"middle\">100 W</text><text x=\"276\" y=\"116\" text-anchor=\"middle\">too hot</text><text x=\"10\" y=\"146\">On a dimmer? Use bulbs marked dimmable.</text>",
+   "h": 156,
+   "cap": "Count the watts a bulb actually uses, printed on its base. In a closed glass globe, use LEDs rated for enclosed fixtures."
+  },
+  "single": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Single-pole: two brass + ground</text><rect x=\"130\" y=\"30\" width=\"60\" height=\"146\" rx=\"8\" class=\"bk\"/><rect x=\"150\" y=\"82\" width=\"20\" height=\"40\" rx=\"3\" class=\"b\"/><circle cx=\"198\" cy=\"70\" r=\"7\" class=\"y\"/><line x1=\"193\" y1=\"70\" x2=\"203\" y2=\"70\" class=\"o\"/><circle cx=\"198\" cy=\"130\" r=\"7\" class=\"y\"/><line x1=\"193\" y1=\"130\" x2=\"203\" y2=\"130\" class=\"o\"/><circle cx=\"146\" cy=\"162\" r=\"6\" class=\"goodf\"/><line x1=\"205\" y1=\"70\" x2=\"310\" y2=\"70\" class=\"o\" style=\"stroke-width:4\"/><line x1=\"205\" y1=\"130\" x2=\"310\" y2=\"130\" class=\"o\" style=\"stroke-width:4\"/><text x=\"214\" y=\"62\">power in (black)</text><text x=\"214\" y=\"122\">to light (black)</text><rect x=\"20\" y=\"62\" width=\"50\" height=\"6\" class=\"bk\"/><rect x=\"20\" y=\"80\" width=\"50\" height=\"6\" class=\"bk\"/><path d=\"M70 57 h24 l6 17 l-6 17 h-24z\" class=\"y\"/><text x=\"10\" y=\"46\" class=\"k\">neutral bundle</text><text x=\"10\" y=\"108\">whites joined;</text><text x=\"10\" y=\"120\">not on a basic switch</text><text x=\"126\" y=\"166\" class=\"gd\" text-anchor=\"end\">green = ground</text>",
+   "h": 184,
+   "cap": "On a basic switch either black can go on either brass screw. Smart switches also connect to the neutral bundle; basic ones never do."
+  },
+  "threeway": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">3-way: find the COMMON first</text><rect x=\"120\" y=\"30\" width=\"60\" height=\"140\" rx=\"8\" class=\"bk\"/><rect x=\"140\" y=\"80\" width=\"20\" height=\"40\" rx=\"3\" class=\"b\"/><circle cx=\"112\" cy=\"140\" r=\"7\" class=\"inkf\"/><circle cx=\"188\" cy=\"60\" r=\"7\" class=\"y\"/><line x1=\"183\" y1=\"60\" x2=\"193\" y2=\"60\" class=\"o\"/><circle cx=\"188\" cy=\"100\" r=\"7\" class=\"y\"/><line x1=\"183\" y1=\"100\" x2=\"193\" y2=\"100\" class=\"o\"/><circle cx=\"140\" cy=\"158\" r=\"6\" class=\"goodf\"/><line x1=\"112\" y1=\"147\" x2=\"112\" y2=\"196\" class=\"o\" style=\"stroke-width:4\"/><rect x=\"105\" y=\"172\" width=\"14\" height=\"10\" class=\"y\"/><line x1=\"195\" y1=\"60\" x2=\"310\" y2=\"60\" class=\"o\" style=\"stroke-width:4\"/><line x1=\"195\" y1=\"100\" x2=\"310\" y2=\"100\" class=\"o\" style=\"stroke-width:4\"/><text x=\"102\" y=\"138\" class=\"k\" text-anchor=\"end\">COMMON</text><text x=\"102\" y=\"150\" text-anchor=\"end\">dark screw</text><text x=\"102\" y=\"162\" class=\"wa\" text-anchor=\"end\">tape this wire</text><text x=\"206\" y=\"52\">traveler</text><text x=\"206\" y=\"92\">traveler</text><text x=\"200\" y=\"124\" class=\"k\">TRAVELERS</text><text x=\"200\" y=\"136\">light brass screws,</text><text x=\"200\" y=\"148\">either way round</text>",
+   "h": 200,
+   "cap": "The common is the one screw that is a different, darker color (or marked COM). Label its wire before you unhook anything."
+  },
+  "dimmer": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Dimmer with wire leads</text><rect x=\"120\" y=\"30\" width=\"70\" height=\"120\" rx=\"6\" class=\"bk\"/><rect x=\"140\" y=\"46\" width=\"30\" height=\"88\" rx=\"3\" class=\"b\"/><rect x=\"146\" y=\"84\" width=\"18\" height=\"10\" class=\"inkf\"/><line x1=\"190\" y1=\"62\" x2=\"250\" y2=\"62\" class=\"o\" style=\"stroke-width:3\"/><line x1=\"190\" y1=\"100\" x2=\"250\" y2=\"100\" class=\"o\" style=\"stroke-width:3\"/><path d=\"M250 53 h24 l6 9 l-6 9 h-24z\" class=\"y\"/><path d=\"M250 91 h24 l6 9 l-6 9 h-24z\" class=\"y\"/><line x1=\"280\" y1=\"62\" x2=\"316\" y2=\"62\" class=\"o\" style=\"stroke-width:4\"/><line x1=\"280\" y1=\"100\" x2=\"316\" y2=\"100\" class=\"o\" style=\"stroke-width:4\"/><line x1=\"155\" y1=\"150\" x2=\"155\" y2=\"170\" class=\"good\" style=\"stroke-width:3\"/><text x=\"192\" y=\"46\" class=\"k\">black leads</text><text x=\"256\" y=\"124\">house wires</text><text x=\"166\" y=\"172\" class=\"gd\">green lead to ground</text><text x=\"10\" y=\"60\" class=\"k\">LED-compatible</text><text x=\"10\" y=\"72\">check the box</text><text x=\"10\" y=\"96\" class=\"k\">Watt rating</text><text x=\"10\" y=\"108\">at least your</text><text x=\"10\" y=\"120\">total bulb watts</text>",
+   "h": 180,
+   "cap": "Join each lead to a house wire with a wire nut. Follow the dimmer instructions if a lead is marked LINE."
+  },
+  "stopsigns": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">See any of these? Stop.</text><rect x=\"45\" y=\"36\" width=\"14\" height=\"60\" class=\"th\"/><line x1=\"45\" y1=\"46\" x2=\"59\" y2=\"40\" class=\"th-l\"/><line x1=\"45\" y1=\"54\" x2=\"59\" y2=\"48\" class=\"th-l\"/><line x1=\"45\" y1=\"62\" x2=\"59\" y2=\"56\" class=\"th-l\"/><line x1=\"45\" y1=\"70\" x2=\"59\" y2=\"64\" class=\"th-l\"/><line x1=\"45\" y1=\"78\" x2=\"59\" y2=\"72\" class=\"th-l\"/><line x1=\"45\" y1=\"86\" x2=\"59\" y2=\"80\" class=\"th-l\"/><line x1=\"45\" y1=\"94\" x2=\"59\" y2=\"88\" class=\"th-l\"/><line x1=\"52\" y1=\"96\" x2=\"52\" y2=\"104\" class=\"o\" style=\"stroke-width:3\"/><rect x=\"153\" y=\"36\" width=\"14\" height=\"60\" class=\"bk\"/><text x=\"160\" y=\"70\" class=\"k\" text-anchor=\"middle\">AL</text><line x1=\"160\" y1=\"96\" x2=\"160\" y2=\"104\" class=\"o\" style=\"stroke-width:3\"/><rect x=\"258\" y=\"36\" width=\"14\" height=\"60\" class=\"inkf\"/><circle cx=\"265\" cy=\"82\" r=\"10\" class=\"badf\"/><text x=\"55\" y=\"120\" class=\"wa\" text-anchor=\"middle\">cloth / brittle</text><text x=\"55\" y=\"132\" text-anchor=\"middle\">insulation</text><text x=\"160\" y=\"120\" class=\"wa\" text-anchor=\"middle\">aluminum</text><text x=\"160\" y=\"132\" text-anchor=\"middle\">dull silver wire</text><text x=\"265\" y=\"120\" class=\"wa\" text-anchor=\"middle\">scorched</text><text x=\"265\" y=\"132\" text-anchor=\"middle\">melted, brown</text>",
+   "h": 140,
+   "cap": "Old cloth insulation crumbles when bent, aluminum needs special connectors, and scorch marks mean overheating. Each one is a job for an electrician."
+  }
+ },
+ "glossary": [
+  [
+   "Hot",
+   "The black (sometimes red, or a taped white) wire that carries power."
+  ],
+  [
+   "Neutral",
+   "The plain white wire that returns current to the panel."
+  ],
+  [
+   "Ground",
+   "The bare or green safety wire, connected to the green screw."
+  ],
+  [
+   "Switch loop",
+   "Older wiring where power goes to the light first and a two-wire cable runs to the switch. Its white wire is used as a hot and should be marked with black tape."
+  ],
+  [
+   "Neutral bundle",
+   "White wires joined with a wire nut in the back of a switch box. Smart switches connect to it."
+  ],
+  [
+   "Single-pole",
+   "A switch that controls a light from one place. Two brass screws and a green one."
+  ],
+  [
+   "3-way",
+   "Two switches controlling one light. Each has a darker COMMON screw and two brass traveler screws."
+  ],
+  [
+   "Travelers",
+   "The two wires that run between a pair of 3-way switches."
+  ],
+  [
+   "Crossbar / bracket",
+   "The metal strap that screws to the box and holds the fixture."
+  ],
+  [
+   "Canopy",
+   "The fixture's base that sits against the ceiling or wall and covers the box."
+  ],
+  [
+   "Lever connector",
+   "A push-in connector with levers (Wago is a common brand) used instead of a wire nut."
+  ],
+  [
+   "Fan-rated box",
+   "A ceiling box marked as acceptable for fan support. Required for ceiling fans."
+  ]
+ ]
+}

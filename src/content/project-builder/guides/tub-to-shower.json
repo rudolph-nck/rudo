@@ -1,0 +1,1582 @@
+{
+ "slug": "tub-to-shower",
+ "title": "Convert Tub to Shower",
+ "eyebrow": "Bathroom · tub to walk-in shower",
+ "category": "Bathroom",
+ "difficulty": "Advanced",
+ "time": "3-5 weekends",
+ "summary": "Replace a 60\" alcove tub with a walk-in shower: new base, moved 2\" drain, shower-only valve, waterproofed walls with tile or panels, and a glass door or curtain.",
+ "safety": "Shut off water and test that it's off before demo. Wear eye, ear, hand and lung protection. Cast iron tubs weigh 300+ lb: break them up or get help. Test for asbestos and lead in older homes before you break things.",
+ "pro": "the drain has to move (almost always) or the valve changes: that is plumbing work and usually needs a permit and inspection. Hire a pro for a mortar bed pan, a slab floor, rotted joists, or any joist notching.",
+ "questions": [
+  {
+   "id": "base",
+   "label": "Shower base type",
+   "type": "choice",
+   "default": "prefab",
+   "options": [
+    {
+     "v": "prefab",
+     "label": "Prefab acrylic/fiberglass",
+     "hint": "easiest"
+    },
+    {
+     "v": "foam",
+     "label": "Foam pan system",
+     "hint": "tile floor"
+    },
+    {
+     "v": "mortar",
+     "label": "Mortar bed + liner",
+     "hint": "advanced, hire a pro"
+    }
+   ]
+  },
+  {
+   "id": "size",
+   "label": "Base size (width x depth)",
+   "type": "choice",
+   "default": "32",
+   "options": [
+    {
+     "v": "30",
+     "label": "60 x 30"
+    },
+    {
+     "v": "32",
+     "label": "60 x 32"
+    },
+    {
+     "v": "36",
+     "label": "60 x 36",
+     "hint": "may stick out"
+    },
+    {
+     "v": "custom",
+     "label": "Custom"
+    }
+   ]
+  },
+  {
+   "id": "aw",
+   "label": "Alcove width (narrowest)",
+   "type": "number",
+   "unit": "in",
+   "default": 60,
+   "step": 0.25
+  },
+  {
+   "id": "cd",
+   "label": "Custom depth (only if you picked Custom)",
+   "type": "number",
+   "unit": "in",
+   "default": 34,
+   "step": 0.5
+  },
+  {
+   "id": "ht",
+   "label": "How high the wall finish goes",
+   "type": "number",
+   "unit": "in",
+   "default": 84,
+   "step": 1,
+   "hint": "Measured from the base. 84\" is typical; to an 8 ft ceiling is about 92\"."
+  },
+  {
+   "id": "curb",
+   "label": "Curb style",
+   "type": "choice",
+   "default": "standard",
+   "options": [
+    {
+     "v": "standard",
+     "label": "Standard curb"
+    },
+    {
+     "v": "low",
+     "label": "Low threshold"
+    }
+   ]
+  },
+  {
+   "id": "walls",
+   "label": "Wall finish",
+   "type": "choice",
+   "default": "tile",
+   "options": [
+    {
+     "v": "tile",
+     "label": "Tile"
+    },
+    {
+     "v": "panel",
+     "label": "Acrylic/composite panels",
+     "hint": "faster"
+    }
+   ]
+  },
+  {
+   "id": "door",
+   "label": "Door",
+   "type": "choice",
+   "default": "glass",
+   "options": [
+    {
+     "v": "glass",
+     "label": "Glass door"
+    },
+    {
+     "v": "curtain",
+     "label": "Curtain"
+    }
+   ]
+  },
+  {
+   "id": "valve",
+   "label": "Existing valve",
+   "type": "choice",
+   "default": "tub",
+   "options": [
+    {
+     "v": "tub",
+     "label": "Tub/shower valve",
+     "hint": "has a spout"
+    },
+    {
+     "v": "replace",
+     "label": "Replacing the valve"
+    },
+    {
+     "v": "shower",
+     "label": "Already shower-only"
+    }
+   ]
+  }
+ ],
+ "calcs": [
+  {
+   "id": "W",
+   "expr": "Math.min(a.aw,60)"
+  },
+  {
+   "id": "D",
+   "expr": "a.size==='custom'?Number(a.cd):Number(a.size)"
+  },
+  {
+   "id": "floor",
+   "label": "Shower floor",
+   "expr": "Math.round(c.W*c.D/144*10)/10",
+   "fmt": "{{c.floor}} sq ft"
+  },
+  {
+   "id": "wall",
+   "label": "Wall area to cover",
+   "expr": "Math.ceil((c.W+2*c.D)*a.ht/144)",
+   "fmt": "{{c.wall}} sq ft"
+  },
+  {
+   "id": "board",
+   "label": "Backer board",
+   "expr": "Math.ceil(c.wall*1.1/15)",
+   "fmt": "{{c.board}} sheets (3x5)"
+  },
+  {
+   "id": "memb",
+   "label": "Waterproofing area",
+   "expr": "Math.ceil(c.wall+(a.base!=='prefab'?c.floor+c.W*14/144:0))",
+   "fmt": "{{c.memb}} sq ft",
+   "when": "a.walls==='tile'||a.base!=='prefab'"
+  },
+  {
+   "id": "band",
+   "label": "Seam band",
+   "expr": "Math.ceil((2*a.ht+c.W+2*c.D+(a.base!=='prefab'?2*c.W:0))/12*1.1)",
+   "fmt": "about {{c.band}} ft",
+   "when": "a.walls==='tile'||a.base!=='prefab'"
+  },
+  {
+   "id": "tile",
+   "label": "Wall tile to buy",
+   "expr": "Math.ceil(c.wall*1.15)",
+   "fmt": "{{c.tile}} sq ft (+15%)",
+   "when": "a.walls==='tile'"
+  },
+  {
+   "id": "ftile",
+   "label": "Floor + curb tile",
+   "expr": "Math.ceil((c.floor+c.W*14/144)*1.15)",
+   "fmt": "{{c.ftile}} sq ft (+15%)",
+   "when": "a.base!=='prefab'"
+  },
+  {
+   "id": "bags",
+   "label": "Thinset",
+   "expr": "Math.max(1,Math.ceil(((a.walls==='tile'?c.wall:0)+(a.base!=='prefab'?c.floor*2+c.W*14/144:0))/40))",
+   "fmt": "about {{c.bags}} x 50 lb bags",
+   "when": "a.walls==='tile'||a.base!=='prefab'"
+  },
+  {
+   "id": "drain",
+   "label": "Drain to expect",
+   "expr": "a.base==='prefab'?'2\" drain at the spot on the base spec sheet':a.base==='foam'?'The system\\'s own 2\" drain':'2\" clamping drain (pro)'",
+   "fmt": "{{c.drain}}"
+  }
+ ],
+ "calcNote": "Wall area is the back wall plus two side walls up to the height you entered. Floor and curb tile includes the curb (about 14\" of tile across its faces and top). Thinset is a rough guide; check your bag's coverage for your trowel. A drain move nearly always comes with this job.",
+ "overviewFig": [
+  "drains",
+  "prefab"
+ ],
+ "tools": [
+  {
+   "id": "glasses",
+   "c": "Safety",
+   "n": "Safety glasses or goggles",
+   "must": true,
+   "w": "Tile, cast iron and cement board shatter and spray.",
+   "q": "safety glasses"
+  },
+  {
+   "id": "ears",
+   "c": "Safety",
+   "n": "Hearing protection",
+   "must": true,
+   "w": "Demo, saws and sledgehammers are loud.",
+   "q": "ear muffs"
+  },
+  {
+   "id": "resp",
+   "c": "Safety",
+   "n": "Respirator (P100 or N95)",
+   "must": true,
+   "w": "Cement board and thinset dust contain silica; old materials may contain lead or asbestos.",
+   "q": "P100 respirator"
+  },
+  {
+   "id": "gloves",
+   "c": "Safety",
+   "n": "Cut-resistant work gloves",
+   "must": true,
+   "w": "Broken tile, enamel and tub edges are razor sharp.",
+   "q": "cut resistant work gloves"
+  },
+  {
+   "id": "protect",
+   "c": "Prep",
+   "n": "Floor protection (rosin paper or cardboard) and tape",
+   "must": true,
+   "w": "Protects the bathroom floor and the path out of the house.",
+   "q": "rosin paper floor protection"
+  },
+  {
+   "id": "bags",
+   "c": "Prep",
+   "n": "Contractor bags and a shop vacuum",
+   "must": true,
+   "w": "Demo makes a lot of heavy, sharp debris.",
+   "q": "contractor trash bags"
+  },
+  {
+   "id": "pry",
+   "c": "Demo",
+   "n": "Flat bar and hammer",
+   "must": true,
+   "w": "Pulls off the surround, drywall and nails.",
+   "q": "flat pry bar"
+  },
+  {
+   "id": "recip",
+   "c": "Demo",
+   "n": "Reciprocating saw with demolition blades",
+   "must": true,
+   "w": "Cuts drywall, nails and stuck pipe.",
+   "q": "reciprocating saw demolition blade"
+  },
+  {
+   "id": "osc",
+   "c": "Demo",
+   "n": "Oscillating multi-tool",
+   "must": true,
+   "w": "Makes clean cuts close to things you are keeping.",
+   "q": "oscillating multi tool"
+  },
+  {
+   "id": "knife",
+   "c": "Demo",
+   "n": "Utility knife and extra blades",
+   "must": true,
+   "w": "Cuts caulk, drywall paper and membrane.",
+   "q": "utility knife"
+  },
+  {
+   "id": "drainkey",
+   "c": "Demo",
+   "n": "Tub drain removal tool",
+   "must": true,
+   "w": "Unscrews the old tub drain from inside the tub.",
+   "q": "tub drain removal tool"
+  },
+  {
+   "id": "sledge",
+   "c": "Demo",
+   "n": "Sledgehammer (8-10 lb) and a moving blanket",
+   "must": false,
+   "w": "Only for breaking a cast iron tub in place.",
+   "q": "sledgehammer 10 lb"
+  },
+  {
+   "id": "tape",
+   "c": "Measure",
+   "n": "Tape measure, pencil, marker",
+   "must": true,
+   "w": "Everything here depends on measurements.",
+   "q": "tape measure 25 ft"
+  },
+  {
+   "id": "level",
+   "c": "Measure",
+   "n": "Levels: 4 ft and 2 ft (torpedo helps too)",
+   "must": true,
+   "w": "The base must be dead level; jambs and boards plumb.",
+   "q": "4 ft level"
+  },
+  {
+   "id": "square",
+   "c": "Measure",
+   "n": "Framing square",
+   "must": true,
+   "w": "Checks corners and marks cuts.",
+   "q": "framing square"
+  },
+  {
+   "id": "drill",
+   "c": "Power tools",
+   "n": "Drill/driver",
+   "must": true,
+   "w": "Screws, pilot holes and mixing.",
+   "q": "cordless drill driver"
+  },
+  {
+   "id": "base",
+   "c": "Shower",
+   "n": "{{a.base==='prefab'?'Prefab shower base':'Foam shower tray kit'}}, {{c.W}} x {{c.D}}",
+   "must": true,
+   "w": "Order before the plumber moves the drain: the drain spot depends on this exact base.",
+   "q": "{{a.base==='prefab'?'60 x '+(a.size==='custom'?a.cd:a.size)+' shower base '+(a.curb==='low'?'low threshold':''):'Schluter Kerdi shower kit OR Wedi Fundo shower base'}}",
+   "qty": "1",
+   "when": "a.base!=='mortar'"
+  },
+  {
+   "id": "drainkit",
+   "c": "Shower",
+   "n": "Drain made for your base",
+   "must": true,
+   "w": "Prefab bases use a compression or glue-in 2\" drain; foam systems use their own bonded drain.",
+   "q": "{{a.base==='prefab'?'2 inch compression shower drain':'Kerdi drain OR Wedi drain'}}",
+   "qty": "1",
+   "when": "a.base!=='mortar'"
+  },
+  {
+   "id": "curbkit",
+   "c": "Shower",
+   "n": "Foam curb from the same system",
+   "must": true,
+   "w": "Matches the tray height and takes the same membrane.",
+   "q": "{{a.curb==='low'?'low profile shower curb foam':'Kerdi shower curb'}}",
+   "when": "a.base==='foam'"
+  },
+  {
+   "id": "mortarmix",
+   "c": "Shower",
+   "n": "Sand mix or the setting compound the base maker names",
+   "must": true,
+   "w": "Fills every gap under the base so it never flexes.",
+   "q": "sand mix 60 lb",
+   "qty": "2-3 bags (check the base manual)",
+   "when": "a.base==='prefab'"
+  },
+  {
+   "id": "roofnail",
+   "c": "Shower",
+   "n": "Galvanized roofing nails or pan-head screws, plus shims",
+   "must": true,
+   "w": "Fasten the base flange at each stud as the maker shows.",
+   "q": "galvanized roofing nails 1-1/2",
+   "when": "a.base==='prefab'"
+  },
+  {
+   "id": "testplug",
+   "c": "Shower",
+   "n": "Drain test plug (fits your drain)",
+   "must": true,
+   "w": "Seals the drain for the 24-hour flood test.",
+   "q": "2 inch test plug",
+   "when": "a.base!=='prefab'"
+  },
+  {
+   "id": "capkit",
+   "c": "Valve",
+   "n": "Cap or plug for the tub port (valve maker's or plumber's fitting)",
+   "must": true,
+   "w": "Closes off the old tub spout outlet.",
+   "q": "1/2 inch copper cap OR valve tub port plug",
+   "when": "a.valve==='tub'"
+  },
+  {
+   "id": "newvalve",
+   "c": "Valve",
+   "n": "Pressure-balance or thermostatic shower valve",
+   "must": true,
+   "w": "New valve body; anti-scald is required for showers.",
+   "q": "pressure balance shower valve",
+   "when": "a.valve==='replace'"
+  },
+  {
+   "id": "trim",
+   "c": "Valve",
+   "n": "Shower-only trim kit matching the valve brand",
+   "must": true,
+   "w": "Handle and plate without the spout; it must match the valve body.",
+   "q": "shower only trim kit",
+   "qty": "1"
+  },
+  {
+   "id": "arm",
+   "c": "Valve",
+   "n": "Shower arm, flange and plumber's tape",
+   "must": true,
+   "w": "New arm at the new height.",
+   "q": "shower arm and flange"
+  },
+  {
+   "id": "board",
+   "c": "Walls",
+   "n": "{{a.walls==='tile'?'Cement board or foam board (3x5 or equivalent)':'Wall board the panel maker allows (often cement board or mold-resistant board)'}}",
+   "must": true,
+   "w": "Replaces the drywall you remove; the right board for wet walls.",
+   "q": "cement board 1/2 inch 3x5",
+   "qty": "{{c.board}} sheets (3x5)"
+  },
+  {
+   "id": "bscrew",
+   "c": "Walls",
+   "n": "Backer board screws and alkali-resistant mesh tape",
+   "must": true,
+   "w": "Drywall screws rust and mesh made for drywall breaks down in thinset.",
+   "q": "cement board screws"
+  },
+  {
+   "id": "fur",
+   "c": "Walls",
+   "n": "Furring strips or shims",
+   "must": true,
+   "w": "Brings the board out past the base flange so it stays flat.",
+   "q": "1/4 inch furring strip lath"
+  },
+  {
+   "id": "membrane",
+   "c": "Walls",
+   "n": "Waterproofing (liquid membrane or sheet membrane + seam band)",
+   "must": true,
+   "w": "Tile and grout are not waterproof; this layer is.",
+   "q": "{{a.base==='foam'?'Kerdi membrane and Kerdi-Band':'liquid waterproofing membrane shower'}}",
+   "qty": "covers {{c.memb}} sq ft",
+   "when": "a.walls==='tile'||a.base!=='prefab'"
+  },
+  {
+   "id": "niche",
+   "c": "Walls",
+   "n": "Prefab waterproof niche (optional)",
+   "must": false,
+   "w": "A shelf in the wall; foam niches are easiest to waterproof.",
+   "q": "shower niche 12 x 24",
+   "when": "a.walls==='tile'"
+  },
+  {
+   "id": "tile",
+   "c": "Tile",
+   "n": "Wall tile",
+   "must": true,
+   "w": "Includes 15% for cuts and breakage.",
+   "q": "wall tile",
+   "qty": "{{c.tile}} sq ft",
+   "when": "a.walls==='tile'"
+  },
+  {
+   "id": "ftile",
+   "c": "Tile",
+   "n": "Floor tile (2\" mosaic or similar small tile)",
+   "must": true,
+   "w": "Small tile follows the slope and grips wet feet.",
+   "q": "2 inch mosaic tile shower floor",
+   "qty": "{{c.ftile}} sq ft",
+   "when": "a.base!=='prefab'"
+  },
+  {
+   "id": "thinset",
+   "c": "Tile",
+   "n": "Thinset the membrane maker names (50 lb bags)",
+   "must": true,
+   "w": "Wrong thinset can void the waterproofing warranty.",
+   "q": "modified thinset 50 lb",
+   "qty": "about {{c.bags}} bags",
+   "when": "a.walls==='tile'||a.base!=='prefab'"
+  },
+  {
+   "id": "grout",
+   "c": "Tile",
+   "n": "Grout, sponge and float",
+   "must": true,
+   "w": "Fills the joints; sanded or premixed per tile spacing.",
+   "q": "grout float sponge",
+   "when": "a.walls==='tile'||a.base!=='prefab'"
+  },
+  {
+   "id": "trowel",
+   "c": "Tile",
+   "n": "Notched trowels, margin trowel, bucket, mixing paddle",
+   "must": true,
+   "w": "Notch size per tile size; the paddle mixes thinset.",
+   "q": "tile trowel set mixing paddle",
+   "when": "a.walls==='tile'||a.base!=='prefab'"
+  },
+  {
+   "id": "wetsaw",
+   "c": "Tile",
+   "n": "Wet tile saw",
+   "must": true,
+   "w": "Clean cuts on tile edges and around the valve.",
+   "q": "wet tile saw",
+   "rent": true,
+   "when": "a.walls==='tile'||a.base!=='prefab'"
+  },
+  {
+   "id": "panels",
+   "c": "Panels",
+   "n": "Wall panel kit for a {{c.W}} x {{c.D}} alcove",
+   "must": true,
+   "w": "Back and two side panels plus trim, sized for your base.",
+   "q": "shower wall panel kit 60 x {{c.D}}",
+   "qty": "1 kit",
+   "when": "a.walls==='panel'"
+  },
+  {
+   "id": "padh",
+   "c": "Panels",
+   "n": "Panel adhesive the panel maker names",
+   "must": true,
+   "w": "Generic construction adhesive can stain or fail on panels.",
+   "q": "shower panel adhesive",
+   "qty": "usually 4-6 tubes",
+   "when": "a.walls==='panel'"
+  },
+  {
+   "id": "holesaw",
+   "c": "Panels",
+   "n": "Hole saw kit",
+   "must": true,
+   "w": "Clean round holes for the valve and arm.",
+   "q": "hole saw kit",
+   "when": "a.walls==='panel'"
+  },
+  {
+   "id": "silicone",
+   "c": "Finish",
+   "n": "100% silicone sealant (kitchen and bath) and caulk gun",
+   "must": true,
+   "w": "Seals every change of plane where grout would crack.",
+   "q": "100 silicone kitchen bath",
+   "qty": "3 tubes"
+  },
+  {
+   "id": "door",
+   "c": "Finish",
+   "n": "Glass shower door for a {{c.W}}\" opening",
+   "must": true,
+   "w": "Check the width range on the box covers your measured opening.",
+   "q": "sliding glass shower door 60 inch",
+   "when": "a.door==='glass'"
+  },
+  {
+   "id": "bits",
+   "c": "Finish",
+   "n": "Glass-and-tile drill bits + masking tape",
+   "must": true,
+   "w": "Drills tile without cracking it.",
+   "q": "glass and tile drill bit set",
+   "when": "a.door==='glass'"
+  },
+  {
+   "id": "rod",
+   "c": "Finish",
+   "n": "Curved or straight shower rod, curtain and weighted liner",
+   "must": true,
+   "w": "Curtain keeps water in with no drilling into glass.",
+   "q": "curved shower rod",
+   "when": "a.door==='curtain'"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Plan",
+   "steps": [
+    {
+     "id": "p1",
+     "t": "Measure the alcove",
+     "time": "30 min",
+     "idea": "The base has to fit the space you really have, not the size on paper.",
+     "fig": "alcove",
+     "need": [
+      "tape",
+      "level",
+      "square"
+     ],
+     "b": "<ol><li>Pull off the tub's caulk at one end so you can see the walls behind the surround if you need to.</li><li>Measure the back wall width wall-to-wall at the tub rim, about 36\" up and about 72\" up. Write all three down. The smallest one counts.</li><li>Measure the depth (back wall to the open front) at both ends.</li><li>Hold a 4 ft level on each wall. Note any wall that leans more than 1/4\".</li><li>Note where the tub drain is (left or right end) and where the valve and shower head are.</li><li>Look at the bathroom floor in front of the tub. Whatever is under the tub's front apron will be exposed or covered by the new base front. Plan how you will patch it.</li></ol>",
+     "faq": [
+      [
+       "My alcove is 60-3/4\". Will a 60\" base fit?",
+       "Yes. Bases are made a little under 60\" so they slide in. Gaps up to about 1/2\" per side hide behind the wall board, which laps the flange."
+      ],
+      [
+       "Can I go deeper than the tub?",
+       "A 36\" base usually sticks out past 30-32\" alcove walls. You would need to extend the side walls or accept a step-out corner. Many people pick the deepest base that still fits inside the alcove."
+      ]
+     ]
+    },
+    {
+     "id": "p2",
+     "t": "Choose the base and drain position",
+     "time": "1-2 hours",
+     "idea": "The base you buy decides where the drain goes, so pick it before any plumbing work.",
+     "fig": "drains",
+     "need": [
+      "base",
+      "drainkit"
+     ],
+     "b": "<ol><li>Pick the base type. You chose: <b>{{a.base==='prefab'?'prefab acrylic/fiberglass base (easiest)':a.base==='foam'?'foam tile-ready pan system':'traditional mortar bed (pro recommended)'}}</b>.</li><li>Pick the size that fits the narrowest width you measured: you chose <b>{{c.W}}\" x {{c.D}}\"</b>.</li><li>Pick the drain position. Prefab 60\" bases come in center, left or right drain. A drain on the same end as the old tub drain usually means a shorter move, but it still moves.</li><li>Download the base's install manual and spec sheet. Write down the exact drain center (from the back wall and from one side) and the subfloor prep it asks for.</li><li>Pick the curb: {{a.curb==='low'?'a low threshold is easier to step over but lets more water reach the curb, so a door or a good curtain matters':'a standard curb holds water in best and suits sliding doors'}}.</li><li>Order the base now. Lead times can be weeks.</li></ol>",
+     "stop": "Do not let anyone cut drain pipe until the base is on site and you have confirmed its drain location with a tape measure.",
+     "faq": [
+      [
+       "Prefab or foam?",
+       "Prefab is one piece and fastest. Foam systems let you tile the floor and handle custom sizes, but there are more steps and a 24-hour flood test."
+      ],
+      [
+       "Why not a mortar bed?",
+       "It works and lasts, but getting the slopes, liner and weep holes right takes experience. It is the one base type we recommend you hire out."
+      ]
+     ]
+    },
+    {
+     "id": "p3",
+     "t": "Plan the plumbing with a plumber",
+     "time": "1 hour visit",
+     "idea": "Moving the drain and changing the valve is where a licensed plumber usually comes in.",
+     "fig": [
+      "plumbing",
+      "drains"
+     ],
+     "b": "<ol><li>Find out how you can reach the drain: from a basement or crawlspace below, or by cutting open the floor (common on slabs and second floors).</li><li>Show the plumber the base manual with the drain spot.</li><li>Ask: will the new trap be 2\"? Many codes require a 2\" trap and drain for a shower where the tub used 1-1/2\". Check local code.</li><li>Ask: does the trap arm length and slope work with the existing vent? The vent stays; the plumber checks the trap arm stays within its limits.</li><li>Ask whether any joist would be notched or drilled. Joists have strict limits; a plumber or framer should handle that.</li><li>Decide on the valve: {{a.valve==='tub'?'keep the tub/shower valve and cap the tub port':a.valve==='replace'?'replace the valve with a new anti-scald shower valve':'keep the shower-only valve'}}, and the new shower arm height.</li><li>Agree who does what: many people do demo and finish work and hire the plumber for drain and valve.</li></ol>",
+     "faq": [
+      [
+       "Can I move the drain myself?",
+       "Cutting and gluing PVC is learnable, but drain size, slope, trap arm length and venting are code items checked by an inspector. If you do it, get the permit and the inspection."
+      ],
+      [
+       "Slab floor?",
+       "The concrete has to be cut and dug out to move the drain. That is a job for a plumber with a concrete saw and breaker."
+      ]
+     ]
+    },
+    {
+     "id": "p4",
+     "t": "Get permits and order everything",
+     "time": "1-2 hours",
+     "idea": "Drain and valve changes usually need a plumbing permit and inspections.",
+     "b": "<ol><li>Call or check the website of your city or county building department. Ask if a plumbing permit is needed for moving a drain and changing a shower valve. Usually it is.</li><li>Ask which inspections they want: often a rough-in inspection (open walls and floor, new drain and valve) and sometimes a pan or flood test inspection, then a final.</li><li>If your plumber pulls the permit, confirm it is posted before work starts.</li><li>If the house was built before about 1980, test old drywall mud, tile adhesive and floor layers for asbestos before demo. Before 1978, assume lead paint.</li><li>Order the remaining materials from the tools list. Check that the base, drain and trim brands match the manuals.</li></ol>",
+     "faq": [
+      [
+       "Do I really need a permit?",
+       "Most areas require one for drain and valve work. Unpermitted plumbing can cause trouble when you sell or file an insurance claim."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Demolition",
+   "steps": [
+    {
+     "id": "d1",
+     "t": "Shut off water and protect the room",
+     "time": "1 hour",
+     "idea": "Dry, protected work area before anything gets broken.",
+     "need": [
+      "protect",
+      "bags",
+      "drill"
+     ],
+     "b": "<ol><li>Shut off water to the valve: use the valve's built-in stops if it has them, otherwise the main shutoff.</li><li>Open the shower handle to drain the lines and check that no water flows.</li><li>Remove the shower head, tub spout (twist or loosen the set screw underneath) and the valve handle and trim.</li><li>Cover the floor from the tub to the door with rosin paper or cardboard, taped down.</li><li>Stuff a rag in the sink drain and tape plastic over the toilet and vanity.</li><li>Turn off the bathroom fan and shut the door so dust stays in. Open a window.</li></ol>",
+     "stop": "If the shower still runs after you close the shutoff, stop. Find a valve that works before demo; a broken pipe with no shutoff floods the house."
+    },
+    {
+     "id": "d2",
+     "t": "Remove the surround and wall board",
+     "time": "3-6 hours",
+     "idea": "Strip the three walls to bare studs so you can see and fix everything.",
+     "need": [
+      "pry",
+      "recip",
+      "osc",
+      "knife",
+      "glasses",
+      "ears",
+      "resp",
+      "gloves",
+      "bags"
+     ],
+     "ppe": [
+      "Glasses",
+      "Respirator",
+      "Gloves",
+      "Hearing"
+     ],
+     "b": "<ol><li>Cut the caulk where the surround meets the tub with a utility knife.</li><li>Tile: break a hole with a hammer, then pry tiles and backer off in chunks with the flat bar. Panels: pry the panel edge and peel it off the wall.</li><li>Cut the drywall around the alcove at the outside corner so you keep the bathroom walls. Go to the ceiling or to where the new finish will stop.</li><li>Remove the bottom row of drywall outside the alcove only if it covers the tub flange.</li><li>Pull every nail and screw out of the studs.</li><li>Bag debris as you go; tile bags get heavy fast. Keep them under about 40 lb.</li></ol>",
+     "faq": [
+      [
+       "How do I avoid hitting pipes?",
+       "Look behind the valve opening first. Cut with the oscillating tool, shallow (about 1/2\"), near plumbing walls."
+      ],
+      [
+       "Black mold on the studs?",
+       "Small spots on solid wood can be cleaned with detergent and dried. Soft, crumbling wood must be replaced."
+      ]
+     ]
+    },
+    {
+     "id": "d3",
+     "t": "Disconnect the tub drain and overflow",
+     "time": "30-60 min",
+     "idea": "Free the tub from the drain pipe so it can come out.",
+     "need": [
+      "drainkey",
+      "pry",
+      "recip"
+     ],
+     "b": "<ol><li>Remove the overflow cover screws (the round plate on the end wall of the tub).</li><li>Put the drain removal tool into the tub drain crosspiece and turn counterclockwise. Hold it with pliers or a wrench for leverage.</li><li>From below, or through the access panel, loosen the slip nut that joins the tub drain shoe to the trap.</li><li>No access? The drain and overflow pieces come out with the tub. Cut the pipe below the tub with the saw only after the tub is lifted a little.</li><li>Stuff a rag in the open drain pipe and tape over it so no debris or sewer gas gets in.</li></ol>",
+     "faq": [
+      [
+       "The drain won't turn.",
+       "Heat the crosspiece with a hair dryer, use penetrating oil, or cut the crosspiece and use an internal drain extractor."
+      ]
+     ]
+    },
+    {
+     "id": "d4",
+     "t": "Remove the tub",
+     "time": "1-3 hours",
+     "idea": "A steel or acrylic tub carries out; a cast iron one usually gets broken in place.",
+     "need": [
+      "pry",
+      "recip",
+      "sledge",
+      "glasses",
+      "ears",
+      "gloves"
+     ],
+     "ppe": [
+      "Glasses",
+      "Hearing",
+      "Gloves"
+     ],
+     "b": "<ol><li>Find the tub flange (the lip along the walls). Remove the nails or screws through it, or cut them with the multi-tool.</li><li>Test the material: a magnet sticks to steel and cast iron. Tap it: cast iron sounds dull and the tub won't budge. Acrylic and fiberglass flex.</li><li><b>Acrylic or fiberglass:</b> slide it out and carry it with a helper. You can cut it in half with the saw to fit through doors.</li><li><b>Steel:</b> lift with a pry bar under the front lip, slide out on cardboard, carry with a helper (about 60-120 lb).</li><li><b>Cast iron (300+ lb):</b> cover the tub with a moving blanket, wear glasses, hearing protection, long sleeves and gloves, and hit the side wall with a sledgehammer until it cracks. Carry pieces out. Or hire a junk hauler with a crew.</li><li>Pull the tub's ledger board or support frame off the studs and vacuum the floor.</li></ol>",
+     "stop": "Never try to lift a cast iron tub alone or down stairs without a plan. Shards are razor sharp; old enamel can contain lead, so don't grind it.",
+     "faq": [
+      [
+       "Can I keep the cast iron tub whole?",
+       "Yes, with 3-4 strong helpers and a dolly. Some scrap yards will take it."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Rough-in",
+   "steps": [
+    {
+     "id": "r1",
+     "t": "Inspect and repair the subfloor",
+     "time": "1-4 hours",
+     "idea": "Floors under tubs often rot from slow leaks; the base needs solid, flat support.",
+     "need": [
+      "level",
+      "recip",
+      "osc",
+      "drill"
+     ],
+     "b": "<ol><li>Vacuum and look at the floor where the tub sat. Dark stains, soft spots or a screwdriver that sinks in mean rot.</li><li>Cut out bad sections back to the center of joists, with the saw set to the subfloor depth.</li><li>Add 2x blocking between joists at any seam that doesn't land on a joist.</li><li>Glue and screw in new plywood the same thickness as the old.</li><li>Check flatness with a 4 ft level and compare to the base maker's limit (often about 1/8\" in 4 ft). Plane high spots, fill low ones as the maker allows.</li><li>Check that the floor is level side to side and front to back. Prefab and foam bases need a level floor; the slope is built into them.</li></ol>",
+     "faq": [
+      [
+       "The joist is soft too.",
+       "Stop and get a carpenter. Joists can be sistered (a new one bolted alongside), but they carry the shower full of water and you."
+      ]
+     ]
+    },
+    {
+     "id": "r2",
+     "t": "Move the drain (plumber)",
+     "time": "2-6 hours",
+     "idea": "New 2\" drain and trap right under the base drain opening.",
+     "fig": [
+      "plumbing",
+      "drainht"
+     ],
+     "need": [
+      "tape",
+      "drainkit"
+     ],
+     "stop": "Drain center and pipe height are the two numbers that can't be fixed later without tearing the base back out. Check both against the base itself, not just the manual.",
+     "b": "<ol><li>Set the base in place dry and mark the drain center on the subfloor. Remove the base.</li><li>The plumber cuts a hole at the mark, removes the old tub trap and runs a new 2\" trap and trap arm to the existing drain and vent (check local code for sizes).</li><li>{{a.base==='prefab'?'For a compression drain, the pipe stub is cut to the height the drain maker states above the subfloor. For a glue-in drain, the drain body is glued to the pipe from below after the base is set.':a.base==='foam'?'For a foam system, the pipe is cut and glued into the system drain body, which must sit at the height the tray manual states.':'For a mortar bed, a two-piece clamping drain is set at the height of the planned pre-slope and liner.'}}</li><li>The plumber tests the new drain lines (water or air test) as the inspector requires.</li><li>Leave access to the trap from below if you can; many areas require an access panel for slip-joint traps.</li></ol>",
+     "faq": [
+      [
+       "What if I can't get below?",
+       "Then the floor is opened between the joists, the drain is run, and the floor is patched with new plywood and blocking."
+      ],
+      [
+       "Can the trap stay 1-1/2\"?",
+       "Some areas allow it for some showers, many don't. Check local code; 2\" is the safe choice."
+      ]
+     ]
+    },
+    {
+     "id": "r3",
+     "t": "Convert the valve",
+     "time": "1-3 hours",
+     "idea": "The valve becomes shower-only: no spout, new trim, anti-scald protection.",
+     "fig": "valve",
+     "need": [
+      "capkit",
+      "newvalve",
+      "trim"
+     ],
+     "b": "<ol><li>{{a.valve==='tub'?'Cut the pipe from the tub port and cap it, or install the valve maker\\'s plug in the tub port. Read the valve manual first; some valves need a specific plug.':a.valve==='replace'?'Replace the valve with a pressure-balance or thermostatic shower valve. The plumber solders, crimps or presses it in.':'Your valve is already shower-only. Check it is a pressure-balance or thermostatic type, and replace the cartridge if it drips.'}}</li><li>Check the valve's depth: new board plus tile or panels must fall inside the range printed on the plaster guard. Thicker walls may need a deeper valve or an extension kit.</li><li>Add a 2x blocking behind the valve so it can't move when you turn the handle.</li><li>Turn the water back on for a pressure test. Look for drips at every joint for 15 minutes, with the cap on and the shower outlet capped or a test plug in.</li></ol>",
+     "timers": [
+      [
+       "Valve leak check",
+       15
+      ]
+     ],
+     "faq": [
+      [
+       "What is anti-scald?",
+       "A pressure-balance or thermostatic valve keeps the water temperature steady when someone flushes a toilet. Showers generally must have one."
+      ],
+      [
+       "Can I just leave the spout off?",
+       "No. Without a cap, the tub port sprays water inside the wall."
+      ]
+     ]
+    },
+    {
+     "id": "r4",
+     "t": "Raise the shower arm",
+     "time": "1 hour",
+     "idea": "With the wall open, set the head where tall people won't duck.",
+     "fig": "headht",
+     "need": [
+      "arm",
+      "tape",
+      "drill"
+     ],
+     "b": "<ol><li>Measure from the finished floor of the new base, not the old tub bottom.</li><li>Mark the new arm height, often about 80\". Taller household? Go higher; check the ceiling.</li><li>The plumber extends the riser pipe from the valve and moves the drop-ear elbow to the new height.</li><li>Screw the drop-ear elbow to a 2x blocking between the studs so the arm can't wobble.</li><li>Thread a short test nipple or the arm on with tape so the wall board can be fitted around it.</li></ol>"
+    },
+    {
+     "id": "r5",
+     "t": "Add blocking and frame the niche",
+     "time": "1-2 hours",
+     "idea": "Wood behind the wall where the door, grab bars and shelf will go.",
+     "need": [
+      "drill",
+      "level",
+      "tape"
+     ],
+     "b": "<ol><li>Add 2x blocking between studs where a grab bar could go later (about 33-36\" high on the back wall).</li><li>{{a.door==='glass'?'Add a stud or blocking where each door jamb will screw on, so the screws hit wood behind the tile.':'Add blocking at the rod height (about 76-80\") on both side walls for a screw-in rod.'}}</li><li>{{a.walls==='tile'?'Frame the niche opening between two studs if you want one, sized for the prefab niche or tile layout. Keep it off the outside wall in cold climates.':'Panels usually have no niche; use a corner shelf or caddy.'}}</li><li>Check all three walls for flat and plumb with the 4 ft level. Shim or sister crooked studs now.</li><li>Take photos of all pipes and blocking with a tape in the shot before walls close.</li></ol>"
+    },
+    {
+     "id": "r6",
+     "t": "Rough-in inspection",
+     "time": "wait",
+     "idea": "The inspector checks drain, vent, trap and valve before anything gets covered.",
+     "wait": "Inspection date",
+     "b": "<ol><li>Book the rough-in inspection once the drain and valve are done and tested.</li><li>Leave walls and floor open. Don't install the base yet unless your inspector says so.</li><li>Leave the permit card posted where the inspector can see it.</li><li>Fix anything on the correction list and ask for a re-check.</li></ol>",
+     "faq": [
+      [
+       "Does the base go in before inspection?",
+       "Ask your inspector. Some want to see the drain uncovered; some inspect the shower pan as a separate step."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Set the base",
+   "steps": [
+    {
+     "id": "b1",
+     "t": "Dry-fit the base and check the drain height",
+     "time": "1 hour",
+     "idea": "Prove it all fits before mortar or glue makes it permanent.",
+     "when": "a.base==='prefab'",
+     "fig": "drainht",
+     "need": [
+      "base",
+      "drainkit",
+      "level",
+      "tape"
+     ],
+     "stop": "Do not mix mortar until the base sits level, the drain lines up and the pipe height matches the drain maker's number.",
+     "b": "<ol><li>Install the drain body in the base as its manual says (gasket, nut, hand-tight plus the turn it states).</li><li>Set the base into the alcove over the pipe. Push it tight to the back wall and both studs.</li><li>Check it is level across the front, the back and both sides.</li><li>Look down the drain: the pipe should sit centered and inside the drain body.</li><li>Mark the floor along the base front edge and mark each stud at the flange top.</li><li>Lift it out. If the pipe is too long, trim it now; too short means the plumber must add a coupling.</li></ol>"
+    },
+    {
+     "id": "b2",
+     "t": "Set the prefab base in mortar and fasten it",
+     "time": "2 hours + cure",
+     "idea": "Full support under the base stops flexing and cracks; the flange gets fastened at every stud.",
+     "when": "a.base==='prefab'",
+     "fig": [
+      "setbase",
+      "prefab"
+     ],
+     "need": [
+      "mortarmix",
+      "roofnail",
+      "level",
+      "trowel"
+     ],
+     "help": [
+      "mixHelp"
+     ],
+     "timers": [
+      [
+       "Mortar set under base (check bag)",
+       1440
+      ]
+     ],
+     "stop": "Never drive a nail or screw through the base flange where the maker doesn't show one. A hole in the flange below the water line is a leak.",
+     "b": "<ol><li>Mix sand mix (or the maker's compound) stiff, like packed brown sugar.</li><li>Pile it on the subfloor where the manual shows, usually mounds or a full bed about 1\"-2\" high. Keep it away from the drain hole.</li><li>Set the base straight down on the marks. Press it down evenly and stand on it in socks, checking level after each push.</li><li>Shim behind the flange at each stud so the base doesn't pull sideways.</li><li>Fasten at each stud exactly as the manual shows: through pre-drilled holes, or with roofing nail heads lapping over the flange top.</li><li>Tighten the compression drain nut with the tool from the kit.</li><li>Cover the base with cardboard and tape. Don't stand in it until the mortar cures.</li></ol>",
+     "faq": [
+      [
+       "Do all bases need mortar?",
+       "No. Some have built-in feet or a leveling system. Do exactly what your base manual says; skipping mortar under a base that needs it often voids the warranty."
+      ]
+     ]
+    },
+    {
+     "id": "b3",
+     "t": "Set the foam tray and drain",
+     "time": "2-3 hours",
+     "idea": "The sloped foam tray and its drain are bonded to the floor in one flat, full bed of thinset.",
+     "when": "a.base==='foam'",
+     "fig": "foam",
+     "need": [
+      "base",
+      "drainkit",
+      "thinset",
+      "trowel",
+      "level"
+     ],
+     "help": [
+      "mixHelp"
+     ],
+     "b": "<ol><li>Dry-fit the tray. Cut it to size with a long knife or saw if your kit allows trimming, from the edges the manual says.</li><li>Install the drain body on the 2\" pipe at the height the manual gives. Many systems also want it supported by mortar or thinset under its flange.</li><li>Mix the thinset the system calls for. Comb it onto the subfloor with the notch size from the manual.</li><li>Set the tray onto the drain and press it into the thinset. Walk on it gently to bed it; check there are no hollow spots by tapping.</li><li>Check the tray's top edges are level all around.</li></ol>",
+     "faq": [
+      [
+       "Can I use any thinset?",
+       "Use the one the system names. Waterproofing warranties depend on it."
+      ]
+     ]
+    },
+    {
+     "id": "b4",
+     "t": "Install the curb and seal the membrane",
+     "time": "2-4 hours",
+     "idea": "The curb, tray, drain and wall joints become one waterproof tub.",
+     "when": "a.base==='foam'",
+     "fig": [
+      "curb",
+      "foam"
+     ],
+     "need": [
+      "curbkit",
+      "membrane",
+      "thinset",
+      "trowel",
+      "knife"
+     ],
+     "help": [
+      "bandHelp",
+      "mixHelp"
+     ],
+     "b": "<ol><li>Cut the curb to the opening width and set it in thinset on the subfloor, tight against the tray edge.</li><li>{{a.curb==='low'?'A low curb holds less water: make sure the tray slope runs away from it and plan a door or curtain that keeps spray in.':'Check the curb is level along its length.'}}</li><li>If your system needs membrane over the tray, comb thinset on and press the membrane in with a flat trowel, working out air.</li><li>Seal every seam: tray to wall, tray to curb, inside and outside corners and the drain flange, with the system's band or sealant. Overlap at least 2\".</li><li>Run the waterproofing up the curb, over the top and down the outside.</li><li>Let it cure as the system says before the flood test.</li></ol>"
+    },
+    {
+     "id": "b5",
+     "t": "Mortar bed: what the pro does",
+     "time": "1-2 days (pro)",
+     "idea": "Know what a correct traditional pan looks like so you can check the work.",
+     "when": "a.base==='mortar'",
+     "fig": [
+      "mortar",
+      "curb"
+     ],
+     "b": "<ol><li>Clamping drain lower half set at the right height and glued to the 2\" pipe.</li><li>Pre-slope: mortar sloped about 1/4\" per foot from the walls to the drain, under the liner.</li><li>Liner (PVC or CPE) laid on the pre-slope, folded (not cut) in the corners, run up the walls above the curb, and clamped in the drain. No nails low on the walls.</li><li>Flood test of the liner for 24 hours (and often an inspection).</li><li>Weep holes protected with gravel or tile chips, then the sloped mortar bed packed on top.</li><li>Tile goes on the cured mortar bed.</li></ol>",
+     "faq": [
+      [
+       "Can I do it myself?",
+       "Experienced DIYers do, but it is the least forgiving base. For a first shower, hire it out and do the demo and finish work."
+      ]
+     ]
+    },
+    {
+     "id": "b6",
+     "t": "Protect the base",
+     "time": "15 min",
+     "idea": "Every later step drops tools and tile on it.",
+     "need": [
+      "protect"
+     ],
+     "b": "<ol><li>Lay cardboard over the base floor and tape it to the base edges (not to unprotected acrylic with strong tape: use painter's tape).</li><li>Put a plastic cap or tape over the drain so thinset and screws can't fall in.</li><li>Keep a bucket out of the shower when mixing.</li></ol>"
+    }
+   ]
+  },
+  {
+   "name": "Walls",
+   "steps": [
+    {
+     "id": "w1",
+     "t": "Fur out and hang the backer board",
+     "time": "3-5 hours",
+     "idea": "Board laps over the base flange and stays flat and plumb.",
+     "fig": "prefab",
+     "need": [
+      "board",
+      "bscrew",
+      "fur",
+      "drill",
+      "level",
+      "knife",
+      "resp"
+     ],
+     "ppe": [
+      "Respirator",
+      "Glasses"
+     ],
+     "stop": "The board must overlap the base flange and stop about 1/4\" above the base deck. Board touching the deck wicks water up into the wall.",
+     "b": "<ol><li>Hold a level on each stud over the base flange. If the board would kick out at the flange, add furring strips or shims as thick as the flange to each stud above it.</li><li>Cut board to size: score cement board with a knife twice and snap it, or use a saw with a dust shroud outside. Wear a respirator.</li><li>Hang the bottom pieces first, resting on 1/4\" spacers on the base deck so they clear it.</li><li>Screw every 8\" into studs with backer screws, heads flush. Keep screws above the flange top.</li><li>Cut holes for the valve and arm about 1/4\" bigger than the pipes.</li><li>Tape seams with alkali-resistant mesh tape and thinset (or the foam board's own seam system).</li></ol>",
+     "faq": [
+      [
+       "Can I use drywall or green board?",
+       "Not behind tile in a shower. For panels, some makers allow mold-resistant board; read the panel manual."
+      ],
+      [
+       "Foam board instead?",
+       "Yes. Foam boards (Kerdi-Board, Wedi) are light and waterproof; seal seams with their own band or sealant."
+      ]
+     ]
+    },
+    {
+     "id": "w2",
+     "t": "Waterproof the walls",
+     "time": "2-3 hours + cure",
+     "idea": "A waterproof skin behind the tile that sheds water onto the base or into the pan.",
+     "when": "a.walls==='tile'||a.base!=='prefab'",
+     "fig": [
+      "prefab",
+      "foam"
+     ],
+     "need": [
+      "membrane",
+      "trowel",
+      "knife"
+     ],
+     "help": [
+      "bandHelp"
+     ],
+     "timers": [
+      [
+       "Membrane coat dry (check pail)",
+       120
+      ]
+     ],
+     "b": "<ol><li>Vacuum the board; dust stops the membrane sticking.</li><li>Band every corner, seam and the board-to-base joint first.</li><li>{{a.base==='prefab'?'Tie in to the prefab base the way the membrane maker says: often a sealant bead on the flange with membrane lapped over it, stopping just above the deck.':a.base==='foam'?'Lap the wall membrane over the pan membrane by at least 2\" so water always runs onto the layer below.':'The pro laps the wall waterproofing or vapor barrier over the liner, never behind it.'}}</li><li>Liquid membrane: roll or brush two coats to the thickness on the pail (many have a wet-film gauge or color change). Sheet: set in thinset, overlap 2\".</li><li>Seal around the valve and arm with the maker's pipe seals.</li><li>Waterproof the niche on all inside faces.</li></ol>",
+     "faq": [
+      [
+       "How high does the membrane go?",
+       "At least as high as the shower head; many people go to the ceiling. Follow the maker and your local code."
+      ]
+     ]
+    },
+    {
+     "id": "w3",
+     "t": "Flood test before tile",
+     "time": "30 min + 24 hours",
+     "idea": "Prove the pan is watertight while fixing it is still easy.",
+     "when": "a.base!=='prefab'",
+     "fig": "flood",
+     "need": [
+      "testplug",
+      "tape"
+     ],
+     "timers": [
+      [
+       "Flood test",
+       1440
+      ]
+     ],
+     "stop": "Do not tile until the pan passes a full 24-hour flood test. A leak found after tile means tearing it all out.",
+     "b": "<ol><li>Seal the drain with the test plug. Make sure the membrane is fully cured.</li><li>Fill with water to about 1\" below the curb top (or as your inspector asks).</li><li>Put tape on the wall at the water line and mark it.</li><li>Wait 24 hours. Check below (basement or ceiling) for drips a few times.</li><li>The level should be at the mark (a tiny drop from evaporation is normal).</li><li>Drain it by slowly releasing the plug. Book the pan inspection if your area wants one.</li></ol>",
+     "faq": [
+      [
+       "The level dropped.",
+       "Find the leak: usually a corner, the drain flange or the curb. Dry it, repair with band or sealant, and test again for 24 hours."
+      ]
+     ]
+    },
+    {
+     "id": "w4",
+     "t": "Tile the walls",
+     "time": "1-2 days",
+     "idea": "Same as any tub surround, except the first row sits above the base with a silicone gap.",
+     "when": "a.walls==='tile'",
+     "fig": "prefab",
+     "need": [
+      "tile",
+      "thinset",
+      "trowel",
+      "wetsaw",
+      "level"
+     ],
+     "help": [
+      "mixHelp"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "b": "<ol><li>See the <b>Tub Shower Tile Build</b> guide for layout, cutting and setting technique. The order is the same here.</li><li>Find the base's highest point. Set a straight ledger board on the wall so the first row's bottom edge sits about 1/8\" above the base or floor tile.</li><li>Tile the back wall, then the side walls, from the ledger up.</li><li>Remove the ledger, then cut and set the bottom row, keeping the 1/8\" gap with spacers.</li><li>Keep the gap at the base and every inside corner free of thinset: it gets silicone, not grout.</li><li>Tile the niche, then let the thinset cure before grouting.</li></ol>",
+     "timers": [
+      [
+       "Thinset cure before grout (check bag)",
+       1440
+      ]
+     ]
+    },
+    {
+     "id": "w5",
+     "t": "Tile the floor and curb",
+     "time": "half day",
+     "idea": "Small tile follows the slope to the drain and covers the curb.",
+     "when": "a.base!=='prefab'",
+     "fig": "curb",
+     "need": [
+      "ftile",
+      "thinset",
+      "trowel",
+      "wetsaw"
+     ],
+     "help": [
+      "mixHelp"
+     ],
+     "b": "<ol><li>Set the drain grate height so the tile's top will be flush with it.</li><li>Start at the drain and work out to the walls. Cut tile around the drain neatly; use small pieces near it.</li><li>Comb thinset with the notch size for your tile. Back-butter mosaic sheets if the maker says.</li><li>Tile the curb: inside face, outside face, then the top piece sloped slightly into the shower.</li><li>Check for lippage (edges sticking up) with your hand; flatten as you go.</li></ol>",
+     "timers": [
+      [
+       "Thinset cure before grout (check bag)",
+       1440
+      ]
+     ]
+    },
+    {
+     "id": "w6",
+     "t": "Grout",
+     "time": "2-4 hours",
+     "idea": "Fill the joints, but leave changes of plane for silicone.",
+     "when": "a.walls==='tile'||a.base!=='prefab'",
+     "need": [
+      "grout"
+     ],
+     "b": "<ol><li>Mix grout to peanut-butter thickness (or open premixed grout).</li><li>Spread it diagonally across joints with the float held at 45 degrees.</li><li>Leave the base gap and inside corners empty, or rake grout out of them.</li><li>Wipe with a damp, wrung-out sponge after the time on the bag.</li><li>Buff off haze with a dry cloth later.</li></ol>",
+     "timers": [
+      [
+       "Grout wipe window (check bag)",
+       20
+      ]
+     ]
+    },
+    {
+     "id": "w7",
+     "t": "Install the wall panels",
+     "time": "4-6 hours",
+     "idea": "Back panel first, then the sides, glued to flat board and sealed at every joint.",
+     "when": "a.walls==='panel'",
+     "fig": "panels",
+     "need": [
+      "panels",
+      "padh",
+      "holesaw",
+      "silicone",
+      "level"
+     ],
+     "help": [
+      "siliconeHelp"
+     ],
+     "b": "<ol><li>Read the panel manual. Some need furring strips or a primer on the board.</li><li>Dry-fit the back panel. It sits on the base flange with about 1/8\" gap above the deck.</li><li>Measure valve and arm holes from the corner and floor, mark the panel face, and cut with a hole saw from the face side.</li><li>Apply adhesive in the pattern shown (often beads or dabs every few inches). Press the panel in and roll or tap it flat.</li><li>Set the side panels so they overlap or slide into the back panel's trim.</li><li>Brace with tape or strips until the adhesive sets (check tube).</li><li>Silicone the corners and bottom edge as the maker shows.</li></ol>",
+     "timers": [
+      [
+       "Panel adhesive set (check tube)",
+       1440
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Finish",
+   "steps": [
+    {
+     "id": "f1",
+     "t": "Silicone every change of plane",
+     "time": "1 hour",
+     "idea": "Joints where surfaces meet move a little; silicone flexes, grout cracks.",
+     "fig": "prefab",
+     "need": [
+      "silicone",
+      "knife"
+     ],
+     "help": [
+      "siliconeHelp"
+     ],
+     "timers": [
+      [
+       "Silicone cure (check tube)",
+       1440
+      ]
+     ],
+     "b": "<ol><li>Clean the joints: base-to-wall, inside corners, around the niche and curb, door jambs later.</li><li>Tape both sides of each joint with painter's tape, about 1/8\" from it.</li><li>Run a steady bead, smooth it with a wet finger, pull the tape at once.</li><li>Leave it alone for the cure time on the tube before any water.</li></ol>"
+    },
+    {
+     "id": "f2",
+     "t": "Install valve trim and shower head",
+     "time": "1 hour",
+     "idea": "Finish the plumbing you roughed in.",
+     "fig": "valve",
+     "need": [
+      "trim",
+      "arm",
+      "silicone"
+     ],
+     "b": "<ol><li>Remove the plaster guard. Slide on the trim plate with its gasket and screw it on.</li><li>Install the handle; set the hot limit stop so the hottest water is safe (often about 120°F; read the trim manual).</li><li>Wrap the arm threads with tape clockwise and screw it into the elbow. Slide on the flange.</li><li>Screw on the shower head hand-tight.</li><li>Run the water: check for drips at the arm and behind the trim plate.</li></ol>",
+     "faq": [
+      [
+       "Water is too hot or cold at full.",
+       "Adjust the rotational limit stop under the handle, as the trim manual shows."
+      ]
+     ]
+    },
+    {
+     "id": "f3",
+     "t": "Install the glass door",
+     "time": "3-5 hours",
+     "idea": "Plumb wall jambs, a sealed track and heavy glass handled by two people.",
+     "when": "a.door==='glass'",
+     "fig": [
+      "door",
+      "curb"
+     ],
+     "need": [
+      "door",
+      "bits",
+      "drill",
+      "level",
+      "silicone"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "help": [
+      "drillHelp"
+     ],
+     "b": "<ol><li>Measure the opening at the bottom, middle and top. Confirm the door's width range covers it.</li><li>Cut the bottom track to length if needed and set it on the curb as the manual shows.</li><li>Hold each wall jamb on the tile, plumb on its face and side. Mark the holes.</li><li>Drill the tile through masking tape with a glass-and-tile bit, slow, with no hammer mode. Insert the anchors.</li><li>Screw the jambs on. Hang the glass with a helper; it is heavy and shatters if an edge is hit.</li><li>Adjust rollers or hinges so the door runs smooth and closes square.</li><li>Silicone the jambs and track on the outside only, unless the maker says otherwise.</li></ol>",
+     "stop": "Never strike tempered glass edges or corners. A chipped edge can shatter the whole panel later."
+    },
+    {
+     "id": "f4",
+     "t": "Hang the curtain rod",
+     "time": "30 min",
+     "idea": "A curtain is the simple, no-drill-into-glass option.",
+     "when": "a.door==='curtain'",
+     "need": [
+      "rod",
+      "drill",
+      "level"
+     ],
+     "help": [
+      "drillHelp"
+     ],
+     "b": "<ol><li>Mark the rod height at the blocking you added, level side to side.</li><li>Drill the tile for the brackets, or use a tension rod if you'd rather not drill.</li><li>Use a weighted liner that hangs inside the curb.</li><li>{{a.curb==='low'?'With a low threshold, a curved rod and a longer liner keep more water in.':'Let the liner drop inside the curb so water runs back to the drain.'}}</li></ol>"
+    },
+    {
+     "id": "f5",
+     "t": "Water test, final inspection, first shower",
+     "time": "1 hour",
+     "idea": "Make sure nothing leaks before the shower goes into daily use.",
+     "fig": "flood",
+     "need": [
+      "silicone"
+     ],
+     "b": "<ol><li>Wait for the silicone, grout and adhesive cure times.</li><li>Run the shower for 10 minutes aimed at each wall and the door.</li><li>Check below for drips, and the outside of the door and curb for water.</li><li>Book the final inspection if your permit needs one.</li><li>Seal grout with a penetrating sealer if the grout maker recommends it.</li><li>Patch and paint the bathroom walls and floor where the tub used to meet them.</li></ol>",
+     "faq": [
+      [
+       "Water under the door.",
+       "Check the track is level and the drip rail or sweep is installed; re-silicone the outside of the track."
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "days": [
+  {
+   "t": "Plan, permit and order",
+   "ids": [
+    "p1",
+    "p2",
+    "p3",
+    "p4"
+   ],
+   "wait": "Base and parts arrive; permit issued"
+  },
+  {
+   "t": "Demolition",
+   "ids": [
+    "d1",
+    "d2",
+    "d3",
+    "d4"
+   ],
+   "wait": "Natural break: room is to studs"
+  },
+  {
+   "t": "Floor, drain and valve",
+   "ids": [
+    "r1",
+    "r2",
+    "r3",
+    "r4",
+    "r5",
+    "r6"
+   ],
+   "wait": "Rough-in inspection"
+  },
+  {
+   "t": "Set the base",
+   "ids": [
+    "b1",
+    "b2",
+    "b3",
+    "b4",
+    "b5",
+    "b6"
+   ],
+   "wait": "Mortar or thinset cures (about 24 hours)"
+  },
+  {
+   "t": "Board and waterproofing",
+   "ids": [
+    "w1",
+    "w2",
+    "w3"
+   ],
+   "wait": "Membrane cures; foam/mortar pans need a 24-hour flood test"
+  },
+  {
+   "t": "Tile or panels",
+   "ids": [
+    "w4",
+    "w5",
+    "w6",
+    "w7"
+   ],
+   "wait": "Thinset cures before grout; grout and adhesive cure"
+  },
+  {
+   "t": "Finish and test",
+   "ids": [
+    "f1",
+    "f2",
+    "f3",
+    "f4",
+    "f5"
+   ],
+   "wait": "Silicone cures 24 hours before the first shower"
+  }
+ ],
+ "help": {
+  "mixHelp": {
+   "t": "Mix thinset or mortar",
+   "b": "<ol><li>Pour clean water into the bucket first (amount on the bag).</li><li>Add powder while mixing with a paddle at low speed.</li><li>Mix until smooth like thick peanut butter, with no lumps.</li><li>Let it rest (slake) the minutes on the bag, then mix briefly again.</li><li>Mix only what you can use in about 30 minutes. Never add water to stiffening mortar.</li></ol>"
+  },
+  "bandHelp": {
+   "t": "Seal seams and corners",
+   "fig": "foam",
+   "b": "<ol><li>Cut band to length; pre-fold corner pieces.</li><li>Spread thinset or sealant (whichever the system uses) wider than the band.</li><li>Press the band in with a flat trowel from the center out, squeezing out air.</li><li>Overlap band ends and other membrane pieces at least 2\".</li><li>Lap so water always runs over a seam, never into it: upper pieces over lower ones.</li></ol>"
+  },
+  "siliconeHelp": {
+   "t": "Run a silicone bead",
+   "fig": "prefab",
+   "b": "<ol><li>Clean and dry the joint; wipe with rubbing alcohol.</li><li>Tape both sides about 1/8\" away from the joint.</li><li>Cut the tube tip small at 45 degrees; push a steady bead into the joint.</li><li>Smooth with a wet fingertip in one pass.</li><li>Pull the tape immediately, away from the bead.</li></ol>"
+  },
+  "drillHelp": {
+   "t": "Drill through tile",
+   "fig": "door",
+   "b": "<ol><li>Put masking tape over the spot and mark it.</li><li>Use a glass-and-tile (carbide spear) or diamond bit. Turn hammer mode off.</li><li>Start slow at a slight angle to make a dimple, then straighten up.</li><li>Light pressure; keep the bit cool with a few drops of water.</li><li>Through the tile, finish with a regular bit for the anchor.</li></ol>"
+  }
+ },
+ "figs": {
+  "alcove": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Measure the alcove (top view)</text><text x=\"160\" y=\"31\" text-anchor=\"middle\">back wall</text><rect x=\"32\" y=\"36\" width=\"256\" height=\"8\" class=\"b\"/><rect x=\"32\" y=\"36\" width=\"8\" height=\"114\" class=\"b\"/><rect x=\"280\" y=\"36\" width=\"8\" height=\"114\" class=\"b\"/><line x1=\"40\" y1=\"150\" x2=\"280\" y2=\"150\" class=\"o d\"/><line x1=\"160\" y1=\"84\" x2=\"40\" y2=\"84\" class=\"o\"/><polygon points=\"40,84 44.5,81.8 44.5,86.2\" class=\"inkf\"/><line x1=\"160\" y1=\"84\" x2=\"280\" y2=\"84\" class=\"o\"/><polygon points=\"280,84 275.5,86.2 275.5,81.8\" class=\"inkf\"/><text x=\"160\" y=\"78\" class=\"ac\" text-anchor=\"middle\">width: measure at floor, 36\" and 72\"</text><line x1=\"268\" y1=\"97\" x2=\"268\" y2=\"44\" class=\"o\"/><polygon points=\"268,44 270.2,48.5 265.8,48.5\" class=\"inkf\"/><line x1=\"268\" y1=\"97\" x2=\"268\" y2=\"150\" class=\"o\"/><polygon points=\"268,150 265.8,145.5 270.2,145.5\" class=\"inkf\"/><text x=\"262\" y=\"112\" class=\"ac\" text-anchor=\"end\">depth</text><text x=\"60\" y=\"130\">check both diagonals for square</text><text x=\"160\" y=\"163\" text-anchor=\"middle\">open front (bathroom floor)</text><text x=\"10\" y=\"180\">Tub alcoves are usually 60\" wide, 30-32\" deep.</text><text x=\"10\" y=\"193\">Real walls are often 60-1/4\" to 61\". Note it all.</text>",
+   "h": 200,
+   "cap": "Measure width at three heights and depth at both ends. A base must fit the narrowest width; a 36\" deep base usually sticks out past a 30-32\" alcove."
+  },
+  "drains": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Where the drain sits (top view)</text><text x=\"14\" y=\"34\" class=\"k\">Tub (now)</text><text x=\"170\" y=\"34\" class=\"k\">Shower base</text><rect x=\"14\" y=\"42\" width=\"136\" height=\"66\" rx=\"4\" class=\"tb\"/><rect x=\"24\" y=\"50\" width=\"116\" height=\"50\" rx=\"18\" class=\"bk\"/><circle cx=\"36\" cy=\"75\" r=\"5\" class=\"inkf\"/><circle cx=\"22\" cy=\"75\" r=\"3\" class=\"o\"/><rect x=\"170\" y=\"42\" width=\"136\" height=\"66\" rx=\"2\" class=\"bk\"/><line x1=\"170\" y1=\"42\" x2=\"238\" y2=\"75\" class=\"th-l\"/><line x1=\"306\" y1=\"42\" x2=\"238\" y2=\"75\" class=\"th-l\"/><line x1=\"170\" y1=\"108\" x2=\"238\" y2=\"75\" class=\"th-l\"/><line x1=\"306\" y1=\"108\" x2=\"238\" y2=\"75\" class=\"th-l\"/><circle cx=\"238\" cy=\"75\" r=\"6\" class=\"inkf\"/><circle cx=\"196\" cy=\"75\" r=\"6\" class=\"o d\"/><text x=\"14\" y=\"124\" class=\"wa\">drain at one end</text><text x=\"14\" y=\"136\">1-1/2\" trap is common</text><text x=\"170\" y=\"124\" class=\"gd\">center drain (common)</text><text x=\"170\" y=\"136\">dashed = end/offset option</text><text x=\"10\" y=\"160\">Even an end-drain base rarely lines up with the tub.</text><text x=\"10\" y=\"173\" class=\"ac\">Plan on moving the drain.</text>",
+   "h": 182,
+   "cap": "A tub drain sits at the faucet end. Shower base drains are centered or offset, so the drain and trap almost always move. Order the base first so the plumber knows the exact spot."
+  },
+  "plumbing": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Under the floor: trap, drain, vent</text><rect x=\"40\" y=\"58\" width=\"170\" height=\"16\" rx=\"2\" class=\"tb\"/><text x=\"125\" y=\"69\" text-anchor=\"middle\">shower base</text><rect x=\"0\" y=\"74\" width=\"320\" height=\"8\" class=\"b\"/><text x=\"6\" y=\"96\">reach the trap from</text><text x=\"6\" y=\"107\">below, or open floor</text><path d=\"M124 132 a14 14 0 0 0 28 0 Z\" class=\"wt\"/><path d=\"M120 82 V130 a18 18 0 0 0 36 0 V118 L250 124\" class=\"o\" fill=\"none\" style=\"stroke-width:6\"/><line x1=\"250\" y1=\"24\" x2=\"250\" y2=\"204\" class=\"o\" style=\"stroke-width:6\"/><text x=\"244\" y=\"34\" class=\"k\" text-anchor=\"end\">vent (stays)</text><text x=\"244\" y=\"46\" text-anchor=\"end\">up to the roof</text><text x=\"244\" y=\"186\" text-anchor=\"end\">to the sewer</text><text x=\"170\" y=\"110\" class=\"ac\">trap arm</text><text x=\"162\" y=\"140\">1/4\"/ft slope</text><text x=\"14\" y=\"168\" class=\"k\">2\" P-trap (many codes)</text><text x=\"14\" y=\"180\">water in it blocks sewer gas</text><text x=\"14\" y=\"198\">Trap arm length is limited by code.</text>",
+   "h": 206,
+   "cap": "The base drain drops into a P-trap, then a gently sloped trap arm runs to the existing drain and vent. Many codes want 2\" pipe for a shower where the tub used 1-1/2\". Check local code."
+  },
+  "valve": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Valve: tub/shower to shower only</text><line x1=\"160\" y1=\"100\" x2=\"160\" y2=\"34\" class=\"o\" style=\"stroke-width:5\"/><rect x=\"150\" y=\"26\" width=\"20\" height=\"10\" rx=\"2\" class=\"bk\"/><text x=\"176\" y=\"34\">drop-ear elbow</text><text x=\"168\" y=\"60\">riser to shower arm</text><rect x=\"138\" y=\"100\" width=\"44\" height=\"36\" rx=\"4\" class=\"bk\"/><text x=\"134\" y=\"96\" class=\"k\" text-anchor=\"end\">valve (anti-scald)</text><line x1=\"14\" y1=\"118\" x2=\"138\" y2=\"118\" class=\"o\" style=\"stroke-width:5\"/><line x1=\"182\" y1=\"118\" x2=\"306\" y2=\"118\" class=\"o\" style=\"stroke-width:5\"/><text x=\"16\" y=\"112\">HOT</text><text x=\"304\" y=\"112\" text-anchor=\"end\">COLD</text><line x1=\"160\" y1=\"136\" x2=\"160\" y2=\"152\" class=\"o\" style=\"stroke-width:5\"/><rect x=\"152\" y=\"152\" width=\"16\" height=\"8\" rx=\"2\" class=\"af\"/><text x=\"176\" y=\"160\" class=\"ac\">cap or plug the tub port</text><line x1=\"160\" y1=\"164\" x2=\"160\" y2=\"196\" class=\"bad d\" style=\"stroke-width:5\"/><rect x=\"140\" y=\"196\" width=\"40\" height=\"10\" rx=\"3\" class=\"tb\"/><text x=\"176\" y=\"186\" class=\"wa\">old spout pipe: remove</text><text x=\"186\" y=\"206\">spout gone, patch wall</text>",
+   "h": 212,
+   "cap": "Most single-handle tub/shower valves work shower-only once the tub outlet is capped or plugged. Follow the valve maker's instructions; some need a specific plug."
+  },
+  "headht": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Shower head height</text><rect x=\"52\" y=\"24\" width=\"8\" height=\"176\" class=\"b\"/><rect x=\"60\" y=\"192\" width=\"140\" height=\"8\" rx=\"2\" class=\"tb\"/><text x=\"130\" y=\"188\" text-anchor=\"middle\">base</text><line x1=\"60\" y1=\"40\" x2=\"90\" y2=\"46\" class=\"o\" style=\"stroke-width:4\"/><path d=\"M88 42 l14 4 l-4 12 l-14 -4 Z\" class=\"bk\"/><line x1=\"60\" y1=\"64\" x2=\"200\" y2=\"64\" class=\"o d\"/><text x=\"110\" y=\"76\">old arm height (often 72-78\")</text><text x=\"90\" y=\"34\" class=\"ac\">arm often raised to about 80\"</text><line x1=\"200\" y1=\"40\" x2=\"238\" y2=\"40\" class=\"o d\"/><line x1=\"232\" y1=\"120\" x2=\"232\" y2=\"40\" class=\"o\"/><polygon points=\"232,40 234.2,44.5 229.8,44.5\" class=\"inkf\"/><line x1=\"232\" y1=\"120\" x2=\"232\" y2=\"200\" class=\"o\"/><polygon points=\"232,200 229.8,195.5 234.2,195.5\" class=\"inkf\"/><text x=\"238\" y=\"124\" class=\"k\">~80\"</text><circle cx=\"66\" cy=\"108\" r=\"6\" class=\"y\"/><text x=\"80\" y=\"112\">valve: about 45-48\"</text><line x1=\"10\" y1=\"200\" x2=\"300\" y2=\"200\" class=\"o\"/><text x=\"10\" y=\"214\">Measure from the finished floor of the base.</text>",
+   "h": 220,
+   "cap": "With the wall open, raise the arm so tall people clear the head. The valve can stay at tub height or be raised to about 45-48\" while the wall is open."
+  },
+  "drainht": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Pipe stub height: right vs wrong</text><rect x=\"14\" y=\"60\" width=\"124\" height=\"8\" class=\"tb\"/><rect x=\"66\" y=\"52\" width=\"20\" height=\"30\" rx=\"2\" class=\"y\"/><rect x=\"14\" y=\"110\" width=\"124\" height=\"8\" class=\"b\"/><rect x=\"70\" y=\"72\" width=\"12\" height=\"56\" class=\"bk\"/><rect x=\"176\" y=\"60\" width=\"124\" height=\"8\" class=\"tb\"/><rect x=\"228\" y=\"52\" width=\"20\" height=\"30\" rx=\"2\" class=\"y\"/><rect x=\"176\" y=\"110\" width=\"124\" height=\"8\" class=\"b\"/><rect x=\"232\" y=\"96\" width=\"12\" height=\"32\" class=\"bk\"/><text x=\"14\" y=\"40\" class=\"gd\">stub ends inside the drain</text><text x=\"14\" y=\"144\">gasket grips the pipe</text><text x=\"176\" y=\"40\" class=\"wa\">too short: no seal</text><text x=\"176\" y=\"144\">water leaks below</text><text x=\"14\" y=\"106\">subfloor</text><text x=\"176\" y=\"106\">subfloor</text><text x=\"10\" y=\"166\">Cut to the maker's number, measured from subfloor.</text><text x=\"10\" y=\"179\">Too long and the base can't sit down.</text>",
+   "h": 186,
+   "cap": "Compression-style base drains seal with a rubber gasket around the 2\" pipe. The maker states how far the pipe should stick up above the subfloor. Measure twice, dry-fit, then cut."
+  },
+  "prefab": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Section: prefab base at the wall</text><rect x=\"250\" y=\"24\" width=\"22\" height=\"156\" class=\"w\"/><path d=\"M0 152 H234 V146 H246 V108 H250 V150 H238 V156 H0 Z\" class=\"tb\"/><rect x=\"10\" y=\"156\" width=\"226\" height=\"14\" class=\"th\"/><rect x=\"0\" y=\"170\" width=\"320\" height=\"10\" class=\"b\"/><rect x=\"246\" y=\"24\" width=\"4\" height=\"82\" class=\"w\"/><rect x=\"238\" y=\"24\" width=\"8\" height=\"114\" class=\"b\"/><rect x=\"235\" y=\"24\" width=\"3\" height=\"118\" class=\"m\"/><rect x=\"226\" y=\"24\" width=\"9\" height=\"114\" class=\"tl\"/><path d=\"M226 139 q4 7 9 2 v6 h-9 Z\" class=\"af\"/><text x=\"200\" y=\"34\" text-anchor=\"end\">tile</text><line x1=\"202\" y1=\"31\" x2=\"228\" y2=\"31\" class=\"o\"/><text x=\"200\" y=\"50\" text-anchor=\"end\">waterproofing</text><line x1=\"202\" y1=\"47\" x2=\"236\" y2=\"47\" class=\"o\"/><text x=\"200\" y=\"66\" text-anchor=\"end\">backer board (laps the flange)</text><line x1=\"202\" y1=\"63\" x2=\"241\" y2=\"63\" class=\"o\"/><text x=\"200\" y=\"82\" text-anchor=\"end\">furring strip (flange thickness)</text><line x1=\"202\" y1=\"79\" x2=\"248\" y2=\"79\" class=\"o\"/><text x=\"200\" y=\"122\" text-anchor=\"end\">flange fastened at studs</text><line x1=\"202\" y1=\"119\" x2=\"247\" y2=\"119\" class=\"o\"/><text x=\"200\" y=\"140\" class=\"ac\" text-anchor=\"end\">1/8\" gap + silicone</text><line x1=\"202\" y1=\"137\" x2=\"228\" y2=\"137\" class=\"o\"/><text x=\"24\" y=\"146\" class=\"k\">shower base</text><text x=\"40\" y=\"166\">mortar bed</text><text x=\"24\" y=\"194\">subfloor</text><text x=\"261\" y=\"194\" text-anchor=\"middle\">stud</text>",
+   "h": 202,
+   "cap": "Water running down the wall must land on the base, never behind it. The board and waterproofing lap over the flange and stop just above the base deck; the tile gap gets silicone, not grout."
+  },
+  "setbase": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Set the base into the mortar</text><text x=\"10\" y=\"32\">Press down evenly; level both ways.</text><rect x=\"0\" y=\"140\" width=\"320\" height=\"8\" class=\"b\"/><path d=\"M52 140 Q80 118 108 140 Z\" class=\"th\"/><path d=\"M132 140 Q160 118 188 140 Z\" class=\"th\"/><path d=\"M212 140 Q240 118 268 140 Z\" class=\"th\"/><g><rect x=\"40\" y=\"122\" width=\"236\" height=\"8\" rx=\"2\" class=\"tb\"/><rect x=\"270\" y=\"90\" width=\"6\" height=\"40\" class=\"tb\"/><rect x=\"110\" y=\"110\" width=\"100\" height=\"8\" rx=\"2\" class=\"y\"/><circle cx=\"160\" cy=\"114\" r=\"2.5\" class=\"inkf\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 -34;0 0;0 0\" keyTimes=\"0;0.5;1\" dur=\"3s\" repeatCount=\"indefinite\"/></g><line x1=\"300\" y1=\"52\" x2=\"300\" y2=\"96\" class=\"a\"/><polygon points=\"300.0,96.0 297.4,90.6 302.6,90.6\" class=\"af\"/><text x=\"10\" y=\"162\" class=\"k\">mortar piles or bed (per maker)</text><text x=\"10\" y=\"176\">Base must not rock or flex anywhere.</text>",
+   "h": 184,
+   "title": "Set a prefab base",
+   "cap": "Many acrylic and fiberglass bases need mortar under them so the floor is fully supported. Set it the same day you mix, and do not walk on it until it cures."
+  },
+  "foam": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Foam pan system, layer by layer</text><text x=\"122\" y=\"42.0\" text-anchor=\"end\">tile</text><g><rect x=\"130\" y=\"36\" width=\"168\" height=\"6\" class=\"tl\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 -14;0 0;0 0\" keyTimes=\"0;0.2;1\" dur=\"4s\" repeatCount=\"indefinite\"/></g><text x=\"122\" y=\"61.0\" text-anchor=\"end\">thinset</text><g><rect x=\"130\" y=\"56\" width=\"168\" height=\"4\" class=\"th\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 -14;0 0;0 0\" keyTimes=\"0;0.3;1\" dur=\"4s\" repeatCount=\"indefinite\"/></g><text x=\"122\" y=\"78.5\" text-anchor=\"end\">membrane (if required)</text><g><rect x=\"130\" y=\"74\" width=\"168\" height=\"3\" class=\"m\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 -14;0 0;0 0\" keyTimes=\"0;0.4;1\" dur=\"4s\" repeatCount=\"indefinite\"/></g><text x=\"122\" y=\"104.0\" class=\"k\" text-anchor=\"end\">sloped foam tray</text><g><path d=\"M130 92 L214 100 L298 92 V110 H130 Z\" class=\"mos\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 -14;0 0;0 0\" keyTimes=\"0;0.5;1\" dur=\"4s\" repeatCount=\"indefinite\"/></g><text x=\"122\" y=\"131.0\" text-anchor=\"end\">thinset bed</text><g><rect x=\"130\" y=\"126\" width=\"168\" height=\"4\" class=\"th\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 -14;0 0;0 0\" keyTimes=\"0;0.6;1\" dur=\"4s\" repeatCount=\"indefinite\"/></g><text x=\"122\" y=\"154.0\" text-anchor=\"end\">subfloor</text><g><rect x=\"130\" y=\"146\" width=\"168\" height=\"10\" class=\"b\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 -14;0 0;0 0\" keyTimes=\"0;0.7;1\" dur=\"4s\" repeatCount=\"indefinite\"/></g><rect x=\"206\" y=\"100\" width=\"16\" height=\"46\" rx=\"2\" class=\"y\"/><text x=\"214\" y=\"176\" text-anchor=\"middle\">maker's drain</text><text x=\"10\" y=\"196\">Every layer is from the same system and</text><text x=\"10\" y=\"208\">set in the thinset the maker names.</text>",
+   "h": 214,
+   "title": "Foam pan layers",
+   "cap": "The foam tray is already sloped to the drain. Some systems need a sheet membrane over the tray; others are waterproof and only the seams get sealed. Follow your system's manual exactly."
+  },
+  "mortar": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Traditional mortar bed (for understanding)</text><rect x=\"10\" y=\"30\" width=\"10\" height=\"150\" class=\"w\"/><path d=\"M20 164 L236 174 V180 H20 Z\" class=\"th\"/><path d=\"M20 110 H23 V161 L236 171 V175 L20 165 Z\" class=\"m\"/><path d=\"M23 126 L236 150 V171 L23 161 Z\" class=\"th\"/><path d=\"M23 122 L236 146 V150 L23 126 Z\" class=\"tl\"/><rect x=\"236\" y=\"170\" width=\"30\" height=\"10\" class=\"bk\"/><rect x=\"246\" y=\"180\" width=\"10\" height=\"20\" class=\"bk\"/><rect x=\"240\" y=\"146\" width=\"22\" height=\"4\" class=\"y\"/><rect x=\"244\" y=\"150\" width=\"14\" height=\"20\" class=\"bk\"/><circle cx=\"232\" cy=\"166\" r=\"2\" class=\"inkf\"/><circle cx=\"270\" cy=\"166\" r=\"2\" class=\"inkf\"/><circle cx=\"226\" cy=\"163\" r=\"3\" class=\"o\"/><circle cx=\"272\" cy=\"163\" r=\"3\" class=\"o\"/><circle cx=\"280\" cy=\"163\" r=\"3\" class=\"o\"/><rect x=\"0\" y=\"180\" width=\"320\" height=\"10\" class=\"b\"/><text x=\"90\" y=\"40\">tile</text><line x1=\"94\" y1=\"43\" x2=\"94\" y2=\"122\" class=\"o\"/><text x=\"120\" y=\"54\">mortar bed (sloped)</text><line x1=\"124\" y1=\"57\" x2=\"124\" y2=\"131\" class=\"o\"/><text x=\"150\" y=\"68\">liner (PVC or CPE)</text><line x1=\"154\" y1=\"71\" x2=\"154\" y2=\"159\" class=\"o\"/><text x=\"180\" y=\"82\">pre-slope, 1/4\" per ft</text><line x1=\"184\" y1=\"85\" x2=\"184\" y2=\"163\" class=\"o\"/><text x=\"222\" y=\"98\" class=\"k\">clamping drain</text><line x1=\"232\" y1=\"101\" x2=\"248\" y2=\"144\" class=\"o\"/><text x=\"14\" y=\"200\">subfloor</text><text x=\"10\" y=\"214\" class=\"wa\">Weep holes at the drain must stay open.</text>",
+   "h": 220,
+   "cap": "Water that soaks through the tile and mortar runs down to the sloped liner and out the weep holes in the clamping drain. One mistake (a flat pre-slope, a nail through the liner, clogged weeps) means a leak or a smelly, wet bed."
+  },
+  "curb": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Section through the curb</text><rect x=\"0\" y=\"164\" width=\"320\" height=\"8\" class=\"b\"/><rect x=\"132\" y=\"104\" width=\"56\" height=\"60\" class=\"w\"/><text x=\"160\" y=\"138\" text-anchor=\"middle\">curb</text><path d=\"M0 160 H128 V100 H192 V140 H196 V96 H124 V156 H0 Z\" class=\"m\"/><path d=\"M120 96 H200 V90 H120 Z\" class=\"tl\"/><path d=\"M116 92 V160 H120 V92 Z\" class=\"tl\"/><path d=\"M200 88 V160 H204 V88 Z\" class=\"tl\"/><rect x=\"0\" y=\"156\" width=\"116\" height=\"4\" class=\"tl\"/><rect x=\"204\" y=\"156\" width=\"116\" height=\"4\" class=\"tl\"/><rect x=\"150\" y=\"80\" width=\"20\" height=\"8\" rx=\"1\" class=\"y\"/><text x=\"176\" y=\"72\" class=\"k\">door track</text><text x=\"160\" y=\"50\" class=\"ac\" text-anchor=\"middle\">top tile slopes toward the shower</text><line x1=\"200\" y1=\"58\" x2=\"120\" y2=\"58\" class=\"a\"/><polygon points=\"120.0,58.0 125.4,55.4 125.4,60.6\" class=\"af\"/><text x=\"10\" y=\"110\" class=\"k\">membrane wraps</text><text x=\"10\" y=\"122\">over the curb</text><line x1=\"76\" y1=\"119\" x2=\"124\" y2=\"119\" class=\"o\"/><text x=\"10\" y=\"148\">shower side</text><text x=\"310\" y=\"148\" text-anchor=\"end\">bathroom</text><text x=\"10\" y=\"190\" class=\"wa\">Fasten nothing through the top of a waterproofed curb.</text>",
+   "h": 198,
+   "cap": "The waterproofing runs up and over the curb. The top tile tilts slightly into the shower so splashes run back in. Door tracks are glued and siliconed per the door maker, not screwed down through the membrane."
+  },
+  "flood": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Flood test: 24 hours before tile</text><rect x=\"14\" y=\"30\" width=\"8\" height=\"120\" class=\"b\"/><rect x=\"0\" y=\"150\" width=\"320\" height=\"8\" class=\"b\"/><path d=\"M22 146 L150 150 L278 146 V150 H22 Z\" class=\"mos\"/><rect x=\"260\" y=\"100\" width=\"20\" height=\"50\" class=\"w\"/><path d=\"M22 96 H260 V150 L150 150 L22 146 Z\" class=\"wt\"/><rect x=\"142\" y=\"140\" width=\"16\" height=\"10\" rx=\"2\" class=\"af\"/><text x=\"150\" y=\"176\" class=\"k\" text-anchor=\"middle\">drain plugged</text><rect x=\"22\" y=\"92\" width=\"14\" height=\"6\" class=\"y\"/><text x=\"42\" y=\"88\" class=\"k\">mark the water line on the wall</text><text x=\"270\" y=\"90\" text-anchor=\"middle\">curb</text><line x1=\"150\" y1=\"190\" x2=\"150\" y2=\"210\" class=\"bad\"/><polygon points=\"150.0,210.0 147.4,204.6 152.6,204.6\" class=\"badf\"/><text x=\"160\" y=\"204\" class=\"wa\">check below for drips</text>",
+   "h": 214,
+   "cap": "Plug the drain, fill to just below the curb top, mark the line and wait 24 hours. The line must not drop (allow for a little evaporation) and nothing may drip below."
+  },
+  "panels": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Wall panels: order of install</text><path d=\"M20 22 L60 30 V170 L20 184 Z\" class=\"tl\"/><path d=\"M300 22 L260 30 V170 L300 184 Z\" class=\"tl\"/><rect x=\"60\" y=\"30\" width=\"200\" height=\"140\" class=\"tl\"/><line x1=\"90\" y1=\"48\" x2=\"90\" y2=\"150\" class=\"th\"/><line x1=\"130\" y1=\"48\" x2=\"130\" y2=\"150\" class=\"th\"/><line x1=\"170\" y1=\"48\" x2=\"170\" y2=\"150\" class=\"th\"/><line x1=\"210\" y1=\"48\" x2=\"210\" y2=\"150\" class=\"th\"/><line x1=\"240\" y1=\"48\" x2=\"240\" y2=\"150\" class=\"th\"/><rect x=\"20\" y=\"170\" width=\"280\" height=\"14\" rx=\"2\" class=\"tb\"/><circle cx=\"160\" cy=\"100\" r=\"8\" class=\"af\"/><text x=\"160\" y=\"103\" class=\"nm\" text-anchor=\"middle\">1</text><circle cx=\"40\" cy=\"60\" r=\"8\" class=\"af\"/><text x=\"40\" y=\"63\" class=\"nm\" text-anchor=\"middle\">2</text><circle cx=\"280\" cy=\"60\" r=\"8\" class=\"af\"/><text x=\"280\" y=\"63\" class=\"nm\" text-anchor=\"middle\">3</text><circle cx=\"40\" cy=\"112\" r=\"7\" class=\"o\"/><circle cx=\"40\" cy=\"138\" r=\"4\" class=\"o\"/><text x=\"10\" y=\"198\">Back panel first, sides overlap it or meet in trim.</text><text x=\"10\" y=\"210\">Leave 1/8\" above the base for silicone.</text>",
+   "h": 216,
+   "cap": "Dry-fit every panel before adhesive goes on. Cut valve and spout holes from the finished side with a hole saw, slightly oversize so the trim plate covers them."
+  },
+  "door": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Glass door: wall jamb and drilling</text><rect x=\"20\" y=\"30\" width=\"24\" height=\"140\" class=\"tl\"/><rect x=\"44\" y=\"34\" width=\"8\" height=\"136\" class=\"bk\"/><circle cx=\"48\" cy=\"60\" r=\"2.5\" class=\"inkf\"/><circle cx=\"48\" cy=\"100\" r=\"2.5\" class=\"inkf\"/><circle cx=\"48\" cy=\"140\" r=\"2.5\" class=\"inkf\"/><rect x=\"64\" y=\"40\" width=\"10\" height=\"120\" rx=\"2\" class=\"y\"/><rect x=\"66\" y=\"96\" width=\"6\" height=\"10\" rx=\"2\" class=\"bk\"/><rect x=\"10\" y=\"170\" width=\"140\" height=\"10\" class=\"tl\"/><text x=\"80\" y=\"60\" class=\"k\">jamb plumb</text><text x=\"80\" y=\"72\">level face</text><text x=\"80\" y=\"84\">and side</text><text x=\"80\" y=\"124\">mark holes,</text><text x=\"80\" y=\"136\">remove jamb</text><rect x=\"170\" y=\"40\" width=\"140\" height=\"90\" class=\"tl\"/><rect x=\"216\" y=\"64\" width=\"36\" height=\"30\" class=\"y\"/><line x1=\"226\" y1=\"74\" x2=\"242\" y2=\"84\" class=\"o\"/><line x1=\"242\" y1=\"74\" x2=\"226\" y2=\"84\" class=\"o\"/><line x1=\"252\" y1=\"79\" x2=\"300\" y2=\"79\" class=\"o\" style=\"stroke-width:3\"/><polygon points=\"258.0,79.0 265.2,75.5 265.2,82.5\" class=\"inkf\"/><text x=\"170\" y=\"146\" class=\"k\">tape, then glass/tile bit</text><text x=\"170\" y=\"158\">slow speed, no hammer mode</text><text x=\"10\" y=\"196\" class=\"ac\">Silicone the jamb on the outside only, per door maker.</text>",
+   "h": 204,
+   "cap": "Plumb the jamb, mark the holes, take it off and drill through tape with a glass-and-tile bit. Most makers want silicone outside only so water that gets in can drain back into the shower."
+  }
+ },
+ "glossary": [
+  [
+   "Alcove",
+   "The three-walled space a standard tub sits in, usually 60\" wide."
+  ],
+  [
+   "Shower base / pan",
+   "The waterproof floor of the shower, sloped to the drain."
+  ],
+  [
+   "Flange",
+   "The raised lip on a prefab base that runs up behind the wall board."
+  ],
+  [
+   "P-trap",
+   "The U-shaped pipe under the drain that holds water to block sewer gas."
+  ],
+  [
+   "Trap arm",
+   "The pipe from the trap to the vent connection. Its length is limited by code."
+  ],
+  [
+   "Vent",
+   "A pipe to the roof that lets drains flow and keeps traps from siphoning dry."
+  ],
+  [
+   "Pressure-balance valve",
+   "An anti-scald valve that keeps temperature steady when pressure changes."
+  ],
+  [
+   "Backer board",
+   "Cement or foam board made for tile in wet areas."
+  ],
+  [
+   "Membrane",
+   "The waterproof layer (liquid or sheet) under tile."
+  ],
+  [
+   "Pre-slope",
+   "The sloped mortar under the liner in a traditional pan."
+  ],
+  [
+   "Clamping drain",
+   "A two-part drain that clamps the liner between its halves."
+  ],
+  [
+   "Weep holes",
+   "Small holes in a clamping drain that let water from the mortar bed drain out."
+  ],
+  [
+   "Flood test",
+   "Plugging the drain and filling the pan for 24 hours to prove it doesn't leak."
+  ],
+  [
+   "Change of plane",
+   "Where two surfaces meet at an angle, like a wall and base. Seal it with silicone."
+  ],
+  [
+   "Curb",
+   "The low wall at the shower entry that keeps water in."
+  ],
+  [
+   "Furring",
+   "Thin strips on studs that bring the wall surface out flat."
+  ]
+ ]
+}

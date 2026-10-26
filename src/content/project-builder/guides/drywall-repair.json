@@ -1,0 +1,1320 @@
+{
+ "slug": "drywall-repair",
+ "title": "Repair Drywall Holes",
+ "eyebrow": "Walls · drywall",
+ "category": "Walls",
+ "difficulty": "Beginner",
+ "time": "1–4 short sessions over 1–3 days",
+ "summary": "Fix nail pops, dents and holes of any size in drywall, match the {{a.texture==='orange'?'orange peel':a.texture}} texture, and prime and paint so the repair disappears.",
+ "safety": "Wear an N95 mask and glasses when cutting or sanding. <b>Look inside the wall before cutting</b>: wires and pipes hide there. Turn off the breaker when cutting near outlets or switches. In homes built before 1978, test for lead paint; before the 1980s, old joint compound and popcorn texture may contain asbestos: test before sanding.",
+ "pro": "you find a leak you can't stop, mold over about 10 sq ft, soft or rotted framing, sagging ceilings, lead paint or asbestos, or damage around electrical boxes or plumbing.",
+ "questions": [
+  {
+   "id": "size",
+   "label": "How big is the damage?",
+   "type": "choice",
+   "default": "medium",
+   "options": [
+    {
+     "v": "pop",
+     "label": "Nail pops, dents, screw holes"
+    },
+    {
+     "v": "small",
+     "label": "Up to 4\""
+    },
+    {
+     "v": "medium",
+     "label": "4\" to 12\""
+    },
+    {
+     "v": "large",
+     "label": "Bigger than 12\""
+    }
+   ]
+  },
+  {
+   "id": "water",
+   "label": "Was it caused by water?",
+   "type": "choice",
+   "default": "no",
+   "options": [
+    {
+     "v": "no",
+     "label": "No"
+    },
+    {
+     "v": "yes",
+     "label": "Yes",
+     "hint": "stain, soft or damp"
+    }
+   ],
+   "hint": "Water damage always gets cut out, whatever the size."
+  },
+  {
+   "id": "texture",
+   "label": "Wall texture",
+   "type": "choice",
+   "default": "orange",
+   "options": [
+    {
+     "v": "smooth",
+     "label": "Smooth"
+    },
+    {
+     "v": "orange",
+     "label": "Orange peel",
+     "hint": "fine bumps"
+    },
+    {
+     "v": "knockdown",
+     "label": "Knockdown",
+     "hint": "flat blobs"
+    },
+    {
+     "v": "popcorn",
+     "label": "Popcorn ceiling"
+    }
+   ]
+  },
+  {
+   "id": "th",
+   "label": "Drywall thickness",
+   "type": "choice",
+   "default": "1/2",
+   "options": [
+    {
+     "v": "1/2",
+     "label": "1/2\"",
+     "hint": "most walls"
+    },
+    {
+     "v": "5/8",
+     "label": "5/8\"",
+     "hint": "ceilings, garages"
+    }
+   ]
+  },
+  {
+   "id": "holeW",
+   "label": "Damage width",
+   "type": "number",
+   "unit": "in",
+   "default": 7,
+   "step": 0.5,
+   "hint": "For holes over 4\". Include any soft edges."
+  },
+  {
+   "id": "holeH",
+   "label": "Damage height",
+   "type": "number",
+   "unit": "in",
+   "default": 6,
+   "step": 0.5
+  },
+  {
+   "id": "corner",
+   "label": "Is an outside corner dented?",
+   "type": "choice",
+   "default": "no",
+   "options": [
+    {
+     "v": "no",
+     "label": "No"
+    },
+    {
+     "v": "yes",
+     "label": "Yes"
+    }
+   ]
+  }
+ ],
+ "calcs": [
+  {
+   "id": "cutH",
+   "expr": "Math.ceil(a.holeH)+2"
+  },
+  {
+   "id": "cutW",
+   "label": "Cut the opening to",
+   "expr": "Math.ceil(a.holeW)+2",
+   "fmt": "{{c.cutW}}\" wide x {{c.cutH}}\" tall",
+   "when": "(a.size==='medium'||a.size==='large'||a.water==='yes')"
+  },
+  {
+   "id": "cal",
+   "label": "California patch piece",
+   "expr": "(c.cutW+4)+'\" x '+(c.cutH+4)+'\"'",
+   "when": "(a.size==='medium'&&a.water==='no')"
+  },
+  {
+   "id": "backer",
+   "label": "Backer strips",
+   "expr": "c.cutH+4",
+   "fmt": "2 strips, {{c.backer}}\" long",
+   "when": "(a.size==='large'||a.water==='yes')"
+  },
+  {
+   "id": "panel",
+   "label": "Drywall to buy",
+   "expr": "(Math.max(c.cutW,c.cutH)+4<=24)?'2 ft x 2 ft panel':((Math.max(c.cutW,c.cutH)<=46)?'4 ft x 4 ft panel':'4 ft x 8 ft sheet')",
+   "fmt": "{{c.panel}}, {{a.th}}\"",
+   "when": "(a.size==='medium'||a.size==='large'||a.water==='yes')"
+  },
+  {
+   "id": "tape",
+   "label": "Tape",
+   "expr": "Math.ceil(2*(c.cutW+c.cutH)*1.1/12)+1",
+   "fmt": "{{c.tape}} ft",
+   "when": "(a.size==='large'||a.water==='yes')"
+  },
+  {
+   "id": "area",
+   "label": "Area to feather, prime and texture",
+   "expr": "Math.ceil((c.cutW+24)*(c.cutH+24)/144*2)/2",
+   "fmt": "about {{c.area}} sq ft",
+   "when": "(a.size==='medium'||a.size==='large'||a.water==='yes')"
+  }
+ ],
+ "calcNote": "The cut is 1\" past the damage on every side. Feathered mud reaches about 12\" past the opening, so plan to texture and prime that far.",
+ "overviewFig": "decide",
+ "tools": [
+  {
+   "id": "knife6",
+   "c": "Hand tools",
+   "n": "Taping knives: 6\", 10\" and 12\"",
+   "must": true,
+   "w": "Narrow for the first coat, wider for each coat after.",
+   "q": "drywall taping knife set 6 10 12"
+  },
+  {
+   "id": "putty",
+   "c": "Hand tools",
+   "n": "Flexible putty knife, 3\" or 4\"",
+   "must": true,
+   "w": "Small holes, dents and screw dimples.",
+   "q": "flexible putty knife 3 inch",
+   "when": "a.size==='pop'||a.size==='small'"
+  },
+  {
+   "id": "uknife",
+   "c": "Hand tools",
+   "n": "Utility knife + extra blades",
+   "must": true,
+   "w": "Scoring drywall and trimming torn paper.",
+   "q": "utility knife"
+  },
+  {
+   "id": "jab",
+   "c": "Hand tools",
+   "n": "Drywall saw (jab saw)",
+   "must": true,
+   "w": "Cuts the opening square. An oscillating tool also works.",
+   "q": "drywall jab saw",
+   "when": "(a.size==='medium'||a.size==='large'||a.water==='yes')"
+  },
+  {
+   "id": "square",
+   "c": "Hand tools",
+   "n": "Drywall T-square or framing square",
+   "must": true,
+   "w": "Draws a square cut line and guides the knife.",
+   "q": "drywall t-square",
+   "when": "(a.size==='medium'||a.size==='large'||a.water==='yes')"
+  },
+  {
+   "id": "drill",
+   "c": "Power tools",
+   "n": "Drill/driver with #2 Phillips bit (dimpler bit helps)",
+   "must": true,
+   "w": "Drives drywall screws to the right depth.",
+   "q": "drywall screw setter bit"
+  },
+  {
+   "id": "finder",
+   "c": "Testing",
+   "n": "Stud finder and flashlight",
+   "must": true,
+   "w": "Finds studs and lets you look inside the wall before cutting.",
+   "q": "stud finder"
+  },
+  {
+   "id": "tester",
+   "c": "Testing",
+   "n": "Non-contact voltage tester",
+   "must": true,
+   "w": "Checks for live wires near the cut.",
+   "q": "non-contact voltage tester",
+   "when": "(a.size==='medium'||a.size==='large'||a.water==='yes')"
+  },
+  {
+   "id": "meter",
+   "c": "Testing",
+   "n": "Moisture meter",
+   "must": true,
+   "w": "Tells you when the framing is dry enough to close up.",
+   "q": "pin moisture meter",
+   "when": "a.water==='yes'"
+  },
+  {
+   "id": "sponge",
+   "c": "Sanding",
+   "n": "Drywall sanding sponges, fine and medium",
+   "must": true,
+   "w": "Smooths dry mud with less dust than sandpaper.",
+   "q": "drywall sanding sponge",
+   "qty": "2"
+  },
+  {
+   "id": "light",
+   "c": "Sanding",
+   "n": "Bright flashlight or work light",
+   "must": true,
+   "w": "Raking light shows ridges and dips.",
+   "q": "LED work light"
+  },
+  {
+   "id": "mask",
+   "c": "Safety",
+   "n": "N95 dust mask and safety glasses",
+   "must": true,
+   "w": "Drywall dust irritates lungs and eyes.",
+   "q": "N95 mask"
+  },
+  {
+   "id": "drop",
+   "c": "Safety",
+   "n": "Drop cloth, plastic sheeting, painter's tape",
+   "must": true,
+   "w": "Catches dust and drips.",
+   "q": "plastic drop cloth"
+  },
+  {
+   "id": "spackle",
+   "c": "Materials",
+   "n": "Lightweight spackle",
+   "must": true,
+   "w": "Fills small holes and dents with little shrinking.",
+   "q": "lightweight spackling",
+   "when": "a.size==='pop'||a.size==='small'"
+  },
+  {
+   "id": "mesh",
+   "c": "Materials",
+   "n": "Self-adhesive wall patch (aluminum mesh), 4\" or 6\"",
+   "must": false,
+   "w": "Bridges holes from about 1\" to 4\" (or up to 6\").",
+   "q": "self adhesive drywall repair patch",
+   "when": "a.size==='small'||a.size==='medium'"
+  },
+  {
+   "id": "screws",
+   "c": "Materials",
+   "n": "Coarse-thread drywall screws, {{a.th==='5/8'?'1-5/8\"':'1-1/4\"'}}",
+   "must": true,
+   "w": "Fasten the patch and re-fasten popped drywall. Coarse thread is for wood.",
+   "q": "coarse thread drywall screws {{a.th==='5/8'?'1-5/8':'1-1/4'}}",
+   "qty": "1 small box"
+  },
+  {
+   "id": "board",
+   "c": "Materials",
+   "n": "{{a.th}}\" drywall: {{c.panel}}",
+   "must": true,
+   "w": "Must match the thickness of your wall. Measure at the hole edge.",
+   "q": "{{a.th}} drywall {{c.panel}}",
+   "when": "(a.size==='medium'||a.size==='large'||a.water==='yes')"
+  },
+  {
+   "id": "furring",
+   "c": "Materials",
+   "n": "1x3 or 1x4 furring strips (or plywood scraps)",
+   "must": true,
+   "w": "Backers behind the opening for the patch to screw into.",
+   "q": "1x3 furring strip 8 ft",
+   "qty": "1 (makes several {{c.backer}}\" backers)",
+   "when": "(a.size==='large'||a.water==='yes')"
+  },
+  {
+   "id": "tapepaper",
+   "c": "Materials",
+   "n": "Paper drywall tape (or mesh tape)",
+   "must": true,
+   "w": "Reinforces the seams so they don't crack.",
+   "q": "paper drywall tape",
+   "qty": "{{c.tape}} ft (one roll)",
+   "when": "(a.size==='large'||a.water==='yes')"
+  },
+  {
+   "id": "setting",
+   "c": "Materials",
+   "n": "Setting-type compound, 45 or 90 minute (powder)",
+   "must": true,
+   "w": "Hardens by chemical reaction: strong, low shrink, fast to recoat. Best for the first coat.",
+   "q": "setting type joint compound 45 minute",
+   "when": "(a.size==='medium'||a.size==='large'||a.water==='yes')"
+  },
+  {
+   "id": "premix",
+   "c": "Materials",
+   "n": "Premixed lightweight joint compound (small tub)",
+   "must": true,
+   "w": "Easy to spread and sand for the final coats.",
+   "q": "lightweight all purpose joint compound",
+   "when": "(a.size==='medium'||a.size==='large'||a.water==='yes')"
+  },
+  {
+   "id": "bucket",
+   "c": "Materials",
+   "n": "Small mixing bucket or mud pan, mixing paddle",
+   "must": true,
+   "w": "For mixing setting compound and loading the knife.",
+   "q": "drywall mud pan",
+   "when": "(a.size==='medium'||a.size==='large'||a.water==='yes')"
+  },
+  {
+   "id": "orange",
+   "c": "Texture",
+   "n": "Aerosol orange peel texture (water-based)",
+   "must": true,
+   "w": "Matches orange peel texture on small patches.",
+   "q": "orange peel spray texture",
+   "when": "a.texture==='orange'"
+  },
+  {
+   "id": "knock",
+   "c": "Texture",
+   "n": "Aerosol knockdown texture + knockdown knife (or 12\" knife)",
+   "must": true,
+   "w": "Spray the spatter, then flatten it.",
+   "q": "knockdown spray texture",
+   "when": "a.texture==='knockdown'"
+  },
+  {
+   "id": "popcorn",
+   "c": "Texture",
+   "n": "Popcorn ceiling patch (aerosol or tub)",
+   "must": true,
+   "w": "Matches popcorn texture on ceiling patches.",
+   "q": "popcorn ceiling patch",
+   "when": "a.texture==='popcorn'"
+  },
+  {
+   "id": "cardboard",
+   "c": "Texture",
+   "n": "Large piece of cardboard",
+   "must": true,
+   "w": "Practice the spray pattern before the wall.",
+   "q": "cardboard",
+   "when": "a.texture!=='smooth'"
+  },
+  {
+   "id": "primer",
+   "c": "Paint",
+   "n": "{{a.water==='yes'?'Stain-blocking primer (shellac or oil-based)':'Drywall primer (PVA) or stain-blocking primer'}}",
+   "must": true,
+   "w": "Seals the patch so paint doesn't look dull on it.{{a.water==='yes'?' Water stains bleed through regular primer.':''}}",
+   "q": "{{a.water==='yes'?'stain blocking primer shellac':'PVA drywall primer'}}",
+   "qty": "1 quart"
+  },
+  {
+   "id": "paint",
+   "c": "Paint",
+   "n": "Wall paint matching your color and sheen",
+   "must": true,
+   "w": "Bring a chip of the old paint to the store for a color match.",
+   "q": "interior paint color match"
+  },
+  {
+   "id": "roller",
+   "c": "Paint",
+   "n": "Small roller, 3/8\" nap, tray, 2\" brush",
+   "must": true,
+   "w": "Rolling matches the wall's stipple; a brush leaves marks.",
+   "q": "mini paint roller kit"
+  },
+  {
+   "id": "bead",
+   "c": "Materials",
+   "n": "Corner bead (metal or paper-faced) and tin snips",
+   "must": true,
+   "w": "Replaces a crushed outside corner.",
+   "q": "drywall corner bead 8 ft",
+   "when": "a.corner==='yes'"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Plan and prepare",
+   "steps": [
+    {
+     "id": "p1",
+     "t": "Size up the damage and pick the method",
+     "time": "10 min",
+     "fig": "decide",
+     "need": [
+      "finder",
+      "light"
+     ],
+     "idea": "The size of the hole decides how much support the patch needs.",
+     "b": "<ol><li>Measure the hole at its widest point, side to side and top to bottom.</li><li>Press around the edges. Soft, crumbly or bulging drywall is damaged too; count it as part of the hole.</li><li>Press the wall near any stain. Soft or damp means water damage, whatever the size.</li><li>Look at the wall texture in daylight: smooth, orange peel (fine bumps like an orange), knockdown (flattened blobs) or popcorn (ceilings).</li><li>Set your answers on the Start tab so the steps match your repair.</li></ol>",
+     "faq": [
+      [
+       "How thick is my drywall?",
+       "Measure the cut edge of the hole. Walls are almost always 1/2\". Ceilings, garages and fire walls are often 5/8\"."
+      ],
+      [
+       "Is it plaster, not drywall?",
+       "Plaster is hard, cold, and often over wood strips (lath) or a gray board. These steps are for drywall; plaster repairs use different methods."
+      ]
+     ]
+    },
+    {
+     "id": "w1",
+     "t": "Fix the leak and check for mold",
+     "time": "1 hr+",
+     "when": "a.water==='yes'",
+     "fig": "water",
+     "need": [
+      "meter",
+      "light"
+     ],
+     "ppe": [
+      "N95 mask",
+      "Gloves"
+     ],
+     "idea": "Patching over a leak that's still dripping just grows mold behind new drywall.",
+     "stop": "Find and fix the source first: a plumbing leak, roof, window, or condensation. If you can't find it or it's a supply pipe you can't shut off, call a plumber or roofer before opening the wall.",
+     "b": "<ol><li>Shut off the water at the fixture or the main if a pipe is leaking.</li><li>Fix or have someone fix the leak. Wait until it is proven dry: run the fixture, or wait for the next rain.</li><li>Push a moisture meter's pins into the drywall at the stain and at a dry spot on the same wall. Note both numbers.</li><li>Look for mold: fuzzy or speckled black, green or white growth, or a musty smell.</li></ol>",
+     "faq": [
+      [
+       "How much mold is too much to handle myself?",
+       "The EPA suggests getting professional help if mold covers more than about 10 square feet, or if it came from sewage or contaminated water."
+      ]
+     ]
+    },
+    {
+     "id": "p2",
+     "t": "Protect the room and check for lead and asbestos",
+     "time": "20 min",
+     "need": [
+      "drop",
+      "mask"
+     ],
+     "ppe": [
+      "N95 mask",
+      "Glasses"
+     ],
+     "idea": "Drywall dust travels everywhere, and old houses may hide lead or asbestos in the layers you sand.",
+     "stop": "Home built before 1978? The paint may contain lead. Before 1980s? Old joint compound and popcorn texture may contain asbestos. Test before you sand, cut or scrape (lead test kits are sold at hardware stores; asbestos needs a lab test). If positive, stop and hire a certified pro.",
+     "b": "<ol><li>Move furniture away from the wall, at least 4 ft.</li><li>Tape plastic or a drop cloth to the baseboard and spread it on the floor below the repair.</li><li>Close HVAC vents in the room and close the door to keep dust in.</li><li>Take outlet and switch covers off near the patch (unscrew the center screws).</li><li>Put on your N95 mask and glasses whenever you cut or sand.</li></ol>"
+    },
+    {
+     "id": "p3",
+     "t": "Find wires, pipes and studs before cutting",
+     "time": "15 min",
+     "when": "(a.size==='medium'||a.size==='large'||a.water==='yes')",
+     "fig": "behind",
+     "need": [
+      "finder",
+      "tester",
+      "light"
+     ],
+     "idea": "A saw that goes too deep can hit a wire or a water pipe. Look first, cut shallow.",
+     "stop": "If the hole is within a stud bay of an outlet, switch or light, turn off that circuit's breaker before cutting and check with a voltage tester.",
+     "b": "<ol><li>Run the stud finder across the wall and mark each stud edge with a pencil. Studs are usually 16\" apart on center.</li><li>Note any outlet, switch or light nearby: its wires run up or down from the box, along a stud.</li><li>Note any sink, toilet or tub on the other side of the wall: pipes are likely.</li><li>Shine a flashlight into the hole and look at all sides. Use a phone camera on video for a better look.</li><li>Hold a voltage tester in the opening. It should stay silent.</li><li>When you cut, keep the saw blade shallow: about 1\" in, no deeper.</li></ol>",
+     "faq": [
+      [
+       "My stud finder disagrees with itself.",
+       "Confirm with a magnet (it finds the screws) or push a thin finish nail into the wall where the patch will cover the hole."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Fill nail pops and small holes",
+   "steps": [
+    {
+     "id": "n1",
+     "t": "Re-fasten nail pops",
+     "time": "10 min each",
+     "when": "a.size==='pop'&&a.water==='no'",
+     "fig": [
+      "nailpop",
+      "screw"
+     ],
+     "need": [
+      "drill",
+      "screws",
+      "uknife"
+     ],
+     "idea": "A screw on each side pulls the drywall tight to the stud so the nail can't push out again.",
+     "b": "<ol><li>Find the stud behind the pop: the pop itself is on one.</li><li>Press the drywall against the stud with your palm.</li><li>Drive a drywall screw about 1-1/2\" above the nail, then one 1-1/2\" below. Stop when the head sits just below the surface in a small dimple.</li><li>Pull the popped nail out with pliers, or tap it 1/16\" below the surface with a nail set.</li><li>Cut away any loose paper or paint around the nail with a utility knife.</li></ol>",
+     "help": [
+      "screwHelp"
+     ],
+     "faq": [
+      [
+       "Why did the nail pop?",
+       "Wood framing shrinks and moves with the seasons. Screws hold better, which is why new screws fix it."
+      ]
+     ]
+    },
+    {
+     "id": "s1",
+     "t": "Clean up the hole",
+     "time": "10 min",
+     "when": "((a.size==='pop'||a.size==='small')&&a.water==='no')",
+     "need": [
+      "uknife",
+      "mesh"
+     ],
+     "idea": "Spackle sticks to a clean, firm edge. Torn paper and loose crumbs make it bubble and crack.",
+     "b": "<ol><li>Cut off any torn paper and loose crumbs with a sharp utility knife.</li><li>Press the edge gently in so it sits a little below the wall surface.</li><li>Torn brown paper fuzz? Brush on a coat of primer and let it dry, so it won't bubble under the spackle.</li><li>Hole over about 1\"? Peel the backing off a self-adhesive mesh patch and press it over the hole, centered, smoothing out from the middle.</li></ol>",
+     "faq": [
+      [
+       "The mesh patch sticks out and the edges show.",
+       "That's normal. Your coats of spackle will feather out 2\" past the mesh edges so it disappears."
+      ]
+     ]
+    },
+    {
+     "id": "s2",
+     "t": "First thin coat of spackle",
+     "time": "10 min",
+     "when": "((a.size==='pop'||a.size==='small')&&a.water==='no')",
+     "fig": "feather",
+     "need": [
+      "putty",
+      "spackle"
+     ],
+     "timers": [
+      [
+       "Spackle dry (check the tub)",
+       60
+      ]
+     ],
+     "idea": "Two thin coats beat one thick coat: thick spackle shrinks, cracks and takes forever to dry.",
+     "b": "<ol><li>Scoop a walnut-size dab onto the corner of the putty knife.</li><li>Press it into the hole, holding the knife at a steep angle (about 45 degrees).</li><li>Scrape across the hole at a low angle to leave it just level with the wall.</li><li>Go once more at a right angle to the first pass.</li><li>Wipe the edges so no ridge is left. Let it dry fully (it turns from gray or pink to white on color-change spackle).</li></ol>",
+     "help": [
+      "knifeHelp"
+     ]
+    },
+    {
+     "id": "s3",
+     "t": "Second coat, a bit wider",
+     "time": "10 min",
+     "when": "((a.size==='pop'||a.size==='small')&&a.water==='no')",
+     "fig": "feather",
+     "need": [
+      "putty",
+      "spackle"
+     ],
+     "timers": [
+      [
+       "Spackle dry (check the tub)",
+       60
+      ]
+     ],
+     "idea": "The first coat shrinks a little as it dries. The second fills the dip and blends the edges.",
+     "b": "<ol><li>Knock off any bumps with the edge of the knife.</li><li>Spread a thin second coat about 1\" wider than the first all around.</li><li>Press hard on the outer edge of the knife so the edges thin to nothing.</li><li>Let it dry fully before sanding.</li></ol>",
+     "help": [
+      "knifeHelp"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Water damage: open and dry",
+   "steps": [
+    {
+     "id": "w2",
+     "t": "Cut out the wet drywall",
+     "time": "1 hr",
+     "when": "a.water==='yes'",
+     "fig": [
+      "water",
+      "behind"
+     ],
+     "need": [
+      "jab",
+      "uknife",
+      "square",
+      "finder",
+      "tester",
+      "meter"
+     ],
+     "ppe": [
+      "N95 mask",
+      "Glasses",
+      "Gloves"
+     ],
+     "idea": "Wet drywall loses strength and feeds mold. Remove it all, not just the stained part.",
+     "stop": "Turn off the breakers for any outlets on this wall before cutting. Wet drywall near live wiring is a shock hazard.",
+     "b": "<ol><li>Use the moisture meter to find where wet ends. Mark 12\" past that on every side.</li><li>Extend the marks sideways to the center of the nearest stud on each side.</li><li>Draw the rectangle with a square.</li><li>Score along the stud lines with a utility knife, many passes, until you cut through.</li><li>Cut the top and bottom lines with a drywall saw, keeping the blade shallow.</li><li>Pull the piece out. Bag moldy pieces in plastic right away.</li></ol>"
+    },
+    {
+     "id": "w3",
+     "t": "Check the insulation and dry the wall cavity",
+     "time": "2–5 days",
+     "when": "a.water==='yes'",
+     "need": [
+      "meter"
+     ],
+     "ppe": [
+      "N95 mask",
+      "Gloves"
+     ],
+     "wait": "Until framing reads dry",
+     "idea": "The studs and insulation must be fully dry before you close the wall, or the problem comes back.",
+     "b": "<ol><li>Pull out wet insulation and throw it away. Wet fiberglass stays wet and loses its insulating value.</li><li>Clean light surface mold on studs with a detergent and water solution; let it dry. Don't mix cleaning products.</li><li>Run a fan into the opening and a dehumidifier in the room.</li><li>Check the studs daily with the moisture meter. Continue when they read the same as dry wood elsewhere, typically under about 15%.</li><li>Put in new insulation of the same kind and thickness.</li></ol>",
+     "faq": [
+      [
+       "The stud is stained black but hard.",
+       "Clean and dry it. Soft or crumbly wood is rotted and should be looked at by a carpenter."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Patch the hole",
+   "steps": [
+    {
+     "id": "m1",
+     "t": "Cut the hole into a clean rectangle",
+     "time": "15 min",
+     "when": "(a.size==='medium'&&a.water==='no')",
+     "need": [
+      "jab",
+      "uknife",
+      "square"
+     ],
+     "ppe": [
+      "N95 mask",
+      "Glasses"
+     ],
+     "idea": "Square edges let you cut a patch that fits exactly.",
+     "b": "<ol><li>Draw a rectangle around the damage with a square, 1\" past the damage: <b>{{c.cutW}}\" wide x {{c.cutH}}\" tall</b>.</li><li>Score each line with the utility knife, several passes.</li><li>Finish the cut with the drywall saw, keeping it shallow.</li><li>Measure the opening exactly and write it down.</li></ol>"
+    },
+    {
+     "id": "m2",
+     "t": "Make a California patch",
+     "time": "15 min",
+     "when": "(a.size==='medium'&&a.water==='no')",
+     "fig": "calpatch",
+     "need": [
+      "board",
+      "uknife",
+      "square"
+     ],
+     "idea": "A patch with a paper flange holds itself in place, no backer needed, and the paper acts like tape.",
+     "b": "<ol><li>Cut a drywall piece 4\" bigger than the opening each way: <b>{{c.cutW+4}}\" x {{c.cutH+4}}\"</b>.</li><li>Turn it face down. Draw lines 2\" in from every edge.</li><li>Score those lines through the back paper and the core, not the face paper.</li><li>Snap each edge strip toward the back. Peel the gypsum off the face paper, a little at a time.</li><li>You now have a core the size of the hole with a 2\" paper flange all around.</li><li>Test fit: the core should slip into the hole. Shave the edges with the knife if it's tight.</li></ol>",
+     "faq": [
+      [
+       "Can I use a mesh patch instead?",
+       "Yes for holes up to about 6\". Self-adhesive aluminum mesh patches are easier but can show a slight hump."
+      ],
+      [
+       "My hole is close to 12\".",
+       "The paper flange alone can sag. Put one backer strip behind it (see the large-hole method), or follow that method instead."
+      ]
+     ]
+    },
+    {
+     "id": "m3",
+     "t": "Set the patch in mud",
+     "time": "20 min",
+     "when": "(a.size==='medium'&&a.water==='no')",
+     "fig": "calpatch",
+     "need": [
+      "setting",
+      "bucket",
+      "knife6"
+     ],
+     "idea": "Mud under the flange glues the patch in; a thin coat over it makes the first finish coat.",
+     "b": "<ol><li>Mix a small batch of setting compound (see help).</li><li>Spread a thin layer of mud 2\" wide around the hole, on the wall where the flange will lie.</li><li>Press the patch into the hole and smooth the flange flat with the 6\" knife, from the center out.</li><li>Squeeze out bubbles. The paper should look damp all over with no dry spots.</li><li>Skim a thin coat over the whole patch and feather the edges.</li></ol>",
+     "help": [
+      "mixHelp",
+      "knifeHelp"
+     ]
+    },
+    {
+     "id": "l1",
+     "t": "Cut a clean rectangle back to the studs",
+     "time": "30 min",
+     "when": "(a.size==='large'||a.water==='yes')&&a.water==='no'",
+     "need": [
+      "jab",
+      "uknife",
+      "square",
+      "finder"
+     ],
+     "ppe": [
+      "N95 mask",
+      "Glasses"
+     ],
+     "idea": "A square opening is easy to fill with a square patch. Ending at stud centers gives you something solid to screw to.",
+     "b": "<ol><li>Draw a rectangle 1\" past the damage: about <b>{{c.cutW}}\" x {{c.cutH}}\"</b>.</li><li>{{c.cutW>14?'Your hole is wider than a stud bay. Move the side lines out to the center of the nearest stud on each side.':'If a stud is within 2\" of a side line, move that line to the center of the stud.'}}</li><li>Score the lines on the studs with a utility knife, many passes.</li><li>Cut the other lines with the drywall saw, shallow.</li><li>Pull out the piece. Remove old screws or nails left in the studs.</li></ol>"
+    },
+    {
+     "id": "l2",
+     "t": "Add backer strips",
+     "time": "20 min",
+     "when": "(a.size==='large'||a.water==='yes')",
+     "fig": "backers",
+     "need": [
+      "furring",
+      "drill",
+      "screws"
+     ],
+     "idea": "Strips behind the opening give the patch something to screw into where there's no stud.",
+     "b": "<ol><li>Cut strips of 1x3 or 1x4 about <b>{{c.backer}}\" long</b>: 2\" past the hole on each end.</li><li>Slide a strip into the opening against a side that has no stud. Half the strip should sit behind the wall, half showing in the hole.</li><li>Hold it tight to the back of the drywall.</li><li>Drive 2 screws through the wall into the strip, about 1\" from the cut edge.</li><li>Repeat on each side that has no stud.</li></ol>",
+     "help": [
+      "screwHelp"
+     ],
+     "faq": [
+      [
+       "The strip spins while I screw it.",
+       "Hold it by one end with your fingers or with a long screw driven partway into it as a handle. Remove that screw after."
+      ]
+     ]
+    },
+    {
+     "id": "l3",
+     "t": "Cut and screw in the patch",
+     "time": "20 min",
+     "when": "(a.size==='large'||a.water==='yes')",
+     "fig": "screw",
+     "need": [
+      "board",
+      "uknife",
+      "square",
+      "drill",
+      "screws"
+     ],
+     "idea": "The patch should drop in with a small gap all around; mud and tape bridge the gap.",
+     "b": "<ol><li>Measure the opening. Cut the new piece 1/8\" smaller each way, from {{a.th}}\" drywall.</li><li>Score the face paper along a square, snap the piece back, then cut the back paper.</li><li>Set it in the opening, face out. It should be flush with the wall; if not, check your backers.</li><li>Drive screws every 6\" into backers and studs, 3/8\" to 1/2\" from the edge.</li><li>Run your knife over each screw: it should click past without catching.</li></ol>",
+     "help": [
+      "screwHelp"
+     ]
+    },
+    {
+     "id": "l4",
+     "t": "Tape the seams (first coat)",
+     "time": "30 min",
+     "when": "(a.size==='large'||a.water==='yes')",
+     "fig": [
+      "tape",
+      "feather"
+     ],
+     "need": [
+      "tapepaper",
+      "setting",
+      "bucket",
+      "knife6"
+     ],
+     "idea": "Tape stops the seams from cracking. The first coat glues the tape and fills the gaps.",
+     "b": "<ol><li>Mix setting compound to peanut-butter thickness.</li><li>Fill the gaps around the patch and fill each screw dimple.</li><li>Spread a 1/8\" layer of mud over one seam, about 4\" wide.</li><li>Lay paper tape centered on the seam. Overlap the corners by an inch.</li><li>Pull the 6\" knife along the tape at a low angle, pressing hard, to squeeze most mud out.</li><li>Skim a thin coat over the tape. Repeat for each seam.</li></ol>",
+     "help": [
+      "mixHelp",
+      "knifeHelp"
+     ],
+     "faq": [
+      [
+       "Can I use mesh tape?",
+       "Yes. Stick it on dry, then mud over it with setting compound only. Mesh with premixed mud tends to crack."
+      ],
+      [
+       "Bubbles under the tape?",
+       "Slit the bubble, push more mud under, and press flat. Or pull that tape and redo it while wet."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Build the finish coats",
+   "steps": [
+    {
+     "id": "c1",
+     "t": "Fix a dented corner bead",
+     "time": "30 min",
+     "when": "a.corner==='yes'",
+     "need": [
+      "bead",
+      "knife6",
+      "setting"
+     ],
+     "idea": "Outside corners have a metal or plastic strip under the mud. A crushed strip has to be cut out and replaced.",
+     "b": "<ol><li>Small dent, strip still straight? Just fill it with setting compound and feather.</li><li>Bent or loose strip: cut through it with tin snips or a hacksaw 2\" above and below the damage.</li><li>Pry off the damaged section and scrape away loose mud.</li><li>Cut a new piece to fit, line it up with the old bead, and fasten it with drywall nails or screws every 6\" (or bead adhesive and staples for paper-faced bead).</li><li>Run a straightedge across: the new piece must line up with the old.</li><li>Mud both sides, using the bead's nose as a guide for your knife.</li></ol>"
+    },
+    {
+     "id": "c2",
+     "t": "Second coat with a 10\" knife",
+     "time": "20 min",
+     "when": "(a.size==='medium'||a.size==='large'||a.water==='yes')",
+     "fig": "feather",
+     "need": [
+      "premix",
+      "knife6"
+     ],
+     "timers": [
+      [
+       "Setting compound hardens",
+       90
+      ],
+      [
+       "Premixed mud dry",
+       1440
+      ]
+     ],
+     "wait": "Until fully dry",
+     "idea": "A wider, thinner coat hides the patch edges and starts the feathering.",
+     "b": "<ol><li>Make sure the first coat is hard. Setting compound: when it's hard and won't dent with a fingernail. Premixed: when it's uniform white, usually overnight.</li><li>Scrape off any lumps or ridges with the 6\" knife.</li><li>Load the 10\" knife and spread mud 2\" past the first coat on each side.</li><li>Pull it smooth with firm pressure on the outer edge.</li><li>Leave it thin. You should almost see the tape through it.</li></ol>",
+     "help": [
+      "knifeHelp"
+     ],
+     "faq": [
+      [
+       "Why does it take so long to dry?",
+       "Premixed mud dries by evaporation. Thick coats, cold rooms and humid days can take 24 hours or more. A fan helps."
+      ]
+     ]
+    },
+    {
+     "id": "c3",
+     "t": "Third coat with a 12\" knife",
+     "time": "20 min",
+     "when": "(a.size==='medium'||a.size==='large'||a.water==='yes')",
+     "fig": "feather",
+     "need": [
+      "premix",
+      "knife6"
+     ],
+     "timers": [
+      [
+       "Premixed mud dry",
+       1440
+      ]
+     ],
+     "wait": "Until fully dry",
+     "idea": "The final skim coat blends the patch so it disappears.",
+     "b": "<ol><li>Knock down ridges from the second coat with the knife edge.</li><li>Spread a very thin coat with the 12\" knife, 2\" to 3\" past the last coat.</li><li>Feather the edges until the mud fades to nothing on the wall.</li><li>Check from the side with a light. Fill obvious dips now, not later.</li><li>Let it dry fully.</li></ol>",
+     "help": [
+      "knifeHelp"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Sand and check",
+   "steps": [
+    {
+     "id": "f1",
+     "t": "Sand it smooth",
+     "time": "20 min",
+     "fig": "feather",
+     "need": [
+      "sponge",
+      "mask",
+      "drop"
+     ],
+     "ppe": [
+      "N95 mask",
+      "Glasses"
+     ],
+     "idea": "Light sanding blends the edges. Too much sanding scuffs the paper and shows.",
+     "b": "<ol><li>Close the door and put on your mask and glasses.</li><li>Use the medium side of a sanding sponge on any ridges, then the fine side over the whole patch.</li><li>Sand with light pressure in circles, focusing on the edges.</li><li>Stop when your hand feels no edge. If the paper gets fuzzy, you've gone too far.</li><li>Clean up with a vacuum with a fine dust filter, then wipe the wall with a damp cloth.</li></ol>",
+     "help": [
+      "sandHelp"
+     ],
+     "faq": [
+      [
+       "Can I sand without dust?",
+       "A barely damp sponge smooths mud with almost no dust. It takes longer but is great for small patches."
+      ]
+     ]
+    },
+    {
+     "id": "f2",
+     "t": "Check with a raking light",
+     "time": "10 min",
+     "fig": "raking",
+     "need": [
+      "light"
+     ],
+     "timers": [
+      [
+       "Touch-up coat dry",
+       120
+      ]
+     ],
+     "idea": "A flashlight held flat to the wall shows ridges and dips that paint would make obvious.",
+     "b": "<ol><li>Turn off the room lights.</li><li>Hold the flashlight flat against the wall, beside the patch, shining across it.</li><li>Circle any shadows with a pencil.</li><li>Fill dips with a thin coat of mud and lightly sand ridges.</li><li>Check again until the surface looks smooth from all four sides.</li></ol>",
+     "help": [
+      "sandHelp"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Match the texture",
+   "steps": [
+    {
+     "id": "t0",
+     "t": "Practice the texture on cardboard",
+     "time": "15 min",
+     "when": "a.texture==='orange'||a.texture==='knockdown'",
+     "fig": "spray",
+     "need": [
+      "cardboard",
+      "orange",
+      "knock"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "idea": "Spray texture is easy to overdo. A few tests let you match the size and spacing of the bumps.",
+     "b": "<ol><li>Shake the can for at least a minute (the can says how long).</li><li>Mask off trim, outlets and the floor around the patch with plastic and tape.</li><li>Set the nozzle: small for fine orange peel, larger for knockdown.</li><li>Spray a test patch on cardboard from the distance on the can, often 1 to 2 ft.</li><li>Hold the cardboard up beside the wall. Adjust the nozzle or distance until it matches.</li></ol>",
+     "faq": [
+      [
+       "My texture looks too heavy.",
+       "Move further back, spray faster, or use a smaller nozzle setting. You can always add a second light pass."
+      ]
+     ]
+    },
+    {
+     "id": "t1",
+     "t": "Spray orange peel",
+     "time": "15 min",
+     "when": "a.texture==='orange'",
+     "fig": "spray",
+     "need": [
+      "orange"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "wait": "Dry per the can",
+     "idea": "Light, sweeping passes build up a texture that blends with the wall.",
+     "b": "<ol><li>Start spraying off to the side of the patch, then sweep across it in one steady motion.</li><li>Spray past the patch edges by a few inches so it blends in.</li><li>Do one light pass, wait a minute, and look. Add a second pass only if needed.</li><li>Too heavy? Wipe it off right away with a damp sponge, let the wall dry, and try again.</li><li>Let it dry for the time on the can before priming.</li></ol>"
+    },
+    {
+     "id": "t2",
+     "t": "Spray and knock down",
+     "time": "30 min",
+     "when": "a.texture==='knockdown'",
+     "fig": [
+      "knockdown",
+      "spray"
+     ],
+     "need": [
+      "knock"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "timers": [
+      [
+       "Knockdown: check the sheen",
+       10
+      ]
+     ],
+     "idea": "Knockdown is spatter flattened with a knife once it starts to set.",
+     "b": "<ol><li>Spray spatter over the patch with the large nozzle, matching the spacing of the wall.</li><li>Start the timer. Watch for the wet shine on the blobs to turn dull, often 5 to 15 minutes.</li><li>Hold the knockdown knife almost flat and drag it lightly across the patch in one direction.</li><li>Don't press. The knife just flattens the tops of the blobs.</li><li>Clean the knife after each pass.</li><li>Let it dry fully before priming.</li></ol>",
+     "faq": [
+      [
+       "No spray can, or a big area?",
+       "Thin all-purpose mud with water to pancake-batter thickness. Flick it from a stiff brush or dab with a sponge to get blobs, wait for the shine to dull, then knock down the same way."
+      ],
+      [
+       "The blobs smeared flat.",
+       "You knocked down too soon. Scrape off while wet, let the surface dry, and try again."
+      ]
+     ]
+    },
+    {
+     "id": "t3",
+     "t": "Patch the popcorn texture",
+     "time": "20 min",
+     "when": "a.texture==='popcorn'",
+     "need": [
+      "popcorn",
+      "cardboard"
+     ],
+     "ppe": [
+      "N95 mask",
+      "Glasses"
+     ],
+     "idea": "Popcorn patch in a can or tub matches the bumpy texture on ceilings.",
+     "stop": "Popcorn ceilings from before the 1980s may contain asbestos. Don't scrape or sand it until a lab test says it's clear.",
+     "b": "<ol><li>Cover the floor and anything below with plastic.</li><li>Practice on cardboard first.</li><li>Spray or dab the patch so the blobs match the size around it. Feather into the old texture.</li><li>Don't touch it while it dries. It's soft and easily flattened.</li><li>Old popcorn is often unpainted. If yours is, skip priming; paint only if the rest of the ceiling is painted.</li></ol>"
+    }
+   ]
+  },
+  {
+   "name": "Prime and paint",
+   "steps": [
+    {
+     "id": "pp1",
+     "t": "Prime the patch",
+     "time": "15 min",
+     "fig": "flash",
+     "need": [
+      "primer",
+      "roller"
+     ],
+     "timers": [
+      [
+       "Primer dry (check the can)",
+       60
+      ]
+     ],
+     "idea": "Primer seals the mud so the paint looks the same on the patch as on the wall.",
+     "b": "<ol><li>Wipe off dust with a barely damp cloth.</li><li>Roll primer over the patch and 2\" past the edges of the mud.</li><li>{{a.water==='yes'?'Use a stain-blocking primer over any water stain, or the stain will bleed through the paint.':'Use drywall primer (PVA) or any good interior primer.'}}</li><li>Let it dry, then check again with the raking light. Primer shows flaws better than bare mud.</li></ol>",
+     "faq": [
+      [
+       "Can I skip primer and use paint-and-primer?",
+       "On a repair, separate primer is safer. Paint-and-primer products are mainly for painted walls, not raw mud."
+      ]
+     ]
+    },
+    {
+     "id": "pp2",
+     "t": "Paint the wall",
+     "time": "1 hr",
+     "fig": "flash",
+     "need": [
+      "paint",
+      "roller"
+     ],
+     "timers": [
+      [
+       "Paint recoat (check the can)",
+       120
+      ]
+     ],
+     "idea": "Painting the whole wall, corner to corner, hides the repair. A spot touch-up usually shows.",
+     "b": "<ol><li>Stir the paint well.</li><li>Cut in at corners and the ceiling with a brush, then roll the whole wall (see the Interior Painting guide).</li><li>Small patch and the paint matches? Roll the patch and feather the edges with an almost-dry roller.</li><li>Apply a second coat when the first is dry.</li><li>Reinstall outlet and switch covers when the paint is dry.</li></ol>",
+     "faq": [
+      [
+       "The patch still shows after paint.",
+       "Usually the sheen doesn't match, or the texture differs. Repaint the whole wall to the nearest corners."
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "days": [
+  {
+   "t": "Plan and protect",
+   "ids": [
+    "p1",
+    "w1",
+    "p2"
+   ],
+   "wait": "If there's water damage: fix the leak before going on"
+  },
+  {
+   "t": "Find what's behind the wall, then open it",
+   "ids": [
+    "p3",
+    "w2",
+    "w3"
+   ],
+   "wait": "Water damage: dry 2 to 5 days. Otherwise go straight on."
+  },
+  {
+   "t": "Patch and first coat",
+   "ids": [
+    "n1",
+    "s1",
+    "s2",
+    "s3",
+    "m1",
+    "m2",
+    "m3",
+    "l1",
+    "l2",
+    "l3",
+    "l4",
+    "c1"
+   ],
+   "wait": "Let the mud dry, overnight for premixed"
+  },
+  {
+   "t": "Second coat",
+   "ids": [
+    "c2"
+   ],
+   "wait": "Let it dry, usually overnight"
+  },
+  {
+   "t": "Third coat",
+   "ids": [
+    "c3"
+   ],
+   "wait": "Let it dry, usually overnight"
+  },
+  {
+   "t": "Sand, texture, prime and paint",
+   "ids": [
+    "f1",
+    "f2",
+    "t0",
+    "t1",
+    "t2",
+    "t3",
+    "pp1",
+    "pp2"
+   ]
+  }
+ ],
+ "help": {
+  "knifeHelp": {
+   "t": "Load and hold a taping knife",
+   "fig": "feather",
+   "b": "<ol><li>Load mud on one side of the knife only, about a third of its width.</li><li>Hold the handle so the blade is at about 45 degrees to apply mud.</li><li>Lower the handle to about 20 degrees to smooth it: the flatter the knife, the more mud stays.</li><li>Press harder on the outside edge so the edges thin to nothing.</li><li>Scrape the knife clean on the edge of the pan after every pass.</li></ol>"
+  },
+  "mixHelp": {
+   "t": "Mix setting compound",
+   "b": "<ol><li>Read the number on the bag: 20, 45 or 90 is roughly the minutes you have before it hardens. Beginners: use 45 or 90.</li><li>Pour some clean cool water into a clean bucket or pan first.</li><li>Sprinkle in powder and stir with a knife or paddle until it's like smooth peanut butter.</li><li>Mix only what you can use in half the working time.</li><li>When it starts to stiffen, toss it. Adding water doesn't revive it.</li><li>Wash tools right away. Scrape leftovers into the trash, never down a drain.</li></ol>"
+  },
+  "screwHelp": {
+   "t": "Drive a drywall screw",
+   "fig": "screw",
+   "b": "<ol><li>Hold the screw on the bit, perpendicular to the wall.</li><li>Drive it with steady pressure at medium speed.</li><li>Stop when the head is just below the surface in a shallow dimple.</li><li>The paper should not tear. If it does, drive another screw 2\" away.</li><li>A dimpler bit stops at the right depth automatically.</li></ol>"
+  },
+  "sandHelp": {
+   "t": "Sand drywall mud",
+   "fig": "raking",
+   "b": "<ol><li>Wear an N95 mask and glasses. Close the door.</li><li>Use a sanding sponge: medium to knock down ridges, fine to finish.</li><li>Light pressure, circles, mostly on the edges of the patch.</li><li>Feel it with your flat hand: you should not feel an edge.</li><li>Stop before you scuff the paper fuzzy.</li></ol>"
+  }
+ },
+ "figs": {
+  "decide": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Pick the repair by hole size</text><line x1=\"10\" y1=\"22\" x2=\"310\" y2=\"22\" class=\"th-l\"/><circle cx=\"36\" cy=\"40\" r=\"7\" class=\"bk\"/><circle cx=\"36\" cy=\"40\" r=\"3\" class=\"inkf\"/><text x=\"72\" y=\"37\" class=\"k\">Nail pop, dent, screw hole</text><text x=\"72\" y=\"49\">set a screw, 2 thin coats of spackle</text><line x1=\"10\" y1=\"62\" x2=\"310\" y2=\"62\" class=\"th-l\"/><circle cx=\"36\" cy=\"80\" r=\"7\" class=\"inkf\"/><text x=\"72\" y=\"77\" class=\"k\">Up to 4\"</text><text x=\"72\" y=\"89\">spackle; add a mesh patch if over 1\"</text><line x1=\"10\" y1=\"102\" x2=\"310\" y2=\"102\" class=\"th-l\"/><circle cx=\"36\" cy=\"120\" r=\"13\" class=\"inkf\"/><text x=\"72\" y=\"117\" class=\"k\">4\" to 12\"</text><text x=\"72\" y=\"129\">California patch (paper flange)</text><line x1=\"10\" y1=\"142\" x2=\"310\" y2=\"142\" class=\"th-l\"/><rect x=\"14\" y=\"145\" width=\"44\" height=\"30\" class=\"o d\"/><path d=\"M22 158 l10 -6 l8 4 l10 -3 l2 14 l-12 6 l-16 -3z\" class=\"inkf\"/><text x=\"72\" y=\"157\" class=\"k\">Over 12\" or water damage</text><text x=\"72\" y=\"169\">cut out, backers, new piece, tape</text>",
+   "h": 184,
+   "cap": "Bigger holes need more support behind the patch. When in doubt, use the next method up."
+  },
+  "behind": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Look before you cut</text><rect x=\"20\" y=\"26\" width=\"280\" height=\"130\" class=\"b\"/><rect x=\"54\" y=\"26\" width=\"12\" height=\"130\" class=\"o d\"/><rect x=\"134\" y=\"26\" width=\"12\" height=\"130\" class=\"o d\"/><rect x=\"214\" y=\"26\" width=\"12\" height=\"130\" class=\"o d\"/><rect x=\"146\" y=\"118\" width=\"18\" height=\"26\" rx=\"2\" class=\"bk\"/><path d=\"M155 118 V26\" class=\"a\" style=\"stroke-width:3\"/><rect x=\"252\" y=\"26\" width=\"10\" height=\"130\" class=\"wt\"/><rect x=\"80\" y=\"62\" width=\"44\" height=\"40\" class=\"goodf\" style=\"opacity:.35\"/><rect x=\"80\" y=\"62\" width=\"44\" height=\"40\" class=\"good\"/><text x=\"84\" y=\"116\" class=\"gd\">safe zone</text><text x=\"162\" y=\"46\" class=\"ac\">wire</text><text x=\"266\" y=\"72\" class=\"k\">pipe</text><text x=\"170\" y=\"140\" class=\"k\">box</text><text x=\"10\" y=\"172\">dashed = studs, usually 16\" apart on center</text><text x=\"10\" y=\"186\">Wires run up/down from boxes. Pipes run near sinks.</text>",
+   "h": 194,
+   "cap": "Cut between studs and away from outlets, switches and plumbing. Cut shallow, then look inside with a flashlight."
+  },
+  "nailpop": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Nail pop: re-fasten, then fill</text><rect x=\"30\" y=\"30\" width=\"56\" height=\"130\" class=\"w\"/><rect x=\"86\" y=\"30\" width=\"10\" height=\"130\" class=\"b\"/><line x1=\"60\" y1=\"94\" x2=\"104\" y2=\"94\" class=\"o\" style=\"stroke-width:2\"/><rect x=\"104\" y=\"86\" width=\"3\" height=\"16\" class=\"inkf\"/><text x=\"112\" y=\"80\" class=\"k\">head</text><text x=\"112\" y=\"92\">pushed out</text><text x=\"112\" y=\"104\">(paint bumps)</text><text x=\"30\" y=\"176\">stud</text><text x=\"80\" y=\"176\">drywall</text><rect x=\"190\" y=\"30\" width=\"110\" height=\"130\" class=\"b\"/><rect x=\"236\" y=\"30\" width=\"18\" height=\"130\" class=\"o d\"/><circle cx=\"245\" cy=\"95\" r=\"6\" class=\"bk\"/><circle cx=\"245\" cy=\"95\" r=\"2\" class=\"inkf\"/><circle cx=\"245\" cy=\"67\" r=\"3\" class=\"inkf\"/><circle cx=\"245\" cy=\"123\" r=\"3\" class=\"inkf\"/><text x=\"232\" y=\"70\" class=\"ac\" text-anchor=\"end\">screw</text><text x=\"232\" y=\"126\" class=\"ac\" text-anchor=\"end\">screw</text><text x=\"190\" y=\"176\">1-1/2\" above and below</text>",
+   "h": 184,
+   "cap": "New screws pull the drywall tight to the stud. Then pull or sink the old nail and fill all three spots."
+  },
+  "calpatch": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">California patch: keep the face paper</text><rect x=\"20\" y=\"36\" width=\"120\" height=\"96\" class=\"b\"/><rect x=\"40\" y=\"56\" width=\"80\" height=\"56\" class=\"o d\"/><text x=\"80\" y=\"88\" text-anchor=\"middle\">back side</text><line x1=\"30\" y1=\"46\" x2=\"20\" y2=\"46\" class=\"o\"/><polygon points=\"20,46 24.5,43.8 24.5,48.2\" class=\"inkf\"/><line x1=\"30\" y1=\"46\" x2=\"40\" y2=\"46\" class=\"o\"/><polygon points=\"40,46 35.5,48.2 35.5,43.8\" class=\"inkf\"/><rect x=\"180\" y=\"36\" width=\"120\" height=\"96\" class=\"bk\"/><rect x=\"200\" y=\"56\" width=\"80\" height=\"56\" class=\"b\"/><text x=\"240\" y=\"88\" text-anchor=\"middle\">gypsum core</text><text x=\"20\" y=\"150\" class=\"k\">1 Score the back</text><text x=\"20\" y=\"162\">2\" in from each edge</text><text x=\"180\" y=\"150\" class=\"k\">2 Snap, peel off</text><text x=\"180\" y=\"162\">the edge strips</text><text x=\"180\" y=\"174\" class=\"ac\">face paper stays</text><text x=\"46\" y=\"50\">2\"</text>",
+   "h": 182,
+   "cap": "The core piece fills the hole. The paper flange around it gets bedded in mud like tape."
+  },
+  "backers": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Backer strips behind the opening</text><rect x=\"20\" y=\"26\" width=\"280\" height=\"130\" class=\"b\"/><rect x=\"96\" y=\"54\" width=\"128\" height=\"72\" class=\"inkf\"/><rect x=\"84\" y=\"40\" width=\"20\" height=\"100\" class=\"o d\"/><rect x=\"96\" y=\"54\" width=\"8\" height=\"72\" class=\"w\"/><circle cx=\"90\" cy=\"46\" r=\"3\" class=\"inkf\"/><circle cx=\"90\" cy=\"134\" r=\"3\" class=\"inkf\"/><rect x=\"216\" y=\"40\" width=\"20\" height=\"100\" class=\"o d\"/><rect x=\"216\" y=\"54\" width=\"8\" height=\"72\" class=\"w\"/><circle cx=\"230\" cy=\"46\" r=\"3\" class=\"inkf\"/><circle cx=\"230\" cy=\"134\" r=\"3\" class=\"inkf\"/><text x=\"160\" y=\"94\" text-anchor=\"middle\">hole</text><text x=\"10\" y=\"172\">1x3 strip, 2\" longer than the hole each end</text><text x=\"10\" y=\"186\">screws go through the wall into the strip</text>",
+   "h": 194,
+   "cap": "Hold the strip tight to the back of the wall while you drive the screws, so the patch sits flush."
+  },
+  "screw": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Screw depth: just below the surface</text><rect x=\"10\" y=\"70\" width=\"300\" height=\"18\" class=\"b\"/><line x1=\"10\" y1=\"70\" x2=\"310\" y2=\"70\" class=\"o\"/><rect x=\"59\" y=\"62\" width=\"3\" height=\"40\" class=\"inkf\"/><rect x=\"53\" y=\"62\" width=\"15\" height=\"3\" class=\"inkf\"/><rect x=\"159\" y=\"72\" width=\"3\" height=\"40\" class=\"inkf\"/><rect x=\"153\" y=\"72\" width=\"15\" height=\"3\" class=\"inkf\"/><rect x=\"259\" y=\"80\" width=\"3\" height=\"40\" class=\"inkf\"/><rect x=\"253\" y=\"80\" width=\"15\" height=\"3\" class=\"inkf\"/><path d=\"M150 70 q10 6 20 0\" class=\"o\"/><path d=\"M246 70 l8 9 l8 -6 l8 8\" class=\"bad\"/><text x=\"60\" y=\"126\" class=\"wa\" text-anchor=\"middle\">sticks up</text><text x=\"60\" y=\"138\" text-anchor=\"middle\">knife hits it</text><text x=\"160\" y=\"126\" class=\"gd\" text-anchor=\"middle\">small dimple</text><text x=\"160\" y=\"138\" text-anchor=\"middle\">paper intact</text><text x=\"260\" y=\"126\" class=\"wa\" text-anchor=\"middle\">too deep</text><text x=\"260\" y=\"138\" text-anchor=\"middle\">paper torn</text>",
+   "h": 150,
+   "cap": "Too deep? Drive another screw 2\" away. A screw that tore the paper doesn't hold."
+  },
+  "tape": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Bed the tape in mud</text><rect x=\"10\" y=\"96\" width=\"146\" height=\"14\" class=\"b\"/><rect x=\"164\" y=\"96\" width=\"146\" height=\"14\" class=\"b\"/><path d=\"M70 96 Q160 86 250 96 Z\" class=\"th\"/><line x1=\"100\" y1=\"91\" x2=\"220\" y2=\"91\" class=\"y\" style=\"stroke-width:3\"/><g><polygon points=\"200,40 260,40 214,88 204,88\" class=\"bk\"/><rect x=\"224\" y=\"24\" width=\"30\" height=\"16\" rx=\"3\" class=\"w\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"-90 0;10 0;10 0\" keyTimes=\"0;0.7;1\" dur=\"3s\" repeatCount=\"indefinite\"/></g><text x=\"10\" y=\"130\" class=\"k\">seam</text><line x1=\"30\" y1=\"122\" x2=\"158\" y2=\"106\" class=\"o\"/><text x=\"110\" y=\"130\" class=\"ac\">tape centered on the seam</text><text x=\"10\" y=\"150\">Press hard: squeeze most of the mud out.</text><text x=\"10\" y=\"162\">No bubbles, no dry spots under the tape.</text>",
+   "h": 170,
+   "title": "Bed paper tape",
+   "cap": "Hold the knife at a low angle and pull along the tape in one smooth pass."
+  },
+  "feather": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Each coat wider and thinner</text><rect x=\"195\" y=\"34\" width=\"50\" height=\"10\" rx=\"5\" class=\"th\"/><text x=\"10\" y=\"42\">1st coat, 6\" knife</text><rect x=\"175\" y=\"60\" width=\"90\" height=\"10\" rx=\"5\" class=\"th\"/><text x=\"10\" y=\"68\">2nd coat, 10\" knife</text><rect x=\"155\" y=\"86\" width=\"130\" height=\"10\" rx=\"5\" class=\"th\"/><text x=\"10\" y=\"94\">3rd coat, 12\" knife</text><rect x=\"10\" y=\"140\" width=\"300\" height=\"12\" class=\"b\"/><path d=\"M65 140 Q160 120 255 140 Z\" class=\"th\"/><path d=\"M110 140 Q160 128 210 140\" class=\"o d\"/><rect x=\"157\" y=\"140\" width=\"6\" height=\"12\" class=\"inkf\"/><text x=\"10\" y=\"170\">side view: a low hump that fades to nothing</text>",
+   "h": 178,
+   "cap": "Feather means the edge tapers to zero thickness. A wide, thin hump is invisible after paint; a narrow, thick one is not."
+  },
+  "raking": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Find ridges with a raking light</text><rect x=\"250\" y=\"26\" width=\"16\" height=\"150\" class=\"b\"/><path d=\"M250 84 q-8 6 0 12\" class=\"th\"/><polygon points=\"250,84 250,58 247,84\" class=\"inkf\"/><rect x=\"236\" y=\"140\" width=\"12\" height=\"36\" rx=\"3\" class=\"y\"/><line x1=\"242\" y1=\"140\" x2=\"236\" y2=\"30\" class=\"y\" style=\"opacity:.8\"/><line x1=\"242\" y1=\"140\" x2=\"242\" y2=\"30\" class=\"y\" style=\"opacity:.8\"/><line x1=\"242\" y1=\"140\" x2=\"248\" y2=\"30\" class=\"y\" style=\"opacity:.8\"/><text x=\"228\" y=\"70\" class=\"wa\" text-anchor=\"end\">shadow</text><text x=\"228\" y=\"94\" class=\"k\" text-anchor=\"end\">ridge</text><text x=\"228\" y=\"166\" class=\"k\" text-anchor=\"end\">light</text><text x=\"10\" y=\"40\">1 Darken the room.</text><text x=\"10\" y=\"54\">2 Hold a flashlight flat</text><text x=\"10\" y=\"66\">   against the wall.</text><text x=\"10\" y=\"80\">3 Shine it across the</text><text x=\"10\" y=\"92\">   patch.</text><text x=\"10\" y=\"106\">4 Circle every shadow</text><text x=\"10\" y=\"118\">   with a pencil.</text>",
+   "h": 184,
+   "cap": "Light that skims the wall makes small ridges and dips cast shadows you can't see in normal light."
+  },
+  "spray": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Test first, then spray from a distance</text><rect x=\"18\" y=\"40\" width=\"70\" height=\"56\" class=\"w\"/><circle cx=\"30\" cy=\"52\" r=\"2.4\" class=\"inkf\"/><circle cx=\"44\" cy=\"60\" r=\"2.4\" class=\"inkf\"/><circle cx=\"58\" cy=\"50\" r=\"2.4\" class=\"inkf\"/><circle cx=\"70\" cy=\"66\" r=\"2.4\" class=\"inkf\"/><circle cx=\"36\" cy=\"76\" r=\"2.4\" class=\"inkf\"/><circle cx=\"52\" cy=\"84\" r=\"2.4\" class=\"inkf\"/><circle cx=\"66\" cy=\"82\" r=\"2.4\" class=\"inkf\"/><circle cx=\"78\" cy=\"54\" r=\"2.4\" class=\"inkf\"/><circle cx=\"48\" cy=\"70\" r=\"2.4\" class=\"inkf\"/><text x=\"18\" y=\"110\" class=\"k\">cardboard test</text><text x=\"18\" y=\"122\">match your wall</text><rect x=\"130\" y=\"70\" width=\"22\" height=\"50\" rx=\"5\" class=\"y\"/><rect x=\"136\" y=\"62\" width=\"10\" height=\"8\" class=\"bk\"/><path d=\"M152 66 L292 36 L292 120 Z\" class=\"mos\" style=\"opacity:.5\"/><rect x=\"292\" y=\"26\" width=\"12\" height=\"120\" class=\"b\"/><line x1=\"219\" y1=\"150\" x2=\"146\" y2=\"150\" class=\"o\"/><polygon points=\"146,150 150.5,147.8 150.5,152.2\" class=\"inkf\"/><line x1=\"219\" y1=\"150\" x2=\"292\" y2=\"150\" class=\"o\"/><polygon points=\"292,150 287.5,152.2 287.5,147.8\" class=\"inkf\"/><text x=\"150\" y=\"166\">distance on the can,</text><text x=\"150\" y=\"178\">often 1 to 2 ft</text>",
+   "h": 186,
+   "cap": "Spray in quick, light passes and build up slowly. Too much in one spot can't be wiped off cleanly."
+  },
+  "knockdown": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Knockdown: wait for the shine to dull</text><rect x=\"10\" y=\"30\" width=\"90\" height=\"80\" class=\"b\"/><text x=\"10\" y=\"128\" class=\"k\">1 Spatter</text><text x=\"10\" y=\"140\">wet and shiny</text><rect x=\"115\" y=\"30\" width=\"90\" height=\"80\" class=\"b\"/><text x=\"115\" y=\"128\" class=\"k\">2 Wait</text><text x=\"115\" y=\"140\">shine dulls</text><rect x=\"220\" y=\"30\" width=\"90\" height=\"80\" class=\"b\"/><text x=\"220\" y=\"128\" class=\"k\">3 Knock down</text><text x=\"220\" y=\"140\">one light pass</text><circle cx=\"20\" cy=\"44\" r=\"6\" class=\"th\"/><circle cx=\"18\" cy=\"42\" r=\"1.6\" class=\"bk\"/><circle cx=\"125\" cy=\"44\" r=\"6\" class=\"th\"/><ellipse cx=\"230\" cy=\"44\" rx=\"8\" ry=\"4\" class=\"th\"/><circle cx=\"46\" cy=\"40\" r=\"6\" class=\"th\"/><circle cx=\"44\" cy=\"38\" r=\"1.6\" class=\"bk\"/><circle cx=\"151\" cy=\"40\" r=\"6\" class=\"th\"/><ellipse cx=\"256\" cy=\"40\" rx=\"8\" ry=\"4\" class=\"th\"/><circle cx=\"70\" cy=\"52\" r=\"6\" class=\"th\"/><circle cx=\"68\" cy=\"50\" r=\"1.6\" class=\"bk\"/><circle cx=\"175\" cy=\"52\" r=\"6\" class=\"th\"/><ellipse cx=\"280\" cy=\"52\" rx=\"8\" ry=\"4\" class=\"th\"/><circle cx=\"32\" cy=\"70\" r=\"6\" class=\"th\"/><circle cx=\"30\" cy=\"68\" r=\"1.6\" class=\"bk\"/><circle cx=\"137\" cy=\"70\" r=\"6\" class=\"th\"/><ellipse cx=\"242\" cy=\"70\" rx=\"8\" ry=\"4\" class=\"th\"/><circle cx=\"58\" cy=\"78\" r=\"6\" class=\"th\"/><circle cx=\"56\" cy=\"76\" r=\"1.6\" class=\"bk\"/><circle cx=\"163\" cy=\"78\" r=\"6\" class=\"th\"/><ellipse cx=\"268\" cy=\"78\" rx=\"8\" ry=\"4\" class=\"th\"/><circle cx=\"80\" cy=\"90\" r=\"6\" class=\"th\"/><circle cx=\"78\" cy=\"88\" r=\"1.6\" class=\"bk\"/><circle cx=\"185\" cy=\"90\" r=\"6\" class=\"th\"/><ellipse cx=\"290\" cy=\"90\" rx=\"8\" ry=\"4\" class=\"th\"/><circle cx=\"24\" cy=\"96\" r=\"6\" class=\"th\"/><circle cx=\"22\" cy=\"94\" r=\"1.6\" class=\"bk\"/><circle cx=\"129\" cy=\"96\" r=\"6\" class=\"th\"/><ellipse cx=\"234\" cy=\"96\" rx=\"8\" ry=\"4\" class=\"th\"/><circle cx=\"76\" cy=\"64\" r=\"6\" class=\"th\"/><circle cx=\"74\" cy=\"62\" r=\"1.6\" class=\"bk\"/><circle cx=\"181\" cy=\"64\" r=\"6\" class=\"th\"/><ellipse cx=\"286\" cy=\"64\" rx=\"8\" ry=\"4\" class=\"th\"/><circle cx=\"48\" cy=\"58\" r=\"6\" class=\"th\"/><circle cx=\"46\" cy=\"56\" r=\"1.6\" class=\"bk\"/><circle cx=\"153\" cy=\"58\" r=\"6\" class=\"th\"/><ellipse cx=\"258\" cy=\"58\" rx=\"8\" ry=\"4\" class=\"th\"/><g><polygon points=\"214,30 316,30 316,40 214,40\" class=\"bk\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 0;0 70;0 70\" keyTimes=\"0;0.7;1\" dur=\"3s\" repeatCount=\"indefinite\"/></g><text x=\"10\" y=\"160\">Often 5 to 15 minutes. Dry air is faster.</text><text x=\"10\" y=\"172\">Knife nearly flat, barely touching.</text>",
+   "h": 180,
+   "title": "Time the knockdown",
+   "cap": "Too soon and the dots smear into a smooth smudge. Too late and they won't flatten. Practice on cardboard."
+  },
+  "flash": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Prime the patch or it shows through</text><rect x=\"10\" y=\"30\" width=\"140\" height=\"96\" class=\"tl\"/><rect x=\"46\" y=\"54\" width=\"70\" height=\"46\" rx=\"10\" class=\"mos\"/><rect x=\"170\" y=\"30\" width=\"140\" height=\"96\" class=\"tl\"/><rect x=\"206\" y=\"54\" width=\"70\" height=\"46\" rx=\"10\" class=\"tl\"/><rect x=\"206\" y=\"54\" width=\"70\" height=\"46\" rx=\"10\" class=\"o d\"/><text x=\"10\" y=\"142\" class=\"wa\">no primer</text><text x=\"10\" y=\"154\">dull spot (flashing)</text><text x=\"170\" y=\"142\" class=\"gd\">primer first</text><text x=\"170\" y=\"154\">even sheen</text>",
+   "h": 164,
+   "cap": "Bare mud soaks up paint differently than painted wall, so the patch looks duller. Primer seals it."
+  },
+  "water": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Water damage: cut past the wet area</text><rect x=\"20\" y=\"26\" width=\"280\" height=\"130\" class=\"b\"/><line x1=\"60\" y1=\"26\" x2=\"60\" y2=\"156\" class=\"o d\"/><line x1=\"140\" y1=\"26\" x2=\"140\" y2=\"156\" class=\"o d\"/><line x1=\"220\" y1=\"26\" x2=\"220\" y2=\"156\" class=\"o d\"/><path d=\"M90 156 Q86 110 110 100 Q140 80 170 104 Q196 116 194 156 Z\" class=\"wt\" style=\"opacity:.6\"/><rect x=\"60\" y=\"64\" width=\"160\" height=\"92\" class=\"bad\" style=\"stroke-width:2\"/><text x=\"66\" y=\"80\" class=\"wa\">cut line</text><text x=\"110\" y=\"140\" class=\"k\">stain</text><text x=\"10\" y=\"172\">Cut 12\" past wet or stained drywall, to stud centers.</text><text x=\"10\" y=\"186\">Check with a moisture meter, not just your eyes.</text>",
+   "h": 194,
+   "cap": "Cutting to the middle of a stud on each side gives the new piece something solid to screw into."
+  }
+ },
+ "glossary": [
+  [
+   "Mud",
+   "Joint compound: the paste used to fill and smooth drywall."
+  ],
+  [
+   "Spackle",
+   "A ready-to-use filler for small holes. Lightweight spackle shrinks little and dries fast."
+  ],
+  [
+   "Setting-type compound",
+   "Powder you mix with water. It hardens by chemical reaction in about the minutes on the bag (20, 45, 90)."
+  ],
+  [
+   "Premixed compound",
+   "Ready-to-use mud in a tub or box. Dries by evaporation, usually overnight."
+  ],
+  [
+   "Feathering",
+   "Thinning the edge of a coat until it fades into the wall."
+  ],
+  [
+   "California patch",
+   "A drywall patch with its own paper flange, also called a butterfly or hot patch."
+  ],
+  [
+   "Backer",
+   "A wood strip behind the opening that gives the patch something to screw into."
+  ],
+  [
+   "Corner bead",
+   "Metal or plastic angle that forms a sharp, tough outside corner."
+  ],
+  [
+   "Raking light",
+   "Light shone across a surface at a low angle to show bumps."
+  ],
+  [
+   "Flashing",
+   "A dull or shiny spot where paint soaked into a patch differently."
+  ],
+  [
+   "Orange peel",
+   "A fine, bumpy wall texture like orange skin."
+  ],
+  [
+   "Knockdown",
+   "Spatter texture flattened with a knife, leaving flat blobs."
+  ],
+  [
+   "On center (o.c.)",
+   "Measured from the center of one stud to the center of the next."
+  ]
+ ]
+}

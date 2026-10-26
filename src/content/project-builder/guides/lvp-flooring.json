@@ -1,0 +1,1221 @@
+{
+ "slug": "lvp-flooring",
+ "title": "Install LVP Flooring",
+ "eyebrow": "Flooring · luxury vinyl plank",
+ "category": "Flooring",
+ "difficulty": "Beginner",
+ "time": "2–3 days for a 12×14 room",
+ "summary": "Install a floating click-lock luxury vinyl plank floor over a wood or concrete subfloor: flat, tight joints, even gaps and clean transitions.",
+ "safety": "Wear <b>safety glasses</b> when prying and cutting, <b>knee pads</b> all day, and a <b>dust mask</b> when sanding (silica-rated on concrete). Keep utility knife strokes away from your hand and body. Don't sand or scrape old vinyl or its glue: it may contain asbestos.",
+ "pro": "the subfloor is soft, rotten or very uneven over large areas, the concrete is damp, the old flooring might contain asbestos, or the job includes stairs. Floating floors generally don't need a permit, but plumbing changes might.",
+ "questions": [
+  {
+   "id": "length",
+   "label": "Room length (along the planks)",
+   "type": "number",
+   "unit": "ft",
+   "default": 14,
+   "step": 0.5
+  },
+  {
+   "id": "width",
+   "label": "Room width (across the planks)",
+   "type": "number",
+   "unit": "ft",
+   "default": 12,
+   "step": 0.5
+  },
+  {
+   "id": "cover",
+   "label": "Sq ft per box (on the label)",
+   "type": "number",
+   "unit": "sq ft",
+   "default": 20,
+   "step": 0.1
+  },
+  {
+   "id": "waste",
+   "label": "Room shape",
+   "type": "choice",
+   "default": "10",
+   "options": [
+    {
+     "v": "10",
+     "label": "Simple",
+     "hint": "10% waste"
+    },
+    {
+     "v": "15",
+     "label": "Lots of corners",
+     "hint": "15% waste"
+    }
+   ]
+  },
+  {
+   "id": "pw",
+   "label": "Plank face width",
+   "type": "number",
+   "unit": "in",
+   "default": 7,
+   "step": 0.25,
+   "hint": "Measure the visible face, not the tongue."
+  },
+  {
+   "id": "gap",
+   "label": "Expansion gap from the instructions",
+   "type": "number",
+   "unit": "in",
+   "default": 0.25,
+   "step": 0.0625,
+   "hint": "1/4\" = 0.25, 5/16\" = 0.3125"
+  },
+  {
+   "id": "sub",
+   "label": "What's the subfloor?",
+   "type": "choice",
+   "default": "wood",
+   "options": [
+    {
+     "v": "wood",
+     "label": "Wood (plywood/OSB)"
+    },
+    {
+     "v": "concrete",
+     "label": "Concrete"
+    }
+   ]
+  },
+  {
+   "id": "old",
+   "label": "What's on the floor now?",
+   "type": "choice",
+   "default": "carpet",
+   "options": [
+    {
+     "v": "carpet",
+     "label": "Carpet"
+    },
+    {
+     "v": "hard",
+     "label": "Old vinyl or tile"
+    },
+    {
+     "v": "bare",
+     "label": "Bare subfloor"
+    }
+   ]
+  },
+  {
+   "id": "pad",
+   "label": "Underlayment",
+   "type": "choice",
+   "default": "attached",
+   "options": [
+    {
+     "v": "attached",
+     "label": "Pad attached to planks"
+    },
+    {
+     "v": "separate",
+     "label": "Separate pad",
+     "hint": "maker allows"
+    }
+   ]
+  },
+  {
+   "id": "doors",
+   "label": "Doorways needing a transition",
+   "type": "number",
+   "unit": "doors",
+   "default": 1,
+   "step": 1
+  },
+  {
+   "id": "toilet",
+   "label": "Is there a toilet in the room?",
+   "type": "choice",
+   "default": "no",
+   "options": [
+    {
+     "v": "no",
+     "label": "No"
+    },
+    {
+     "v": "yes",
+     "label": "Yes"
+    }
+   ]
+  }
+ ],
+ "calcs": [
+  {
+   "id": "sqft",
+   "label": "Floor area",
+   "expr": "Math.round(a.length*a.width)",
+   "fmt": "{{c.sqft}} sq ft"
+  },
+  {
+   "id": "buy",
+   "label": "With waste",
+   "expr": "Math.ceil(c.sqft*(1+Number(a.waste)/100))",
+   "fmt": "{{c.buy}} sq ft"
+  },
+  {
+   "id": "boxes",
+   "label": "Boxes to buy",
+   "expr": "Math.ceil(c.buy/a.cover)",
+   "fmt": "{{c.boxes}} boxes"
+  },
+  {
+   "id": "rolls",
+   "label": "Underlayment",
+   "expr": "Math.ceil(c.sqft*1.05/100)",
+   "fmt": "{{c.rolls}} × 100 sq ft rolls",
+   "when": "a.pad==='separate'"
+  },
+  {
+   "id": "trim",
+   "label": "Baseboard length",
+   "expr": "Math.ceil(2*(a.length+a.width)*1.1)",
+   "fmt": "about {{c.trim}} ft"
+  },
+  {
+   "id": "span",
+   "expr": "a.width*12-2*a.gap"
+  },
+  {
+   "id": "full",
+   "expr": "Math.floor(c.span/a.pw)"
+  },
+  {
+   "id": "rem",
+   "expr": "c.span-c.full*a.pw"
+  },
+  {
+   "id": "rip",
+   "expr": "c.rem>0.5&&c.rem<a.pw/2"
+  },
+  {
+   "id": "rows",
+   "label": "Rows across the room",
+   "expr": "c.full+(c.rem>0.5?1:0)",
+   "fmt": "{{c.rows}} rows"
+  },
+  {
+   "id": "firstRow",
+   "label": "First row width",
+   "expr": "c.rip?(c.rem+a.pw)/2:a.pw",
+   "fmt": "{{frac(c.firstRow)}}"
+  },
+  {
+   "id": "lastRow",
+   "label": "Last row width",
+   "expr": "c.rip?(c.rem+a.pw)/2:(c.rem>0.5?c.rem:a.pw)",
+   "fmt": "{{frac(c.lastRow)}}"
+  }
+ ],
+ "calcNote": "Row widths assume the room is square and the planks run along the length. Check them with a tape at both ends of the room before cutting. Add closets to the room size, or add their boxes separately.",
+ "overviewFig": [
+  "layout",
+  "click"
+ ],
+ "tools": [
+  {
+   "id": "planks",
+   "c": "Materials",
+   "n": "LVP planks (click-lock, floating)",
+   "must": true,
+   "w": "Buy all boxes at once from the same lot (dye lot) so colors match.",
+   "q": "luxury vinyl plank flooring click lock",
+   "qty": "{{c.boxes}} boxes"
+  },
+  {
+   "id": "underlay",
+   "c": "Materials",
+   "n": "LVP underlayment (only if the maker allows)",
+   "must": true,
+   "w": "Only for planks without an attached pad, and only the type the maker lists. Usually thin (1–1.5 mm).",
+   "q": "LVP underlayment roll 100 sq ft",
+   "qty": "{{c.rolls}} rolls",
+   "when": "a.pad==='separate'"
+  },
+  {
+   "id": "poly",
+   "c": "Materials",
+   "n": "6-mil poly sheeting + seam tape",
+   "must": false,
+   "w": "Vapor barrier over concrete, only if the maker requires one for your product.",
+   "q": "6 mil plastic sheeting",
+   "qty": "1 roll",
+   "when": "a.sub==='concrete'"
+  },
+  {
+   "id": "patch",
+   "c": "Materials",
+   "n": "Floor patch (feather finish) or self-leveler",
+   "must": false,
+   "w": "Fills dips and seams so the floor is flat enough.",
+   "q": "floor patch feather finish",
+   "qty": "1–2 bags"
+  },
+  {
+   "id": "screws",
+   "c": "Materials",
+   "n": "1-5/8\" deck/subfloor screws",
+   "must": false,
+   "w": "Fixes squeaks and loose subfloor panels before you cover them.",
+   "q": "subfloor screws 1-5/8",
+   "qty": "1 box",
+   "when": "a.sub==='wood'"
+  },
+  {
+   "id": "transitions",
+   "c": "Materials",
+   "n": "Transition moldings (T-molding, reducer or end cap)",
+   "must": true,
+   "w": "Finishes doorways and edges where the new floor meets another floor.",
+   "q": "vinyl plank transition molding",
+   "qty": "{{a.doors}}"
+  },
+  {
+   "id": "shoe",
+   "c": "Materials",
+   "n": "Shoe molding or quarter-round",
+   "must": false,
+   "w": "Only if your baseboard can't go back low enough to hide the gap, or the old pieces break.",
+   "q": "shoe molding primed",
+   "qty": "about {{c.trim}} ft"
+  },
+  {
+   "id": "nails",
+   "c": "Materials",
+   "n": "Finish nails or brad nails + wood filler",
+   "must": true,
+   "w": "Reattach baseboard to the wall.",
+   "q": "18 gauge brad nails 2 inch"
+  },
+  {
+   "id": "caulk",
+   "c": "Materials",
+   "n": "100% silicone caulk, clear or matching",
+   "must": false,
+   "w": "Seals around a toilet, tub or pipe gap in bathrooms.",
+   "q": "100 silicone caulk clear",
+   "when": "a.toilet==='yes'"
+  },
+  {
+   "id": "wax",
+   "c": "Materials",
+   "n": "New toilet wax ring (or wax-free seal), plus spacer if needed",
+   "must": true,
+   "w": "A used wax ring never reseals.",
+   "q": "toilet wax ring extra thick",
+   "when": "a.toilet==='yes'"
+  },
+  {
+   "id": "tape",
+   "c": "Measure",
+   "n": "Tape measure, pencil, chalk line",
+   "must": true,
+   "w": "Measuring, marking and snapping straight lines.",
+   "q": "25 ft tape measure"
+  },
+  {
+   "id": "square",
+   "c": "Measure",
+   "n": "Speed square or 24\" drywall T-square",
+   "must": true,
+   "w": "Guides straight score cuts.",
+   "q": "drywall T-square 24 in"
+  },
+  {
+   "id": "straight",
+   "c": "Measure",
+   "n": "6 ft level or 8–10 ft straightedge",
+   "must": true,
+   "w": "Finds high and low spots in the subfloor.",
+   "q": "aluminum straightedge 8 ft"
+  },
+  {
+   "id": "knife",
+   "c": "Cutting",
+   "n": "Utility knife + pack of new blades",
+   "must": true,
+   "w": "Score-and-snap cuts on LVP.",
+   "q": "utility knife blades 100 pack"
+  },
+  {
+   "id": "jigsaw",
+   "c": "Cutting",
+   "n": "Jigsaw with fine-tooth blade",
+   "must": true,
+   "w": "Notches, curves and cut-outs.",
+   "q": "jigsaw blade fine tooth laminate"
+  },
+  {
+   "id": "drill",
+   "c": "Cutting",
+   "n": "Drill + spade or hole-saw bits",
+   "must": true,
+   "w": "Holes for pipes; driving subfloor screws.",
+   "q": "spade bit set"
+  },
+  {
+   "id": "jambsaw",
+   "c": "Cutting",
+   "n": "Jamb saw (flush-cut saw)",
+   "must": true,
+   "w": "Undercuts door casing so planks slide under.",
+   "q": "jamb saw undercut",
+   "rent": false
+  },
+  {
+   "id": "tapblock",
+   "c": "Install",
+   "n": "Flooring kit: tapping block, pull bar, spacers",
+   "must": true,
+   "w": "Closes joints without damaging edges; keeps the expansion gap.",
+   "q": "flooring installation kit tapping block pull bar"
+  },
+  {
+   "id": "mallet",
+   "c": "Install",
+   "n": "Rubber mallet (white, non-marking)",
+   "must": true,
+   "w": "Taps the block and bar.",
+   "q": "white rubber mallet"
+  },
+  {
+   "id": "pry",
+   "c": "Demo",
+   "n": "Flat pry bar + wide putty knife",
+   "must": true,
+   "w": "Removes baseboard without denting the wall.",
+   "q": "flat pry bar"
+  },
+  {
+   "id": "vac",
+   "c": "Demo",
+   "n": "Shop vac and broom",
+   "must": true,
+   "w": "The subfloor must be spotless before planks go down.",
+   "q": "shop vacuum"
+  },
+  {
+   "id": "sander",
+   "c": "Demo",
+   "n": "Pole sander or random-orbit sander, 40–60 grit",
+   "must": false,
+   "w": "Takes down high seams on wood subfloors.",
+   "q": "random orbit sander"
+  },
+  {
+   "id": "trowel",
+   "c": "Demo",
+   "n": "Wide flat trowel or 10\" taping knife",
+   "must": false,
+   "w": "Spreads floor patch.",
+   "q": "concrete finishing trowel"
+  },
+  {
+   "id": "nailer",
+   "c": "Install",
+   "n": "Brad nailer or hammer + nail set",
+   "must": true,
+   "w": "Reinstalls baseboard.",
+   "q": "18 gauge brad nailer",
+   "rent": true
+  },
+  {
+   "id": "glasses",
+   "c": "Safety",
+   "n": "Safety glasses, knee pads, dust mask",
+   "must": true,
+   "w": "You'll be on your knees all day; sanding and cutting make dust.",
+   "q": "knee pads flooring"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Plan and buy",
+   "steps": [
+    {
+     "id": "m1",
+     "t": "Measure the room and buy the planks",
+     "time": "30 min",
+     "idea": "Buy enough flooring from one lot so you never run short or end up with mismatched color.",
+     "fig": "room",
+     "need": [
+      "tape",
+      "planks"
+     ],
+     "b": "<ol><li>Measure the length and the width of the room at the widest points, wall to wall. Enter them on the Start tab.</li><li>Measure closets, hallways and alcoves separately and add their length into the room size (or run the numbers twice and add them).</li><li>Find \"sq ft per box\" on the box label or the store page and enter it.</li><li>Pick your waste: 10% for a plain rectangular room, 15% for lots of corners, closets or a diagonal pattern.</li><li>You need <b>{{c.boxes}} boxes</b>. Check that every box shows the same lot or run number.</li><li>Keep one extra box after the job for future repairs.</li></ol>",
+     "faq": [
+      [
+       "Can I mix lots?",
+       "Better not. If you must, open boxes from both lots and mix planks as you lay them so any shade change is spread out."
+      ],
+      [
+       "Can the store take back unopened boxes?",
+       "Most do. Ask before you buy, and keep the receipt."
+      ]
+     ]
+    },
+    {
+     "id": "m2",
+     "t": "Read the plank's install instructions",
+     "time": "20 min",
+     "idea": "Every brand sets its own rules for gap, pad, flatness and room size, and breaking them can void the warranty.",
+     "need": [
+      "planks"
+     ],
+     "b": "<ol><li>Open one box and find the instruction sheet, or download it from the maker's site.</li><li>Write down: the expansion gap (enter it on the Start tab), the flatness limit, whether extra underlayment is allowed, the acclimation time and the largest room it can span without a break.</li><li>Check where it can't go: some LVP isn't rated for sunrooms or unheated rooms.</li><li>Check what's allowed over concrete: some products require a moisture test or a 6-mil poly sheet.</li></ol>",
+     "faq": [
+      [
+       "My box says 'waterproof'. Can I mop it?",
+       "The planks are waterproof, but water can still get under them at the edges. Wipe spills, damp-mop only."
+      ],
+      [
+       "What's the maximum run?",
+       "Many LVP floors can run 40 to 100 ft before they need a transition break. Big open spaces may need a T-molding in the middle. Your sheet gives the number."
+      ]
+     ]
+    },
+    {
+     "id": "m3",
+     "t": "Bring the planks in to acclimate",
+     "time": "15 min",
+     "idea": "Planks laid at the temperature of the room stay flat and tight afterwards.",
+     "fig": "acclimate",
+     "need": [
+      "planks"
+     ],
+     "wait": "Acclimate as long as the box says (often 24–48 hours; some need none).",
+     "b": "<ol><li>Set the heat or AC to the normal living temperature, and keep it there through the install and after.</li><li>Carry the boxes into the room (not a garage or basement).</li><li>Lay them flat, in stacks no more than about 5 high, a few inches apart.</li><li>Don't stand them on end; it can bow the planks.</li><li>Leave them for the time the box says before you open and install.</li></ol>"
+    }
+   ]
+  },
+  {
+   "name": "Prepare the room",
+   "steps": [
+    {
+     "id": "p1",
+     "t": "Empty the room and remove baseboard",
+     "time": "1–2 hours",
+     "idea": "Baseboard comes off so the floor can run under it and the gap gets hidden.",
+     "fig": "baseboard",
+     "need": [
+      "pry",
+      "knife",
+      "tape"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "help": [
+      "pryHelp"
+     ],
+     "b": "<ol><li>Move all furniture out. Take doors that swing over the floor off their hinges (tap the hinge pins up and out).</li><li>Remove floor vent covers.</li><li>Score along the top of the baseboard with a utility knife to cut the paint and caulk.</li><li>Slide a wide putty knife between the wall and the baseboard, then the pry bar in front of it. Pry gently.</li><li>Move along every 16 inches (at each nail) and pry a little at each spot until the board comes free.</li><li>Number each piece on the back with a pencil and write the same number on the wall above it.</li><li>Pull the nails out from the back with pliers so the face doesn't splinter.</li></ol>",
+     "faq": [
+      [
+       "Can I leave the baseboard on and just use quarter-round?",
+       "Yes. Lay the floor with the gap at the baseboard and cover it with shoe molding or quarter-round nailed to the baseboard. It's faster but looks less clean."
+      ]
+     ]
+    },
+    {
+     "id": "p2",
+     "t": "Pull up the carpet and pad",
+     "time": "1–3 hours",
+     "idea": "LVP needs a hard, flat base. Carpet, pad, tack strip and staples all come out.",
+     "when": "a.old==='carpet'",
+     "need": [
+      "pry",
+      "knife",
+      "vac"
+     ],
+     "ppe": [
+      "Gloves",
+      "Glasses"
+     ],
+     "b": "<ol><li>Grab a corner of the carpet with pliers and pull it up off the tack strip.</li><li>Cut the carpet into 3 ft strips with a utility knife, roll them and tape them for disposal.</li><li>Pull up the pad. Remove every pad staple with pliers or a flat screwdriver.</li><li>Pry up the tack strip around the room. Wear gloves: those tacks are sharp.</li><li>Sweep and vacuum.</li></ol>"
+    },
+    {
+     "id": "p3",
+     "t": "Check the old hard floor",
+     "time": "20 min",
+     "idea": "LVP can go over some old flooring, if it's flat, solid and only one layer.",
+     "when": "a.old==='hard'",
+     "need": [
+      "straight"
+     ],
+     "b": "<ol><li>Old floor must be one layer, glued down tight and flat. Loose or cushioned vinyl, carpet, and floating floors must come out.</li><li>Fill grout lines on old tile with patch so they don't telegraph through.</li><li>Check the transition heights: going over old flooring raises the floor, so doors and appliances may not clear.</li></ol>",
+     "stop": "Vinyl tile or sheet floors and their black glue from before about 1980 may contain asbestos. Don't sand, scrape or tear them up. Cover over them, or have a sample tested before removing."
+    },
+    {
+     "id": "p4",
+     "t": "Remove the toilet",
+     "time": "45 min",
+     "idea": "Planks run under where the toilet was, so it has to come off.",
+     "when": "a.toilet==='yes'",
+     "fig": "toilet",
+     "need": [
+      "wax",
+      "caulk"
+     ],
+     "ppe": [
+      "Gloves"
+     ],
+     "b": "<ol><li>Turn the water off at the valve behind the toilet (clockwise). Flush and hold the handle down to empty the tank.</li><li>Sponge out the last water from the tank and bowl.</li><li>Disconnect the supply line at the tank.</li><li>Remove the nuts on the two floor bolts, rock the toilet gently to break the seal and lift it straight up. It weighs 60–100 lb: get help.</li><li>Scrape the old wax off the flange with a putty knife.</li><li>Stuff an old rag in the drain hole to block sewer gas (remember to remove it later).</li></ol>",
+     "faq": [
+      [
+       "Can I just cut around the toilet?",
+       "You can, but it never looks as good and the joint is hard to seal. Pulling the toilet is easier than it sounds."
+      ]
+     ]
+    },
+    {
+     "id": "p5",
+     "t": "Undercut the door casings",
+     "time": "10 min per door",
+     "idea": "Trim the bottom of door casing so planks slide under it, instead of cutting tricky notches.",
+     "fig": "jamb",
+     "need": [
+      "jambsaw",
+      "planks"
+     ],
+     "help": [
+      "jambHelp"
+     ],
+     "b": "<ol><li>Lay a scrap plank face down at the casing (put a piece of underlayment under it if you're using separate pad).</li><li>Rest the jamb saw flat on the scrap, blade against the casing.</li><li>Saw straight in with long, steady strokes, keeping the saw flat.</li><li>Cut both sides of every door opening and the door stop if it reaches the floor.</li><li>Knock out the cut-off piece with a flat screwdriver and vacuum the dust.</li><li>Test: a plank should slide under easily with room for the expansion gap.</li></ol>",
+     "faq": [
+      [
+       "What about a metal door frame or stone threshold?",
+       "You can't undercut those. Scribe and cut the plank to fit around them, leaving the expansion gap, then fill the gap with matching caulk."
+      ]
+     ]
+    },
+    {
+     "id": "p6",
+     "t": "Fix squeaks and loose subfloor",
+     "time": "30–60 min",
+     "idea": "Every squeak now will squeak forever under the new floor.",
+     "when": "a.sub==='wood'",
+     "need": [
+      "screws",
+      "drill"
+     ],
+     "b": "<ol><li>Walk the whole floor slowly. Mark each squeak or soft spot with tape.</li><li>Find the joists: look for the nail rows, usually every 16\".</li><li>Drive a 1-5/8\" screw through the subfloor into the joist next to each squeak. Sink the head just below the surface.</li><li>Hammer down or pull any nail that sticks up.</li></ol>",
+     "stop": "Soft, spongy or water-stained subfloor (often near toilets and tubs) is rotten. Cut out and replace that section before covering it.",
+     "faq": [
+      [
+       "How do I avoid pipes and wires?",
+       "Keep screws to the 1-5/8\" length and drive them into joists. Pipes and wires run through the middle of joists, well below the subfloor."
+      ]
+     ]
+    },
+    {
+     "id": "p7",
+     "t": "Check the floor is flat",
+     "time": "20–40 min",
+     "idea": "LVP follows every bump. Dips make the joints flex and pop apart.",
+     "fig": "flat",
+     "need": [
+      "straight",
+      "tape"
+     ],
+     "b": "<ol><li>Clear the floor and sweep it.</li><li>Lay the straightedge flat and slide it across the floor in rows, then turn it 90° and do it again.</li><li>Where it rocks, that's a high spot: draw a circle on it.</li><li>Where you see light under it, that's a low spot: slide coins or a 3/16\" drill bit under to measure. Outline it.</li><li>Your plank's limit is usually about 3/16\" in 10 ft. Anything worse gets fixed in the next step.</li></ol>",
+     "faq": [
+      [
+       "Flat or level?",
+       "Flat. A floor can slope a little across the room; that's fine. It just can't have humps and dips."
+      ]
+     ]
+    },
+    {
+     "id": "p8",
+     "t": "Sand high spots, patch low spots",
+     "time": "1–3 hours",
+     "idea": "Bring the bumps down and fill the dips so the planks lie flat everywhere.",
+     "fig": "fixes",
+     "need": [
+      "patch",
+      "trowel",
+      "sander"
+     ],
+     "ppe": [
+      "Mask",
+      "Glasses"
+     ],
+     "timers": [
+      [
+       "Floor patch dry (check bag)",
+       120
+      ]
+     ],
+     "help": [
+      "patchHelp"
+     ],
+     "b": "<ol><li>High spots on wood: sand the seam or ridge with 40-grit until the straightedge sits flat.</li><li>High spots on concrete: grind with a rented concrete grinder or a rub brick. Wear a dust mask rated for silica.</li><li>Vacuum, then mix floor patch per the bag in a bucket to a peanut-butter thickness.</li><li>Spread it into the low spot with a wide trowel, pressing firmly, and feather the edges thin.</li><li>Let it harden (check bag), then check with the straightedge again. Add a second thin coat if needed.</li><li>Sand any ridges smooth.</li></ol>",
+     "faq": [
+      [
+       "My whole floor is wavy.",
+       "For big areas use self-leveling compound poured over a primed floor. It's a bigger job; consider a pro for whole rooms."
+      ]
+     ]
+    },
+    {
+     "id": "p9",
+     "t": "Test concrete for moisture",
+     "time": "10 min + overnight",
+     "idea": "Moisture from a slab can trap under the floor and cause mold or failed joints.",
+     "when": "a.sub==='concrete'",
+     "fig": "moisture",
+     "need": [
+      "poly"
+     ],
+     "timers": [
+      [
+       "Plastic moisture test",
+       960
+      ]
+     ],
+     "b": "<ol><li>Cut an 18\" x 18\" piece of clear plastic.</li><li>Tape all four edges tight to the slab with duct tape. Do two or three spots, including near outside walls.</li><li>Wait at least 16 hours.</li><li>Lift it: beads of water or a darker damp patch means the slab is too wet. Fix the moisture problem first.</li><li>Dry? Check the instructions: if they require a vapor barrier, roll out 6-mil poly, overlap seams 8\" and tape them.</li></ol>",
+     "stop": "Many makers require a measured test (calcium chloride or in-slab RH) and give a limit. Do the test they require, or the warranty won't cover moisture damage.",
+     "faq": [
+      [
+       "My planks have an attached pad. Do I still need poly?",
+       "Only if the maker says so. Some attached pads already act as the vapor barrier; others still want poly on concrete."
+      ]
+     ]
+    },
+    {
+     "id": "p10",
+     "t": "Clean the subfloor",
+     "time": "20 min",
+     "idea": "One grain of grit under a plank becomes a bump you'll feel forever.",
+     "need": [
+      "vac"
+     ],
+     "b": "<ol><li>Scrape off old paint drips, drywall mud and glue lumps with a scraper.</li><li>Vacuum the whole floor, including the corners and the gap under door casings.</li><li>Run your hand over the floor: it should feel smooth.</li></ol>"
+    },
+    {
+     "id": "p11",
+     "t": "Roll out the underlayment",
+     "time": "20–40 min",
+     "idea": "A separate pad goes down only when the plank doesn't already have one and the maker allows it.",
+     "when": "a.pad==='separate'",
+     "need": [
+      "underlay",
+      "knife"
+     ],
+     "b": "<ol><li>Roll out one strip along the wall where you'll start, the same direction as the planks.</li><li>Butt the next strip edge to edge. Don't overlap unless the pad's instructions say to.</li><li>Tape the seams with the tape the pad calls for.</li><li>Roll out only a few strips at a time so you don't walk on and tear them.</li></ol>",
+     "stop": "Never put extra underlayment under planks that already have an attached pad. The floor gets too soft, the joints flex and break, and the warranty is void."
+    }
+   ]
+  },
+  {
+   "name": "Lay it out",
+   "steps": [
+    {
+     "id": "l1",
+     "t": "Pick a direction and check the starting wall",
+     "time": "20 min",
+     "idea": "Run the planks the long way of the room, and start along a wall you've checked for straightness.",
+     "need": [
+      "tape"
+     ],
+     "b": "<ol><li>Run planks parallel to the longest wall or the main light from windows. In a hallway, run them down the length.</li><li>Pick the starting wall: usually the longest, straightest outside wall.</li><li>Measure from that wall to the opposite wall at both ends of the room. If they differ by more than 1/2\", the room is out of square; plan to split the difference.</li><li>Stretch a string or snap a chalk line a plank-width off the starting wall. If the wall bows more than about 1/4\", you'll scribe (trace and cut) the first row to the wall.</li></ol>",
+     "faq": [
+      [
+       "Does it have to go the same way in every room?",
+       "In connected rooms, yes: keep the same direction through doorways so it looks like one floor."
+      ]
+     ]
+    },
+    {
+     "id": "l2",
+     "t": "Plan the first and last rows",
+     "time": "15 min",
+     "idea": "Avoid a thin sliver row along a wall. Thin rows look bad and don't lock well.",
+     "fig": "layout",
+     "need": [
+      "tape",
+      "jigsaw"
+     ],
+     "b": "<ol><li>Measure the visible face width of one plank (enter it on the Start tab if it's not {{a.pw}}\").</li><li>Your room needs about <b>{{c.rows}} rows</b>.</li><li>First row: <b>{{frac(c.firstRow)}}</b> wide. Last row: <b>{{frac(c.lastRow)}}</b>.</li><li>{{c.rip?'Your last row would have been a sliver, so you rip (cut lengthwise) the first row too. Cut the tongue side off to get that width.':'No ripping needed on the first row. Just cut off the tongue side that faces the wall so it sits tight to the spacers.'}}</li><li>Check the numbers against your tape in two places before cutting.</li></ol>",
+     "faq": [
+      [
+       "How do I rip a plank lengthwise?",
+       "Score it along a straightedge several times and snap it, or cut it with a jigsaw or table saw. Score-and-snap works best on rigid-core LVP."
+      ]
+     ]
+    },
+    {
+     "id": "l3",
+     "t": "Set the expansion gap",
+     "time": "5 min",
+     "idea": "The floor floats: it must be free to move a little on every side.",
+     "fig": "gap",
+     "need": [
+      "tapblock"
+     ],
+     "b": "<ol><li>Your gap: <b>{{frac(a.gap)}}</b> at every wall (from the instructions).</li><li>Place spacers against the starting wall every 12–16\", and at the end walls.</li><li>Keep the same gap at door jambs, pipes, cabinet bases, tubs and fireplace hearths.</li><li>Don't let anything heavy or fixed sit on the floor and pin it (kitchen islands, built-in cabinets).</li></ol>",
+     "faq": [
+      [
+       "Can I fill the gap with caulk?",
+       "Not at walls; the baseboard covers it. At tubs, tile and door frames, use flexible silicone caulk, never rigid filler."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Install the planks",
+   "steps": [
+    {
+     "id": "i1",
+     "t": "Lay the first row",
+     "time": "30–45 min",
+     "idea": "The first row sets everything. Make it straight and tight.",
+     "fig": "click",
+     "need": [
+      "planks",
+      "tapblock",
+      "knife",
+      "square"
+     ],
+     "help": [
+      "snapHelp"
+     ],
+     "b": "<ol><li>Open 3 or 4 boxes and mix planks from them as you go so the shades blend.</li><li>Cut the tongue side off the first-row planks{{c.rip?' (rip them to '+frac(c.firstRow)+')':''}}.</li><li>Start in the left corner of the starting wall, groove side facing you, cut edge against the spacers.</li><li>Click the next plank onto the end: hold it at a low angle, push the end in and press it flat. Some brands drop down and tap the end instead; follow your sheet.</li><li>At the end of the row, flip the last plank, mark the length (minus the gap) and cut it.</li><li>Sight down the row: it should be straight with your line, with the gap even all along.</li></ol>",
+     "faq": [
+      [
+       "The row drifts away from the wall.",
+       "The wall isn't straight. Trust the string line, not the wall: adjust the spacers so the row stays straight."
+      ]
+     ]
+    },
+    {
+     "id": "i2",
+     "t": "Cut planks: score and snap",
+     "time": "practice 10 min",
+     "idea": "Most rigid LVP cuts cleanly with just a utility knife, no saw dust.",
+     "fig": "snap",
+     "need": [
+      "knife",
+      "square"
+     ],
+     "help": [
+      "snapHelp"
+     ],
+     "b": "<ol><li>Mark the cut on the face with a pencil.</li><li>Set the square on the line and hold it hard with one hand.</li><li>Score along it 2–3 times with firm, even pressure, pulling the knife toward you.</li><li>Hold the plank over a table edge (or your knee) and bend it down: it snaps along the score.</li><li>Fold it back and slice through any backing or attached pad.</li></ol>",
+     "faq": [
+      [
+       "It cracked off line.",
+       "Score deeper and more times, and use a fresh blade. Some thick planks cut better with a jigsaw or a miter saw."
+      ],
+      [
+       "Measure from which end?",
+       "Measure from the end that will lock in, to the wall, and subtract the gap."
+      ]
+     ]
+    },
+    {
+     "id": "i3",
+     "t": "Start the next rows with staggered joints",
+     "time": "ongoing",
+     "idea": "Offset end joints so the floor looks natural and stays strong.",
+     "fig": [
+      "stagger",
+      "click"
+     ],
+     "need": [
+      "planks",
+      "tapblock",
+      "mallet"
+     ],
+     "help": [
+      "tapHelp"
+     ],
+     "b": "<ol><li>Start row 2 with the cut-off piece from row 1, if it's at least 8\" long (or your sheet's minimum).</li><li>Check: end joints in neighboring rows must be at least 6–8\" apart (your sheet sets this).</li><li>Angle the long edge into the groove of the row before, then lower it flat.</li><li>Click the end joint of the next plank and lower it.</li><li>Close any small gap with light taps of the tapping block on the long edge.</li><li>Every few rows, step back and look: avoid stair-step or H-shaped joint patterns.</li></ol>",
+     "faq": [
+      [
+       "One plank shows a gap I can't close.",
+       "Lift it, check for debris in the groove and a chipped tongue. Replace a damaged plank instead of forcing it."
+      ]
+     ]
+    },
+    {
+     "id": "i4",
+     "t": "Work across the room",
+     "time": "several hours",
+     "idea": "Repeat the rhythm row by row, keeping joints tight and the gap even.",
+     "fig": "tap",
+     "need": [
+      "tapblock",
+      "mallet"
+     ],
+     "help": [
+      "tapHelp"
+     ],
+     "b": "<ol><li>Lay 3 or 4 rows, then check the first row is still straight and the spacers are still in place.</li><li>Stand or kneel on the finished rows, not on the open edge.</li><li>Close gaps with the tapping block; at walls, use the pull bar.</li><li>Pull planks from several boxes at once and look at each: set aside any chipped or off-color plank for closets.</li><li>Run your hand along each joint: it should feel flush, no lip.</li></ol>",
+     "faq": [
+      [
+       "Rows aren't closing near the end.",
+       "Something is out of line. Check the first row against your string and look for debris in the joints."
+      ]
+     ]
+    },
+    {
+     "id": "i5",
+     "t": "Slide planks under door casings",
+     "time": "15 min per door",
+     "idea": "Undercut casings let the floor run in without visible notches.",
+     "fig": "jamb",
+     "need": [
+      "jigsaw",
+      "tapblock"
+     ],
+     "b": "<ol><li>Measure from the last installed row to the jamb and mark the notch on the plank.</li><li>Cut the notch with a jigsaw (support the plank, cut slowly).</li><li>Where you can't angle the plank in, slide it under the casing flat and tap the long joint closed with the pull bar.</li><li>Keep the expansion gap under the casing too.</li></ol>",
+     "faq": [
+      [
+       "Is there a trick at doorways where I can't lift the plank?",
+       "Cut off the lip on the bottom of the groove and glue that joint with the adhesive the maker recommends. Only for this one spot."
+      ]
+     ]
+    },
+    {
+     "id": "i6",
+     "t": "Fit around pipes and vents",
+     "time": "15 min each",
+     "idea": "Drill a hole bigger than the pipe so the floor can still move.",
+     "fig": "pipe",
+     "need": [
+      "drill",
+      "jigsaw",
+      "caulk"
+     ],
+     "b": "<ol><li>Mark the pipe center: distance from the wall (side) and from the last row (front).</li><li>Drill a hole 1/2\" bigger than the pipe at that spot.</li><li>Cut from the hole straight to the plank edge with two cuts, so a strip comes out.</li><li>Fit the plank around the pipe, then glue the strip back in behind the pipe.</li><li>Floor vent: cut a hole in the plank to match the duct opening. The vent cover sits on top.</li><li>Cover the gap with a pipe collar ring.</li></ol>"
+    },
+    {
+     "id": "i7",
+     "t": "Cut and fit the last row",
+     "time": "30–60 min",
+     "idea": "Mark each last-row plank to match the wall, so the gap stays even.",
+     "fig": "lastrow",
+     "need": [
+      "knife",
+      "square",
+      "tapblock",
+      "mallet"
+     ],
+     "b": "<ol><li>Lay a loose plank (A) exactly on top of the last full row.</li><li>Lay another plank (B) on top of A, pushed against the spacer at the wall.</li><li>Draw a line on A along B's edge. That's your cut line.</li><li>Cut A on the line. The strip of A that B didn't cover is the piece that fits the space. Click it in.</li><li>Use the pull bar and mallet to close the long joint.</li><li>Remove all spacers once the whole floor is down.</li></ol>",
+     "faq": [
+      [
+       "The last row is less than an inch wide.",
+       "Your first row should have been ripped. If it's too late, glue the thin strip to the plank next to it with the adhesive the maker approves."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Finish",
+   "steps": [
+    {
+     "id": "f1",
+     "t": "Install transitions at doorways",
+     "time": "15 min each",
+     "idea": "Transitions cover the gap and edge where the floor meets another floor or a door.",
+     "fig": "trans",
+     "need": [
+      "transitions",
+      "drill"
+     ],
+     "b": "<ol><li>Pick the profile: T-molding between two floors of the same height, reducer down to a lower floor, end cap against a taller floor, door slider or tub.</li><li>Cut the molding to length with a fine-tooth saw.</li><li>Screw or glue the track to the subfloor in the gap between floors, never through the planks.</li><li>Snap the molding into the track.</li><li>The new floor must still slide freely under the molding.</li></ol>",
+     "faq": [
+      [
+       "Do I need a T-molding in a doorway?",
+       "Only if the maker requires one at that spot or the run is longer than their maximum. Many LVP floors can run straight through doorways."
+      ]
+     ]
+    },
+    {
+     "id": "f2",
+     "t": "Put the baseboard back",
+     "time": "1–2 hours",
+     "idea": "Baseboard hides the gap, and it's nailed to the wall so the floor can still move.",
+     "fig": "trimnail",
+     "need": [
+      "nails",
+      "nailer",
+      "shoe"
+     ],
+     "help": [
+      "pryHelp"
+     ],
+     "b": "<ol><li>Match each numbered piece to its spot on the wall.</li><li>Hold it down to touch the floor lightly, then lift it the thickness of a sheet of paper.</li><li>Nail into the wall studs (every 16\") and bottom plate, angled slightly down into the wall, not into the floor.</li><li>If you add shoe molding, nail it into the baseboard, not the floor.</li><li>Fill nail holes and touch up paint.</li><li>Caulk the top edge of the baseboard if it was caulked before.</li></ol>"
+    },
+    {
+     "id": "f3",
+     "t": "Reset the toilet",
+     "time": "45 min",
+     "idea": "The toilet goes back on a new seal, with the floor still free to move.",
+     "when": "a.toilet==='yes'",
+     "fig": "toilet",
+     "need": [
+      "wax",
+      "caulk"
+     ],
+     "b": "<ol><li>Check your plank instructions first: most allow the toilet to sit on a floating floor, but some makers want the planks cut around the toilet base instead.</li><li>Remove the rag from the drain.</li><li>Check the flange height: its top should be level with or above the new floor. If it sits below, add a spacer ring or use an extra-thick wax ring.</li><li>Set the new wax ring, lower the toilet straight down onto the bolts and press it down by sitting on it.</li><li>Tighten the nuts a little at a time, side to side, just until the toilet doesn't rock. Over-tightening cracks porcelain.</li><li>Reconnect the water, turn on the valve, flush several times and check for leaks.</li><li>Seal the gap around the flange cut-out and along tubs with silicone.</li></ol>"
+    },
+    {
+     "id": "f4",
+     "t": "Final check and floor care",
+     "time": "15 min",
+     "idea": "Protect the new floor so it lasts.",
+     "need": [
+      "vac"
+     ],
+     "b": "<ol><li>Remove leftover spacers, check every wall: no plank touching a wall, pipe or jamb.</li><li>Put felt pads under every furniture leg.</li><li>Use a chair mat under rolling office chairs.</li><li>Clean with a damp mop or the cleaner the maker names. No steam mops.</li><li>Put doors back on, rehang vent covers.</li><li>Store spare planks and the box label flat in a closet.</li></ol>",
+     "stop": "Never screw, nail or glue a floating floor down, and don't install heavy fixed things on it (kitchen cabinets, islands, built-ins). They pin the floor and it buckles.",
+     "faq": [
+      [
+       "Some joints creak.",
+       "Usually a high spot or debris underneath. Most quiet down in a few days. A joint that keeps moving needs that plank lifted and the subfloor fixed."
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "days": [
+  {
+   "t": "Measure, buy, acclimate",
+   "ids": [
+    "m1",
+    "m2",
+    "m3"
+   ],
+   "wait": "Let planks acclimate as long as the box says"
+  },
+  {
+   "t": "Prep the room",
+   "ids": [
+    "p1",
+    "p2",
+    "p3",
+    "p4",
+    "p5",
+    "p6",
+    "p7",
+    "p8",
+    "p9"
+   ],
+   "wait": "Patch dries; concrete moisture test sits overnight"
+  },
+  {
+   "t": "Lay out and install",
+   "ids": [
+    "p10",
+    "p11",
+    "l1",
+    "l2",
+    "l3",
+    "i1",
+    "i2",
+    "i3",
+    "i4"
+   ],
+   "wait": "Natural break at the end of the day"
+  },
+  {
+   "t": "Finish the floor",
+   "ids": [
+    "i5",
+    "i6",
+    "i7",
+    "f1",
+    "f2",
+    "f3",
+    "f4"
+   ]
+  }
+ ],
+ "help": {
+  "snapHelp": {
+   "t": "Score and snap a plank",
+   "fig": "snap",
+   "b": "<ol><li>Mark the line on the face.</li><li>Clamp a square on the line with your hand, fingers well away from the blade path.</li><li>Pull the knife toward you along the square 2–3 times, firm and even.</li><li>Bend the plank down at the score; it snaps clean.</li><li>Cut the backing from behind.</li></ol>"
+  },
+  "tapHelp": {
+   "t": "Use a tapping block and pull bar",
+   "fig": "tap",
+   "b": "<ol><li>Tapping block: set its lip against the long edge of the plank, tap the block with a rubber mallet. Several light taps beat one hard one.</li><li>Pull bar: hook it over the far end of a plank next to a wall and tap the bar's raised end toward you.</li><li>Never hit plank edges directly; it breaks the locking profile.</li></ol>"
+  },
+  "jambHelp": {
+   "t": "Use a jamb saw",
+   "fig": "jamb",
+   "b": "<ol><li>Set a scrap of flooring (face down, plus pad) against the casing.</li><li>Lay the saw flat on top of it.</li><li>Saw with long, light strokes, letting the scrap guide the height.</li><li>Pop out the cut piece with a screwdriver.</li></ol>"
+  },
+  "pryHelp": {
+   "t": "Remove trim without damage",
+   "fig": "baseboard",
+   "b": "<ol><li>Cut the paint line with a utility knife.</li><li>Put a wide putty knife against the wall as a shield.</li><li>Pry a little at each nail along the length, not all at one end.</li><li>Pull nails through the back with pliers.</li></ol>"
+  },
+  "patchHelp": {
+   "t": "Feather a floor patch",
+   "fig": "fixes",
+   "b": "<ol><li>Mix small batches: patch often hardens in 15–20 minutes.</li><li>Press it into the low spot with the trowel held almost flat.</li><li>Pull the trowel outward past the edges so the patch thins to nothing.</li><li>Sand ridges once hard.</li></ol>"
+  }
+ },
+ "figs": {
+  "room": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Measure wall to wall, add waste</text><rect x=\"40\" y=\"34\" width=\"180\" height=\"110\" class=\"tl\"/><line x1=\"40\" y1=\"34\" x2=\"40\" y2=\"144\" class=\"th-l\"/><line x1=\"76\" y1=\"34\" x2=\"76\" y2=\"144\" class=\"th-l\"/><line x1=\"112\" y1=\"34\" x2=\"112\" y2=\"144\" class=\"th-l\"/><line x1=\"148\" y1=\"34\" x2=\"148\" y2=\"144\" class=\"th-l\"/><line x1=\"184\" y1=\"34\" x2=\"184\" y2=\"144\" class=\"th-l\"/><rect x=\"170\" y=\"34\" width=\"50\" height=\"34\" class=\"mos\"/><text x=\"195\" y=\"55\" text-anchor=\"middle\">closet</text><line x1=\"40\" y1=\"156\" x2=\"220\" y2=\"156\" class=\"a\"/><polygon points=\"40,156 46,152 46,160\" class=\"af\"/><polygon points=\"220,156 214,152 214,160\" class=\"af\"/><text x=\"130\" y=\"170\" class=\"ac\" text-anchor=\"middle\">length {{a.length}} ft</text><line x1=\"232\" y1=\"34\" x2=\"232\" y2=\"144\" class=\"a\"/><polygon points=\"232,34 228,40 236,40\" class=\"af\"/><polygon points=\"232,144 228,138 236,138\" class=\"af\"/><text x=\"240\" y=\"92\">width</text><text x=\"240\" y=\"104\" class=\"ac\">{{a.width}} ft</text><text x=\"10\" y=\"190\">Measure closets and nooks too, then add them.</text>",
+   "h": 198,
+   "cap": "Area x (1 + waste) / sq ft per box = boxes. Always round up, and buy all boxes from the same lot number."
+  },
+  "acclimate": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Let the planks get used to the room</text><line x1=\"10\" y1=\"100\" x2=\"310\" y2=\"100\" class=\"o\"/><rect x=\"30\" y=\"88\" width=\"72\" height=\"12\" class=\"bk\"/><rect x=\"30\" y=\"74\" width=\"72\" height=\"12\" class=\"bk\"/><rect x=\"30\" y=\"60\" width=\"72\" height=\"12\" class=\"bk\"/><rect x=\"30\" y=\"46\" width=\"72\" height=\"12\" class=\"bk\"/><rect x=\"124\" y=\"88\" width=\"72\" height=\"12\" class=\"bk\"/><rect x=\"124\" y=\"74\" width=\"72\" height=\"12\" class=\"bk\"/><rect x=\"124\" y=\"60\" width=\"72\" height=\"12\" class=\"bk\"/><rect x=\"124\" y=\"46\" width=\"72\" height=\"12\" class=\"bk\"/><rect x=\"218\" y=\"88\" width=\"72\" height=\"12\" class=\"bk\"/><rect x=\"218\" y=\"74\" width=\"72\" height=\"12\" class=\"bk\"/><rect x=\"218\" y=\"60\" width=\"72\" height=\"12\" class=\"bk\"/><rect x=\"218\" y=\"46\" width=\"72\" height=\"12\" class=\"bk\"/><text x=\"113\" y=\"62\" text-anchor=\"middle\">air</text><text x=\"207\" y=\"62\" text-anchor=\"middle\">air</text><text x=\"160\" y=\"118\" text-anchor=\"middle\">boxes flat, a few inches apart</text><text x=\"160\" y=\"132\" text-anchor=\"middle\">room at normal living temperature</text>",
+   "h": 140,
+   "cap": "Store and install in the same conditions people live in. Some rigid-core planks need no wait; others need 24 to 48 hours. The box says which."
+  },
+  "baseboard": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Pull trim without wrecking the wall</text><rect x=\"232\" y=\"24\" width=\"40\" height=\"148\" class=\"b\"/><text x=\"252\" y=\"40\" text-anchor=\"middle\">wall</text><rect x=\"218\" y=\"112\" width=\"14\" height=\"60\" class=\"w\"/><path d=\"M206 172 v-12 a12 12 0 0 1 12 12z\" class=\"w\"/><line x1=\"10\" y1=\"172\" x2=\"310\" y2=\"172\" class=\"o\"/><rect x=\"231\" y=\"92\" width=\"4\" height=\"40\" class=\"y\"/><line x1=\"228\" y1=\"124\" x2=\"150\" y2=\"70\" class=\"o\" style=\"stroke-width:6\"/><text x=\"10\" y=\"40\" class=\"k\">1  Cut paint/caulk line</text><text x=\"10\" y=\"52\">with a utility knife</text><text x=\"10\" y=\"96\">2  Pry against a putty</text><text x=\"10\" y=\"108\">knife so the bar</text><text x=\"10\" y=\"120\">can't dent the wall</text><text x=\"10\" y=\"150\" class=\"k\">3  Number each piece</text><text x=\"130\" y=\"186\" text-anchor=\"middle\">shoe molding</text><text x=\"286\" y=\"120\" class=\"k\" text-anchor=\"middle\">base</text><line x1=\"206\" y1=\"180\" x2=\"170\" y2=\"183\" class=\"o d\"/>",
+   "h": 192,
+   "cap": "Pry a little at each nail, working down the length, so the board comes off without cracking. Pull nails out through the back with pliers."
+  },
+  "jamb": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Undercut the door casing</text><rect x=\"150\" y=\"24\" width=\"24\" height=\"128\" class=\"w\"/><text x=\"162\" y=\"38\" text-anchor=\"middle\">casing</text><rect x=\"10\" y=\"152\" width=\"300\" height=\"14\" class=\"b\"/><text x=\"300\" y=\"176\" text-anchor=\"end\">subfloor</text><rect x=\"90\" y=\"140\" width=\"120\" height=\"12\" class=\"tl\"/><text x=\"30\" y=\"148\" class=\"k\">scrap plank</text><g><rect x=\"104\" y=\"128\" width=\"96\" height=\"10\" class=\"bk\"/><rect x=\"60\" y=\"126\" width=\"44\" height=\"14\" rx=\"4\" class=\"y\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 0;22 0;0 0\" dur=\"1.2s\" repeatCount=\"indefinite\"/></g><text x=\"210\" y=\"60\">saw blade rests</text><text x=\"210\" y=\"72\">flat on the scrap</text><line x1=\"222\" y1=\"78\" x2=\"190\" y2=\"128\" class=\"a\"/><text x=\"10\" y=\"188\">The new floor slides under the casing: no notching.</text>",
+   "h": 196,
+   "title": "Cut the casing with a jamb saw",
+   "cap": "Lay a scrap plank (plus pad, if separate) upside down against the casing, rest the saw flat on it and cut. Pull out the cut-off piece."
+  },
+  "flat": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Check flatness with a long straightedge</text><path d=\"M10 120 C60 120 80 104 120 104 S170 122 200 128 S260 120 310 120 L310 150 L10 150Z\" class=\"b\"/><rect x=\"20\" y=\"96\" width=\"280\" height=\"7\" class=\"y\"/><path d=\"M200 103 L200 127\" class=\"bad\"/><text x=\"206\" y=\"142\" class=\"wa\">gap here = low spot</text><text x=\"120\" y=\"90\" class=\"k\" text-anchor=\"middle\">rocks on a hump = high spot</text><text x=\"10\" y=\"170\">Typical limit: 3/16\" in 10 ft, 1/8\" in 6 ft.</text><text x=\"10\" y=\"184\">Your plank box gives the exact number.</text>",
+   "h": 192,
+   "cap": "Slide an 8 to 10 ft straightedge (or a straight 2x4) all over the floor. Mark highs and lows with a pencil or marker."
+  },
+  "fixes": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Highs: sand down. Lows: fill up.</text><path d=\"M10 110 L50 110 Q80 92 110 110 L150 110 L150 140 L10 140Z\" class=\"w\"/><path d=\"M50 110 Q80 102 110 110\" class=\"a d\" fill=\"none\"/><text x=\"80\" y=\"84\" class=\"k\" text-anchor=\"middle\">high: sand</text><text x=\"80\" y=\"158\" text-anchor=\"middle\">wood seam</text><text x=\"80\" y=\"170\" text-anchor=\"middle\">or ridge</text><path d=\"M170 100 L210 100 Q240 122 270 100 L310 100 L310 140 L170 140Z\" class=\"b\"/><path d=\"M200 100 L210 100 Q240 122 270 100 L280 100 Z\" class=\"th\"/><text x=\"240\" y=\"84\" class=\"k\" text-anchor=\"middle\">low: patch</text><text x=\"240\" y=\"158\" text-anchor=\"middle\">trowel it level,</text><text x=\"240\" y=\"170\" text-anchor=\"middle\">feather the edges</text>",
+   "h": 178,
+   "cap": "Feather patch out wide, past the edges of the dip, and sand any ridges once it hardens."
+  },
+  "moisture": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Concrete: quick moisture check</text><rect x=\"10\" y=\"110\" width=\"300\" height=\"50\" class=\"th\"/><text x=\"160\" y=\"140\" text-anchor=\"middle\">concrete slab</text><rect x=\"90\" y=\"100\" width=\"140\" height=\"8\" class=\"mos\"/><rect x=\"84\" y=\"98\" width=\"10\" height=\"12\" class=\"y\"/><rect x=\"226\" y=\"98\" width=\"10\" height=\"12\" class=\"y\"/><text x=\"160\" y=\"90\" text-anchor=\"middle\">18\" x 18\" plastic, edges taped</text><text x=\"10\" y=\"40\" class=\"k\">Leave it 16+ hours. Then look under it:</text><text x=\"10\" y=\"54\">drops or a dark damp spot = too wet.</text><text x=\"10\" y=\"180\">Real numbers need a test kit (see your box).</text>",
+   "h": 188,
+   "cap": "The plastic test only catches obvious problems. Many makers ask for a calcium chloride or RH test with a limit printed in the instructions."
+  },
+  "gap": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Leave a gap at every wall</text><rect x=\"246\" y=\"20\" width=\"40\" height=\"140\" class=\"b\"/><text x=\"266\" y=\"36\" text-anchor=\"middle\">wall</text><rect x=\"10\" y=\"140\" width=\"300\" height=\"20\" class=\"w\"/><text x=\"40\" y=\"174\">subfloor</text><rect x=\"10\" y=\"128\" width=\"224\" height=\"12\" class=\"tl\"/><text x=\"30\" y=\"122\" class=\"k\">floating plank</text><rect x=\"234\" y=\"128\" width=\"12\" height=\"12\" class=\"y\"/><rect x=\"228\" y=\"92\" width=\"18\" height=\"48\" class=\"w\" fill-opacity=\"0.85\"/><text x=\"160\" y=\"72\" class=\"ac\" text-anchor=\"middle\">baseboard hides the gap</text><line x1=\"212\" y1=\"76\" x2=\"232\" y2=\"92\" class=\"a\"/><text x=\"240\" y=\"186\" class=\"ac\" text-anchor=\"middle\">{{frac(a.gap)}} gap (spacer)</text><line x1=\"240\" y1=\"176\" x2=\"240\" y2=\"142\" class=\"a\"/>",
+   "h": 192,
+   "cap": "The floor grows and shrinks with temperature. Without the gap it buckles. Leave it at walls, cabinets, pipes, door jambs and fireplace hearths."
+  },
+  "layout": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Plan rows so both edges are wide</text><rect x=\"30\" y=\"30\" width=\"200\" height=\"140\" class=\"o\"/><rect x=\"30\" y=\"30\" width=\"200\" height=\"14\" class=\"mos\"/><rect x=\"30\" y=\"44\" width=\"200\" height=\"28\" class=\"tl\"/><rect x=\"30\" y=\"72\" width=\"200\" height=\"28\" class=\"tl\"/><rect x=\"30\" y=\"100\" width=\"200\" height=\"28\" class=\"tl\"/><rect x=\"30\" y=\"128\" width=\"200\" height=\"28\" class=\"tl\"/><rect x=\"30\" y=\"156\" width=\"200\" height=\"14\" class=\"mos\"/><line x1=\"90\" y1=\"44\" x2=\"90\" y2=\"72\" class=\"o\"/><line x1=\"160\" y1=\"44\" x2=\"160\" y2=\"72\" class=\"o\"/><line x1=\"90\" y1=\"72\" x2=\"90\" y2=\"100\" class=\"o\"/><line x1=\"160\" y1=\"72\" x2=\"160\" y2=\"100\" class=\"o\"/><line x1=\"90\" y1=\"100\" x2=\"90\" y2=\"128\" class=\"o\"/><line x1=\"160\" y1=\"100\" x2=\"160\" y2=\"128\" class=\"o\"/><line x1=\"90\" y1=\"128\" x2=\"90\" y2=\"156\" class=\"o\"/><line x1=\"160\" y1=\"128\" x2=\"160\" y2=\"156\" class=\"o\"/><text x=\"240\" y=\"40\">first row</text><text x=\"240\" y=\"52\" class=\"ac\">{{frac(c.firstRow)}}</text><text x=\"240\" y=\"150\">last row</text><text x=\"240\" y=\"162\" class=\"ac\">{{frac(c.lastRow)}}</text><text x=\"130\" y=\"98\" text-anchor=\"middle\">full rows</text><text x=\"10\" y=\"188\">Ripped rows should be at least half a plank.</text>",
+   "h": 196,
+   "cap": "If the last row comes out as a sliver, rip the first row narrower so both edges end up equal. Your numbers are on the Start tab."
+  },
+  "click": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Angle in, then drop it flat</text><rect x=\"10\" y=\"110\" width=\"140\" height=\"14\" class=\"tl\"/><text x=\"40\" y=\"142\" class=\"k\">installed row</text><path d=\"M150 112 h8 v5 h-8z\" class=\"tl\"/><g><rect x=\"160\" y=\"110\" width=\"140\" height=\"14\" class=\"tl\"/><path d=\"M160 115 h-10 v4 h10z\" class=\"tl\"/><animateTransform attributeName=\"transform\" type=\"rotate\" values=\"-22 160 117;-22 160 117;0 160 117;0 160 117\" keyTimes=\"0;0.3;0.7;1\" dur=\"3s\" repeatCount=\"indefinite\"/></g><path d=\"M268 52 a40 40 0 0 1 14 46\" class=\"a\" fill=\"none\"/><polygon points=\"282,100 278,94 286,94\" class=\"af\"/><text x=\"200\" y=\"150\" class=\"k\" text-anchor=\"middle\">push in at 20–30°,</text><text x=\"200\" y=\"162\" class=\"k\" text-anchor=\"middle\">then lower it</text><text x=\"10\" y=\"182\">Tongue into groove. It clicks flat with no gap.</text>",
+   "h": 190,
+   "title": "Lock the long side",
+   "cap": "Seat the tongue fully at an angle first, then press down. If it springs up or shows a gap, lift it and try again; never force it flat."
+  },
+  "snap": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Cut LVP: score, then snap</text><rect x=\"10\" y=\"50\" width=\"140\" height=\"26\" class=\"tl\"/><rect x=\"70\" y=\"30\" width=\"8\" height=\"66\" class=\"y\"/><line x1=\"66\" y1=\"30\" x2=\"66\" y2=\"96\" class=\"a d\"/><path d=\"M60 62 l-14 -26 l8 -3 l14 26z\" class=\"bk\"/><text x=\"10\" y=\"108\">1  Score the face</text><text x=\"10\" y=\"120\">2–3 times on a square</text><path d=\"M170 76 L240 76 L246 62 L316 62 L316 50 L240 52 L234 64 L170 64Z\" class=\"tl\"/><line x1=\"170\" y1=\"90\" x2=\"310\" y2=\"90\" class=\"o\"/><text x=\"176\" y=\"108\">2  Bend it down</text><text x=\"176\" y=\"120\">along the score: snap</text><text x=\"10\" y=\"150\" class=\"k\">3  Cut through the backing/pad with the knife.</text><text x=\"10\" y=\"168\">Use a fresh blade. Dull blades wander.</text>",
+   "h": 176,
+   "cap": "Score the finished (top) face, snap it face up over a table edge or your knee, then slice the pad on the back."
+  },
+  "stagger": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Stagger end joints</text><rect x=\"10\" y=\"34\" width=\"140\" height=\"16\" class=\"tl\"/><line x1=\"60\" y1=\"34\" x2=\"60\" y2=\"50\" class=\"o\"/><rect x=\"10\" y=\"50\" width=\"140\" height=\"16\" class=\"tl\"/><line x1=\"102\" y1=\"50\" x2=\"102\" y2=\"66\" class=\"o\"/><rect x=\"10\" y=\"66\" width=\"140\" height=\"16\" class=\"tl\"/><line x1=\"30\" y1=\"66\" x2=\"30\" y2=\"82\" class=\"o\"/><line x1=\"130\" y1=\"66\" x2=\"130\" y2=\"82\" class=\"o\"/><rect x=\"10\" y=\"82\" width=\"140\" height=\"16\" class=\"tl\"/><line x1=\"80\" y1=\"82\" x2=\"80\" y2=\"98\" class=\"o\"/><rect x=\"10\" y=\"98\" width=\"140\" height=\"16\" class=\"tl\"/><line x1=\"120\" y1=\"98\" x2=\"120\" y2=\"114\" class=\"o\"/><rect x=\"10\" y=\"114\" width=\"140\" height=\"16\" class=\"tl\"/><line x1=\"48\" y1=\"114\" x2=\"48\" y2=\"130\" class=\"o\"/><rect x=\"170\" y=\"34\" width=\"140\" height=\"16\" class=\"tl\"/><line x1=\"230\" y1=\"34\" x2=\"230\" y2=\"50\" class=\"o\"/><rect x=\"170\" y=\"50\" width=\"140\" height=\"16\" class=\"tl\"/><line x1=\"230\" y1=\"50\" x2=\"230\" y2=\"66\" class=\"o\"/><rect x=\"170\" y=\"66\" width=\"140\" height=\"16\" class=\"tl\"/><line x1=\"230\" y1=\"66\" x2=\"230\" y2=\"82\" class=\"o\"/><rect x=\"170\" y=\"82\" width=\"140\" height=\"16\" class=\"tl\"/><line x1=\"210\" y1=\"82\" x2=\"210\" y2=\"98\" class=\"o\"/><rect x=\"170\" y=\"98\" width=\"140\" height=\"16\" class=\"tl\"/><line x1=\"210\" y1=\"98\" x2=\"210\" y2=\"114\" class=\"o\"/><rect x=\"170\" y=\"114\" width=\"140\" height=\"16\" class=\"tl\"/><line x1=\"210\" y1=\"114\" x2=\"210\" y2=\"130\" class=\"o\"/><rect x=\"227\" y=\"34\" width=\"6\" height=\"48\" class=\"badf\" fill-opacity=\"0.35\"/><text x=\"10\" y=\"148\" class=\"gd\">joints 6–8\"+ apart, random</text><text x=\"10\" y=\"160\">no repeating pattern</text><text x=\"170\" y=\"148\" class=\"wa\">H-joints / lined up</text><text x=\"170\" y=\"160\">weak, looks fake</text><text x=\"10\" y=\"184\">Use the cut-off end to start the next row.</text>",
+   "h": 192,
+   "cap": "Check your box for the minimum stagger; many say 6\" to 8\". Also avoid a stair-step pattern across rows."
+  },
+  "tap": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Close gaps gently</text><rect x=\"10\" y=\"96\" width=\"130\" height=\"12\" class=\"tl\"/><rect x=\"140\" y=\"96\" width=\"6\" height=\"12\" class=\"tl\"/><path d=\"M146 92 h30 v20 h-30 v-6 h-4 v-8 h4z\" class=\"w\"/><rect x=\"184\" y=\"90\" width=\"40\" height=\"8\" class=\"bk\"/><rect x=\"224\" y=\"82\" width=\"12\" height=\"24\" class=\"inkf\"/><text x=\"10\" y=\"80\" class=\"k\">tapping block</text><text x=\"10\" y=\"124\">on the long edge, light taps</text><line x1=\"10\" y1=\"170\" x2=\"310\" y2=\"170\" class=\"o\"/><rect x=\"290\" y=\"120\" width=\"20\" height=\"50\" class=\"b\"/><rect x=\"10\" y=\"158\" width=\"140\" height=\"12\" class=\"tl\"/><rect x=\"152\" y=\"158\" width=\"132\" height=\"12\" class=\"tl\"/><path d=\"M286 168 V156 H200 V138\" class=\"o\" fill=\"none\" style=\"stroke-width:4\"/><line x1=\"196\" y1=\"134\" x2=\"176\" y2=\"134\" class=\"a\"/><polygon points=\"170,134 176,130 176,138\" class=\"af\"/><text x=\"208\" y=\"150\" class=\"k\">pull bar</text><text x=\"30\" y=\"142\">tap this end toward the joint</text><text x=\"10\" y=\"184\">hook over the end by the wall, tap toward the joint</text>",
+   "h": 192,
+   "cap": "Never hit a plank edge with a hammer: it crushes the locking edge and the joint will never close."
+  },
+  "pipe": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Fit around a pipe</text><rect x=\"30\" y=\"40\" width=\"260\" height=\"50\" class=\"tl\"/><line x1=\"30\" y1=\"40\" x2=\"290\" y2=\"40\" class=\"o\"/><circle cx=\"160\" cy=\"60\" r=\"12\" class=\"bk\"/><circle cx=\"160\" cy=\"60\" r=\"7\" class=\"inkf\"/><line x1=\"148\" y1=\"60\" x2=\"148\" y2=\"40\" class=\"bad\"/><line x1=\"172\" y1=\"60\" x2=\"172\" y2=\"40\" class=\"bad\"/><text x=\"160\" y=\"110\" class=\"k\" text-anchor=\"middle\">hole = pipe + 1/2\"</text><text x=\"160\" y=\"124\" text-anchor=\"middle\">drill, then cut to the edge</text><text x=\"10\" y=\"150\">Fit the plank, then glue the cut-out strip</text><text x=\"10\" y=\"162\">back in behind the pipe. Cover with a pipe ring.</text>",
+   "h": 172,
+   "cap": "Measure the pipe center from the wall and from the end of the previous plank before you drill."
+  },
+  "lastrow": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Mark the last row, plank on plank</text><rect x=\"10\" y=\"28\" width=\"300\" height=\"18\" class=\"b\"/><text x=\"30\" y=\"41\">wall</text><rect x=\"10\" y=\"70\" width=\"300\" height=\"40\" class=\"tl\"/><text x=\"14\" y=\"124\">last full row</text><rect x=\"60\" y=\"70\" width=\"240\" height=\"40\" class=\"mos\"/><rect x=\"60\" y=\"92\" width=\"240\" height=\"18\" class=\"goodf\" fill-opacity=\"0.35\"/><rect x=\"60\" y=\"52\" width=\"240\" height=\"40\" class=\"tl\" fill-opacity=\"0.75\"/><rect x=\"60\" y=\"52\" width=\"240\" height=\"40\" class=\"o d\" fill=\"none\"/><rect x=\"110\" y=\"46\" width=\"8\" height=\"6\" class=\"y\"/><line x1=\"60\" y1=\"92\" x2=\"300\" y2=\"92\" class=\"a\" style=\"stroke-width:2\"/><text x=\"150\" y=\"66\" class=\"k\">B: against the spacer</text><text x=\"150\" y=\"106\" class=\"k\">A: keep this strip</text><text x=\"10\" y=\"146\">1  Lay loose plank A exactly on the last row.</text><text x=\"10\" y=\"160\">2  Slide plank B over A, against the spacer.</text><text x=\"10\" y=\"174\">3  Draw along B onto A and cut on that line.</text><text x=\"10\" y=\"188\">4  The strip B did not cover is your piece.</text>",
+   "h": 196,
+   "cap": "Walls are rarely straight, so mark every last-row plank this way instead of using one measurement."
+  },
+  "trans": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Pick the right transition</text><rect x=\"8\" y=\"108\" width=\"40\" height=\"12\" class=\"tl\"/><rect x=\"64\" y=\"108\" width=\"40\" height=\"12\" class=\"tl\"/><line x1=\"8\" y1=\"120\" x2=\"104\" y2=\"120\" class=\"o\"/><path d=\"M40 104 h32 v4 h-12 v12 h-8 v-12 h-12z\" class=\"w\"/><text x=\"56\" y=\"140\" class=\"k\" text-anchor=\"middle\">T-molding</text><text x=\"56\" y=\"152\" text-anchor=\"middle\">same height</text><rect x=\"114\" y=\"108\" width=\"40\" height=\"12\" class=\"tl\"/><rect x=\"170\" y=\"116\" width=\"40\" height=\"4\" class=\"tl\"/><line x1=\"114\" y1=\"120\" x2=\"210\" y2=\"120\" class=\"o\"/><path d=\"M146 104 h10 L184 114 v2 h-30 v4 h-8z\" class=\"w\"/><text x=\"162\" y=\"140\" class=\"k\" text-anchor=\"middle\">reducer</text><text x=\"162\" y=\"152\" text-anchor=\"middle\">to lower floor</text><rect x=\"220\" y=\"108\" width=\"40\" height=\"12\" class=\"tl\"/><rect x=\"276\" y=\"104\" width=\"40\" height=\"16\" class=\"tl\"/><line x1=\"220\" y1=\"120\" x2=\"316\" y2=\"120\" class=\"o\"/><path d=\"M252 104 h20 v4 h-12 v12 h-8z\" class=\"w\"/><text x=\"268\" y=\"140\" class=\"k\" text-anchor=\"middle\">end cap</text><text x=\"268\" y=\"152\" text-anchor=\"middle\">to taller floor</text><text x=\"10\" y=\"178\">The molding rests on the track, never on the floor.</text>",
+   "h": 186,
+   "cap": "The track or adhesive attaches to the subfloor only. The floating floor must slide underneath freely."
+  },
+  "trimnail": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Nail trim to the wall, not the floor</text><rect x=\"246\" y=\"20\" width=\"40\" height=\"150\" class=\"b\"/><rect x=\"10\" y=\"150\" width=\"300\" height=\"20\" class=\"w\"/><rect x=\"10\" y=\"138\" width=\"232\" height=\"12\" class=\"tl\"/><rect x=\"232\" y=\"96\" width=\"14\" height=\"54\" class=\"w\"/><path d=\"M206 150 v-14 a14 14 0 0 1 14 14z\" class=\"w\"/><line x1=\"226\" y1=\"112\" x2=\"262\" y2=\"112\" class=\"good\" style=\"stroke-width:2\"/><circle cx=\"226\" cy=\"112\" r=\"3\" class=\"goodf\"/><line x1=\"204\" y1=\"140\" x2=\"214\" y2=\"158\" class=\"bad\" style=\"stroke-width:2\"/><circle cx=\"204\" cy=\"140\" r=\"3\" class=\"badf\"/><text x=\"16\" y=\"60\" class=\"gd\">RIGHT: nail baseboard</text><text x=\"16\" y=\"72\">into the wall studs</text><text x=\"16\" y=\"100\" class=\"wa\">WRONG: nail into the</text><text x=\"16\" y=\"112\">floor. It pins the floor.</text><text x=\"10\" y=\"190\">Leave a paper-thin gap under the trim.</text>",
+   "h": 198,
+   "cap": "Shoe molding gets nailed into the baseboard (angled slightly up), never down into the floating floor."
+  },
+  "toilet": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">New floor raises the toilet seat level</text><rect x=\"10\" y=\"140\" width=\"300\" height=\"18\" class=\"w\"/><rect x=\"10\" y=\"128\" width=\"110\" height=\"12\" class=\"tl\"/><rect x=\"200\" y=\"128\" width=\"110\" height=\"12\" class=\"tl\"/><rect x=\"132\" y=\"120\" width=\"56\" height=\"20\" class=\"bk\"/><text x=\"160\" y=\"112\" class=\"k\" text-anchor=\"middle\">flange</text><rect x=\"148\" y=\"140\" width=\"24\" height=\"22\" class=\"o\"/><text x=\"10\" y=\"178\">Flange top should sit on or above the new floor.</text><text x=\"10\" y=\"190\">Too low? Use a spacer ring or extra-thick seal.</text><text x=\"10\" y=\"64\">cut plank 1/4\" away from the flange,</text><text x=\"10\" y=\"76\">fill the gap with silicone after</text>",
+   "h": 198,
+   "cap": "Always use a new wax ring or wax-free seal when the toilet goes back. See your toilet guide for the full reset."
+  }
+ },
+ "glossary": [
+  [
+   "LVP",
+   "Luxury vinyl plank: vinyl or stone-plastic flooring made to look like wood, usually with click-lock edges."
+  ],
+  [
+   "Floating floor",
+   "A floor that locks to itself but isn't nailed or glued down. It sits on the subfloor and moves with temperature."
+  ],
+  [
+   "Rigid core (SPC/WPC)",
+   "A stiff stone-plastic or wood-plastic core. Stiffer planks hide small bumps better."
+  ],
+  [
+   "Expansion gap",
+   "The space left at every wall so the floor can grow and shrink."
+  ],
+  [
+   "Acclimation",
+   "Letting the planks reach the room's temperature before you install them."
+  ],
+  [
+   "Subfloor",
+   "The plywood, OSB or concrete under your finished floor."
+  ],
+  [
+   "Undercut",
+   "Trimming the bottom of door casings so the floor slides under."
+  ],
+  [
+   "Stagger",
+   "Offsetting the end joints from row to row."
+  ],
+  [
+   "H-joint",
+   "End joints lined up in every other row, making an H. Avoid it."
+  ],
+  [
+   "Rip",
+   "Cut a plank lengthwise to make it narrower."
+  ],
+  [
+   "Transition",
+   "A molding that covers the edge where the floor meets another floor."
+  ],
+  [
+   "Shoe molding",
+   "Thin curved trim nailed to the baseboard to cover the gap."
+  ],
+  [
+   "Lot (dye lot)",
+   "A production batch. Different lots can differ slightly in color."
+  ]
+ ]
+}

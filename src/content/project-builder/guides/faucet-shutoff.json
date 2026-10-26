@@ -1,0 +1,810 @@
+{
+ "slug": "faucet-shutoff",
+ "title": "Replace a Faucet",
+ "eyebrow": "Plumbing · sinks",
+ "category": "Plumbing",
+ "difficulty": "Intermediate",
+ "time": "2–4 hours",
+ "summary": "Swap a kitchen or bathroom faucet for a new one, and if you want, replace the old shutoff valves under the sink with reliable quarter-turn ones.",
+ "safety": "Shut off the water and open the faucet to prove it's off before disconnecting anything. When replacing the valves, the <b>main water must be off</b>. Use two wrenches so you never twist the pipe in the wall. Wear glasses when working under the sink.",
+ "pro": "the pipe behind the valve is too short, corroded or cracked, you have old galvanized pipe, a valve needs soldering, or the main won't shut off completely. Replacing a faucet usually doesn't need a permit; changing pipes may. Check with your local building department.",
+ "questions": [
+  {
+   "id": "room",
+   "label": "Which faucet?",
+   "type": "choice",
+   "default": "bath",
+   "options": [
+    {
+     "v": "bath",
+     "label": "Bathroom"
+    },
+    {
+     "v": "kitchen",
+     "label": "Kitchen"
+    }
+   ]
+  },
+  {
+   "id": "holes",
+   "label": "How many holes in the sink or counter?",
+   "type": "choice",
+   "default": "3",
+   "options": [
+    {
+     "v": "1",
+     "label": "1"
+    },
+    {
+     "v": "3",
+     "label": "3"
+    },
+    {
+     "v": "4",
+     "label": "4",
+     "hint": "kitchen"
+    }
+   ]
+  },
+  {
+   "id": "spread",
+   "when": "a.room==='bath'",
+   "label": "Bathroom: spread of the outer holes",
+   "type": "choice",
+   "default": "4",
+   "options": [
+    {
+     "v": "4",
+     "label": "4\" centerset"
+    },
+    {
+     "v": "8",
+     "label": "8\" or more",
+     "hint": "widespread"
+    }
+   ],
+   "hint": "Center to center. Skip for a kitchen."
+  },
+  {
+   "id": "valve",
+   "label": "How does the pipe connect to the shutoff valve?",
+   "type": "choice",
+   "default": "compression",
+   "options": [
+    {
+     "v": "compression",
+     "label": "Compression",
+     "hint": "nut on the pipe"
+    },
+    {
+     "v": "threaded",
+     "label": "Threaded",
+     "hint": "iron pipe"
+    },
+    {
+     "v": "sweat",
+     "label": "Soldered (sweat)"
+    },
+    {
+     "v": "pushfit",
+     "label": "Push-fit",
+     "hint": "collar, no nut"
+    }
+   ]
+  },
+  {
+   "id": "newvalves",
+   "label": "Replace the shutoff valves too?",
+   "type": "choice",
+   "default": "no",
+   "options": [
+    {
+     "v": "no",
+     "label": "No, just the faucet"
+    },
+    {
+     "v": "yes",
+     "label": "Yes",
+     "hint": "old, stiff or leaky"
+    }
+   ]
+  },
+  {
+   "id": "dist",
+   "label": "Valve top to faucet connection",
+   "type": "number",
+   "unit": "in",
+   "default": 14,
+   "step": 1,
+   "hint": "Measure straight up from the valve outlet to the underside of the sink at the faucet hole."
+  }
+ ],
+ "calcs": [
+  {
+   "id": "len",
+   "label": "Supply line length",
+   "expr": "((+a.dist)+2<=12)?12:((+a.dist)+2<=16)?16:((+a.dist)+2<=20)?20:((+a.dist)+2<=24)?24:30",
+   "fmt": "{{c.len}}\" lines"
+  }
+ ],
+ "calcNote": "Lines come in 12\", 16\", 20\", 24\" and 30\". This adds about 2\" so the line can curve without kinking.",
+ "overviewFig": "undersink",
+ "tools": [
+  {
+   "id": "faucet",
+   "c": "Parts",
+   "n": "{{a.room==='kitchen'?'Kitchen faucet for a '+a.holes+'-hole sink':(a.holes==='1'?'Single-hole bathroom faucet':(a.spread==='8'?'8\" widespread bathroom faucet':'4\" centerset bathroom faucet'))}}",
+   "must": true,
+   "w": "Must match your sink's holes and spread. A deck plate covers extra holes.",
+   "q": "{{a.room==='kitchen'?'kitchen faucet':(a.holes==='1'?'single hole bathroom faucet':(a.spread==='8'?'widespread bathroom faucet':'centerset bathroom faucet'))}}",
+   "qty": "1"
+  },
+  {
+   "id": "lines",
+   "c": "Parts",
+   "n": "{{c.len}}\" braided faucet supply lines, 3/8\" compression x {{a.room==='kitchen'?'faucet connection (check the faucet)':'1/2\" FIP'}}",
+   "must": true,
+   "w": "Skip if the faucet comes with lines attached. Check the faucet's instructions for the right end.",
+   "q": "{{c.len}} inch faucet supply line 3/8 compression",
+   "qty": "2"
+  },
+  {
+   "id": "stops",
+   "c": "Parts",
+   "n": "{{a.valve==='compression'?'Quarter-turn angle stop, 5/8\" OD compression (1/2\" copper) x 3/8\" OD compression':(a.valve==='threaded'?'Quarter-turn angle stop, 1/2\" FIP x 3/8\" OD compression':'Quarter-turn push-fit angle stop, 1/2\" x 3/8\" OD compression')}}",
+   "must": true,
+   "w": "Quarter-turn valves shut off more reliably than old multi-turn ones. Match the inlet to your pipe.",
+   "q": "{{a.valve==='compression'?'5/8 OD compression x 3/8 OD angle stop quarter turn':(a.valve==='threaded'?'1/2 FIP x 3/8 compression angle stop':'1/2 push fit angle stop 3/8')}}",
+   "qty": "2",
+   "when": "a.newvalves==='yes'"
+  },
+  {
+   "id": "puller",
+   "c": "Tools",
+   "n": "Compression sleeve puller",
+   "must": true,
+   "w": "Removes the old ferrule without damaging the pipe.",
+   "q": "compression sleeve puller",
+   "when": "a.newvalves==='yes'&&a.valve==='compression'"
+  },
+  {
+   "id": "cutter",
+   "c": "Tools",
+   "n": "Tubing cutter + deburring tool",
+   "must": true,
+   "w": "A clean, square cut for push-fit fittings.",
+   "q": "mini tubing cutter",
+   "when": "a.newvalves==='yes'&&(a.valve==='sweat'||a.valve==='pushfit')"
+  },
+  {
+   "id": "release",
+   "c": "Tools",
+   "n": "Push-fit disconnect clip (1/2\")",
+   "must": true,
+   "w": "Releases a push-fit fitting so it can come off.",
+   "q": "push fit disconnect clip 1/2",
+   "when": "a.newvalves==='yes'&&a.valve==='pushfit'"
+  },
+  {
+   "id": "ptfe",
+   "c": "Parts",
+   "n": "PTFE thread tape or pipe thread sealant",
+   "must": true,
+   "w": "Seals the threads on a threaded (iron pipe) valve.",
+   "q": "ptfe thread seal tape",
+   "when": "a.newvalves==='yes'&&a.valve==='threaded'"
+  },
+  {
+   "id": "pipewrench",
+   "c": "Tools",
+   "n": "Pipe wrench (10\")",
+   "must": true,
+   "w": "Holds the threaded pipe still while you turn the valve.",
+   "q": "10 inch pipe wrench",
+   "when": "a.newvalves==='yes'&&a.valve==='threaded'"
+  },
+  {
+   "id": "basin",
+   "c": "Tools",
+   "n": "Basin wrench",
+   "must": true,
+   "w": "The only easy way to reach the mounting nuts behind the bowl.",
+   "q": "basin wrench"
+  },
+  {
+   "id": "wrench",
+   "c": "Tools",
+   "n": "Adjustable wrenches x2 (8\" and 10\")",
+   "must": true,
+   "w": "Supply nuts and valve: one turns, one holds.",
+   "q": "adjustable wrench set"
+  },
+  {
+   "id": "pliers",
+   "c": "Tools",
+   "n": "Groove-joint (Channellock) pliers",
+   "must": true,
+   "w": "Drain nuts and stubborn fittings.",
+   "q": "groove joint pliers"
+  },
+  {
+   "id": "putty",
+   "c": "Parts",
+   "n": "Plumber's putty (stain-free) or 100% silicone",
+   "must": false,
+   "w": "Only where the faucet or drain maker calls for it. Use stain-free putty or silicone on stone.",
+   "q": "stain free plumbers putty"
+  },
+  {
+   "id": "drain",
+   "c": "Parts",
+   "n": "Pop-up drain assembly",
+   "must": false,
+   "w": "Many bathroom faucets include one. Replace the old drain if it's corroded or leaks.",
+   "q": "bathroom sink pop up drain",
+   "when": "a.room==='bath'"
+  },
+  {
+   "id": "cleaner",
+   "c": "Supplies",
+   "n": "Plastic scraper, vinegar, rags",
+   "must": true,
+   "w": "Cleans old putty and mineral rings off the sink deck.",
+   "q": "plastic putty knife"
+  },
+  {
+   "id": "bucket",
+   "c": "Supplies",
+   "n": "Bucket and towels",
+   "must": true,
+   "w": "Catches the water left in the lines.",
+   "q": "bucket"
+  },
+  {
+   "id": "light",
+   "c": "Supplies",
+   "n": "Headlamp",
+   "must": true,
+   "w": "It's dark under the sink.",
+   "q": "headlamp"
+  },
+  {
+   "id": "glasses",
+   "c": "Safety",
+   "n": "Safety glasses",
+   "must": true,
+   "w": "Grit and rust fall in your face when you work overhead.",
+   "q": "safety glasses"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Prepare",
+   "steps": [
+    {
+     "id": "p1",
+     "t": "Check your sink and pick the faucet",
+     "time": "20 min",
+     "idea": "The new faucet must fit the holes in your sink.",
+     "fig": "holes",
+     "need": [
+      "faucet"
+     ],
+     "b": "<ol><li>Look under the old faucet (or under the sink) and count the holes in the sink or countertop.</li><li>Bathroom with 3 holes: measure center to center of the outer holes. About 4\" = centerset, 8\" or more = widespread.</li><li>Kitchen: count all holes, including the sprayer, soap pump or a dishwasher air gap.</li><li>Buy a faucet made for that layout. A single-hole faucet can cover 3 holes with its deck plate.</li><li>Read the faucet's instructions now: they say what supply line size you need and whether to use putty.</li></ol>",
+     "faq": [
+      [
+       "Can I fill an unused hole?",
+       "Yes, with a sink hole cover, or use it for a soap pump."
+      ],
+      [
+       "What's that thing in the 4th hole?",
+       "If it's a small dome connected to the dishwasher, it's an air gap. Some areas require it. Leave it in place."
+      ]
+     ]
+    },
+    {
+     "id": "p2",
+     "t": "Clear and look under the sink",
+     "time": "15 min",
+     "idea": "Room to work and a photo of how it all connects.",
+     "fig": "undersink",
+     "need": [
+      "bucket",
+      "light"
+     ],
+     "b": "<ol><li>Empty the cabinet. Lay a towel on the cabinet floor.</li><li>Take a photo of the connections.</li><li>Find the two shutoff valves (angle stops): hot on the left, cold on the right.</li><li>Look at how the pipe enters each valve. A nut on the pipe = compression. Threads into the valve = threaded. Soldered joint = sweat. A collar with no nut = push-fit. Update the answer at the top.</li><li>Measure from the top of each valve to the faucet hole. Enter it above to get the supply line length.</li></ol>"
+    },
+    {
+     "id": "p3",
+     "t": "Shut off the water",
+     "time": "10 min",
+     "idea": "{{a.newvalves==='yes'?'You\\'re replacing the valves, so the whole house must be off.':'Close the two valves under the sink.'}}",
+     "need": [
+      "bucket"
+     ],
+     "b": "<ol><li>{{a.newvalves==='yes'?'Turn off the main water valve. Turn the handle clockwise, or a lever crosswise to the pipe.':'Turn each angle stop clockwise until it stops. Quarter-turn valves: 90 degrees.'}}</li><li>Open the faucet, hot and cold. Water should stop within a few seconds.</li><li>{{a.newvalves==='yes'?'Open a faucet on the lowest floor (or an outdoor spigot) to drain the pipes.':'If it keeps running, a valve is not closing. Shut off the main and plan to replace that valve.'}}</li><li>Leave the faucet open.</li></ol>",
+     "stop": "Old valves can break if forced. If a handle won't turn, or it leaks around the stem when you turn it, stop and shut off the main instead.",
+     "faq": [
+      [
+       "Where's the main?",
+       "Usually where the water line enters: basement, crawlspace, garage, or by the water heater. Some are at the meter in a box by the street (needs a meter key)."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Remove the old faucet",
+   "steps": [
+    {
+     "id": "r1",
+     "t": "Disconnect the supply lines",
+     "time": "10 min",
+     "idea": "Undo both lines at the valve, holding the valve still.",
+     "fig": "twowrench",
+     "need": [
+      "wrench",
+      "bucket"
+     ],
+     "b": "<ol><li>Put the bucket under the valves.</li><li>Hold the valve body with one wrench.</li><li>With the second wrench, turn the line's nut counterclockwise (as you look down the line toward the valve).</li><li>Let the water in the line drain into the bucket.</li><li>If the old lines are rigid tubes, you'll replace them: just loosen both ends.</li></ol>",
+     "help": [
+      "twoWrench"
+     ]
+    },
+    {
+     "id": "r2",
+     "t": "Disconnect the sprayer hose",
+     "time": "10 min",
+     "idea": "Pull-down and side sprayers connect under the sink.",
+     "when": "a.room==='kitchen'",
+     "fig": "weight",
+     "need": [
+      "pliers"
+     ],
+     "b": "<ol><li>Find where the sprayer hose joins the faucet below the sink.</li><li>Quick-connect: squeeze the clip or press the collar and pull the hose off.</li><li>Threaded: unscrew it with pliers.</li><li>Unclip the weight from the hose and pull the hose up through the faucet.</li></ol>"
+    },
+    {
+     "id": "r3",
+     "t": "Disconnect the pop-up rod",
+     "time": "10 min",
+     "idea": "Free the old drain linkage so the faucet can lift out.",
+     "when": "a.room==='bath'",
+     "fig": "popup",
+     "need": [
+      "pliers"
+     ],
+     "b": "<ol><li>Find the flat metal strap (clevis) hanging behind the drain.</li><li>Squeeze the spring clip and slide the horizontal pivot rod out of the strap.</li><li>Loosen the screw on the strap and pull the lift rod up from above.</li><li>Keeping the old drain? Leave the rest alone.</li></ol>"
+    },
+    {
+     "id": "r4",
+     "t": "Remove the mounting nuts",
+     "time": "20 min",
+     "idea": "Big nuts on the faucet's shanks hold it to the sink, high up behind the bowl.",
+     "fig": "basin",
+     "need": [
+      "basin",
+      "light",
+      "glasses"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "b": "<ol><li>Lie on your back in the cabinet with glasses on. Grit falls.</li><li>Find the mounting nuts on the faucet shanks, up against the underside of the sink.</li><li>Set the basin wrench jaw on a nut so it tightens as you turn counterclockwise (seen from above).</li><li>Turn the T-bar. Repeat on each nut.</li><li>Plastic wing nuts usually unscrew by hand.</li></ol>",
+     "help": [
+      "basinWrench"
+     ],
+     "faq": [
+      [
+       "The nut won't move.",
+       "Spray penetrating oil, wait 15 minutes. Corroded plastic nuts can be cut off carefully with an oscillating tool. Don't cut into the sink."
+      ]
+     ]
+    },
+    {
+     "id": "r5",
+     "t": "Lift out the faucet and clean the deck",
+     "time": "15 min",
+     "idea": "A clean, flat surface lets the new gasket seal.",
+     "need": [
+      "cleaner"
+     ],
+     "b": "<ol><li>Lift the faucet straight up. Wiggle it if putty holds it.</li><li>Scrape old putty and mineral rings off with a plastic scraper.</li><li>Wipe with vinegar, then water, and dry.</li><li>Check the sink around the holes for cracks.</li></ol>",
+     "faq": [
+      [
+       "Can I use a metal scraper?",
+       "Not on porcelain, stainless or stone: it scratches. Plastic only."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Replace the shutoff valves",
+   "steps": [
+    {
+     "id": "v1",
+     "t": "Remove the old compression valve",
+     "time": "20 min",
+     "idea": "Unscrew the valve, then pull the old nut and ferrule off the pipe.",
+     "when": "a.newvalves==='yes'&&a.valve==='compression'",
+     "fig": [
+      "twowrench",
+      "puller"
+     ],
+     "need": [
+      "wrench",
+      "puller",
+      "bucket"
+     ],
+     "b": "<ol><li>Make sure the main is off and the lines are drained.</li><li>Hold the valve body with one wrench. Loosen the nut where the pipe enters (counterclockwise) with the other.</li><li>Pull the valve straight off the pipe. The old nut and brass ferrule stay on the pipe.</li><li>Thread the old nut onto the sleeve puller and turn the handle until nut and ferrule come off.</li><li>Check the pipe: round, smooth, not gouged, and at least about 3/4\" sticking out from the wall plate.</li><li>Clean the end with a rag or fine emery cloth.</li></ol>",
+     "stop": "If the pipe is cracked, kinked, or too short after removing the ferrule, don't force a fitting on. It needs a repair (often soldering): call a plumber.",
+     "help": [
+      "twoWrench"
+     ]
+    },
+    {
+     "id": "v2",
+     "t": "Install the new compression valve",
+     "time": "20 min",
+     "idea": "New nut, new ferrule, pipe pushed in all the way, then tighten.",
+     "when": "a.newvalves==='yes'&&a.valve==='compression'",
+     "fig": "compression",
+     "need": [
+      "stops",
+      "wrench"
+     ],
+     "b": "<ol><li>Slide the wall plate (escutcheon) on if it was removed.</li><li>Slide the new nut onto the pipe, threads facing out toward the valve.</li><li>Slide the new ferrule on. If one end is longer or tapered, point that end toward the valve.</li><li>Push the valve onto the pipe until it bottoms out. Turn it so the outlet points up.</li><li>Thread the nut on by hand.</li><li>Hold the valve with one wrench and turn the nut about 1/2 turn past hand-tight with the other.</li><li>Close the valve (turn the handle off) before you turn the main back on.</li></ol>",
+     "help": [
+      "compressionHelp",
+      "twoWrench"
+     ],
+     "faq": [
+      [
+       "Can I reuse the old ferrule?",
+       "No. Once squeezed, a ferrule has taken the shape of the old joint. Use the new one that comes with the valve."
+      ],
+      [
+       "Should I tape the threads?",
+       "No tape on compression threads. The ferrule makes the seal."
+      ]
+     ]
+    },
+    {
+     "id": "v3",
+     "t": "Replace a threaded valve",
+     "time": "30 min",
+     "idea": "Unscrew the old valve from the iron pipe nipple and screw on a new one with sealed threads.",
+     "when": "a.newvalves==='yes'&&a.valve==='threaded'",
+     "fig": "twowrench",
+     "need": [
+      "stops",
+      "wrench",
+      "pipewrench",
+      "ptfe"
+     ],
+     "b": "<ol><li>Hold the pipe nipple sticking out of the wall with the pipe wrench.</li><li>Turn the old valve counterclockwise with the adjustable wrench to unscrew it.</li><li>Clean the threads with a rag or wire brush.</li><li>Wrap PTFE tape 3-4 times clockwise around the threads (looking at the pipe end), or brush on thread sealant.</li><li>Screw the new valve on by hand, then 1-2 turns with the wrench while holding the nipple, stopping with the outlet pointing up.</li><li>Close the valve before turning the main back on.</li></ol>",
+     "stop": "If the nipple turns in the wall, is rusted thin, or breaks, stop. Old galvanized pipe can snap inside the wall: call a plumber.",
+     "help": [
+      "twoWrench"
+     ]
+    },
+    {
+     "id": "v4",
+     "t": "Cut off a soldered valve",
+     "time": "30 min",
+     "idea": "Cut the pipe just behind the old valve, then install a push-fit stop on the clean pipe.",
+     "when": "a.newvalves==='yes'&&a.valve==='sweat'",
+     "fig": "pushfit",
+     "need": [
+      "stops",
+      "cutter",
+      "glasses"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "b": "<ol><li>Check there is enough straight, clean pipe behind the valve: at least the push-fit's insertion depth plus about 1/2\".</li><li>Clamp the tubing cutter on the pipe just behind the valve. Tighten the knob a little and spin it around. Repeat until it cuts through.</li><li>Deburr the inside and outside of the cut end.</li><li>Mark the insertion depth with the gauge or marker.</li><li>Push the new stop on straight until the mark meets the fitting. Tug it: it should not come off.</li><li>Turn the outlet up and close the valve before turning the main on.</li></ol>",
+     "stop": "If the pipe is too short to cut and still fit a new valve, it needs soldering or a new pipe stub. That's a job for a plumber, or for someone experienced with a torch.",
+     "faq": [
+      [
+       "Can I use a compression valve instead?",
+       "Yes, on round, clean copper with enough length. Push-fit is quicker and forgiving for beginners."
+      ]
+     ]
+    },
+    {
+     "id": "v5",
+     "t": "Replace a push-fit valve",
+     "time": "20 min",
+     "idea": "Release the old valve with a clip, check the pipe, push on the new one.",
+     "when": "a.newvalves==='yes'&&a.valve==='pushfit'",
+     "fig": "pushfit",
+     "need": [
+      "stops",
+      "release",
+      "cutter"
+     ],
+     "b": "<ol><li>Snap the disconnect clip around the pipe against the fitting's collar.</li><li>Push the clip into the collar and pull the valve off at the same time.</li><li>Inspect the pipe end: if it's scratched or bent, cut off 1/2\" with the tubing cutter and deburr.</li><li>Mark the new insertion depth.</li><li>Push the new valve on until the mark meets the fitting. Tug it.</li><li>Close the valve before turning the main on.</li></ol>",
+     "faq": [
+      [
+       "My pipe is PEX.",
+       "Push-fit stops work on PEX. Check the fitting has a PEX insert (stiffener), as most do."
+      ]
+     ]
+    },
+    {
+     "id": "v6",
+     "t": "Turn the main back on and check the valves",
+     "time": "15 min",
+     "idea": "Pressure test the new valves before the faucet goes in.",
+     "when": "a.newvalves==='yes'",
+     "need": [
+      "bucket"
+     ],
+     "b": "<ol><li>Check both new valves are closed.</li><li>Close any faucet you opened to drain the house, leaving one upstairs faucet open to let air out.</li><li>Turn the main on slowly.</li><li>Watch the new valves for 5 minutes. Wipe them dry and touch with a tissue.</li><li>A weeping compression nut: tighten 1/8 turn more while backing up the valve.</li></ol>",
+     "help": [
+      "leakCheck"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Install the new faucet",
+   "steps": [
+    {
+     "id": "i1",
+     "t": "Seat the faucet on the sink",
+     "time": "20 min",
+     "idea": "The gasket (or putty, if the maker says) seals the faucet base to the sink so water can't get under it.",
+     "need": [
+      "faucet",
+      "putty"
+     ],
+     "b": "<ol><li>Unbox and lay out the parts. Compare them to the instruction diagram.</li><li>Put the rubber gasket or deck plate under the faucet base as shown.</li><li>Use plumber's putty only if the instructions call for it. On marble, granite or other stone, use stain-free putty or silicone.</li><li>{{a.room==='kitchen'?'Feed the supply lines and hose down through the hole.':'Feed the shanks (or lines) down through the holes.'}}</li><li>Have a helper hold the faucet straight from above.</li></ol>",
+     "faq": [
+      [
+       "Gasket or putty?",
+       "Most new faucets use a gasket and no putty. Putty under a gasket can make it leak."
+      ]
+     ]
+    },
+    {
+     "id": "i2",
+     "t": "Tighten it from below",
+     "time": "15 min",
+     "idea": "Snug the mounting nuts so the faucet doesn't twist, without cracking anything.",
+     "fig": "basin",
+     "need": [
+      "basin"
+     ],
+     "b": "<ol><li>Thread the washer and mounting nut onto each shank by hand. Many new faucets use a long nut you tighten with a screwdriver or the included tool.</li><li>Check from above that the faucet is straight and centered.</li><li>Tighten with the basin wrench or tool until the faucet can't turn.</li><li>Stop at firm. Overtightening cracks porcelain and plastic nuts.</li></ol>",
+     "help": [
+      "basinWrench"
+     ]
+    },
+    {
+     "id": "i3",
+     "t": "Connect the pull-down hose and weight",
+     "time": "15 min",
+     "idea": "The weight retracts the spray head; it must hang free.",
+     "when": "a.room==='kitchen'",
+     "fig": "weight",
+     "need": [
+      "faucet"
+     ],
+     "b": "<ol><li>Feed the spray hose down through the faucet.</li><li>Push the hose onto the quick-connect until it clicks. Tug to check.</li><li>Clip the weight on the hose at the point marked in the instructions.</li><li>Pull the spray head out and let go: it should glide back and dock.</li><li>Move anything in the cabinet that the loop could catch on.</li></ol>",
+     "faq": [
+      [
+       "Head won't retract all the way.",
+       "Move the weight lower on the hose, and make sure the hose isn't rubbing on the supply lines or the trap."
+      ]
+     ]
+    },
+    {
+     "id": "i4",
+     "t": "Install the pop-up drain",
+     "time": "30 min",
+     "idea": "Optional: a new drain matches the faucet and fixes old leaks.",
+     "when": "a.room==='bath'",
+     "fig": "popup",
+     "need": [
+      "drain",
+      "pliers",
+      "putty"
+     ],
+     "b": "<ol><li>Loosen the slip nut on the trap and remove the old drain's big nut from below. Push the old drain body up and out.</li><li>Clean the hole.</li><li>Put the new drain's seal under its flange: the gasket, or a rope of putty if the maker says.</li><li>From below, add the rubber gasket, washer and big nut. Line the pivot hole toward the back.</li><li>Tighten the nut by hand, then a little more with pliers until snug.</li><li>Put in the stopper, slide the pivot rod through it, and hand-tighten the pivot nut.</li><li>Connect the lift rod to the strap and set the height so the stopper opens about 1/2\".</li><li>Reconnect the trap.</li></ol>",
+     "faq": [
+      [
+       "Overflow hole?",
+       "If your sink has an overflow hole, the drain body's side holes must line up with it. Use a drain with overflow."
+      ]
+     ]
+    },
+    {
+     "id": "i5",
+     "t": "Connect the supply lines",
+     "time": "15 min",
+     "idea": "Braided lines from the valves to the faucet, hot to the left.",
+     "fig": "supplyconn",
+     "need": [
+      "lines",
+      "wrench"
+     ],
+     "b": "<ol><li>Check the faucet end of each line matches the faucet (1/2\" or 3/8\" thread, or a 3/8\" compression end).</li><li>Thread the faucet end on by hand, then 1/4 turn with a wrench.</li><li>Hot (left) to the left valve, cold (right) to the right.</li><li>Thread the 3/8\" compression nut onto the valve outlet by hand.</li><li>Hold the valve with one wrench and turn the nut 1/4 to 1/2 turn past hand-tight.</li><li>Lines should curve gently: no kinks.</li></ol>",
+     "help": [
+      "twoWrench"
+     ],
+     "faq": [
+      [
+       "Lines too long?",
+       "A loop is fine. Never cut a braided line."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Flush and test",
+   "steps": [
+    {
+     "id": "z1",
+     "t": "Flush the lines and the aerator",
+     "time": "10 min",
+     "idea": "Clear grit from the work before it clogs the new faucet.",
+     "fig": "aerator",
+     "b": "<ol><li>Unscrew the aerator from the spout tip (or pull-down head) counterclockwise. Use the key that came with the faucet, or tape on the pliers' jaws.</li><li>Slowly open the shutoff valves fully.</li><li>Run hot and cold for about a minute each.</li><li>Rinse the aerator screen and screw it back on.</li></ol>",
+     "faq": [
+      [
+       "Water sputters at first.",
+       "That's air in the pipes. It clears in a minute."
+      ]
+     ]
+    },
+    {
+     "id": "z2",
+     "t": "Check for leaks",
+     "time": "15 min",
+     "idea": "Every joint you touched gets a dry-tissue test now and again tomorrow.",
+     "need": [
+      "bucket"
+     ],
+     "b": "<ol><li>Run the faucet for a minute, hot then cold.</li><li>Run a dry tissue around each valve, each supply nut, the faucet shanks{{a.room==='bath'?', and the drain nut':', and the hose connection'}}.</li><li>Fill the sink and let it drain to test the drain.</li><li>Leave a dry paper towel on the cabinet floor overnight.</li><li>Check again tomorrow. A spot on the towel shows any slow drip.</li></ol>",
+     "help": [
+      "leakCheck"
+     ],
+     "faq": [
+      [
+       "Drip at a compression nut.",
+       "Tighten 1/8 turn more, backing up the valve. Still dripping: shut off, take it apart, and check the line is seated straight."
+      ],
+      [
+       "Hot and cold are reversed.",
+       "Swap the lines at the valves."
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "help": {
+  "basinWrench": {
+   "t": "Use a basin wrench",
+   "fig": "basin",
+   "b": "<ol><li>Flip the jaw so it faces the direction you want to turn.</li><li>Reach up and hook the jaw on the nut. The spring holds it in place.</li><li>Turn the T-bar. The jaw bites harder as you turn.</li><li>To loosen as seen from above, turn counterclockwise. From below, that feels like clockwise.</li><li>If the jaw slips, flip it over and try again.</li></ol>"
+  },
+  "twoWrench": {
+   "t": "Use two wrenches",
+   "fig": "twowrench",
+   "b": "<ol><li>Put one wrench on the valve body (or fitting) you don't want to move.</li><li>Put the second wrench on the nut you're turning.</li><li>Push the two handles toward each other, or hold one still and turn the other.</li><li>Nothing behind the valve should move.</li></ol>"
+  },
+  "compressionHelp": {
+   "t": "Make a compression joint",
+   "fig": "compression",
+   "b": "<ol><li>Pipe end clean, round and cut square.</li><li>Nut on first, threads facing the fitting. Then the ferrule.</li><li>Push the pipe into the fitting until it stops.</li><li>Hand-tight, then about 1/2 turn with a wrench while backing up the fitting.</li><li>Test. If it weeps, 1/8 turn more. No tape.</li></ol>"
+  },
+  "leakCheck": {
+   "t": "Check for leaks",
+   "b": "<ol><li>Wipe every joint dry.</li><li>Run the water.</li><li>Touch each joint with a dry tissue. Any wet mark is a leak.</li><li>Check again after an hour and the next day.</li></ol>"
+  }
+ },
+ "figs": {
+  "holes": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Count the holes, measure the spread</text><text x=\"10\" y=\"38\" class=\"k\">Bathroom</text><circle cx=\"30\" cy=\"60\" r=\"5\" class=\"bk\"/><circle cx=\"46\" cy=\"60\" r=\"5\" class=\"bk\"/><circle cx=\"62\" cy=\"60\" r=\"5\" class=\"bk\"/><line x1=\"30\" y1=\"74\" x2=\"62\" y2=\"74\" class=\"a\"/><polygon points=\"62.0,74.0 56.6,76.6 56.6,71.4\" class=\"af\"/><polygon points=\"30.0,74.0 35.4,71.4 35.4,76.6\" class=\"af\"/><text x=\"76\" y=\"63\">4\" centerset</text><circle cx=\"30\" cy=\"106\" r=\"5\" class=\"bk\"/><circle cx=\"62\" cy=\"106\" r=\"5\" class=\"bk\"/><circle cx=\"94\" cy=\"106\" r=\"5\" class=\"bk\"/><line x1=\"30\" y1=\"120\" x2=\"94\" y2=\"120\" class=\"a\"/><polygon points=\"94.0,120.0 88.6,122.6 88.6,117.4\" class=\"af\"/><polygon points=\"30.0,120.0 35.4,117.4 35.4,122.6\" class=\"af\"/><text x=\"100\" y=\"109\">8\" widespread</text><circle cx=\"46\" cy=\"150\" r=\"5\" class=\"bk\"/><text x=\"60\" y=\"153\">single hole</text><line x1=\"180\" y1=\"30\" x2=\"180\" y2=\"150\" class=\"o d\"/><text x=\"190\" y=\"38\" class=\"k\">Kitchen</text><circle cx=\"200\" cy=\"60\" r=\"5\" class=\"bk\"/><text x=\"216\" y=\"63\">1 hole</text><circle cx=\"200\" cy=\"100\" r=\"5\" class=\"bk\"/><circle cx=\"218\" cy=\"100\" r=\"5\" class=\"bk\"/><circle cx=\"236\" cy=\"100\" r=\"5\" class=\"bk\"/><text x=\"250\" y=\"103\">3 holes</text><circle cx=\"200\" cy=\"140\" r=\"5\" class=\"bk\"/><circle cx=\"218\" cy=\"140\" r=\"5\" class=\"bk\"/><circle cx=\"236\" cy=\"140\" r=\"5\" class=\"bk\"/><circle cx=\"266\" cy=\"140\" r=\"5\" class=\"bk\"/><text x=\"190\" y=\"162\">4th: sprayer or soap</text>",
+   "h": 172,
+   "cap": "Measure the spread from the center of the left hole to the center of the right hole. A single-hole faucet can cover 3 holes with its deck plate."
+  },
+  "undersink": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Under the sink</text><rect x=\"10\" y=\"30\" width=\"300\" height=\"8\" class=\"tl\"/><path d=\"M120 38 V70 Q120 84 134 84 H186 Q200 84 200 70 V38 Z\" class=\"tb\"/><rect x=\"93\" y=\"38\" width=\"6\" height=\"22\" class=\"bk\"/><rect x=\"221\" y=\"38\" width=\"6\" height=\"22\" class=\"bk\"/><rect x=\"154\" y=\"84\" width=\"12\" height=\"30\" class=\"bk\"/><path d=\"M160 114 V130 Q160 146 176 146 Q192 146 192 130 V122 H246\" class=\"o\" fill=\"none\" style=\"stroke-width:6\"/><circle cx=\"254\" cy=\"122\" r=\"8\" class=\"bk\"/><circle cx=\"70\" cy=\"176\" r=\"9\" class=\"bk\"/><rect x=\"64\" y=\"160\" width=\"12\" height=\"14\" rx=\"2\" class=\"bk\"/><rect x=\"76\" y=\"162\" width=\"12\" height=\"8\" rx=\"2\" class=\"y\"/><rect x=\"63\" y=\"152\" width=\"14\" height=\"8\" rx=\"2\" class=\"y\"/><path d=\"M70 152 C70 110 96 100 96 60\" class=\"o\" fill=\"none\" style=\"stroke-width:3\"/><circle cx=\"250\" cy=\"176\" r=\"9\" class=\"bk\"/><rect x=\"244\" y=\"160\" width=\"12\" height=\"14\" rx=\"2\" class=\"bk\"/><rect x=\"256\" y=\"162\" width=\"12\" height=\"8\" rx=\"2\" class=\"y\"/><rect x=\"243\" y=\"152\" width=\"14\" height=\"8\" rx=\"2\" class=\"y\"/><path d=\"M250 152 C250 110 224 100 224 60\" class=\"o\" fill=\"none\" style=\"stroke-width:3\"/><text x=\"10\" y=\"52\">faucet tail</text><line x1=\"68\" y1=\"50\" x2=\"92\" y2=\"52\" class=\"o\"/><text x=\"10\" y=\"112\">supply</text><text x=\"10\" y=\"123\">line</text><text x=\"96\" y=\"176\" class=\"k\">angle stops</text><text x=\"198\" y=\"158\">P-trap</text><text x=\"40\" y=\"202\" class=\"wa\">hot: left</text><text x=\"214\" y=\"202\" class=\"ac\">cold: right</text>",
+   "h": 210,
+   "cap": "Hot is on the left, cold on the right. Each angle stop shuts off one side. Take a photo before you disconnect anything."
+  },
+  "twowrench": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Use two wrenches</text><rect x=\"10\" y=\"90\" width=\"60\" height=\"14\" class=\"bk\"/><rect x=\"70\" y=\"80\" width=\"40\" height=\"34\" rx=\"4\" class=\"bk\"/><rect x=\"110\" y=\"84\" width=\"20\" height=\"26\" rx=\"2\" class=\"y\"/><line x1=\"130\" y1=\"97\" x2=\"300\" y2=\"97\" class=\"o\" style=\"stroke-width:5\"/><rect x=\"84\" y=\"114\" width=\"12\" height=\"46\" rx=\"4\" class=\"b\"/><rect x=\"112\" y=\"30\" width=\"14\" height=\"54\" rx=\"4\" class=\"b\"/><path d=\"M100 30 A20 20 0 0 1 138 30\" class=\"a\" fill=\"none\" style=\"stroke-width:2\"/><polygon points=\"138.0,30.0 132.3,28.0 136.0,24.3\" class=\"af\"/><text x=\"150\" y=\"40\" class=\"k\">2  turn the nut</text><text x=\"150\" y=\"52\">counterclockwise to loosen</text><text x=\"104\" y=\"150\" class=\"k\">1  hold the valve still</text>",
+   "h": 168,
+   "cap": "The backup wrench stops the valve and the pipe behind it from twisting. Twist a pipe inside the wall and you can crack a joint you can't see."
+  },
+  "basin": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Basin wrench, seen from below</text><rect x=\"10\" y=\"30\" width=\"300\" height=\"14\" class=\"tl\"/><text x=\"14\" y=\"40\">underside of the sink deck</text><rect x=\"150\" y=\"44\" width=\"20\" height=\"80\" class=\"bk\"/><rect x=\"140\" y=\"60\" width=\"40\" height=\"12\" rx=\"2\" class=\"y\"/><rect x=\"178\" y=\"56\" width=\"10\" height=\"20\" class=\"inkf\"/><line x1=\"183\" y1=\"76\" x2=\"183\" y2=\"166\" class=\"o\" style=\"stroke-width:4\"/><g transform=\"translate(183 170)\"><g><rect x=\"-40\" y=\"-4\" width=\"80\" height=\"8\" rx=\"3\" class=\"w\"/><animateTransform attributeName=\"transform\" type=\"scale\" values=\"1 1;0.15 1;1 1\" dur=\"1.6s\" repeatCount=\"indefinite\"/></g></g><text x=\"10\" y=\"70\" class=\"k\">mounting nut</text><line x1=\"72\" y1=\"68\" x2=\"138\" y2=\"66\" class=\"o\"/><text x=\"196\" y=\"64\" class=\"k\">jaw grips the nut</text><text x=\"196\" y=\"90\">flip the jaw over</text><text x=\"196\" y=\"102\">to switch between</text><text x=\"196\" y=\"114\">loosen and tighten</text><text x=\"232\" y=\"173\">T-bar</text><text x=\"10\" y=\"196\" class=\"wa\">From below, \"loosen\" feels backwards.</text>",
+   "h": 204,
+   "title": "Use a basin wrench",
+   "cap": "The spring-loaded jaw grabs the nut up behind the bowl where no other wrench fits. Turn the T-bar; the jaw tightens on the nut as you turn."
+  },
+  "compression": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Compression fitting, cut in half</text><rect x=\"160\" y=\"70\" width=\"90\" height=\"60\" rx=\"3\" class=\"tb\"/><text x=\"214\" y=\"104\" text-anchor=\"middle\">valve</text><rect x=\"10\" y=\"88\" width=\"172\" height=\"24\" class=\"y\"/><text x=\"30\" y=\"104\">pipe</text><rect x=\"110\" y=\"70\" width=\"54\" height=\"14\" class=\"bk\"/><rect x=\"110\" y=\"116\" width=\"54\" height=\"14\" class=\"bk\"/><path d=\"M124 88 L142 84 L160 88 Z\" class=\"af\"/><path d=\"M124 112 L142 116 L160 112 Z\" class=\"af\"/><text x=\"60\" y=\"52\" class=\"k\">nut</text><line x1=\"76\" y1=\"54\" x2=\"116\" y2=\"70\" class=\"o\"/><text x=\"150\" y=\"52\" class=\"ac\">ferrule (sleeve)</text><line x1=\"160\" y1=\"56\" x2=\"142\" y2=\"82\" class=\"a\"/><text x=\"10\" y=\"152\">1  Slide on the nut, threads toward the valve.</text><text x=\"10\" y=\"164\">2  Slide on the ferrule.</text><text x=\"10\" y=\"176\">3  Push the pipe in all the way, then tighten.</text>",
+   "h": 184,
+   "cap": "Tightening the nut squeezes the brass ferrule onto the pipe: that ring makes the seal, not the threads. No tape needed."
+  },
+  "puller": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Pull off an old ferrule</text><rect x=\"10\" y=\"40\" width=\"10\" height=\"100\" class=\"b\"/><rect x=\"20\" y=\"86\" width=\"140\" height=\"20\" class=\"y\"/><rect x=\"110\" y=\"74\" width=\"34\" height=\"44\" rx=\"2\" class=\"bk\"/><rect x=\"144\" y=\"74\" width=\"60\" height=\"44\" rx=\"3\" class=\"tl\"/><rect x=\"160\" y=\"92\" width=\"110\" height=\"8\" class=\"inkf\"/><rect x=\"266\" y=\"70\" width=\"8\" height=\"52\" rx=\"3\" class=\"w\"/><text x=\"64\" y=\"60\" class=\"k\">old nut + ferrule</text><line x1=\"110\" y1=\"62\" x2=\"126\" y2=\"74\" class=\"o\"/><text x=\"204\" y=\"60\" class=\"k\">puller body</text><line x1=\"112\" y1=\"134\" x2=\"162\" y2=\"134\" class=\"a\" style=\"stroke-width:2\"/><polygon points=\"162.0,134.0 156.6,136.6 156.6,131.4\" class=\"af\"/><text x=\"170\" y=\"137\">nut and ferrule come off</text><text x=\"10\" y=\"162\">Turn the handle: the screw pushes on the pipe end.</text>",
+   "h": 170,
+   "cap": "Thread the old nut onto the puller, then turn the handle. Don't pry or twist the ferrule off with pliers: you'll gouge the pipe and the new valve won't seal."
+  },
+  "pushfit": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Push-fit: square cut, mark the depth</text><rect x=\"20\" y=\"86\" width=\"180\" height=\"20\" class=\"y\"/><line x1=\"150\" y1=\"78\" x2=\"150\" y2=\"114\" class=\"a\" style=\"stroke-width:2\"/><rect x=\"212\" y=\"74\" width=\"80\" height=\"44\" rx=\"4\" class=\"bk\"/><rect x=\"212\" y=\"74\" width=\"10\" height=\"44\" rx=\"2\" class=\"tl\"/><text x=\"256\" y=\"100\" text-anchor=\"middle\">push-fit stop</text><line x1=\"200\" y1=\"132\" x2=\"212\" y2=\"132\" class=\"a\"/><polygon points=\"212.0,132.0 206.6,134.6 206.6,129.4\" class=\"af\"/><text x=\"20\" y=\"70\">cut square, deburr</text><text x=\"132\" y=\"134\" class=\"ac\" text-anchor=\"end\">depth mark</text><text x=\"230\" y=\"66\">release collar</text><text x=\"10\" y=\"160\">Push in until the mark touches the fitting.</text>",
+   "h": 168,
+   "cap": "Use the depth gauge from the maker (often about 1\" for 1/2\" pipe). If the mark isn't at the fitting's face, the pipe isn't in far enough to seal."
+  },
+  "supplyconn": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Connect the supply lines</text><rect x=\"10\" y=\"30\" width=\"300\" height=\"8\" class=\"tl\"/><rect x=\"214\" y=\"38\" width=\"10\" height=\"36\" class=\"bk\"/><rect x=\"208\" y=\"66\" width=\"22\" height=\"14\" rx=\"2\" class=\"y\"/><rect x=\"72\" y=\"140\" width=\"16\" height=\"16\" rx=\"2\" class=\"bk\"/><rect x=\"73\" y=\"128\" width=\"14\" height=\"12\" rx=\"2\" class=\"y\"/><rect x=\"88\" y=\"144\" width=\"14\" height=\"8\" rx=\"2\" class=\"y\"/><circle cx=\"80\" cy=\"166\" r=\"8\" class=\"bk\"/><path d=\"M80 128 C80 60 219 140 219 80\" class=\"o\" fill=\"none\" style=\"stroke-width:4\"/><text x=\"236\" y=\"60\" class=\"k\">faucet end:</text><text x=\"236\" y=\"72\">hand-tight</text><text x=\"236\" y=\"84\">+ 1/4 turn</text><text x=\"110\" y=\"138\" class=\"k\">valve end, 3/8\" comp:</text><text x=\"110\" y=\"150\">hand-tight + 1/2 turn</text><text x=\"10\" y=\"190\">Hold the valve with a second wrench.</text>",
+   "h": 198,
+   "cap": "Braided lines with a rubber cone seal at the faucet end need no tape. Gentle curves only: a kink restricts the flow and can burst."
+  },
+  "weight": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Hose and weight</text><rect x=\"10\" y=\"60\" width=\"300\" height=\"8\" class=\"tl\"/><rect x=\"150\" y=\"24\" width=\"14\" height=\"36\" rx=\"3\" class=\"bk\"/><path d=\"M157 24 Q157 8 196 12 L204 26\" class=\"o\" fill=\"none\" style=\"stroke-width:4\"/><rect x=\"152\" y=\"68\" width=\"10\" height=\"30\" class=\"bk\"/><path d=\"M157 98 V150 Q157 182 187 182 Q217 182 217 150 V104 H226\" class=\"o\" fill=\"none\" style=\"stroke-width:3\"/><rect x=\"178\" y=\"174\" width=\"20\" height=\"14\" rx=\"2\" class=\"inkf\"/><rect x=\"222\" y=\"98\" width=\"10\" height=\"12\" rx=\"2\" class=\"y\"/><text x=\"222\" y=\"152\" class=\"k\">weight</text><text x=\"222\" y=\"164\">at the low point</text><text x=\"238\" y=\"98\" class=\"k\">quick-connect</text><text x=\"238\" y=\"110\">click, then tug</text><text x=\"10\" y=\"120\">hose hangs free:</text><text x=\"10\" y=\"132\">nothing in the</text><text x=\"10\" y=\"144\">way of the loop</text>",
+   "h": 196,
+   "cap": "The weight pulls the spray head back into the spout. Place it where the maker's instructions say, usually at the bottom of the loop with the head docked."
+  },
+  "popup": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Bathroom pop-up drain</text><rect x=\"30\" y=\"40\" width=\"100\" height=\"12\" class=\"tb\"/><rect x=\"170\" y=\"40\" width=\"120\" height=\"12\" class=\"tb\"/><rect x=\"120\" y=\"34\" width=\"60\" height=\"6\" class=\"bk\"/><rect x=\"136\" y=\"40\" width=\"28\" height=\"110\" class=\"bk\"/><rect x=\"126\" y=\"52\" width=\"48\" height=\"6\" class=\"mp\"/><rect x=\"122\" y=\"58\" width=\"56\" height=\"10\" rx=\"2\" class=\"y\"/><rect x=\"164\" y=\"90\" width=\"14\" height=\"12\" rx=\"2\" class=\"y\"/><line x1=\"150\" y1=\"96\" x2=\"252\" y2=\"112\" class=\"o\" style=\"stroke-width:3\"/><rect x=\"250\" y=\"58\" width=\"8\" height=\"80\" class=\"bk\"/><line x1=\"254\" y1=\"20\" x2=\"254\" y2=\"58\" class=\"o\" style=\"stroke-width:2\"/><circle cx=\"252\" cy=\"111\" r=\"4\" class=\"af\"/><text x=\"10\" y=\"30\">putty or gasket</text><line x1=\"92\" y1=\"30\" x2=\"124\" y2=\"36\" class=\"o\"/><text x=\"10\" y=\"66\">gasket + big nut</text><line x1=\"96\" y1=\"64\" x2=\"120\" y2=\"62\" class=\"o\"/><text x=\"176\" y=\"150\" class=\"k\">pivot rod</text><line x1=\"200\" y1=\"142\" x2=\"200\" y2=\"108\" class=\"o\"/><text x=\"266\" y=\"30\">lift rod</text><text x=\"266\" y=\"80\">clevis</text><text x=\"266\" y=\"92\">strap</text><text x=\"10\" y=\"182\">Use putty only where the maker says.</text>",
+   "h": 190,
+   "cap": "The lift rod behind the faucet moves the clevis strap, which tilts the pivot rod and lifts the stopper. Hand-tighten the pivot nut: it only seals the rod."
+  },
+  "aerator": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Flush out the debris</text><rect x=\"20\" y=\"44\" width=\"140\" height=\"18\" rx=\"6\" class=\"bk\"/><rect x=\"140\" y=\"44\" width=\"22\" height=\"40\" rx=\"4\" class=\"bk\"/><rect x=\"140\" y=\"100\" width=\"22\" height=\"12\" rx=\"2\" class=\"y\"/><line x1=\"144\" y1=\"106\" x2=\"158\" y2=\"106\" class=\"th-l\"/><line x1=\"151\" y1=\"88\" x2=\"151\" y2=\"98\" class=\"a\"/><polygon points=\"151.0,98.0 148.4,92.6 153.6,92.6\" class=\"af\"/><circle cx=\"132\" cy=\"124\" r=\"2\" class=\"inkf\"/><circle cx=\"140\" cy=\"128\" r=\"2\" class=\"inkf\"/><circle cx=\"168\" cy=\"124\" r=\"2\" class=\"inkf\"/><rect x=\"190\" y=\"44\" width=\"90\" height=\"18\" rx=\"6\" class=\"bk\"/><rect x=\"258\" y=\"44\" width=\"22\" height=\"40\" rx=\"4\" class=\"bk\"/><rect x=\"262\" y=\"84\" width=\"14\" height=\"40\" class=\"wt\"/><line x1=\"220\" y1=\"126\" x2=\"310\" y2=\"126\" class=\"o\"/><text x=\"10\" y=\"146\" class=\"k\">1  Unscrew the aerator</text><text x=\"10\" y=\"158\">(tape on the jaws if</text><text x=\"10\" y=\"170\">you need pliers)</text><text x=\"184\" y=\"146\" class=\"k\">2  Run hot + cold</text><text x=\"184\" y=\"158\">for 1 minute, then</text><text x=\"184\" y=\"170\">rinse and refit it</text>",
+   "h": 178,
+   "cap": "New valves and disturbed pipes shed grit. Flushing without the aerator keeps it from clogging the new faucet or its cartridge."
+  }
+ },
+ "glossary": [
+  [
+   "Angle stop",
+   "The shutoff valve under the sink. Its outlet points up at 90 degrees to the pipe."
+  ],
+  [
+   "Compression fitting",
+   "A joint sealed by a brass ring (ferrule) squeezed onto the pipe by a nut."
+  ],
+  [
+   "Ferrule",
+   "The brass ring in a compression fitting. Also called a sleeve or olive."
+  ],
+  [
+   "Push-fit",
+   "A fitting that grips a pipe when you push it in. Brand names include SharkBite."
+  ],
+  [
+   "Sweat",
+   "A soldered copper joint."
+  ],
+  [
+   "FIP",
+   "Female iron pipe: inside pipe threads."
+  ],
+  [
+   "Centerset / widespread",
+   "Bathroom faucet hole spreads: 4\" and 8\" or more, center to center."
+  ],
+  [
+   "Aerator",
+   "The screen in the spout tip that mixes air into the stream."
+  ],
+  [
+   "Basin wrench",
+   "A long-handled wrench with a swiveling jaw for nuts behind a sink."
+  ],
+  [
+   "Escutcheon",
+   "The round cover plate where the pipe comes out of the wall."
+  ]
+ ]
+}

@@ -1,0 +1,1083 @@
+{
+ "slug": "add-water-line",
+ "title": "Add a Water Line",
+ "eyebrow": "Plumbing · supply lines",
+ "category": "Plumbing",
+ "difficulty": "Intermediate",
+ "time": "1–2 days",
+ "summary": "Tee into an existing copper, PEX or CPVC line and run new PEX to a fridge, utility sink, outdoor hose bib or new fixture, ending at a stub-out with its own quarter-turn shutoff valve. Pressure tested and ready for inspection.",
+ "safety": "Shut off and drain the water before cutting. Turn off power to any wall you drill into and look for wires and pipes first. Wear safety glasses when drilling. If soldering, follow the fire precautions in the copper pipe guide and keep the flame away from PEX.",
+ "pro": "you also need a new drain or vent (any sink or fixture), the main shutoff won't close, the pipe is galvanized steel or brittle CPVC, the framing is engineered joists or trusses, or your area requires a licensed plumber. Adding a supply line often needs a permit; check local code.",
+ "questions": [
+  {
+   "id": "use",
+   "label": "What does the new line feed?",
+   "type": "choice",
+   "default": "fridge",
+   "options": [
+    {
+     "v": "fridge",
+     "label": "Fridge / ice maker"
+    },
+    {
+     "v": "sink",
+     "label": "Utility sink",
+     "hint": "needs a drain too"
+    },
+    {
+     "v": "hose",
+     "label": "Outdoor hose bib"
+    },
+    {
+     "v": "fixture",
+     "label": "Other fixture",
+     "hint": "needs a drain too"
+    }
+   ]
+  },
+  {
+   "id": "material",
+   "label": "What is the existing pipe you'll tap?",
+   "type": "choice",
+   "default": "copper",
+   "options": [
+    {
+     "v": "copper",
+     "label": "Copper"
+    },
+    {
+     "v": "pex",
+     "label": "PEX",
+     "hint": "flexible plastic"
+    },
+    {
+     "v": "cpvc",
+     "label": "CPVC",
+     "hint": "rigid cream plastic"
+    }
+   ]
+  },
+  {
+   "id": "cjoin",
+   "label": "If tapping copper: how will you join the tee?",
+   "type": "choice",
+   "default": "push",
+   "options": [
+    {
+     "v": "push",
+     "label": "Push-fit",
+     "hint": "no torch"
+    },
+    {
+     "v": "sweat",
+     "label": "Solder (sweat)"
+    }
+   ],
+   "hint": "CPVC always uses a push-fit tee here."
+  },
+  {
+   "id": "join",
+   "label": "How will you connect the PEX?",
+   "type": "choice",
+   "default": "crimp",
+   "options": [
+    {
+     "v": "crimp",
+     "label": "Crimp rings",
+     "hint": "cheapest"
+    },
+    {
+     "v": "clamp",
+     "label": "Cinch clamps",
+     "hint": "one tool"
+    },
+    {
+     "v": "push",
+     "label": "Push-fit",
+     "hint": "no tool"
+    }
+   ]
+  },
+  {
+   "id": "lines",
+   "label": "Cold only, or hot and cold?",
+   "type": "choice",
+   "default": "cold",
+   "options": [
+    {
+     "v": "cold",
+     "label": "Cold only"
+    },
+    {
+     "v": "both",
+     "label": "Hot + cold"
+    }
+   ]
+  },
+  {
+   "id": "main",
+   "label": "Size of the pipe you'll tap",
+   "type": "choice",
+   "default": "3/4",
+   "options": [
+    {
+     "v": "1/2",
+     "label": "1/2\"",
+     "hint": "5/8\" outside"
+    },
+    {
+     "v": "3/4",
+     "label": "3/4\"",
+     "hint": "7/8\" outside"
+    }
+   ]
+  },
+  {
+   "id": "run",
+   "label": "Route length, tee to stub-out",
+   "type": "number",
+   "unit": "ft",
+   "default": 20,
+   "step": 1
+  },
+  {
+   "id": "holes",
+   "label": "Studs or joists to drill through",
+   "type": "number",
+   "unit": "holes",
+   "default": 4,
+   "step": 1
+  }
+ ],
+ "calcs": [
+  {
+   "id": "lines",
+   "expr": "a.lines==='both'?2:1"
+  },
+  {
+   "id": "runEach",
+   "label": "PEX per line",
+   "expr": "Math.ceil(a.run*1.15+3)",
+   "fmt": "{{c.runEach}} ft"
+  },
+  {
+   "id": "coil",
+   "label": "Coil to buy (per line)",
+   "expr": "c.runEach<=10?10:c.runEach<=20?20:c.runEach<=25?25:c.runEach<=50?50:c.runEach<=100?100:Math.ceil(c.runEach/100)*100",
+   "fmt": "{{c.coil}} ft{{c.lines>1?' red + '+c.coil+' ft blue':''}}"
+  },
+  {
+   "id": "clips",
+   "label": "Pipe clips",
+   "expr": "(Math.ceil(a.run*12/32)+2)*c.lines",
+   "fmt": "{{c.clips}} clips"
+  },
+  {
+   "id": "plates",
+   "label": "Nail plates",
+   "expr": "Math.max(1,Math.round(a.holes))",
+   "fmt": "{{c.plates}} plates"
+  },
+  {
+   "id": "rings",
+   "label": "Crimp rings / clamps",
+   "expr": "c.lines*((a.material==='pex'?3:1)+1)+4",
+   "fmt": "{{c.rings}} (with 4 spares)",
+   "when": "a.join!=='push'"
+  }
+ ],
+ "calcNote": "PEX adds 15% plus 3 ft for slack and vertical bends. Clips assume one every 32\" plus the ends. Rings count every PEX connection (tee and stub-out) plus spares.",
+ "overviewFig": "route",
+ "tools": [
+  {
+   "id": "pexR",
+   "c": "Pipe",
+   "n": "1/2\" PEX tubing, red (hot)",
+   "must": true,
+   "w": "Color is only a label; red for hot keeps things clear.",
+   "q": "1/2 in x {{c.coil}} ft red PEX pipe",
+   "qty": "{{c.coil}} ft coil",
+   "when": "a.lines==='both'"
+  },
+  {
+   "id": "pexB",
+   "c": "Pipe",
+   "n": "1/2\" PEX tubing, blue (cold)",
+   "must": true,
+   "w": "Rated for drinking water (look for NSF-61 or NSF-pw on the tube).",
+   "q": "1/2 in x {{c.coil}} ft blue PEX pipe",
+   "qty": "{{c.coil}} ft coil"
+  },
+  {
+   "id": "tee",
+   "c": "Fittings",
+   "n": "{{a.main}}\" x {{a.main}}\" x 1/2\" tee for {{a.material==='copper'?(a.cjoin==='sweat'?'copper (sweat)':'copper (push-fit)'):a.material==='pex'?'PEX ('+(a.join==='push'?'push-fit':a.join==='crimp'?'crimp':'clamp')+')':'CPVC (push-fit)'}}",
+   "must": true,
+   "w": "One per line you tap. The 1/2\" outlet feeds the new PEX.",
+   "q": "{{a.material==='copper'&&a.cjoin==='sweat'?a.main+' x '+a.main+' x 1/2 in copper tee':a.material==='pex'&&a.join!=='push'?a.main+' x '+a.main+' x 1/2 in PEX tee':a.main+' x '+a.main+' x 1/2 in push to connect tee'}}",
+   "qty": "{{c.lines}}"
+  },
+  {
+   "id": "adapt",
+   "c": "Fittings",
+   "n": "1/2\" copper-by-PEX adapter",
+   "must": true,
+   "w": "Solders into the tee's branch so PEX can connect.",
+   "q": "1/2 in copper sweat x PEX adapter",
+   "qty": "{{c.lines}}",
+   "when": "a.material==='copper'&&a.cjoin==='sweat'"
+  },
+  {
+   "id": "slip",
+   "c": "Fittings",
+   "n": "{{a.main}}\" slip (repair) coupling",
+   "must": false,
+   "w": "Only if the old pipe can't flex enough to get the tee in.",
+   "q": "{{a.main}} in {{a.cjoin==='sweat'?'copper repair coupling':'push to connect slip coupling'}}",
+   "qty": "{{c.lines}}",
+   "when": "a.material==='copper'"
+  },
+  {
+   "id": "drop",
+   "c": "Fittings",
+   "n": "PEX drop-ear elbow or stub-out elbow + bracket",
+   "must": true,
+   "w": "Anchors the line where it comes out of the wall.",
+   "q": "1/2 in PEX drop ear elbow",
+   "qty": "{{c.lines}}",
+   "when": "a.use!=='hose'"
+  },
+  {
+   "id": "box",
+   "c": "Fittings",
+   "n": "Recessed ice-maker outlet box (optional)",
+   "must": false,
+   "w": "A neat box with the valve built in, so the fridge can sit closer to the wall.",
+   "q": "ice maker outlet box PEX",
+   "when": "a.use==='fridge'"
+  },
+  {
+   "id": "stop",
+   "c": "Fittings",
+   "n": "Quarter-turn stop valve, 1/2\" inlet x {{a.use==='fridge'?'1/4\"':'3/8\"'}} compression outlet",
+   "must": true,
+   "w": "Lets you shut off the new fixture without shutting off the house.",
+   "q": "1/2 in x {{a.use==='fridge'?'1/4':'3/8'}} in quarter turn stop valve",
+   "qty": "{{c.lines}}",
+   "when": "a.use!=='hose'"
+  },
+  {
+   "id": "sill",
+   "c": "Fittings",
+   "n": "Frost-free sillcock with vacuum breaker",
+   "must": true,
+   "w": "Length to suit your wall (often 8\" to 12\"). Get one with a PEX or push-fit inlet if you can.",
+   "q": "frost free sillcock anti siphon",
+   "when": "a.use==='hose'"
+  },
+  {
+   "id": "crimper",
+   "c": "PEX tools",
+   "n": "1/2\" PEX crimp tool + go/no-go gauge",
+   "must": true,
+   "w": "Squeezes copper rings; the gauge proves each crimp is right.",
+   "q": "PEX crimp tool 1/2 in go no go gauge",
+   "when": "a.join==='crimp'"
+  },
+  {
+   "id": "rings",
+   "c": "PEX tools",
+   "n": "1/2\" copper crimp rings",
+   "must": true,
+   "w": "One per PEX connection, plus spares.",
+   "q": "1/2 in PEX copper crimp rings",
+   "qty": "{{c.rings}}",
+   "when": "a.join==='crimp'"
+  },
+  {
+   "id": "cinch",
+   "c": "PEX tools",
+   "n": "Cinch clamp tool",
+   "must": true,
+   "w": "One ratcheting tool works on all clamp sizes.",
+   "q": "PEX cinch clamp tool",
+   "when": "a.join==='clamp'"
+  },
+  {
+   "id": "clamps",
+   "c": "PEX tools",
+   "n": "1/2\" stainless cinch clamps",
+   "must": true,
+   "w": "One per PEX connection, plus spares.",
+   "q": "1/2 in PEX stainless cinch clamp",
+   "qty": "{{c.rings}}",
+   "when": "a.join==='clamp'"
+  },
+  {
+   "id": "pfit",
+   "c": "PEX tools",
+   "n": "Push-fit disconnect clip + depth gauge",
+   "must": true,
+   "w": "For marking insert depth and removing a fitting.",
+   "q": "1/2 in push to connect disconnect clip",
+   "when": "a.join==='push'"
+  },
+  {
+   "id": "pexcut",
+   "c": "Cutting",
+   "n": "PEX cutter",
+   "must": true,
+   "w": "Makes a clean, square cut in PEX.",
+   "q": "PEX tubing cutter"
+  },
+  {
+   "id": "tcut",
+   "c": "Cutting",
+   "n": "Tubing cutter (copper) or ratcheting cutter (CPVC)",
+   "must": true,
+   "w": "Cuts the existing pipe square for the tee.",
+   "q": "{{a.material==='cpvc'?'ratcheting PVC CPVC cutter':'tubing cutter copper'}}",
+   "when": "a.material!=='pex'"
+  },
+  {
+   "id": "deburr",
+   "c": "Cutting",
+   "n": "Deburring tool",
+   "must": true,
+   "w": "Smooths the cut end so seals and solder work.",
+   "q": "pipe deburring tool",
+   "when": "a.material!=='pex'"
+  },
+  {
+   "id": "solderkit",
+   "c": "Cutting",
+   "n": "Soldering kit: torch, lead-free solder, flux, emery cloth, fitting brush, heat shield, extinguisher",
+   "must": true,
+   "w": "See the copper pipe guide for how to solder.",
+   "q": "plumbing soldering kit lead free",
+   "when": "a.material==='copper'&&a.cjoin==='sweat'"
+  },
+  {
+   "id": "drill",
+   "c": "Framing",
+   "n": "Drill/driver + 3/4\" or 7/8\" spade or auger bit (right-angle drill helps)",
+   "must": true,
+   "w": "Bores holes through studs and joists.",
+   "q": "7/8 in auger bit"
+  },
+  {
+   "id": "plates",
+   "c": "Framing",
+   "n": "Steel nail plates (16 gauge)",
+   "must": true,
+   "w": "Protect the pipe from drywall screws and nails.",
+   "q": "steel nail plate plumbing",
+   "qty": "{{c.plates}}"
+  },
+  {
+   "id": "clips",
+   "c": "Framing",
+   "n": "PEX pipe clips or hangers",
+   "must": true,
+   "w": "Support the PEX about every 32\" horizontally.",
+   "q": "1/2 in PEX pipe clips",
+   "qty": "{{c.clips}}"
+  },
+  {
+   "id": "block",
+   "c": "Framing",
+   "n": "2x4 scrap for blocking + screws",
+   "must": true,
+   "w": "Solid backing for the stub-out elbow or bracket.",
+   "q": "2x4 stud",
+   "when": "a.use!=='hose'"
+  },
+  {
+   "id": "finder",
+   "c": "Framing",
+   "n": "Stud finder + flashlight + tape measure",
+   "must": true,
+   "w": "Find framing, wires and pipes before you drill.",
+   "q": "stud finder"
+  },
+  {
+   "id": "firecaulk",
+   "c": "Framing",
+   "n": "Fire-rated caulk or foam",
+   "must": false,
+   "w": "Seal holes you drill through top or bottom plates between floors (fire-blocking).",
+   "q": "fire block sealant"
+  },
+  {
+   "id": "insul",
+   "c": "Finish",
+   "n": "1/2\" foam pipe insulation",
+   "must": false,
+   "w": "For lines in unheated spaces, and on hot lines.",
+   "q": "1/2 in foam pipe insulation",
+   "qty": "{{Math.ceil(a.run/6)*c.lines}} x 6 ft"
+  },
+  {
+   "id": "gauge",
+   "c": "Finish",
+   "n": "Water pressure test gauge",
+   "must": false,
+   "w": "Screws onto a hose thread to show pressure holding steady. Ask if your inspector requires a specific test.",
+   "q": "water pressure test gauge"
+  },
+  {
+   "id": "bucket",
+   "c": "Finish",
+   "n": "Bucket, towels, safety glasses",
+   "must": true,
+   "w": "Water drains out when you cut the old line.",
+   "q": "5 gallon bucket"
+  },
+  {
+   "id": "braided",
+   "c": "Finish",
+   "n": "Braided stainless fridge supply line, 1/4\" compression",
+   "must": true,
+   "w": "Safer than plastic tubing behind a fridge. Get one long enough to pull the fridge out.",
+   "q": "braided ice maker supply line 1/4 compression",
+   "when": "a.use==='fridge'"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Plan",
+   "steps": [
+    {
+     "id": "p1",
+     "t": "Check what this job covers and get a permit",
+     "time": "30 min",
+     "idea": "Adding a supply line is often permit work, and some fixtures need much more than water.",
+     "fig": "route",
+     "b": "<ol><li>Call or check the website of your building department. Ask: \"Do I need a plumbing permit to add a water supply line?\" Many areas say yes; some allow homeowner permits.</li><li>Ask what inspection they want (usually before you cover the pipe) and how they want it pressure tested.</li><li>Decide what you're feeding: <b>{{a.use==='fridge'?'a fridge or ice maker':a.use==='sink'?'a utility sink':a.use==='hose'?'an outdoor hose bib':'a new fixture'}}</b>.</li><li>{{a.use==='sink'||a.use==='fixture'?'This guide covers the WATER SUPPLY only. A sink or fixture also needs a drain and a vent. Plan those first with a separate guide or a plumber; the drain location decides where the supply goes.':'An ice maker or hose bib needs no drain, so this guide covers the whole job.'}}</li></ol>[[warn|Drains and vents|New drains and vents are not in this guide. Getting slope, traps and venting wrong causes sewer gas and slow drains. Call a plumber or use a drain guide.]]",
+     "faq": [
+      [
+       "Can I skip the permit?",
+       "Unpermitted work can cause trouble with insurance claims and home sales. A supply line is a small permit and the inspection is quick."
+      ],
+      [
+       "Why add a valve at the end?",
+       "So you can shut off just this fixture to repair or replace it without shutting off the house."
+      ]
+     ]
+    },
+    {
+     "id": "p2",
+     "t": "Choose where to tee in",
+     "time": "30 min",
+     "idea": "Tap the nearest line of the right temperature that you can reach and cut safely.",
+     "fig": "route",
+     "need": [
+      "finder"
+     ],
+     "b": "<ol><li>Find a {{a.lines==='both'?'cold and a hot':'cold'}} line close to the new location: in the basement, crawlspace, or an open wall. Shorter runs mean better pressure and less work.</li><li>Follow the line back: cold lines come from the main, hot lines come from the water heater's outlet. Feel them with the water running if you're unsure.</li><li>Pick a straight section with at least 6\" of clear pipe and room to get a cutter around it.</li><li>Don't tee in after a water softener for an outdoor hose bib if you can avoid it (softened water is wasted on the lawn). For a fridge, either is fine.</li><li>Don't tap the line right at the water heater, or a line feeding only a toilet if you can reach a bigger branch.</li><li>Your current choice: tapping <b>{{a.material.toUpperCase()}}</b>, {{a.main}}\" pipe.</li></ol>",
+     "faq": [
+      [
+       "Can I tap a 1/2\" line that feeds a bathroom?",
+       "Usually yes for a fridge or hose bib. A whole new bathroom needs a bigger line, which is designer work."
+      ],
+      [
+       "What about the saddle valve that came with my ice maker kit?",
+       "Don't use it. Self-piercing saddle valves clog and leak, and many codes don't allow them. A real tee is the right way."
+      ]
+     ]
+    },
+    {
+     "id": "p3",
+     "t": "Plan the route and measure",
+     "time": "30 min",
+     "idea": "A good route is short, protected, and stays out of cold spaces.",
+     "fig": [
+      "route",
+      "heater"
+     ],
+     "need": [
+      "finder"
+     ],
+     "b": "<ol><li>Sketch the path from the tee to the new spot. Go under the floor or through interior walls where you can.</li><li>Avoid exterior walls in a cold climate. If you must use one, keep the pipe on the warm (inside) side of the insulation.</li><li>Keep PEX at least 6\" from a water heater flue and other hot surfaces, out of sunlight, and follow the PEX maker's rule for metal pipe near the water heater.</li><li>Measure the route along the framing, including up and down. Enter it in the questions: {{a.run}} ft.</li><li>Count the studs or joists you'll drill through: {{a.holes}}.</li><li>Pick the stub-out height: for a fridge about 6\"–12\" above the floor, off to the side of the compressor; for a sink, follow the fixture's spec sheet (often about 20\" above the floor, hot left, cold right).</li></ol>",
+     "faq": [
+      [
+       "How much PEX should I buy?",
+       "The numbers above add 15% plus 3 ft for slack and mistakes, rounded to a common coil size."
+      ]
+     ]
+    },
+    {
+     "id": "p4",
+     "t": "Buy the parts",
+     "time": "1 hr",
+     "idea": "All fittings must match one system: same PEX size and connection type.",
+     "need": [
+      "pexB",
+      "tee",
+      "stop",
+      "clips",
+      "plates"
+     ],
+     "b": "<ol><li>Use the Tools list, which already matches your answers.</li><li>Stick to one PEX connection type: {{a.join==='crimp'?'copper crimp rings':a.join==='clamp'?'stainless cinch clamps':'push-fit'}}. Mixing parts from different systems is how leaks happen.</li><li>Read the PEX label: it should say \"NSF-61\" or \"NSF-pw\" (safe for drinking water) and the PEX type (A, B or C).</li><li>Buy 2–3 spare fittings and rings. Returns are easier than a second trip mid-job.</li><li>Practice: make two or three connections on a scrap of PEX before working on the house.</li></ol>",
+     "faq": [
+      [
+       "Crimp, clamp or push-fit?",
+       "Crimp rings are cheapest but each tool fits only one size. Cinch clamps use one tool for all sizes. Push-fit needs no tool but costs more per fitting. All three work when done right."
+      ],
+      [
+       "My house has PEX-A (Uponor/ProPEX).",
+       "Most crimp, clamp and push-fit fittings are listed for PEX-A, B and C. Check the fitting package. Expansion fittings need their own expander tool."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Rough-in the new line",
+   "steps": [
+    {
+     "id": "r1",
+     "t": "Drill holes through framing",
+     "time": "30–60 min",
+     "idea": "Drill clean holes in the middle of studs and joists so the pipe runs straight and protected.",
+     "fig": [
+      "holes",
+      "joist"
+     ],
+     "need": [
+      "drill",
+      "finder",
+      "plates",
+      "firecaulk"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "b": "<ol><li>Before drilling into a wall, turn off power to outlets in that wall at the breaker. Look for wires and pipes with a flashlight.</li><li>In studs: mark the center of the stud face. Drill straight through with a 3/4\" or 7/8\" bit. For hot+cold, drill two holes or one slightly larger.</li><li>Keep stud holes small: in a load-bearing 2x4 wall, 1-3/8\" or smaller and at least 5/8\" from either face.</li><li>In joists: drill near the middle of the joist's height, at least 2\" from the top and bottom edges, and keep holes away from the ends.</li><li>Where a hole is close to the face of a stud (any standard 2x4 wall), nail a steel plate over the face.</li><li>Holes through a top or bottom plate between floors: seal around the pipe later with fire-rated caulk or foam.</li></ol>",
+     "stop": "Never cut or drill engineered I-joists or trusses without the maker's hole chart, and never notch the middle of a joist. Not sure what you're drilling? Stop and ask.",
+     "faq": [
+      [
+       "Can I notch instead of drilling?",
+       "Avoid it. Notches weaken framing more than holes and are limited by code. Drill."
+      ],
+      [
+       "The drill won't fit between the studs.",
+       "Use a right-angle drill or a right-angle attachment, and a short auger bit."
+      ]
+     ]
+    },
+    {
+     "id": "r2",
+     "t": "Run the PEX",
+     "time": "30–60 min",
+     "idea": "Pull the PEX through the holes in one piece, with gentle bends and support every 32\".",
+     "fig": [
+      "bend",
+      "support",
+      "heater"
+     ],
+     "need": [
+      "pexB",
+      "pexR",
+      "clips",
+      "pexcut"
+     ],
+     "b": "<ol><li>Uncoil the PEX by rolling the coil along the floor, not by pulling a loop off the side (that kinks it).</li><li>Feed it through the holes from the stub-out end back toward the tee. {{a.lines==='both'?'Run red for hot and blue for cold.':'Use blue for cold.'}}</li><li>Bend it gently: no tighter than about 6 times its outside diameter (about 4\" for 1/2\" PEX), or the maker's minimum.</li><li>Clip it about every 32\" along joists, snug but loose enough to slide (PEX grows as it warms).</li><li>Leave a little slack at each end. Don't cut to length until the fittings are in hand.</li><li>Cut with a PEX cutter, square and clean.</li></ol>",
+     "faq": [
+      [
+       "I kinked it.",
+       "Cut out the kink and join the pieces with a coupling. Kinks restrict flow and can split later."
+      ],
+      [
+       "Can PEX touch the hot water pipe?",
+       "Keep PEX from touching other hot pipes and give it room to move so it doesn't rub on framing."
+      ],
+      [
+       "Can I run it outside?",
+       "No. Sunlight breaks PEX down. Keep it covered and indoors."
+      ]
+     ]
+    },
+    {
+     "id": "r3",
+     "t": "Anchor the stub-out",
+     "time": "30 min",
+     "idea": "The end of the line must be screwed to solid wood so it can't move when you use the valve.",
+     "when": "a.use!=='hose'",
+     "fig": "stubout",
+     "need": [
+      "drop",
+      "block",
+      "box",
+      "drill"
+     ],
+     "b": "<ol><li>Screw a 2x4 block flat between the studs at the stub-out height, set back so the elbow's outlet ends near the drywall face.</li><li>Screw the drop-ear elbow to the block (or clip the stub-out elbow into its bracket).</li><li>Connect the PEX to the elbow (see the connection step for your method).</li><li>Using an ice-maker box instead? Screw the box to the stud at the right height and connect the PEX to its valve.</li><li>The valve goes on after the drywall is patched. Until then, cap the outlet for testing.</li></ol>",
+     "faq": [
+      [
+       "The wall is already closed.",
+       "Cut a neat drywall opening between two studs, install blocking, and patch it after the inspection."
+      ]
+     ]
+    },
+    {
+     "id": "r4",
+     "t": "Install the frost-free sillcock",
+     "time": "1 hr",
+     "idea": "A frost-free hose bib keeps its valve inside the warm house and has a built-in anti-siphon device.",
+     "when": "a.use==='hose'",
+     "fig": "sillcock",
+     "need": [
+      "sill",
+      "drill"
+     ],
+     "b": "<ol><li>Pick a spot through the rim joist or wall, not over a window well or walkway.</li><li>Choose a sillcock long enough that its valve end sits inside the heated space (measure the wall or rim thickness plus a few inches).</li><li>Drill the hole from inside, tilting the drill slightly so the hole slopes down toward the outside.</li><li>Bed the flange in exterior sealant, slide the sillcock in, and screw the flange to the siding or trim.</li><li>Support the inside end so it keeps the slight downward slope to the outside.</li><li>Connect the PEX to its inlet.</li></ol>",
+     "stop": "Hose connections must have backflow protection (a vacuum breaker or anti-siphon valve) so dirty water can't get sucked back into your drinking water. Buy a sillcock with it built in.",
+     "faq": [
+      [
+       "Why does it need to slope?",
+       "So the water in the long stem drains out every time you shut it off. That's what keeps it from freezing."
+      ],
+      [
+       "Do I still need a shutoff inside?",
+       "It's a good idea: a quarter-turn valve inside lets you shut it off without shutting off the house. Check local code; some cold areas require one."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Connect to the house",
+   "steps": [
+    {
+     "id": "c1",
+     "t": "Shut off the water and drain the line",
+     "time": "15 min",
+     "idea": "The pipe you cut must be empty and depressurized.",
+     "need": [
+      "bucket"
+     ],
+     "b": "<ol><li>Close the main shutoff valve (clockwise, or a lever across the pipe).</li><li>Open the highest faucet in the house to let air in.</li><li>Open the lowest tap to drain the lines. Wait until it stops.</li><li>{{a.lines==='both'?'Tapping a hot line: set the water heater to VACATION/PILOT (gas) or turn off its breaker (electric).':'Check that no water flows from the cold faucets.'}}</li><li>Put a bucket and towels under the tee location.</li></ol>",
+     "stop": "If the main valve won't turn or won't stop the water, don't force it. Call the water utility to close the curb valve, or a plumber.",
+     "faq": [
+      [
+       "How long will the water be off?",
+       "Usually 30–60 minutes if everything is ready. Prepare all parts before you shut it off."
+      ]
+     ]
+    },
+    {
+     "id": "c2",
+     "t": "Cut in the tee: copper",
+     "time": "30–45 min",
+     "idea": "Remove just enough pipe for the tee, then join it like any copper fitting.",
+     "when": "a.material==='copper'",
+     "fig": "teegap",
+     "need": [
+      "tee",
+      "tcut",
+      "deburr",
+      "slip",
+      "adapt",
+      "solderkit"
+     ],
+     "b": "<ol><li>Hold the tee against the pipe. Mark where each socket's internal stop lines up: that's the gap to cut out.</li><li>Cut at the first mark with the tubing cutter. Let the water drain into the bucket.</li><li>Cut at the second mark. Deburr both ends inside and out.</li><li>{{a.cjoin==='sweat'?'Clean and flux the ends and tee. Spring one pipe end sideways, slip the tee on, then line it up with the other end. Solder all three joints with the branch pointing toward your new line. Solder the copper-by-PEX adapter into the branch. Let it cool fully.':'Mark the insert depth on both pipe ends. Spring one pipe aside, push the tee onto one end, then line up the other and push it in to the mark.'}}</li><li>If the pipe can't move sideways, cut a wider gap, put the tee on one end, add a short piece of pipe, and close the gap with a slip coupling.</li></ol>",
+     "faq": [
+      [
+       "Can I solder with water dripping?",
+       "No. Open a lower faucet to drain it, or use push-fit fittings. The copper pipe guide covers this."
+      ],
+      [
+       "The tee isn't straight.",
+       "Rotate it before the solder cools, or before pushing fully on. Point the branch the way the PEX will run."
+      ]
+     ]
+    },
+    {
+     "id": "c3",
+     "t": "Cut in the tee: PEX",
+     "time": "20 min",
+     "idea": "PEX flexes, so cutting in a tee is the easy case.",
+     "when": "a.material==='pex'",
+     "need": [
+      "tee",
+      "pexcut"
+     ],
+     "b": "<ol><li>Check the old PEX type on its printing (PEX-A, B or C) and that your fittings are listed for it.</li><li>Cut the PEX square with the PEX cutter.</li><li>{{a.join==='push'?'Mark the insert depth on both ends.':'Slide a '+(a.join==='crimp'?'crimp ring':'cinch clamp')+' onto each cut end.'}}</li><li>Flex the ends apart and insert the tee's run sockets. The pipe should bottom out on the fitting shoulder.</li><li>Make the joints (see the connection step). Point the branch toward your new line.</li></ol>",
+     "faq": [
+      [
+       "Can I remove a small piece?",
+       "Yes, if the pipe is tight. PEX is flexible enough to bend into a fitting without removing any length in most cases."
+      ]
+     ]
+    },
+    {
+     "id": "c4",
+     "t": "Cut in the tee: CPVC",
+     "time": "30 min",
+     "idea": "Older CPVC can be brittle, so cut gently and use a push-fit tee.",
+     "when": "a.material==='cpvc'",
+     "need": [
+      "tee",
+      "tcut",
+      "deburr"
+     ],
+     "b": "<ol><li>Cut the CPVC square with a ratcheting cutter or tubing cutter. Support the pipe; don't let it snap.</li><li>Remove about the fitting's center gap so the tee fits.</li><li>Deburr inside and out and chamfer the outside edge slightly so it doesn't cut the O-ring.</li><li>Mark the insert depth on both ends and push the tee on, as in the push-fit step.</li></ol>",
+     "stop": "If the CPVC cracks or shatters when you cut it, it's brittle. Expect more breaks nearby. Cut back to sound pipe, and consider calling a plumber.",
+     "faq": [
+      [
+       "Can I glue a CPVC tee instead?",
+       "Yes, with CPVC primer (where required) and CPVC cement, following the cure time on the can before pressure. Push-fit is easier for a first-timer."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Make the PEX connections",
+   "steps": [
+    {
+     "id": "j1",
+     "t": "Crimp each joint",
+     "time": "5 min per joint",
+     "idea": "A copper ring squeezed around the PEX locks it onto the fitting's barbs.",
+     "when": "a.join==='crimp'",
+     "fig": "crimp",
+     "need": [
+      "crimper",
+      "rings",
+      "pexcut"
+     ],
+     "help": [
+      "crimpHelp"
+     ],
+     "b": "<ol><li>Cut the PEX square. Slide a copper crimp ring onto the tube.</li><li>Push the PEX onto the fitting until it touches the shoulder.</li><li>Slide the ring so its edge is 1/8\"–1/4\" from the end of the PEX.</li><li>Put the tool jaws over the ring, square to the fitting, and squeeze the handles all the way closed.</li><li>Test with the go/no-go gauge: the GO slot slides over the ring, the NO-GO slot must not.</li></ol>",
+     "stop": "If a crimp fails the gauge or is crooked, cut it off and redo it with a new ring. Never crimp a ring twice.",
+     "faq": [
+      [
+       "The gauge says NO-GO slides on.",
+       "The crimp is too loose. Cut it off and redo. If it keeps happening, adjust your tool (most have a calibration screw)."
+      ]
+     ]
+    },
+    {
+     "id": "j2",
+     "t": "Clamp each joint",
+     "time": "5 min per joint",
+     "idea": "A stainless cinch clamp squeezed by its ear locks the PEX onto the fitting.",
+     "when": "a.join==='clamp'",
+     "fig": "cinch",
+     "need": [
+      "cinch",
+      "clamps",
+      "pexcut"
+     ],
+     "help": [
+      "clampHelp"
+     ],
+     "b": "<ol><li>Cut the PEX square. Slide a cinch clamp onto the tube.</li><li>Push the PEX onto the fitting until it touches the shoulder.</li><li>Slide the clamp so it's 1/8\"–1/4\" from the end of the PEX.</li><li>Put the tool's jaws over the ear, square to the pipe, and squeeze until the tool releases on its own.</li><li>Check the closed ear with the gauge that came with the tool.</li></ol>",
+     "faq": [
+      [
+       "Can I use pliers?",
+       "No. The tool closes the ear to an exact width; pliers will under- or over-squeeze it."
+      ]
+     ]
+    },
+    {
+     "id": "j3",
+     "t": "Push-fit each joint",
+     "time": "2 min per joint",
+     "idea": "Push the PEX in to the depth mark and it's sealed.",
+     "when": "a.join==='push'",
+     "fig": "pushpex",
+     "need": [
+      "pfit",
+      "pexcut"
+     ],
+     "help": [
+      "pushHelp"
+     ],
+     "b": "<ol><li>Cut the PEX square with a PEX cutter. No angle, no burrs.</li><li>Check that the fitting has a stiffener for PEX (often pre-installed). If not, insert the one from the package.</li><li>Mark the insert depth with the gauge.</li><li>Push the PEX straight in until it hits the stop and the mark is at the fitting edge.</li><li>Tug it back. It should not move out.</li></ol>",
+     "faq": [
+      [
+       "Can I cut PEX with a utility knife?",
+       "No. It leaves an angled or ragged cut that can leak. Use a PEX cutter."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Test and finish",
+   "steps": [
+    {
+     "id": "t1",
+     "t": "Cap the end and pressure test",
+     "time": "30 min, then 24 hr",
+     "idea": "Prove every joint holds before anything gets covered up.",
+     "fig": "valve",
+     "need": [
+      "stop",
+      "gauge"
+     ],
+     "timers": [
+      [
+       "Recheck all joints",
+       30
+      ]
+     ],
+     "wait": "24 hr with joints exposed",
+     "b": "<ol><li>{{a.use==='hose'?'Close the new sillcock.':'Put the stop valve on the stub-out (or a test cap) and close it.'}}</li><li>Close the lowest tap. Leave the top faucet open.</li><li>Open the main a quarter of the way. When the top faucet runs steady without air, close it and open the main fully.</li><li>Dry every joint. Hold dry tissue under each one for a minute.</li><li>Check again after 30 minutes and again the next day. Everything must stay bone dry.</li><li>If your inspector requires a gauge test, follow their numbers.</li><li>Turn the water heater back on once its tank is full of water.</li></ol>",
+     "stop": "Any drip, even one drop, means the joint is wrong. Shut off, drain, cut it out and redo it. Don't close a wall over a joint you haven't watched for a day.",
+     "faq": [
+      [
+       "A crimp ring weeps.",
+       "Cut it out and redo it with a new ring and a fresh cut of PEX."
+      ]
+     ]
+    },
+    {
+     "id": "t2",
+     "t": "Insulate and protect",
+     "time": "30 min",
+     "idea": "Insulation prevents freezing and sweating; plates prevent future screws.",
+     "fig": [
+      "insulate",
+      "holes"
+     ],
+     "need": [
+      "insul",
+      "plates",
+      "firecaulk"
+     ],
+     "b": "<ol><li>Slide foam sleeves over pipe in crawlspaces, garages, attics and any exterior wall. Slit side down.</li><li>Tape the seams and the joints between sleeves.</li><li>Insulate hot lines too, to save energy and wait time.</li><li>Check that every stud hole near a wall face has a nail plate.</li><li>Seal holes through top or bottom plates with fire-rated caulk or foam.</li></ol>",
+     "faq": [
+      [
+       "Do I need to insulate in a heated basement?",
+       "Not for freezing, but cold lines may sweat in summer. Insulating them stops drips."
+      ]
+     ]
+    },
+    {
+     "id": "t3",
+     "t": "Inspection and close up",
+     "time": "varies",
+     "idea": "The inspector sees the pipe before it disappears into the wall.",
+     "need": [
+      "stop"
+     ],
+     "b": "<ol><li>Schedule the inspection with the pipe exposed and under pressure, if a permit was required.</li><li>After it passes, patch the drywall around the stub-out.</li><li>{{a.use==='hose'?'Seal the sillcock flange to the siding.':'Install the escutcheon (cover ring) and the quarter-turn stop valve on the stub-out. Tighten compression nuts one more turn past hand-tight, no more.'}}</li><li>Turn on the water and check the valve for leaks.</li></ol>",
+     "faq": [
+      [
+       "How tight is a compression nut?",
+       "Hand-tight, then about one more half to full turn with a wrench while holding the valve body with a second wrench."
+      ]
+     ]
+    },
+    {
+     "id": "t4",
+     "t": "Hook up and flush",
+     "time": "20 min",
+     "idea": "Connect the appliance or fixture and flush out debris and air.",
+     "need": [
+      "braided"
+     ],
+     "b": "<ol><li>{{a.use==='fridge'?'Connect the braided supply line to the 1/4\" valve outlet and to the fridge. Leave a loop of slack so the fridge can roll out.':a.use==='hose'?'Attach a hose and run water for a minute to flush.':'Connect the fixture\\'s supply lines to the stop valve outlets.'}}</li><li>Open the valve slowly. Check both ends for drips with dry tissue.</li><li>{{a.use==='fridge'?'Throw away the first few batches of ice and run water through the dispenser per the fridge manual to flush the filter.':a.use==='hose'?'In winter, always take the hose off the sillcock so it can drain.':'Run the water for a minute with aerators removed, then put them back.'}}</li><li>Check under the fixture again the next day.</li></ol>",
+     "faq": [
+      [
+       "The ice maker isn't making ice.",
+       "Most need 24 hours to start. Check that the valve is fully open and the fridge's water filter is installed correctly."
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "days": [
+  {
+   "t": "Plan, permit and buy",
+   "ids": [
+    "p1",
+    "p2",
+    "p3",
+    "p4"
+   ],
+   "wait": "permit approval if needed"
+  },
+  {
+   "t": "Rough-in the new line",
+   "ids": [
+    "r1",
+    "r2",
+    "r3",
+    "r4"
+   ]
+  },
+  {
+   "t": "Tie in and test",
+   "ids": [
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "j1",
+    "j2",
+    "j3",
+    "t1"
+   ],
+   "wait": "24 hr leak check, then inspection"
+  },
+  {
+   "t": "Insulate, close up, hook up",
+   "ids": [
+    "t2",
+    "t3",
+    "t4"
+   ]
+  }
+ ],
+ "help": {
+  "crimpHelp": {
+   "t": "Make a crimp joint",
+   "fig": "crimp",
+   "b": "<ol><li>Square cut. Ring on.</li><li>PEX fully onto the fitting.</li><li>Ring 1/8\"–1/4\" from the PEX end.</li><li>Jaws square, squeeze fully.</li><li>GO slides on, NO-GO doesn't.</li></ol>"
+  },
+  "clampHelp": {
+   "t": "Make a cinch clamp joint",
+   "fig": "cinch",
+   "b": "<ol><li>Square cut. Clamp on.</li><li>PEX fully onto the fitting.</li><li>Clamp 1/8\"–1/4\" from the PEX end.</li><li>Tool on the ear, squeeze until it releases.</li><li>Check with the gauge.</li></ol>"
+  },
+  "pushHelp": {
+   "t": "Make a push-fit joint",
+   "fig": "pushpex",
+   "b": "<ol><li>Square, clean cut.</li><li>Stiffener in place for PEX.</li><li>Mark insert depth.</li><li>Push to the mark. Tug to check.</li></ol>"
+  }
+ },
+ "figs": {
+  "route": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">The whole job at a glance</text><rect x=\"10\" y=\"120\" width=\"300\" height=\"10\" class=\"w\"/><text x=\"240\" y=\"114\">floor</text><rect x=\"60\" y=\"30\" width=\"10\" height=\"90\" class=\"w\"/><rect x=\"180\" y=\"30\" width=\"10\" height=\"90\" class=\"w\"/><line x1=\"10\" y1=\"186\" x2=\"310\" y2=\"186\" class=\"o\" style=\"stroke-width:5\"/><text x=\"10\" y=\"202\">existing cold line (basement)</text><rect x=\"114\" y=\"179\" width=\"22\" height=\"14\" rx=\"2\" class=\"tb\"/><text x=\"142\" y=\"176\" class=\"k\">1 tee</text><path d=\"M125 179 V140 Q125 130 135 130 H150 V60 H156\" class=\"a\" style=\"stroke:var(--accent);stroke-width:3\" fill=\"none\"/><rect x=\"156\" y=\"54\" width=\"14\" height=\"12\" rx=\"2\" class=\"tb\"/><rect x=\"170\" y=\"56\" width=\"10\" height=\"8\" class=\"y\"/><text x=\"200\" y=\"58\" class=\"k\">3 stub-out +</text><text x=\"200\" y=\"70\" class=\"k\">shutoff valve</text><text x=\"76\" y=\"84\" class=\"ac\">2 PEX run</text><text x=\"76\" y=\"96\">through floor</text><text x=\"160\" y=\"150\">hole through floor</text>",
+   "h": 210,
+   "cap": "Tee into an existing line, run PEX through framing to the new spot, and finish with a stub-out and a quarter-turn shutoff valve."
+  },
+  "teegap": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Cutting a tee into copper</text><rect x=\"10\" y=\"40\" width=\"300\" height=\"16\" class=\"w\"/><line x1=\"135\" y1=\"34\" x2=\"135\" y2=\"62\" class=\"bad d\"/><line x1=\"185\" y1=\"34\" x2=\"185\" y2=\"62\" class=\"bad d\"/><text x=\"160\" y=\"76\" class=\"wa\" text-anchor=\"middle\">cut out the gap</text><text x=\"10\" y=\"96\" class=\"k\">Gap = tee length minus both socket depths</text><rect x=\"10\" y=\"118\" width=\"120\" height=\"16\" class=\"w\"/><rect x=\"190\" y=\"118\" width=\"120\" height=\"16\" class=\"w\"/><rect x=\"114\" y=\"112\" width=\"92\" height=\"28\" rx=\"3\" class=\"tb\"/><rect x=\"146\" y=\"140\" width=\"28\" height=\"22\" class=\"tb\"/><line x1=\"130\" y1=\"112\" x2=\"130\" y2=\"140\" class=\"o d\"/><line x1=\"190\" y1=\"112\" x2=\"190\" y2=\"140\" class=\"o d\"/><text x=\"160\" y=\"178\" text-anchor=\"middle\">branch to the new line</text><text x=\"10\" y=\"198\">Pipe won't flex? Cut a wider gap and add a short</text><text x=\"10\" y=\"210\">piece plus a slip coupling on one side.</text>",
+   "h": 218,
+   "cap": "Hold the tee against the pipe, mark where each socket's stop lands, and cut between the marks. Measure twice: too wide a gap needs a filler piece."
+  },
+  "holes": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Holes in studs: center + nail plate</text><text x=\"10\" y=\"32\">Looking down into the wall from above</text><rect x=\"10\" y=\"44\" width=\"300\" height=\"8\" class=\"b\"/><rect x=\"10\" y=\"140\" width=\"300\" height=\"8\" class=\"b\"/><rect x=\"50\" y=\"52\" width=\"38\" height=\"88\" class=\"w\"/><rect x=\"46\" y=\"52\" width=\"46\" height=\"4\" class=\"inkf\"/><rect x=\"141\" y=\"52\" width=\"38\" height=\"88\" class=\"w\"/><rect x=\"137\" y=\"52\" width=\"46\" height=\"4\" class=\"inkf\"/><rect x=\"232\" y=\"52\" width=\"38\" height=\"88\" class=\"w\"/><rect x=\"228\" y=\"52\" width=\"46\" height=\"4\" class=\"inkf\"/><rect x=\"10\" y=\"88\" width=\"300\" height=\"16\" class=\"m\"/><text x=\"110\" y=\"170\" text-anchor=\"middle\">drywall face</text><text x=\"10\" y=\"190\" class=\"k\">Bore the hole in the center of the stud.</text><text x=\"10\" y=\"202\">Load-bearing 2x4: hole 1-3/8\" max,</text><text x=\"10\" y=\"214\">at least 5/8\" from either face.</text><text x=\"10\" y=\"234\" class=\"k\">Nail a steel plate (black) on the stud face</text><text x=\"10\" y=\"246\">so drywall screws can't hit the pipe.</text><text x=\"200\" y=\"170\" class=\"ac\">PEX in 3/4\"-1\" hole</text>",
+   "h": 254,
+   "cap": "A drywall screw through a PEX line is a leak inside the wall. In a 2x4 wall the pipe is always close to the face, so plate every stud you drill."
+  },
+  "joist": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Holes in floor joists</text><rect x=\"10\" y=\"40\" width=\"300\" height=\"100\" class=\"w\"/><line x1=\"10\" y1=\"73\" x2=\"310\" y2=\"73\" class=\"o d\"/><line x1=\"10\" y1=\"107\" x2=\"310\" y2=\"107\" class=\"o d\"/><circle cx=\"160\" cy=\"90\" r=\"10\" class=\"bk\"/><circle cx=\"160\" cy=\"90\" r=\"6\" class=\"m\"/><text x=\"186\" y=\"94\" class=\"gd\">middle third of depth</text><rect x=\"40\" y=\"40\" width=\"40\" height=\"12\" class=\"badf\" opacity=\".4\"/><rect x=\"40\" y=\"128\" width=\"40\" height=\"12\" class=\"badf\" opacity=\".4\"/><text x=\"10\" y=\"160\" class=\"wa\">No holes within 2\" of top or bottom edge.</text><text x=\"10\" y=\"174\">Hole no bigger than 1/3 of joist depth.</text><text x=\"10\" y=\"188\">Drill, never notch. I-joists: maker's chart only.</text><text x=\"84\" y=\"62\" class=\"wa\">2\"</text>",
+   "h": 196,
+   "cap": "The top and bottom edges of a joist carry the load. Drill through the middle, away from the ends, and keep holes apart from each other."
+  },
+  "bend": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Bend gently, never kink</text><path d=\"M30 40 V110 A40 40 0 0 0 70 150 H140\" class=\"good\" style=\"stroke-width:6\" fill=\"none\"/><text x=\"30\" y=\"176\" class=\"gd\">right: radius 6x OD</text><text x=\"30\" y=\"188\">(about 4\" for 1/2\" PEX)</text><path d=\"M190 40 V140 L200 150 H290\" class=\"bad\" style=\"stroke-width:6\" fill=\"none\"/><circle cx=\"194\" cy=\"146\" r=\"8\" class=\"o\"/><text x=\"190\" y=\"176\" class=\"wa\">wrong: kinked</text><text x=\"190\" y=\"188\">cut it out and redo</text>",
+   "h": 196,
+   "cap": "Tighter than the maker's minimum radius? Use a bend support or an elbow fitting. A kink restricts flow and can split later."
+  },
+  "support": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Support it every 32\"</text><rect x=\"10\" y=\"30\" width=\"300\" height=\"14\" class=\"w\"/><line x1=\"10\" y1=\"90\" x2=\"310\" y2=\"90\" class=\"o\" style=\"stroke:var(--mem);stroke-width:5\"/><path d=\"M34 44 V84 a6 6 0 0 0 12 0 V44\" class=\"o\"/><path d=\"M154 44 V84 a6 6 0 0 0 12 0 V44\" class=\"o\"/><path d=\"M274 44 V84 a6 6 0 0 0 12 0 V44\" class=\"o\"/><line x1=\"60\" y1=\"112\" x2=\"140\" y2=\"112\" class=\"a\"/><polygon points=\"140.0,112.0 133.7,115.0 133.7,109.0\" class=\"af\"/><line x1=\"140\" y1=\"112\" x2=\"60\" y2=\"112\" class=\"a\"/><polygon points=\"60.0,112.0 66.3,109.0 66.3,115.0\" class=\"af\"/><text x=\"100\" y=\"128\" class=\"ac\" text-anchor=\"middle\">32\" max</text><line x1=\"180\" y1=\"112\" x2=\"260\" y2=\"112\" class=\"a\"/><polygon points=\"260.0,112.0 253.7,115.0 253.7,109.0\" class=\"af\"/><line x1=\"260\" y1=\"112\" x2=\"180\" y2=\"112\" class=\"a\"/><polygon points=\"180.0,112.0 186.3,109.0 186.3,115.0\" class=\"af\"/><text x=\"220\" y=\"128\" class=\"ac\" text-anchor=\"middle\">32\" max</text><text x=\"10\" y=\"156\">Plastic PEX clips or hangers, snug, not tight.</text><text x=\"10\" y=\"168\">Leave a little slack: PEX grows when hot.</text>",
+   "h": 176,
+   "cap": "Horizontal PEX gets a hanger about every 32\" (the common code and maker spacing; check your local code). On vertical runs, support it at each floor."
+  },
+  "heater": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Keep PEX away from heat</text><rect x=\"30\" y=\"70\" width=\"80\" height=\"120\" rx=\"8\" class=\"tb\"/><text x=\"70\" y=\"136\" text-anchor=\"middle\">gas water</text><text x=\"70\" y=\"148\" text-anchor=\"middle\">heater</text><rect x=\"62\" y=\"24\" width=\"16\" height=\"46\" class=\"bk\"/><text x=\"84\" y=\"34\">flue</text><line x1=\"96\" y1=\"70\" x2=\"96\" y2=\"40\" class=\"o\" style=\"stroke-width:5\"/><line x1=\"96\" y1=\"40\" x2=\"170\" y2=\"40\" class=\"o\" style=\"stroke-width:5\"/><line x1=\"170\" y1=\"40\" x2=\"300\" y2=\"40\" class=\"o\" style=\"stroke:var(--mem);stroke-width:5\"/><text x=\"110\" y=\"62\" class=\"k\">metal first</text><text x=\"110\" y=\"74\">(often 18\")</text><text x=\"190\" y=\"62\" class=\"k\">then PEX</text><text x=\"130\" y=\"110\" class=\"wa\">PEX at least 6\" from the flue,</text><text x=\"130\" y=\"122\">more if the maker says so.</text><text x=\"130\" y=\"150\">Keep it off recessed lights,</text><text x=\"130\" y=\"162\">out of sunlight, away from</text><text x=\"130\" y=\"174\">other hot surfaces.</text>",
+   "h": 198,
+   "cap": "Most PEX makers want a stretch of metal pipe at a gas water heater and clearance from the flue. Follow your PEX brand's instructions; they are part of the code."
+  },
+  "stubout": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Stub-out: anchored, then a valve</text><rect x=\"10\" y=\"40\" width=\"20\" height=\"150\" class=\"w\"/><rect x=\"200\" y=\"40\" width=\"20\" height=\"150\" class=\"w\"/><rect x=\"30\" y=\"100\" width=\"170\" height=\"20\" class=\"w\"/><text x=\"165\" y=\"114\" text-anchor=\"middle\">2x blocking</text><rect x=\"230\" y=\"40\" width=\"10\" height=\"150\" class=\"b\"/><text x=\"244\" y=\"36\">drywall</text><path d=\"M120 190 V92\" class=\"o\" style=\"stroke:var(--mem);stroke-width:5\"/><rect x=\"112\" y=\"80\" width=\"18\" height=\"16\" rx=\"2\" class=\"tb\"/><rect x=\"106\" y=\"94\" width=\"30\" height=\"5\" class=\"tb\"/><line x1=\"130\" y1=\"88\" x2=\"262\" y2=\"88\" class=\"o\" style=\"stroke-width:5\"/><rect x=\"262\" y=\"78\" width=\"26\" height=\"20\" rx=\"3\" class=\"tb\"/><rect x=\"288\" y=\"82\" width=\"20\" height=\"12\" rx=\"2\" class=\"y\"/><text x=\"36\" y=\"32\" class=\"k\">drop-ear elbow screwed to blocking</text><text x=\"246\" y=\"118\">stop valve</text><text x=\"246\" y=\"130\">goes on</text><text x=\"246\" y=\"142\">after drywall</text>",
+   "h": 198,
+   "cap": "The elbow is screwed to solid blocking so the pipe can't push back into the wall when you tighten the valve."
+  },
+  "crimp": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Crimp ring: place, squeeze, gauge</text><rect x=\"10\" y=\"60\" width=\"120\" height=\"30\" rx=\"2\" class=\"tb\"/><text x=\"40\" y=\"54\">fitting</text><rect x=\"90\" y=\"56\" width=\"160\" height=\"38\" rx=\"4\" class=\"m\"/><text x=\"222\" y=\"50\" text-anchor=\"middle\">PEX</text><rect x=\"108\" y=\"52\" width=\"14\" height=\"46\" rx=\"2\" class=\"w\"/><line x1=\"90\" y1=\"104\" x2=\"108\" y2=\"104\" class=\"o\"/><text x=\"60\" y=\"120\" class=\"ac\">ring 1/8\"-1/4\" from the PEX end</text><g><path d=\"M100 30 L115 48 L130 30\" class=\"o\" style=\"stroke-width:3\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 -6;0 0;0 -6\" dur=\"1.8s\" repeatCount=\"indefinite\"/></g><g><path d=\"M100 120 L115 102 L130 120\" class=\"o\" style=\"stroke-width:3\" opacity=\"0\"/></g><rect x=\"20\" y=\"140\" width=\"120\" height=\"30\" rx=\"4\" class=\"y\"/><rect x=\"36\" y=\"140\" width=\"22\" height=\"16\" class=\"bk\"/><rect x=\"96\" y=\"140\" width=\"18\" height=\"16\" class=\"bk\"/><text x=\"47\" y=\"184\" class=\"gd\" text-anchor=\"middle\">GO: slides on</text><text x=\"140\" y=\"184\" class=\"wa\">NO-GO: must not</text><text x=\"160\" y=\"158\">Fails? Cut off and redo.</text>",
+   "h": 192,
+   "title": "Crimp a PEX ring",
+   "cap": "Push the PEX fully onto the fitting, slide the copper ring 1/8\"–1/4\" back from the end, crimp with the jaws square, then check every ring with the go/no-go gauge."
+  },
+  "cinch": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Cinch clamp: squeeze the ear</text><rect x=\"10\" y=\"66\" width=\"110\" height=\"28\" rx=\"2\" class=\"tb\"/><rect x=\"80\" y=\"60\" width=\"180\" height=\"40\" rx=\"4\" class=\"m\"/><rect x=\"100\" y=\"56\" width=\"16\" height=\"48\" rx=\"2\" class=\"bk\"/><path d=\"M102 56 v-10 h12 v10\" class=\"o\"/><text x=\"124\" y=\"40\" class=\"k\">ear: tool closes it flat</text><text x=\"10\" y=\"128\">1  PEX fully on the fitting.</text><text x=\"10\" y=\"142\">2  Clamp 1/8\"-1/4\" from the PEX end.</text><text x=\"10\" y=\"156\">3  Squeeze until the tool releases.</text><text x=\"10\" y=\"170\">4  Check with the gauge.</text>",
+   "h": 178,
+   "cap": "Stainless cinch clamps use one ratcheting tool for every size. The tool releases by itself when the clamp is done."
+  },
+  "pushpex": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Push-fit on PEX: insert, mark, push</text><rect x=\"170\" y=\"54\" width=\"110\" height=\"60\" rx=\"6\" class=\"tb\"/><line x1=\"230\" y1=\"54\" x2=\"230\" y2=\"114\" class=\"o\" style=\"stroke-width:3\"/><rect x=\"30\" y=\"68\" width=\"200\" height=\"32\" rx=\"2\" class=\"m\"/><rect x=\"186\" y=\"74\" width=\"44\" height=\"20\" class=\"bk\"/><line x1=\"170\" y1=\"62\" x2=\"170\" y2=\"106\" class=\"o\" style=\"stroke-width:3\"/><text x=\"208\" y=\"136\" class=\"k\" text-anchor=\"middle\">stiffener insert</text><text x=\"208\" y=\"148\" text-anchor=\"middle\">(often built in)</text><text x=\"30\" y=\"136\" class=\"gd\">depth mark at edge</text><text x=\"10\" y=\"170\">Square cut, mark depth, push until the mark meets it.</text>",
+   "h": 178,
+   "cap": "PEX is soft, so the fitting needs a stiffener inside the tube to seal. Most brass push-fit fittings come with one already in place; check the package."
+  },
+  "valve": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Quarter-turn stop valve</text><rect x=\"40\" y=\"70\" width=\"90\" height=\"30\" rx=\"6\" class=\"tb\"/><g><rect x=\"80\" y=\"40\" width=\"10\" height=\"34\" rx=\"3\" class=\"y\"/><animateTransform attributeName=\"transform\" type=\"rotate\" values=\"0 85 72;0 85 72;-90 85 72;-90 85 72;0 85 72\" keyTimes=\"0;0.3;0.5;0.8;1\" dur=\"4s\" repeatCount=\"indefinite\"/></g><text x=\"40\" y=\"124\" class=\"gd\">Handle in line</text><text x=\"40\" y=\"136\">with the outlet = ON</text><text x=\"180\" y=\"64\" class=\"wa\">Handle across</text><text x=\"180\" y=\"76\">the outlet = OFF</text><text x=\"180\" y=\"104\" class=\"k\">Outlet size: 1/4\"</text><text x=\"180\" y=\"116\">(fridge), 3/8\" (sink)</text><text x=\"10\" y=\"170\">Compression, push-fit or PEX inlet to match.</text>",
+   "h": 178,
+   "title": "Quarter-turn valve",
+   "cap": "Quarter-turn (ball) valves open or close with a 90° turn and are far more reliable than old multi-turn valves."
+  },
+  "sillcock": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Frost-free sillcock, sloped to drain</text><rect x=\"140\" y=\"30\" width=\"40\" height=\"150\" class=\"b\"/><text x=\"160\" y=\"196\" text-anchor=\"middle\">wall</text><rect x=\"140\" y=\"30\" width=\"40\" height=\"150\" class=\"th\" opacity=\".35\"/><g transform=\"rotate(4 160 100)\"><rect x=\"40\" y=\"94\" width=\"210\" height=\"12\" rx=\"2\" class=\"tb\"/><rect x=\"250\" y=\"88\" width=\"30\" height=\"24\" rx=\"3\" class=\"tb\"/><rect x=\"270\" y=\"74\" width=\"14\" height=\"14\" rx=\"2\" class=\"y\"/></g><rect x=\"34\" y=\"90\" width=\"12\" height=\"20\" class=\"badf\" opacity=\".5\"/><text x=\"10\" y=\"72\" class=\"k\">valve seat: inside,</text><text x=\"10\" y=\"84\">in the warm house</text><text x=\"196\" y=\"60\">outside</text><text x=\"10\" y=\"140\">Slope down to outside</text><text x=\"10\" y=\"152\">so it drains when</text><text x=\"10\" y=\"164\">you shut it off.</text><text x=\"196\" y=\"140\" class=\"gd\">Built-in vacuum</text><text x=\"196\" y=\"152\">breaker (anti-siphon)</text>",
+   "h": 204,
+   "cap": "The long stem puts the actual valve inside the heated house. Remove the hose in winter or the trapped water can freeze and split it."
+  },
+  "insulate": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Insulate in cold or unheated spaces</text><rect x=\"20\" y=\"60\" width=\"280\" height=\"36\" rx=\"18\" class=\"th\"/><rect x=\"20\" y=\"72\" width=\"280\" height=\"12\" rx=\"2\" class=\"mos\"/><line x1=\"20\" y1=\"60\" x2=\"300\" y2=\"60\" class=\"o d\"/><text x=\"20\" y=\"50\" class=\"k\">foam sleeve, slit side down</text><text x=\"20\" y=\"116\">tape the seams and the joints</text><text x=\"20\" y=\"144\">Also insulate hot lines to save energy.</text><text x=\"20\" y=\"156\">Keep pipes on the warm side of wall insulation.</text>",
+   "h": 164,
+   "cap": "Foam sleeves stop sweating on cold lines and slow freezing. In a cold climate, keep new lines out of exterior walls whenever you can."
+  }
+ },
+ "glossary": [
+  [
+   "PEX",
+   "Cross-linked polyethylene: flexible plastic water tubing. Red, blue and white are the same material."
+  ],
+  [
+   "Tee",
+   "A T-shaped fitting that splits one line into two."
+  ],
+  [
+   "Stub-out",
+   "The end of a supply line coming out of the wall, where the shutoff valve goes."
+  ],
+  [
+   "Drop-ear elbow",
+   "A 90° fitting with a flat tab you screw to wood, to anchor a stub-out."
+  ],
+  [
+   "Quarter-turn stop valve",
+   "A shutoff valve that opens or closes with a 90° turn of the handle."
+  ],
+  [
+   "Crimp ring",
+   "A copper ring squeezed around PEX to hold it on a fitting."
+  ],
+  [
+   "Cinch clamp",
+   "A stainless steel clamp with an ear that's squeezed flat to hold PEX on a fitting."
+  ],
+  [
+   "Go/no-go gauge",
+   "A slotted tool that checks a crimp is the right size."
+  ],
+  [
+   "Nail plate",
+   "A steel plate nailed over a stud where a pipe passes close to the face, to stop screws and nails."
+  ],
+  [
+   "Sillcock / hose bib",
+   "An outdoor faucet for a hose."
+  ],
+  [
+   "Vacuum breaker",
+   "A backflow device that stops hose water from being sucked back into the house pipes."
+  ],
+  [
+   "Slip coupling",
+   "A coupling with no internal stop, so it slides along the pipe to close a gap."
+  ],
+  [
+   "Fire-blocking",
+   "Sealing holes between floors so fire and smoke can't travel through them."
+  ]
+ ]
+}

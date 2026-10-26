@@ -1,0 +1,819 @@
+{
+ "slug": "toilet-replace",
+ "title": "Replace a Toilet",
+ "eyebrow": "Plumbing · toilets",
+ "category": "Plumbing",
+ "difficulty": "Intermediate",
+ "time": "2–4 hours",
+ "summary": "Pull out the old toilet, fix the flange if needed, and set a new one on a fresh seal that doesn't rock or leak.",
+ "safety": "Shut off the water and empty the toilet first. Toilets are heavy and broken porcelain is razor sharp: lift with your legs, wear gloves and get help if needed. <b>Don't overtighten any nut on porcelain.</b> Plug the drain while you work, and <b>remove the plug before you set the new toilet</b>.",
+ "pro": "the floor around the toilet is soft or rotted, the drain pipe or cast-iron flange is cracked, you want to move the drain, or the shutoff valve won't close. Swapping a toilet in place usually doesn't need a permit, but rules vary: check with your local building department.",
+ "questions": [
+  {
+   "id": "meas",
+   "label": "Wall to bolt center (measured)",
+   "type": "number",
+   "unit": "in",
+   "default": 12,
+   "step": 0.25,
+   "hint": "Measure from the finished wall, not the baseboard."
+  },
+  {
+   "id": "pieces",
+   "label": "Which kind of toilet?",
+   "type": "choice",
+   "default": "two",
+   "options": [
+    {
+     "v": "two",
+     "label": "Two-piece",
+     "hint": "tank bolts on"
+    },
+    {
+     "v": "one",
+     "label": "One-piece",
+     "hint": "heavier, one unit"
+    }
+   ]
+  },
+  {
+   "id": "flange",
+   "label": "Flange condition",
+   "type": "choice",
+   "default": "good",
+   "options": [
+    {
+     "v": "good",
+     "label": "Good"
+    },
+    {
+     "v": "broken",
+     "label": "Broken or cracked"
+    },
+    {
+     "v": "low",
+     "label": "Below the floor"
+    }
+   ],
+   "hint": "Not sure yet? Pick Good; you'll check it after the old toilet is out."
+  },
+  {
+   "id": "seal",
+   "label": "Seal type",
+   "type": "choice",
+   "default": "wax",
+   "options": [
+    {
+     "v": "wax",
+     "label": "Wax ring",
+     "hint": "standard"
+    },
+    {
+     "v": "waxfree",
+     "label": "Wax-free seal",
+     "hint": "repositionable"
+    }
+   ]
+  }
+ ],
+ "calcs": [
+  {
+   "id": "ri",
+   "label": "Toilet rough-in to buy",
+   "expr": "a.meas<11?10:(a.meas<13?12:14)",
+   "fmt": "{{c.ri}}\" rough-in"
+  }
+ ],
+ "calcNote": "Rough-in is the distance from the finished wall to the center of the drain (the bolts). If you measure under 9-1/2\" or over 15\", ask a plumber.",
+ "overviewFig": "roughin",
+ "tools": [
+  {
+   "id": "toilet",
+   "c": "Parts",
+   "n": "New toilet, {{c.ri}}\" rough-in, {{a.pieces==='one'?'one-piece':'two-piece'}}",
+   "must": true,
+   "w": "The rough-in must match your floor drain. Check that the box includes the tank, bowl and (for two-piece) the tank bolts.",
+   "q": "{{c.ri}} inch rough in {{a.pieces==='one'?'one piece':'two piece'}} toilet",
+   "qty": "1"
+  },
+  {
+   "id": "seat",
+   "c": "Parts",
+   "n": "Toilet seat (round or elongated to match)",
+   "must": false,
+   "w": "Many toilets come without one.",
+   "q": "elongated toilet seat",
+   "qty": "1"
+  },
+  {
+   "id": "wax",
+   "c": "Parts",
+   "n": "Wax ring (standard or reinforced)",
+   "must": true,
+   "w": "Seals the toilet to the drain. Never reuse an old one.",
+   "q": "toilet wax ring",
+   "qty": "1 (buy 2 in case you have to lift and reset)",
+   "when": "a.seal==='wax'"
+  },
+  {
+   "id": "waxfree",
+   "c": "Parts",
+   "n": "Wax-free toilet seal",
+   "must": true,
+   "w": "A foam or rubber seal you can reposition. Check it fits your flange size (3\" or 4\").",
+   "q": "wax free toilet seal",
+   "qty": "1",
+   "when": "a.seal==='waxfree'"
+  },
+  {
+   "id": "bolts",
+   "c": "Parts",
+   "n": "Closet bolts with washers, nuts and caps",
+   "must": true,
+   "w": "Brass or stainless, so they don't rust in place.",
+   "q": "brass closet bolts",
+   "qty": "1 set"
+  },
+  {
+   "id": "repair",
+   "c": "Parts",
+   "n": "Flange repair ring (spanner flange) + stainless screws",
+   "must": true,
+   "w": "Screws over a broken flange to give the bolts something solid to hold.",
+   "q": "toilet flange repair ring",
+   "qty": "1",
+   "when": "a.flange==='broken'"
+  },
+  {
+   "id": "spacer",
+   "c": "Parts",
+   "n": "Flange spacer / extender kit",
+   "must": true,
+   "w": "Raises a flange that sits below the finished floor.",
+   "q": "toilet flange extender spacer kit",
+   "qty": "1",
+   "when": "a.flange==='low'"
+  },
+  {
+   "id": "supply",
+   "c": "Parts",
+   "n": "Braided toilet supply line, 3/8\" compression x 7/8\" ballcock",
+   "must": true,
+   "w": "New is cheap insurance. Check the length (12\" or 16\" usually) against the old one.",
+   "q": "toilet supply line 3/8 compression 7/8 ballcock braided",
+   "qty": "1"
+  },
+  {
+   "id": "shims",
+   "c": "Parts",
+   "n": "Plastic toilet shims",
+   "must": false,
+   "w": "Stops a toilet rocking on an uneven floor.",
+   "q": "toilet shims plastic",
+   "qty": "1 pack"
+  },
+  {
+   "id": "caulk",
+   "c": "Parts",
+   "n": "Kitchen and bath caulk (white or clear) + caulk gun",
+   "must": true,
+   "w": "Seals the base to the floor.",
+   "q": "kitchen and bath silicone caulk white",
+   "qty": "1 tube"
+  },
+  {
+   "id": "wrench",
+   "c": "Hand tools",
+   "n": "Adjustable wrench (8\" or 10\") x2",
+   "must": true,
+   "w": "Closet bolt nuts, tank nuts and the supply line.",
+   "q": "adjustable wrench set"
+  },
+  {
+   "id": "knife",
+   "c": "Hand tools",
+   "n": "Stiff putty knife or plastic scraper",
+   "must": true,
+   "w": "Scrapes off the old wax.",
+   "q": "putty knife 1-1/2 inch"
+  },
+  {
+   "id": "tape",
+   "c": "Hand tools",
+   "n": "Tape measure",
+   "must": true,
+   "w": "Measures the rough-in.",
+   "q": "25 ft tape measure"
+  },
+  {
+   "id": "level",
+   "c": "Hand tools",
+   "n": "Torpedo level",
+   "must": false,
+   "w": "Checks the bowl and tank are level.",
+   "q": "torpedo level"
+  },
+  {
+   "id": "saw",
+   "c": "Hand tools",
+   "n": "Mini hacksaw or oscillating tool with metal blade",
+   "must": false,
+   "w": "Cuts rusted bolts and trims new bolts to length.",
+   "q": "mini hacksaw"
+  },
+  {
+   "id": "oil",
+   "c": "Hand tools",
+   "n": "Penetrating oil",
+   "must": false,
+   "w": "Helps rusted nuts come off.",
+   "q": "penetrating oil spray"
+  },
+  {
+   "id": "sponge",
+   "c": "Cleanup",
+   "n": "Large sponge, bucket, old towels",
+   "must": true,
+   "w": "Soak up the water left in the tank and bowl.",
+   "q": "large sponge bucket"
+  },
+  {
+   "id": "vac",
+   "c": "Cleanup",
+   "n": "Wet/dry shop vac",
+   "must": false,
+   "w": "Empties the bowl fast and cleanly.",
+   "q": "wet dry shop vacuum",
+   "rent": false
+  },
+  {
+   "id": "bags",
+   "c": "Cleanup",
+   "n": "Heavy trash bags or cardboard, plus a rag for the drain",
+   "must": true,
+   "w": "Somewhere to set the dirty old toilet, and a plug for the drain.",
+   "q": "contractor trash bags"
+  },
+  {
+   "id": "gloves",
+   "c": "Safety",
+   "n": "Nitrile or rubber gloves",
+   "must": true,
+   "w": "The old wax and drain are dirty.",
+   "q": "nitrile gloves"
+  },
+  {
+   "id": "glasses",
+   "c": "Safety",
+   "n": "Safety glasses",
+   "must": true,
+   "w": "For cutting bolts and scraping.",
+   "q": "safety glasses"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Plan and buy",
+   "steps": [
+    {
+     "id": "p1",
+     "t": "Measure the rough-in",
+     "time": "5 min",
+     "idea": "The drain's distance from the wall decides which toilets will fit.",
+     "fig": "roughin",
+     "need": [
+      "tape"
+     ],
+     "b": "<ol><li>Find the bolt caps on each side of the old toilet's base.</li><li>Hook the tape on the finished wall behind the toilet. If there's a baseboard, hold the tape against the wall above it, not on the baseboard.</li><li>Measure straight out to the center of a bolt cap.</li><li>Write the number down and enter it above. About 12\" means a 12\" rough-in toilet; this is by far the most common.</li><li>Also measure from the center of the bolt to any side wall or cabinet, and the space in front of the bowl.</li></ol>",
+     "faq": [
+      [
+       "I measured 12-1/2\". Is that 12?",
+       "Yes. Rough-ins are rarely exact. A 12\" toilet fits anything from about 12\" to 13\"."
+      ],
+      [
+       "Can I put a 12\" toilet on a 10\" rough-in?",
+       "No, it won't fit against the wall. A 10\" toilet on a 12\" rough-in fits but leaves a gap behind the tank. Moving the drain is a plumber's job."
+      ],
+      [
+       "How much room do I need around it?",
+       "Most US codes want at least 15\" from the toilet's center to a side wall or cabinet and 21\" of clear space in front (24\" in some areas). Check local code if your space is tight."
+      ]
+     ]
+    },
+    {
+     "id": "p2",
+     "t": "Choose the toilet",
+     "time": "30 min",
+     "idea": "Pick a toilet that fits the rough-in, the room and your local water rules.",
+     "need": [
+      "toilet",
+      "seat"
+     ],
+     "b": "<ol><li>Buy a toilet with a <b>{{c.ri}}\" rough-in</b>. It's printed on the box and spec sheet.</li><li>One-piece: tank and bowl are one casting. Easier to clean, heavier (often 80-100 lb), no tank bolts to leak. Two-piece: lighter pieces, cheaper, tank bolts on in 15 minutes.</li><li>Elongated bowls stick out about 2\" more than round. Check it won't block a door.</li><li>Look for 1.28 gallons per flush (WaterSense). Federal law caps new toilets at 1.6 gpf, and some states require 1.28 or less.</li><li>Check the box: seat, bolts and wax ring are often sold separately.</li><li>Open the box in the store or at home and check the porcelain for cracks before you start.</li></ol>",
+     "faq": [
+      [
+       "What's comfort height?",
+       "A bowl rim about 17-19\" high instead of 15\". Easier to sit and stand; standard height is better for kids and shorter people."
+      ],
+      [
+       "Is a 1.28 gpf toilet weaker?",
+       "Modern ones flush well. Look up independent flush ratings (MaP scores) if you're worried."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Remove the old toilet",
+   "steps": [
+    {
+     "id": "r1",
+     "t": "Shut off the water and empty the toilet",
+     "time": "15 min",
+     "idea": "Get as much water out as you can so the removal is clean and light.",
+     "need": [
+      "sponge",
+      "vac",
+      "gloves"
+     ],
+     "b": "<ol><li>Turn the shutoff valve behind the toilet clockwise until it stops. A quarter-turn valve turns 90 degrees until the handle is crosswise to the pipe.</li><li>Flush and hold the handle down so the tank drains.</li><li>Wait a minute and check the tank: if it refills, the valve isn't closing. Shut off the house main instead.</li><li>Sponge or shop-vac the water left in the tank and the bowl into a bucket.</li><li>Lay old towels around the base.</li></ol>",
+     "stop": "If the shutoff valve drips, won't turn, or doesn't stop the water, turn off the main and plan to replace the valve (or call a plumber). Don't force a corroded valve: it can snap off.",
+     "faq": [
+      [
+       "Where's the main shutoff?",
+       "Usually where the water line enters the house: basement, crawlspace, garage or near the water heater. On a well, turn off the pump at its breaker."
+      ]
+     ]
+    },
+    {
+     "id": "r2",
+     "t": "Disconnect the supply line",
+     "time": "5 min",
+     "idea": "Free the toilet from the water pipe.",
+     "need": [
+      "wrench",
+      "sponge"
+     ],
+     "b": "<ol><li>Hold a small bucket or towel under the tank.</li><li>Unscrew the plastic nut under the tank (counterclockwise, as seen from below). It's usually hand-loose.</li><li>Leave the line on the valve for now if you'll replace it later, or loosen the nut at the valve with a wrench while you hold the valve body still with a second wrench.</li></ol>"
+    },
+    {
+     "id": "r3",
+     "t": "Remove the floor nuts",
+     "time": "10 min",
+     "idea": "Two nuts hold the toilet to the floor. Rusty ones may need cutting.",
+     "fig": "cutbolt",
+     "need": [
+      "wrench",
+      "oil",
+      "saw",
+      "glasses"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "b": "<ol><li>Pry off the plastic caps on each side of the base.</li><li>Turn each nut counterclockwise with the adjustable wrench.</li><li>If the bolt spins with the nut, hold the bolt top with pliers while you turn.</li><li>Rusted solid? Spray penetrating oil, wait 15 minutes and try again.</li><li>Still stuck: cut the bolt between the nut and washer with a mini hacksaw or oscillating tool. Put tape on the porcelain next to the cut.</li></ol>",
+     "help": [
+      "cutBolt"
+     ]
+    },
+    {
+     "id": "r4",
+     "t": "Lift the old toilet out",
+     "time": "10 min",
+     "idea": "Break the old wax seal and set the toilet somewhere it can drip.",
+     "fig": "rag",
+     "need": [
+      "bags",
+      "gloves"
+     ],
+     "ppe": [
+      "Gloves"
+     ],
+     "b": "<ol><li>Lay a trash bag or cardboard where you'll set the toilet down.</li><li>Two-piece and heavy? Take the tank off first: undo the two nuts under the tank, then lift the tank off. It halves the weight.</li><li>Straddle the bowl, grip it at the rim near the tank, bend your knees and keep your back straight.</li><li>Rock it gently side to side to break the wax seal, then lift straight up.</li><li>Carry it to the bag. Tip it forward a little to drain the water still in the trap.</li><li>Stuff a rag into the drain opening right away.</li></ol>",
+     "stop": "A toilet weighs 60-100 lb and porcelain edges break sharp. Get a helper if you can't lift it comfortably. Cracked porcelain cuts deeply.",
+     "faq": [
+      [
+       "It won't budge.",
+       "Check for a missed nut or caulk around the base. Cut the caulk with a utility knife, then rock harder."
+      ]
+     ]
+    },
+    {
+     "id": "r5",
+     "t": "Scrape off the old wax",
+     "time": "15 min",
+     "idea": "The new seal needs a clean flange to sit on.",
+     "need": [
+      "knife",
+      "bags",
+      "gloves"
+     ],
+     "ppe": [
+      "Gloves"
+     ],
+     "b": "<ol><li>With gloves on, scrape the old wax off the flange with the putty knife.</li><li>Pull out the old bolts from the flange slots.</li><li>Scrape wax off the floor around the flange too, so the new toilet sits flat.</li><li>Put the wax in a bag in the trash. Never flush it or wash it down a drain.</li><li>Also scrape the wax off the old toilet's outlet if you're giving it away.</li></ol>",
+     "faq": [
+      [
+       "Can I scrape with a metal knife on a plastic flange?",
+       "Yes, gently. Just don't gouge it."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Check and fix the flange",
+   "steps": [
+    {
+     "id": "f1",
+     "t": "Inspect the flange",
+     "time": "10 min",
+     "idea": "The flange is what anchors the toilet. It must be solid, round and at the right height.",
+     "fig": [
+      "flange",
+      "flangeh"
+     ],
+     "b": "<ol><li>Look for cracks or a broken-off section, especially around the bolt slots.</li><li>Push on it: it should be screwed firmly to the floor and not move.</li><li>Lay a straightedge across the floor over the flange. The flange top should be on or a little above the finished floor (up to about 1/4\" above is fine).</li><li>Press around the floor next to the flange with your foot. Soft or spongy floor means rot.</li><li>Update your answer about the flange at the top if needed.</li></ol>",
+     "stop": "Soft, rotted subfloor, a cracked cast-iron pipe, or a flange that isn't attached to anything needs real repair before a toilet goes back on. Call a plumber if you're not sure.",
+     "faq": [
+      [
+       "My flange is metal and rusted.",
+       "If the ring is rusted through or broken but the pipe is fine, a repair ring screws on top. Rust on a cast-iron pipe itself is a plumber call."
+      ]
+     ]
+    },
+    {
+     "id": "f2",
+     "t": "Repair a broken flange",
+     "time": "30 min",
+     "idea": "A repair ring screws over the broken part so the bolts have something strong to pull against.",
+     "when": "a.flange==='broken'",
+     "fig": "flange",
+     "need": [
+      "repair",
+      "glasses"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "b": "<ol><li>Clean the old flange and remove loose broken pieces.</li><li>Set the repair ring (spanner flange) on top so its bolt slots line up at 3 and 9 o'clock, parallel to the wall.</li><li>Mark the screw holes, drill pilot holes into the subfloor (on concrete you need masonry anchors).</li><li>Screw it down with the stainless screws that came with it.</li><li>Make sure the ring sits flat and doesn't rock.</li></ol>",
+     "faq": [
+      [
+       "Will this raise the flange?",
+       "A thin repair ring adds very little. If it lands at floor height or just above, that's right."
+      ]
+     ]
+    },
+    {
+     "id": "f3",
+     "t": "Raise a low flange",
+     "time": "20 min",
+     "idea": "A spacer or extender lifts the flange to floor level so the wax compresses properly.",
+     "when": "a.flange==='low'",
+     "fig": "flangeh",
+     "need": [
+      "spacer"
+     ],
+     "b": "<ol><li>Measure how far the flange top is below the finished floor.</li><li>Stack spacer rings (or use the extender) to reach floor level or slightly above.</li><li>Put the gasket or a bead of silicone between each layer as the kit says.</li><li>Screw the spacer to the old flange with the kit's long screws.</li><li>Use the longer closet bolts that come with the kit if the stock ones are too short.</li></ol>",
+     "faq": [
+      [
+       "Can I just use two wax rings?",
+       "Some plumbers do, but stacked rings can slip and leak. A spacer kit is the reliable fix."
+      ],
+      [
+       "What about a wax ring with a horn?",
+       "The plastic horn helps guide water, but it doesn't fix a low flange by itself."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Set the new toilet",
+   "steps": [
+    {
+     "id": "s1",
+     "t": "Install the new closet bolts",
+     "time": "5 min",
+     "idea": "Two new bolts, standing straight up, parallel to the wall.",
+     "fig": "bolts",
+     "need": [
+      "bolts"
+     ],
+     "b": "<ol><li>Slide each bolt head into the flange slot, head down.</li><li>Move them to the 3 and 9 o'clock positions so they're the same distance from the wall.</li><li>Snap the plastic washers on to hold them upright.</li><li>Measure from the wall to each bolt: both should match.</li></ol>"
+    },
+    {
+     "id": "s2",
+     "t": "Dry fit the toilet",
+     "time": "10 min",
+     "idea": "Test the fit without the seal, so any surprises cost nothing.",
+     "fig": "shim",
+     "need": [
+      "toilet",
+      "shims",
+      "level"
+     ],
+     "b": "<ol><li>Take the rag out of the drain for a moment and set the bowl on the bolts without the seal. Have a helper if it's heavy.</li><li>Check the bolts come up through the holes in the base.</li><li>Push on the corners: does it rock? Note where, and how many shims it takes.</li><li>Check the tank or tank holes clear the wall.</li><li>Trace the base outline with a pencil, lift the bowl off and put the rag back.</li></ol>",
+     "faq": [
+      [
+       "The bolts don't line up with the holes.",
+       "Slide them in the slots until they do. If the base hits the wall, your rough-in or toilet doesn't match."
+      ]
+     ]
+    },
+    {
+     "id": "s3",
+     "t": "Put on the seal",
+     "time": "5 min",
+     "idea": "The seal goes between the toilet's outlet and the flange.",
+     "fig": "flange",
+     "need": [
+      "wax",
+      "waxfree"
+     ],
+     "b": "<ol><li>Lay the bowl on its side on a towel or cardboard.</li><li>{{a.seal==='wax'?'Keep the wax ring at room temperature. Peel off the plastic.':'Read the seal\\'s instructions: most go on the flange, some on the toilet.'}}</li><li>{{a.seal==='wax'?'Press the flat side of the ring onto the outlet horn on the bottom of the toilet. The plastic horn (if any) points down, toward the drain.':'Press the seal on firmly and centered.'}}</li><li>Take the rag out of the drain.</li><li>Look into the drain once more: it must be empty.</li></ol>",
+     "stop": "Take the rag out of the drain now. A rag left in the pipe causes a clog you can only fix by pulling the toilet again.",
+     "faq": [
+      [
+       "Wax or wax-free?",
+       "Wax is the cheap, proven standard. Wax-free seals can be repositioned and are cleaner, but cost more and must match your flange."
+      ],
+      [
+       "Ring on the flange or on the toilet?",
+       "Either works. On the toilet is easier to keep centered when you set it down."
+      ]
+     ]
+    },
+    {
+     "id": "s4",
+     "t": "Set the toilet straight down",
+     "time": "10 min",
+     "idea": "Lower the bowl onto the bolts in one move so the seal squashes evenly.",
+     "fig": "setdown",
+     "need": [
+      "toilet"
+     ],
+     "b": "<ol><li>Lift the bowl, stand over the flange and look through the bolt holes to line them up.</li><li>Lower it straight down onto the bolts. Don't slide or twist it.</li><li>Sit on it, or press down on the rim with both hands, and rock gently front to back until the base meets the floor.</li><li>Check it lines up with your pencil outline.</li></ol>",
+     "stop": "If you have to lift the toilet back up after it touched the seal, scrape it off and use a new wax ring. A disturbed ring leaks.",
+     "faq": [
+      [
+       "The base won't come down to the floor.",
+       "The flange may be too high or the ring too thick. Don't force it with the nuts. Lift, check, and use a standard ring."
+      ]
+     ]
+    },
+    {
+     "id": "s5",
+     "t": "Shim if it rocks",
+     "time": "10 min",
+     "idea": "A rocking toilet breaks its own seal over time.",
+     "fig": "shim",
+     "need": [
+      "shims",
+      "level"
+     ],
+     "b": "<ol><li>Push on each corner. It shouldn't move.</li><li>If it rocks, slide plastic shims under the low side until it's solid.</li><li>Check level side to side on the bowl rim. A slight tilt front to back is fine.</li><li>Leave the shim ends sticking out for now. You'll trim them after the caulk.</li></ol>"
+    },
+    {
+     "id": "s6",
+     "t": "Tighten the nuts",
+     "time": "10 min",
+     "idea": "Pull the bowl down evenly, a little at a time, so the porcelain doesn't crack.",
+     "fig": "alternate",
+     "need": [
+      "wrench",
+      "saw"
+     ],
+     "b": "<ol><li>Put a washer and nut on each bolt. Thread them on by hand.</li><li>Turn the left nut 1/4 turn with the wrench, then the right nut 1/4 turn.</li><li>Keep alternating until the toilet doesn't move when you push it.</li><li>Stop there. If the nut needs force, you're done.</li><li>Cut the bolts off a little above the nut with the mini hacksaw so the caps fit, then snap the caps on.</li></ol>",
+     "stop": "Overtightening cracks the base, sometimes hours later. Snug is enough.",
+     "help": [
+      "evenTighten"
+     ],
+     "faq": [
+      [
+       "Can I trim the bolts before tightening?",
+       "No. Trim after, so the nut has full threads to pull on."
+      ]
+     ]
+    },
+    {
+     "id": "s7",
+     "t": "Install the tank",
+     "time": "20 min",
+     "idea": "Two-piece toilets bolt the tank onto the bowl with a rubber gasket between.",
+     "when": "a.pieces==='two'",
+     "fig": "tank",
+     "need": [
+      "wrench",
+      "level"
+     ],
+     "b": "<ol><li>Turn the tank over on a towel. Push the big rubber gasket over the nut on the bottom.</li><li>Put the bolts through the tank from inside with the rubber washers under the bolt heads.</li><li>Lower the tank onto the bowl so the bolts drop through the holes.</li><li>Thread on the washers and nuts underneath.</li><li>Tighten a few turns on one side, then the other. Hold the bolt head inside with a screwdriver while you turn the nut.</li><li>Stop when the tank sits level and doesn't wobble. Porcelain should not touch porcelain on most models; follow the instructions.</li></ol>",
+     "stop": "Don't crank the tank nuts. A cracked tank floods the bathroom.",
+     "help": [
+      "evenTighten"
+     ]
+    },
+    {
+     "id": "s8",
+     "t": "Connect the water",
+     "time": "10 min",
+     "idea": "A new braided line from the valve to the fill valve.",
+     "fig": "supply",
+     "need": [
+      "supply",
+      "wrench"
+     ],
+     "b": "<ol><li>Thread the plastic nut onto the fill valve under the tank. Hand-tight, then a quarter turn more.</li><li>Thread the other end onto the shutoff valve. Hand-tight, then 1/4 to 1/2 turn with a wrench while a second wrench holds the valve body still.</li><li>Check the line curves gently with no kinks.</li></ol>",
+     "help": [
+      "leakCheck"
+     ],
+     "faq": [
+      [
+       "Do I need thread tape?",
+       "No. Both ends seal with a rubber washer or compression cone, not threads."
+      ],
+      [
+       "The old line is short metal tubing.",
+       "Replace it with a braided line. It's easier and less likely to leak."
+      ]
+     ]
+    },
+    {
+     "id": "s9",
+     "t": "Turn on the water and check for leaks",
+     "time": "20 min",
+     "idea": "Fill, flush, look and touch: catch leaks now while it's easy to fix.",
+     "need": [
+      "sponge"
+     ],
+     "b": "<ol><li>Open the shutoff valve slowly, all the way.</li><li>Let the tank fill. Check the water stops at the fill line marked inside the tank.</li><li>Wipe all joints dry. Flush 5-10 times.</li><li>Run a dry tissue around the supply nuts, tank bolts and the base. Any wet spot is a leak.</li><li>Check again after an hour, and the next morning.</li></ol>",
+     "help": [
+      "leakCheck"
+     ],
+     "faq": [
+      [
+       "Water at the base after flushing.",
+       "Stop using it. The seal isn't good: pull the toilet, scrape, and reset with a new ring."
+      ],
+      [
+       "Drip from a tank bolt.",
+       "Tighten that bolt's nut 1/8 turn while you hold the bolt head. If it still drips, the washer is misaligned: drain and reseat."
+      ]
+     ]
+    },
+    {
+     "id": "s10",
+     "t": "Caulk the base and finish",
+     "time": "20 min",
+     "idea": "Seal the base to the floor, but leave the back open so a leak can show.",
+     "fig": "caulk",
+     "need": [
+      "caulk",
+      "seat",
+      "shims"
+     ],
+     "timers": [
+      [
+       "Caulk skin-over",
+       30
+      ]
+     ],
+     "b": "<ol><li>Install the seat with its bolts. Hand-tight, they're plastic.</li><li>Wipe the floor and base clean and dry.</li><li>Run a thin bead of caulk around the front and sides of the base.</li><li>Leave a 1-2\" gap at the back, centered.</li><li>Smooth the bead with a wet finger. Wipe extra away with a damp rag.</li><li>After the caulk sets, snap or cut the shims flush with the base.</li><li>Keep mop water off the caulk for 24 hours.</li></ol>",
+     "faq": [
+      [
+       "Does code require caulking?",
+       "Many local codes require the base to be sealed to the floor. The back gap is common practice; if your inspector objects, seal all the way around."
+      ],
+      [
+       "Can I use the toilet right away?",
+       "Yes, just don't bump the fresh caulk."
+      ]
+     ]
+    },
+    {
+     "id": "s11",
+     "t": "Get rid of the old toilet",
+     "time": "10 min",
+     "idea": "Old porcelain is heavy, sharp and usually not curbside trash.",
+     "need": [
+      "bags"
+     ],
+     "b": "<ol><li>Drain any water left in it.</li><li>Check your city's bulky waste or recycling rules. Many towns take toilets for crushing.</li><li>Some stores take the old one back with delivery, so ask when you buy.</li></ol>"
+    }
+   ]
+  }
+ ],
+ "help": {
+  "evenTighten": {
+   "t": "Tighten nuts on porcelain",
+   "fig": "alternate",
+   "b": "<ol><li>Thread every nut on by hand first.</li><li>Turn one nut a quarter turn with the wrench, then the other.</li><li>Keep alternating.</li><li>Stop as soon as the part doesn't move when you push it.</li><li>Never lean on the wrench. Porcelain cracks without warning.</li></ol>"
+  },
+  "cutBolt": {
+   "t": "Cut a rusted bolt",
+   "fig": "cutbolt",
+   "b": "<ol><li>Put on safety glasses.</li><li>Spray penetrating oil and wait 15 minutes. Try the nut once more.</li><li>Put masking tape on the porcelain next to the nut.</li><li>Cut through the bolt just below the nut with a mini hacksaw or an oscillating tool with a metal blade.</li><li>Let the tool do the work; don't twist the blade against the porcelain.</li></ol>"
+  },
+  "leakCheck": {
+   "t": "Check for leaks",
+   "b": "<ol><li>Wipe every joint completely dry.</li><li>Run water or flush a few times.</li><li>Touch each joint with a dry tissue or paper towel. Any wet mark is a leak.</li><li>Check again after an hour and the next day: slow leaks take time to show.</li></ol>"
+  }
+ },
+ "figs": {
+  "roughin": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Measure the rough-in</text><text x=\"44\" y=\"29\">finished wall (not the baseboard)</text><rect x=\"30\" y=\"24\" width=\"8\" height=\"158\" class=\"b\"/><rect x=\"38\" y=\"150\" width=\"5\" height=\"16\" class=\"w\"/><rect x=\"38\" y=\"166\" width=\"282\" height=\"6\" class=\"tl\"/><rect x=\"38\" y=\"172\" width=\"282\" height=\"10\" class=\"w\"/><rect x=\"44\" y=\"50\" width=\"48\" height=\"62\" rx=\"3\" class=\"tb\"/><path d=\"M46 112 H200 Q208 112 206 122 Q198 144 166 148 L158 166 H74 L76 148 Q58 140 50 122 Z\" class=\"tb\"/><rect x=\"92\" y=\"105\" width=\"112\" height=\"6\" rx=\"2\" class=\"bk\"/><path d=\"M104 166 a6 6 0 0 1 12 0 Z\" class=\"y\"/><line x1=\"110\" y1=\"140\" x2=\"110\" y2=\"198\" class=\"o d\"/><line x1=\"40\" y1=\"190\" x2=\"108\" y2=\"190\" class=\"a\" style=\"stroke-width:1.5\"/><polygon points=\"108.0,190.0 102.6,192.6 102.6,187.4\" class=\"af\"/><polygon points=\"40.0,190.0 45.4,187.4 45.4,192.6\" class=\"af\"/><text x=\"74\" y=\"206\" class=\"ac\" text-anchor=\"middle\">wall to bolt center</text><text x=\"212\" y=\"42\" class=\"k\">What to buy</text><text x=\"212\" y=\"56\">9.5-11\"  10\" rough</text><text x=\"212\" y=\"68\" class=\"ac\">11-13\"   12\" rough</text><text x=\"212\" y=\"80\">13-15\"   14\" rough</text><text x=\"212\" y=\"96\">12\" = most common</text>",
+   "h": 214,
+   "cap": "Measure from the finished wall surface (not the baseboard) to the center of the bolt cap. 12\" is the standard; 10\" and 14\" show up in older homes."
+  },
+  "flange": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Cross-section: how the seal works</text><rect x=\"70\" y=\"30\" width=\"180\" height=\"34\" rx=\"4\" class=\"tb\"/><text x=\"160\" y=\"51\" text-anchor=\"middle\">toilet</text><rect x=\"136\" y=\"64\" width=\"48\" height=\"14\" class=\"tb\"/><rect x=\"108\" y=\"68\" width=\"26\" height=\"20\" rx=\"6\" class=\"th\"/><rect x=\"186\" y=\"68\" width=\"26\" height=\"20\" rx=\"6\" class=\"th\"/><rect x=\"20\" y=\"94\" width=\"112\" height=\"6\" class=\"tl\"/><rect x=\"188\" y=\"94\" width=\"112\" height=\"6\" class=\"tl\"/><rect x=\"20\" y=\"100\" width=\"112\" height=\"16\" class=\"w\"/><rect x=\"188\" y=\"100\" width=\"112\" height=\"16\" class=\"w\"/><rect x=\"132\" y=\"94\" width=\"6\" height=\"86\" class=\"bk\"/><rect x=\"182\" y=\"94\" width=\"6\" height=\"86\" class=\"bk\"/><rect x=\"96\" y=\"88\" width=\"128\" height=\"6\" class=\"bk\"/><line x1=\"104\" y1=\"24\" x2=\"104\" y2=\"96\" class=\"o\" style=\"stroke-width:3\"/><rect x=\"98\" y=\"22\" width=\"12\" height=\"8\" class=\"inkf\"/><line x1=\"216\" y1=\"24\" x2=\"216\" y2=\"96\" class=\"o\" style=\"stroke-width:3\"/><rect x=\"210\" y=\"22\" width=\"12\" height=\"8\" class=\"inkf\"/><text x=\"10\" y=\"74\" class=\"k\">wax ring</text><line x1=\"56\" y1=\"72\" x2=\"106\" y2=\"76\" class=\"o\"/><text x=\"232\" y=\"26\" class=\"k\">closet bolt</text><text x=\"228\" y=\"84\" class=\"k\">flange</text><text x=\"10\" y=\"130\">floor</text><text x=\"196\" y=\"130\">drain pipe (3\" or 4\")</text><text x=\"10\" y=\"196\">The toilet's weight squashes the wax into a seal.</text>",
+   "h": 204,
+   "cap": "The wax ring seals the toilet's outlet horn to the flange. The flange must be solid and its top should sit on, or slightly above, the finished floor."
+  },
+  "flangeh": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Flange height: right vs wrong</text><rect x=\"10\" y=\"90\" width=\"50\" height=\"6\" class=\"tl\"/><rect x=\"100\" y=\"90\" width=\"50\" height=\"6\" class=\"tl\"/><rect x=\"10\" y=\"96\" width=\"50\" height=\"16\" class=\"w\"/><rect x=\"100\" y=\"96\" width=\"50\" height=\"16\" class=\"w\"/><rect x=\"54\" y=\"90\" width=\"6\" height=\"56\" class=\"bk\"/><rect x=\"100\" y=\"90\" width=\"6\" height=\"56\" class=\"bk\"/><rect x=\"40\" y=\"84\" width=\"80\" height=\"6\" class=\"goodf\"/><rect x=\"170\" y=\"80\" width=\"30\" height=\"16\" class=\"tl\"/><rect x=\"280\" y=\"80\" width=\"30\" height=\"16\" class=\"tl\"/><rect x=\"170\" y=\"96\" width=\"44\" height=\"16\" class=\"w\"/><rect x=\"266\" y=\"96\" width=\"44\" height=\"16\" class=\"w\"/><rect x=\"214\" y=\"102\" width=\"6\" height=\"44\" class=\"bk\"/><rect x=\"260\" y=\"102\" width=\"6\" height=\"44\" class=\"bk\"/><rect x=\"200\" y=\"96\" width=\"80\" height=\"6\" class=\"badf\"/><rect x=\"200\" y=\"80\" width=\"80\" height=\"15\" class=\"o d\"/><text x=\"10\" y=\"40\" class=\"gd\">On or just above</text><text x=\"10\" y=\"52\">the finished floor</text><text x=\"170\" y=\"40\" class=\"wa\">Below the finished floor</text><text x=\"170\" y=\"52\">= leak risk</text><text x=\"186\" y=\"74\" class=\"ac\">spacer goes here</text><text x=\"10\" y=\"166\">Good: ring seals fully.</text><text x=\"170\" y=\"166\">Fix: spacer or extender.</text>",
+   "h": 174,
+   "cap": "New tile or flooring often leaves the old flange below the floor. A flange spacer or extender kit brings it back up so the seal can work."
+  },
+  "bolts": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">New closet bolts, seen from above</text><rect x=\"20\" y=\"26\" width=\"280\" height=\"8\" class=\"b\"/><text x=\"26\" y=\"47\">wall</text><circle cx=\"160\" cy=\"110\" r=\"52\" class=\"bk\"/><circle cx=\"160\" cy=\"110\" r=\"28\" class=\"tl\"/><text x=\"160\" y=\"132\" text-anchor=\"middle\">drain</text><rect x=\"110\" y=\"104\" width=\"22\" height=\"12\" rx=\"6\" class=\"tl\"/><rect x=\"188\" y=\"104\" width=\"22\" height=\"12\" rx=\"6\" class=\"tl\"/><line x1=\"84\" y1=\"110\" x2=\"226\" y2=\"110\" class=\"a d\"/><circle cx=\"120\" cy=\"110\" r=\"8\" class=\"y\"/><circle cx=\"120\" cy=\"110\" r=\"3.5\" class=\"inkf\"/><circle cx=\"200\" cy=\"110\" r=\"8\" class=\"y\"/><circle cx=\"200\" cy=\"110\" r=\"3.5\" class=\"inkf\"/><text x=\"10\" y=\"100\" class=\"k\">closet bolt</text><line x1=\"70\" y1=\"100\" x2=\"112\" y2=\"108\" class=\"o\"/><text x=\"232\" y=\"98\">plastic washer</text><text x=\"232\" y=\"109\">holds it</text><text x=\"232\" y=\"120\">upright</text><text x=\"160\" y=\"178\" class=\"ac\" text-anchor=\"middle\">Line both bolts up parallel to the wall</text>",
+   "h": 186,
+   "cap": "Slide the bolt heads into the flange slots, push them to the 3 and 9 o'clock positions, and snap on the plastic washers so they stand straight up."
+  },
+  "rag": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Plug the drain while you work</text><circle cx=\"90\" cy=\"85\" r=\"48\" class=\"bk\"/><circle cx=\"90\" cy=\"85\" r=\"26\" class=\"tl\"/><path d=\"M70 76 q8 -10 16 0 t16 0 q6 8 -2 16 t-14 6 q-14 0 -16 -10 z\" class=\"y\"/><text x=\"160\" y=\"58\" class=\"k\">Stuff a rag in the drain:</text><text x=\"160\" y=\"72\">blocks sewer gas and</text><text x=\"160\" y=\"84\">catches dropped parts.</text><text x=\"160\" y=\"108\" class=\"wa\">REMOVE IT before you</text><text x=\"160\" y=\"120\" class=\"wa\">set the toilet!</text>",
+   "h": 146,
+   "cap": "Use a rag big enough that it can't slip down the pipe. Tie a string to it if you want extra insurance."
+  },
+  "setdown": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Set it straight down</text><rect x=\"10\" y=\"170\" width=\"300\" height=\"6\" class=\"tl\"/><rect x=\"10\" y=\"176\" width=\"300\" height=\"8\" class=\"w\"/><rect x=\"110\" y=\"164\" width=\"60\" height=\"6\" class=\"bk\"/><rect x=\"120\" y=\"152\" width=\"40\" height=\"12\" rx=\"5\" class=\"th\"/><line x1=\"118\" y1=\"136\" x2=\"118\" y2=\"166\" class=\"o\" style=\"stroke-width:2\"/><line x1=\"162\" y1=\"136\" x2=\"162\" y2=\"166\" class=\"o\" style=\"stroke-width:2\"/><g><rect x=\"74\" y=\"54\" width=\"48\" height=\"62\" rx=\"3\" class=\"tb\"/><path d=\"M76 116 H230 Q238 116 236 126 Q228 148 196 152 L188 170 H104 L106 152 Q88 144 80 126 Z\" class=\"tb\"/><rect x=\"122\" y=\"109\" width=\"112\" height=\"6\" rx=\"2\" class=\"bk\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 -40;0 0;0 0\" keyTimes=\"0;0.55;1\" dur=\"3s\" repeatCount=\"indefinite\"/></g><line x1=\"272\" y1=\"52\" x2=\"272\" y2=\"140\" class=\"a\" style=\"stroke-width:2\"/><polygon points=\"272.0,140.0 269.4,134.6 274.6,134.6\" class=\"af\"/><text x=\"282\" y=\"94\">down</text><text x=\"10\" y=\"200\" class=\"ac\">Line the bolts up with the holes. No sliding.</text><text x=\"10\" y=\"213\" class=\"wa\">Lifted it again? Use a new ring.</text>",
+   "h": 220,
+   "title": "Set the toilet",
+   "cap": "Lower the bowl straight onto the bolts in one move, then press down on the seat with your body weight and rock gently to squash the wax."
+  },
+  "alternate": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Tighten a little, side to side</text><rect x=\"90\" y=\"34\" width=\"140\" height=\"112\" rx=\"40\" class=\"tb\"/><circle cx=\"110\" cy=\"90\" r=\"7\" class=\"bk\"/><circle cx=\"110\" cy=\"90\" r=\"2.5\" class=\"inkf\"/><circle cx=\"210\" cy=\"90\" r=\"7\" class=\"bk\"/><circle cx=\"210\" cy=\"90\" r=\"2.5\" class=\"inkf\"/><circle cx=\"110\" cy=\"66\" r=\"8\" class=\"af\"/><text x=\"110\" y=\"69\" class=\"nm\" text-anchor=\"middle\">1</text><circle cx=\"210\" cy=\"66\" r=\"8\" class=\"af\"/><text x=\"210\" y=\"69\" class=\"nm\" text-anchor=\"middle\">2</text><path d=\"M122 56 Q160 34 198 56\" class=\"a\" fill=\"none\"/><polygon points=\"198.0,56.0 192.1,56.9 193.6,51.9\" class=\"af\"/><text x=\"122\" y=\"114\" text-anchor=\"middle\">1/4 turn</text><text x=\"198\" y=\"114\" text-anchor=\"middle\">1/4 turn</text><text x=\"10\" y=\"166\">Repeat until snug and the toilet doesn't move.</text><text x=\"10\" y=\"179\" class=\"wa\">Too tight cracks the porcelain.</text>",
+   "h": 186,
+   "cap": "Snug means the base is tight to the floor and doesn't shift when you push it. It does not mean as tight as you can go."
+  },
+  "shim": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Rocks? Shim it, then tighten</text><path d=\"M10 118 L310 108 L310 124 L10 134 Z\" class=\"tl\"/><path d=\"M84 60 H240 L236 110 H84 Z\" class=\"tb\"/><path d=\"M52 116.3 L96 110 L96 114.8 Z\" class=\"y\"/><text x=\"24\" y=\"98\" class=\"ac\">shim</text><line x1=\"40\" y1=\"100\" x2=\"62\" y2=\"112\" class=\"a\"/><text x=\"160\" y=\"90\" text-anchor=\"middle\">toilet base</text><text x=\"10\" y=\"152\">Slide plastic shims into the gap until solid.</text><text x=\"10\" y=\"165\">Snap off the extra after caulking.</text>",
+   "h": 172,
+   "cap": "Use plastic toilet shims, not wood (wood rots). Shim where the base lifts when you rock it, then tighten the nuts again."
+  },
+  "caulk": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Caulk the base, leave the back open</text><rect x=\"20\" y=\"26\" width=\"280\" height=\"8\" class=\"b\"/><text x=\"24\" y=\"50\">wall</text><rect x=\"100\" y=\"56\" width=\"120\" height=\"110\" rx=\"40\" class=\"tb\"/><path d=\"M140 53 A43 43 0 0 0 97 96 V126 A43 43 0 0 0 140 169 H180 A43 43 0 0 0 223 126 V96 A43 43 0 0 0 180 53\" class=\"a\" fill=\"none\" style=\"stroke-width:3\"/><text x=\"160\" y=\"48\" class=\"ac\" text-anchor=\"middle\">leave 1-2\" open</text><text x=\"232\" y=\"110\" class=\"ac\">caulk bead</text><text x=\"10\" y=\"186\">A leak then shows on the floor instead of hiding.</text>",
+   "h": 194,
+   "cap": "Caulk keeps mop water out and stops the base from shifting. The open gap at the back lets a future wax-ring leak show up early."
+  },
+  "supply": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Connect the new supply line</text><rect x=\"20\" y=\"24\" width=\"8\" height=\"140\" class=\"b\"/><rect x=\"150\" y=\"30\" width=\"120\" height=\"70\" rx=\"4\" class=\"tb\"/><text x=\"210\" y=\"66\" text-anchor=\"middle\">tank</text><rect x=\"196\" y=\"100\" width=\"12\" height=\"14\" class=\"bk\"/><rect x=\"190\" y=\"110\" width=\"24\" height=\"10\" rx=\"2\" class=\"y\"/><rect x=\"28\" y=\"142\" width=\"20\" height=\"10\" class=\"bk\"/><rect x=\"48\" y=\"134\" width=\"20\" height=\"24\" rx=\"3\" class=\"bk\"/><rect x=\"68\" y=\"141\" width=\"14\" height=\"10\" rx=\"2\" class=\"y\"/><rect x=\"51\" y=\"122\" width=\"14\" height=\"12\" rx=\"2\" class=\"y\"/><path d=\"M58 122 C58 60 202 150 202 120\" class=\"o\" fill=\"none\" style=\"stroke-width:5\"/><path d=\"M58 122 C58 60 202 150 202 120\" class=\"th-l d\" fill=\"none\" style=\"stroke-width:1\"/><text x=\"222\" y=\"124\" class=\"k\">hand-tight</text><text x=\"222\" y=\"136\">+ 1/4 turn</text><text x=\"90\" y=\"154\" class=\"k\">compression nut</text><text x=\"90\" y=\"166\">snug + 1/4 to 1/2 turn</text><text x=\"10\" y=\"190\">No thread tape here: the seals do the work.</text>",
+   "h": 198,
+   "cap": "Most toilets need a 3/8\" compression x 7/8\" ballcock braided line. Buy one a few inches longer than the gap so it can curve gently, with no kinks."
+  },
+  "tank": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Two-piece: tank onto the bowl</text><rect x=\"60\" y=\"30\" width=\"200\" height=\"50\" rx=\"3\" class=\"tb\"/><text x=\"160\" y=\"58\" text-anchor=\"middle\">tank</text><rect x=\"140\" y=\"80\" width=\"40\" height=\"8\" class=\"bk\"/><rect x=\"128\" y=\"84\" width=\"64\" height=\"20\" rx=\"4\" class=\"mp\"/><text x=\"160\" y=\"97\" text-anchor=\"middle\">gasket</text><rect x=\"50\" y=\"104\" width=\"220\" height=\"40\" rx=\"3\" class=\"tb\"/><text x=\"160\" y=\"128\" text-anchor=\"middle\">bowl</text><line x1=\"90\" y1=\"66\" x2=\"90\" y2=\"158\" class=\"o\" style=\"stroke-width:3\"/><rect x=\"82\" y=\"72\" width=\"16\" height=\"6\" class=\"inkf\"/><rect x=\"84\" y=\"66\" width=\"12\" height=\"6\" class=\"bk\"/><rect x=\"82\" y=\"144\" width=\"16\" height=\"4\" class=\"bk\"/><rect x=\"84\" y=\"148\" width=\"12\" height=\"8\" class=\"inkf\"/><line x1=\"230\" y1=\"66\" x2=\"230\" y2=\"158\" class=\"o\" style=\"stroke-width:3\"/><rect x=\"222\" y=\"72\" width=\"16\" height=\"6\" class=\"inkf\"/><rect x=\"224\" y=\"66\" width=\"12\" height=\"6\" class=\"bk\"/><rect x=\"222\" y=\"144\" width=\"16\" height=\"4\" class=\"bk\"/><rect x=\"224\" y=\"148\" width=\"12\" height=\"8\" class=\"inkf\"/><text x=\"10\" y=\"62\">rubber</text><text x=\"10\" y=\"73\">washer</text><text x=\"10\" y=\"84\">inside</text><text x=\"244\" y=\"160\">washer + nut</text><text x=\"10\" y=\"174\">Tighten side to side until the tank is level</text><text x=\"10\" y=\"186\">and doesn't wobble. Then stop.</text>",
+   "h": 194,
+   "cap": "The rubber washers go inside the tank, under the bolt heads: they are what keeps the water in. Porcelain cracks if you crank the nuts."
+  },
+  "cutbolt": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Stuck nut? Cut the bolt</text><rect x=\"10\" y=\"130\" width=\"300\" height=\"8\" class=\"tl\"/><rect x=\"60\" y=\"90\" width=\"200\" height=\"40\" rx=\"3\" class=\"tb\"/><line x1=\"160\" y1=\"58\" x2=\"160\" y2=\"130\" class=\"o\" style=\"stroke-width:3\"/><rect x=\"146\" y=\"84\" width=\"28\" height=\"6\" class=\"bk\"/><rect x=\"150\" y=\"70\" width=\"20\" height=\"12\" class=\"inkf\"/><line x1=\"136\" y1=\"83\" x2=\"184\" y2=\"83\" class=\"a d\"/><rect x=\"190\" y=\"78\" width=\"110\" height=\"6\" rx=\"1\" class=\"y\"/><path d=\"M190 84 l3 4 l3 -4 l3 4 l3 -4 l3 4 l3 -4 l3 4 l3 -4 l3 4 l3 -4 l3 4 l3 -4\" class=\"o\" fill=\"none\" style=\"stroke-width:1\"/><text x=\"196\" y=\"68\" class=\"k\">oscillating blade</text><text x=\"10\" y=\"66\">cut between</text><text x=\"10\" y=\"77\">nut and washer</text><line x1=\"88\" y1=\"76\" x2=\"134\" y2=\"83\" class=\"o\"/><text x=\"10\" y=\"152\">Wear glasses. Tape guards the porcelain.</text>",
+   "h": 160,
+   "cap": "Spray penetrating oil first and wait 15 minutes. If the nut still spins the bolt, cut through the bolt just above the washer."
+  }
+ },
+ "glossary": [
+  [
+   "Rough-in",
+   "Distance from the finished wall to the center of the toilet drain. 12\" is standard."
+  ],
+  [
+   "Flange",
+   "The round fitting on top of the drain pipe that the toilet bolts to. Also called a closet flange."
+  ],
+  [
+   "Closet bolts",
+   "The two bolts that stick up from the flange and hold the toilet down."
+  ],
+  [
+   "Wax ring",
+   "A ring of wax that seals the toilet outlet to the flange."
+  ],
+  [
+   "Supply line",
+   "The flexible hose from the shutoff valve to the toilet."
+  ],
+  [
+   "Shutoff valve",
+   "The small valve on the wall or floor behind the toilet. Also called an angle stop."
+  ],
+  [
+   "Fill valve",
+   "The valve inside the tank that refills it after a flush."
+  ],
+  [
+   "Shim",
+   "A thin plastic wedge that fills a gap under the base."
+  ]
+ ]
+}

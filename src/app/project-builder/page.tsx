@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { GUIDES } from "@/lib/project-builder/guides";
+import { CATEGORY_ORDER, GUIDES } from "@/lib/project-builder/guides";
 import { PB_COOKIE, verifySessionToken } from "@/lib/project-builder/session";
 
 export const metadata: Metadata = {
@@ -34,29 +34,42 @@ export default async function ProjectBuilderPage() {
           </form>
         </div>
 
-        <ul className="space-y-4">
-          {GUIDES.map((g) => (
-            <li key={g.slug}>
-              <a
-                href={`/project-builder/${g.slug}`}
-                className="block bg-rudo-card-bg border border-rudo-card-border hover:border-rudo-card-border-hover p-5 transition-colors"
-              >
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {g.tags.map((t) => (
-                    <span
-                      key={t}
-                      className="font-orbitron text-[9px] tracking-[1.5px] uppercase text-rudo-dark-muted border border-rudo-card-border px-2 py-0.5"
-                    >
-                      {t}
-                    </span>
+        <div className="space-y-10">
+          {CATEGORY_ORDER.map((cat) => {
+            const items = GUIDES.filter((g) => g.category === cat);
+            if (!items.length) return null;
+            return (
+              <section key={cat}>
+                <h2 className="font-orbitron text-[11px] tracking-[2px] uppercase text-rudo-dark-text-sec mb-3">
+                  {cat} <span className="text-rudo-dark-muted">· {items.length}</span>
+                </h2>
+                <ul className="space-y-3">
+                  {items.map((g) => (
+                    <li key={g.slug}>
+                      <a
+                        href={`/project-builder/${g.slug}`}
+                        className="block bg-rudo-card-bg border border-rudo-card-border hover:border-rudo-card-border-hover p-5 transition-colors"
+                      >
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {g.tags.map((t) => (
+                            <span
+                              key={t}
+                              className="font-orbitron text-[9px] tracking-[1.5px] uppercase text-rudo-dark-muted border border-rudo-card-border px-2 py-0.5"
+                            >
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                        <h3 className="text-xl font-semibold mb-1">{g.title}</h3>
+                        <p className="text-sm text-rudo-dark-text-sec">{g.description}</p>
+                      </a>
+                    </li>
                   ))}
-                </div>
-                <h2 className="text-xl font-semibold mb-1">{g.title}</h2>
-                <p className="text-sm text-rudo-dark-text-sec">{g.description}</p>
-              </a>
-            </li>
-          ))}
-        </ul>
+                </ul>
+              </section>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

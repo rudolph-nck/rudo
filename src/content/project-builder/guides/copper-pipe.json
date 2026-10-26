@@ -1,0 +1,997 @@
+{
+ "slug": "copper-pipe",
+ "title": "Cut and Join Copper Pipe",
+ "eyebrow": "Plumbing · copper",
+ "category": "Plumbing",
+ "difficulty": "Intermediate",
+ "time": "1–3 hours",
+ "summary": "Cut copper water pipe cleanly and join it with solder, push-to-connect or press fittings: to fix a pinhole leak, replace a section, or connect to PEX. You'll end with tight, leak-tested joints.",
+ "safety": "Shut off and drain the water first. When soldering: shield wood and insulation, keep a fire extinguisher and spray bottle in reach, wear glasses and gloves, ventilate, and <b>stay 30 minutes after the last joint</b> to watch for hidden fire. Use only lead-free solder and flux on drinking water pipe.",
+ "pro": "the main shutoff won't close, the pipe is badly corroded or has several pinholes, you'd be soldering in a tight spot near wood or wiring you can't shield, the work is a gas line (never use this guide for gas), or your area requires a permit or licensed plumber for work inside walls.",
+ "questions": [
+  {
+   "id": "method",
+   "label": "How will you join the pipe?",
+   "type": "choice",
+   "default": "sweat",
+   "options": [
+    {
+     "v": "sweat",
+     "label": "Solder (sweat)",
+     "hint": "cheapest, uses a torch"
+    },
+    {
+     "v": "push",
+     "label": "Push-to-connect",
+     "hint": "no heat, costs more"
+    },
+    {
+     "v": "press",
+     "label": "Press",
+     "hint": "pro tool"
+    }
+   ]
+  },
+  {
+   "id": "size",
+   "label": "Pipe size",
+   "type": "choice",
+   "default": "1/2",
+   "options": [
+    {
+     "v": "1/2",
+     "label": "1/2\"",
+     "hint": "5/8\" outside"
+    },
+    {
+     "v": "3/4",
+     "label": "3/4\"",
+     "hint": "7/8\" outside"
+    }
+   ],
+   "hint": "Measure across the outside of the pipe."
+  },
+  {
+   "id": "job",
+   "label": "What's the job?",
+   "type": "choice",
+   "default": "repair",
+   "options": [
+    {
+     "v": "repair",
+     "label": "Fix a leak",
+     "hint": "pinhole or split"
+    },
+    {
+     "v": "section",
+     "label": "Replace or add a section"
+    }
+   ]
+  },
+  {
+   "id": "pex",
+   "label": "Will you connect to PEX?",
+   "type": "choice",
+   "default": "no",
+   "options": [
+    {
+     "v": "no",
+     "label": "No"
+    },
+    {
+     "v": "yes",
+     "label": "Yes"
+    }
+   ]
+  },
+  {
+   "id": "fittings",
+   "label": "How many fittings (couplings, elbows, tees)?",
+   "type": "number",
+   "unit": "fittings",
+   "default": 2,
+   "step": 1
+  },
+  {
+   "id": "length",
+   "label": "New pipe needed",
+   "type": "number",
+   "unit": "ft",
+   "default": 1,
+   "step": 0.5,
+   "hint": "Total length of new pipe, if any."
+  }
+ ],
+ "calcs": [
+  {
+   "id": "dia",
+   "expr": "a.size==='3/4'?0.75:0.5"
+  },
+  {
+   "id": "joints",
+   "label": "Joints to make",
+   "expr": "Math.max(0,Math.round(a.fittings))*2",
+   "fmt": "about {{c.joints}} joints"
+  },
+  {
+   "id": "solderIn",
+   "label": "Solder wire",
+   "expr": "Math.ceil(c.joints*c.dia*1.5)",
+   "fmt": "about {{c.solderIn}}\" of wire",
+   "when": "a.method==='sweat'"
+  },
+  {
+   "id": "pipeFt",
+   "label": "Pipe to buy",
+   "expr": "Math.max(1,Math.ceil(a.length*1.2+0.5))",
+   "fmt": "{{c.pipeFt}} ft"
+  }
+ ],
+ "calcNote": "Joints assume two pipe ends per fitting (a tee has three). Solder is about one pipe-diameter of wire per joint plus extra for practice. Pipe includes 20% for mistakes.",
+ "overviewFig": "pipeid",
+ "tools": [
+  {
+   "id": "cutter",
+   "c": "Cutting",
+   "n": "Tubing cutter for 1/8\"-1-1/8\" pipe",
+   "must": true,
+   "w": "Makes a square, clean cut without dents.",
+   "q": "tubing cutter copper"
+  },
+  {
+   "id": "mini",
+   "c": "Cutting",
+   "n": "Mini tubing cutter",
+   "must": false,
+   "w": "For pipe close to a wall or joist where a full-size cutter can't spin.",
+   "q": "mini tubing cutter"
+  },
+  {
+   "id": "reamer",
+   "c": "Cutting",
+   "n": "Deburring tool (or the reamer on your cutter)",
+   "must": true,
+   "w": "Removes the sharp lip inside the cut.",
+   "q": "pipe deburring tool"
+  },
+  {
+   "id": "emery",
+   "c": "Prep",
+   "n": "Emery cloth (plumber's sand cloth)",
+   "must": true,
+   "w": "Cleans the outside of the pipe to bright copper.",
+   "q": "plumbers emery cloth roll"
+  },
+  {
+   "id": "brush",
+   "c": "Prep",
+   "n": "Fitting brush, {{a.size}}\"",
+   "must": true,
+   "w": "Cleans the inside of fitting sockets.",
+   "q": "{{a.size}} inch fitting brush",
+   "when": "a.method==='sweat'"
+  },
+  {
+   "id": "flux",
+   "c": "Solder",
+   "n": "Lead-free, water-soluble paste flux + brush",
+   "must": true,
+   "w": "Keeps the joint clean while heating so solder can flow.",
+   "q": "water soluble lead free flux",
+   "when": "a.method==='sweat'"
+  },
+  {
+   "id": "solder",
+   "c": "Solder",
+   "n": "Lead-free solder wire (about {{c.solderIn}}\" needed)",
+   "must": true,
+   "w": "A small 1/2 lb spool is plenty. Never use 50/50 lead solder on water pipe.",
+   "q": "lead free solder 1/2 lb",
+   "when": "a.method==='sweat'"
+  },
+  {
+   "id": "torch",
+   "c": "Solder",
+   "n": "Self-igniting torch head + MAPP or propane cylinder",
+   "must": true,
+   "w": "MAPP heats faster (best for 3/4\"); propane is fine for 1/2\".",
+   "q": "self igniting torch MAPP",
+   "when": "a.method==='sweat'"
+  },
+  {
+   "id": "shield",
+   "c": "Safety",
+   "n": "Flame-protector cloth or heat shield",
+   "must": true,
+   "w": "Protects wood, wiring and insulation behind the joint.",
+   "q": "flame protector cloth plumbing",
+   "when": "a.method==='sweat'"
+  },
+  {
+   "id": "ext",
+   "c": "Safety",
+   "n": "ABC fire extinguisher",
+   "must": true,
+   "w": "Within arm's reach whenever the torch is lit.",
+   "q": "ABC fire extinguisher",
+   "when": "a.method==='sweat'"
+  },
+  {
+   "id": "spray",
+   "c": "Safety",
+   "n": "Spray bottle of water",
+   "must": true,
+   "w": "Wets wood around the joint and knocks down sparks.",
+   "q": "spray bottle",
+   "when": "a.method==='sweat'"
+  },
+  {
+   "id": "gloves",
+   "c": "Safety",
+   "n": "Leather work gloves",
+   "must": true,
+   "w": "The pipe stays hot well away from the joint.",
+   "q": "leather work gloves",
+   "when": "a.method==='sweat'"
+  },
+  {
+   "id": "glasses",
+   "c": "Safety",
+   "n": "Safety glasses",
+   "must": true,
+   "w": "Solder and flux can spit when hot.",
+   "q": "safety glasses"
+  },
+  {
+   "id": "rag",
+   "c": "Prep",
+   "n": "Clean rags + bucket + towels",
+   "must": true,
+   "w": "Catch draining water and wipe joints.",
+   "q": "shop towels"
+  },
+  {
+   "id": "marker",
+   "c": "Prep",
+   "n": "Fine marker or pencil + tape measure",
+   "must": true,
+   "w": "Mark cuts and insert depths.",
+   "q": "fine point marker"
+  },
+  {
+   "id": "pipe",
+   "c": "Parts",
+   "n": "{{a.size}}\" type L copper pipe ({{c.pipeFt}} ft)",
+   "must": false,
+   "w": "Only if you're replacing a section. Type L is thicker than M and a good default.",
+   "q": "{{a.size}} in x 10 ft type L copper pipe",
+   "qty": "{{c.pipeFt}} ft"
+  },
+  {
+   "id": "fitS",
+   "c": "Parts",
+   "n": "{{a.size}}\" copper sweat fittings (couplings, elbows, tees)",
+   "must": true,
+   "w": "Buy one or two spares. They're cheap.",
+   "q": "{{a.size}} in copper coupling sweat",
+   "qty": "{{a.fittings}} + 1 spare",
+   "when": "a.method==='sweat'"
+  },
+  {
+   "id": "fitP",
+   "c": "Parts",
+   "n": "{{a.size}}\" push-to-connect fittings",
+   "must": true,
+   "w": "Rated for copper, PEX and CPVC. Brass bodies are the most common.",
+   "q": "{{a.size}} in push to connect coupling",
+   "qty": "{{a.fittings}}",
+   "when": "a.method==='push'"
+  },
+  {
+   "id": "tool",
+   "c": "Parts",
+   "n": "Push-fit disconnect clip and depth gauge",
+   "must": true,
+   "w": "Lets you remove a fitting and mark insert depth.",
+   "q": "{{a.size}} in push fit disconnect clip",
+   "when": "a.method==='push'"
+  },
+  {
+   "id": "fitPr",
+   "c": "Parts",
+   "n": "{{a.size}}\" copper press fittings",
+   "must": true,
+   "w": "Only with a press tool and jaws for that fitting brand.",
+   "q": "{{a.size}} in copper press coupling",
+   "qty": "{{a.fittings}}",
+   "when": "a.method==='press'"
+  },
+  {
+   "id": "press",
+   "c": "Rental",
+   "n": "Press tool + {{a.size}}\" jaws",
+   "must": true,
+   "w": "Expensive to buy. Rent one, or hire a plumber who owns one.",
+   "q": "copper press tool rental",
+   "rent": true,
+   "when": "a.method==='press'"
+  },
+  {
+   "id": "slip",
+   "c": "Parts",
+   "n": "{{a.size}}\" repair (slip) coupling",
+   "must": true,
+   "w": "Has no stop inside, so it slides over the gap left by a cut-out leak.",
+   "q": "{{a.method==='push'?a.size+' in push to connect slip coupling':a.size+' in copper repair coupling'}}",
+   "when": "a.job==='repair'"
+  },
+  {
+   "id": "pexad",
+   "c": "Parts",
+   "n": "{{a.size}}\" copper-to-PEX adapter",
+   "must": true,
+   "w": "Joins the copper to PEX tubing.",
+   "q": "{{a.method==='push'?a.size+' in push to connect coupling':a.size+' in copper sweat x PEX adapter'}}",
+   "when": "a.pex==='yes'"
+  },
+  {
+   "id": "bread",
+   "c": "Prep",
+   "n": "A slice of soft white bread",
+   "must": false,
+   "w": "The old plumber's plug for a pipe that won't stop dripping.",
+   "q": "",
+   "when": "a.method==='sweat'"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Plan and shut off",
+   "steps": [
+    {
+     "id": "p1",
+     "t": "Identify your pipe and plan the job",
+     "time": "15 min",
+     "idea": "You can't buy the right fittings until you know the pipe's size and type.",
+     "fig": "pipeid",
+     "need": [
+      "marker"
+     ],
+     "b": "<ol><li>Find the part you'll work on. Look for printing along the pipe: it says the type (K, L or M) and size.</li><li>No printing? Wrap a strip of paper around the pipe, mark the overlap, and measure the length. About 2\" around (5/8\" across) = 1/2\" pipe. About 2-3/4\" around (7/8\" across) = 3/4\" pipe.</li><li>Check the stripe color if any: red = type M (thin), blue = type L (thicker), green = type K (thickest). You join all three the same way.</li><li>Count the fittings you need (couplings, elbows, tees) and buy a spare or two.</li><li>Is the pipe green-crusted, flattened or full of pinholes? Expect more leaks nearby. Replace a longer section.</li></ol>",
+     "faq": [
+      [
+       "Is it copper or something else?",
+       "Copper is reddish-brown, bends a little, and a magnet won't stick. Gray pipe that a magnet sticks to is galvanized steel, which needs different fittings and often a pro."
+      ],
+      [
+       "Can I mix 1/2\" and 3/4\"?",
+       "Yes, with a reducing fitting (for example a 3/4\" x 1/2\" coupling). Don't shrink a main line just to make the job easier: it lowers flow to everything after it."
+      ]
+     ]
+    },
+    {
+     "id": "p2",
+     "t": "Pick your joining method",
+     "time": "10 min",
+     "idea": "Solder is cheapest and permanent, push-fit needs no flame, press is the pro's choice.",
+     "b": "<ol><li><b>Solder (sweat)</b>: a torch melts solder into the joint. Cheapest fittings, permanent, but needs a dry pipe and fire precautions. Practice on scrap first.</li><li><b>Push-to-connect</b>: deburr, mark, push. No heat, works on wet pipe, removable. Each fitting costs several times more.</li><li><b>Press</b>: a powered tool squeezes a fitting with an O-ring. Fast and flame-free, but the tool costs hundreds; most homeowners hire a plumber who has one or rent it.</li><li>Your current choice: <b>{{a.method==='sweat'?'solder':a.method==='push'?'push-to-connect':'press'}}</b>. Change it in the questions above if you like.</li></ol>",
+     "faq": [
+      [
+       "Are push-fit fittings allowed inside walls?",
+       "Many brands are listed for concealed use, but some local codes or inspectors want an access panel at any push-fit fitting. Check the package and your local code; when in doubt, keep them accessible."
+      ],
+      [
+       "Do I need to practice soldering?",
+       "Yes. Buy a 2 ft scrap and three couplings and do six joints before you touch the house. It costs a few dollars and saves a flood."
+      ]
+     ]
+    },
+    {
+     "id": "p3",
+     "t": "Shut off the water and drain the lines",
+     "time": "15 min",
+     "idea": "The pipe must be empty: you can't cut, solder or push-fit against house pressure.",
+     "fig": "drain",
+     "need": [
+      "rag"
+     ],
+     "b": "<ol><li>Find the main shutoff valve, usually where the water line enters the house (basement, crawlspace, garage, or by the water heater). Turn it clockwise until it stops, or turn a lever handle so it sits across the pipe.</li><li>If there's a closer shutoff that isolates only your section, use it instead.</li><li>Open the highest faucet in the house (top floor) to let air in.</li><li>Open the lowest tap (basement sink, laundry, or outdoor spigot) to let water out. Wait until it stops running.</li><li>Working on a hot-water pipe? Set the water heater to VACATION or PILOT (gas) or turn off its breaker (electric), and close its cold inlet valve.</li><li>Put a bucket and towels under the spot where you'll cut.</li></ol>",
+     "stop": "If the main valve won't turn, is crusty or drips at the stem, don't force it: old valves break. Call the water utility to shut it at the curb, or a plumber.",
+     "faq": [
+      [
+       "The water won't stop completely.",
+       "The main valve may not seal fully (common with old gate valves). A slow drip is OK for push-fit, not for solder. See the drip step, or replace the main valve with a pro's help."
+      ],
+      [
+       "Why turn off the water heater?",
+       "An electric heater's elements can burn out if the tank isn't full, and you don't want to scald yourself on a hot pipe."
+      ]
+     ]
+    },
+    {
+     "id": "p4",
+     "t": "Set up for torch safety",
+     "time": "10 min",
+     "idea": "Prepare for fire before you light the torch, not after.",
+     "when": "a.method==='sweat'",
+     "fig": "shield",
+     "need": [
+      "shield",
+      "ext",
+      "spray",
+      "gloves",
+      "glasses"
+     ],
+     "ppe": [
+      "Glasses",
+      "Gloves"
+     ],
+     "b": "<ol><li>Clear anything that burns away from the joint: boxes, rags, paper insulation, plastic.</li><li>Hang a flame-protector cloth or metal shield between the joint and any wood, wiring or insulation within about 12\".</li><li>Mist the wood around the joint with the spray bottle.</li><li>Set the fire extinguisher on the floor within reach, pin in place, label facing you.</li><li>Open a window or run a fan: flux fumes are irritating.</li><li>Keep the flame well away from plastic pipe (PEX, CPVC), plastic valves and wire insulation. Shield them or wrap them in a wet rag.</li></ol>",
+     "stop": "Never point a flame at insulation, paper-faced drywall or a joist without a shield. Fiberglass facing and dust in joist bays ignite and can smolder unseen.",
+     "faq": [
+      [
+       "Do I need a permit?",
+       "Repairs are usually allowed without a permit, but rules vary. Some areas require permits for any work inside walls or new piping. Check your local code."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Cut and prepare the pipe",
+   "steps": [
+    {
+     "id": "c0",
+     "t": "Find and mark the leak",
+     "time": "10 min",
+     "idea": "Cut out only as much as needed, but get past any damaged copper.",
+     "when": "a.job==='repair'",
+     "fig": "slip",
+     "need": [
+      "marker",
+      "rag"
+     ],
+     "b": "<ol><li>Dry the pipe with a rag. With water still on (before draining), find where the drip starts. Water runs along pipe, so the spot you see wet may be lower than the hole.</li><li>Mark the hole with a marker.</li><li>Mark cut lines about 1/2\" on each side of the hole. For a long split, mark past both ends of it.</li><li>Check that each side has at least 2\" of straight, round pipe for the coupling to slide over (no fitting in the way).</li><li>Now shut off and drain (previous step).</li></ol>",
+     "faq": [
+      [
+       "Can I just wrap it with tape or a clamp?",
+       "A rubber-lined pipe repair clamp is a fine emergency fix until you can do this properly. Epoxy putty and tape are not permanent."
+      ],
+      [
+       "The pipe has several pinholes.",
+       "Pinholes often mean the pipe wall is thinning from the inside. Fix this one, then have a plumber look at the water chemistry and the rest of the pipe."
+      ]
+     ]
+    },
+    {
+     "id": "c1",
+     "t": "Cut the pipe",
+     "time": "5 min per cut",
+     "idea": "A tubing cutter makes a square cut without crushing the pipe.",
+     "fig": "cutter",
+     "need": [
+      "cutter",
+      "mini",
+      "marker",
+      "rag"
+     ],
+     "help": [
+      "cutHelp"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "b": "<ol><li>Measure and mark the cut all the way around if you can.</li><li>Open the cutter and set the wheel exactly on the mark. Tighten the knob until the wheel just touches.</li><li>Spin the cutter one full turn around the pipe. It should leave a thin line that meets itself.</li><li>Tighten the knob about a quarter turn. Spin again. Repeat until the pipe snaps apart.</li><li>Hold the bucket under it: there's always a little water left.</li><li>No room to spin? Use a mini cutter, which needs about 1\" of clearance around the pipe.</li></ol>",
+     "faq": [
+      [
+       "The cut spirals instead of meeting.",
+       "The wheel isn't square to the pipe. Back off, realign on the mark, start with lighter pressure."
+      ],
+      [
+       "Can I use a hacksaw?",
+       "In a pinch, but it leaves a ragged, crooked end that's hard to seal. File it square and deburr well."
+      ]
+     ]
+    },
+    {
+     "id": "c2",
+     "t": "Stop a pipe that won't stop dripping",
+     "time": "10 min",
+     "idea": "Solder won't flow while water trickles in. Stop the water or switch to a fitting that doesn't care.",
+     "when": "a.method==='sweat'",
+     "fig": "bread",
+     "need": [
+      "bread",
+      "rag"
+     ],
+     "b": "<ol><li>Open a faucet that's lower than your joint. Often that alone empties the line.</li><li>Still trickling? Tear a soft slice of white bread (no crust), roll it into a loose ball and push it into the pipe end, a few inches back from the joint.</li><li>Do your joint quickly. When the water returns, the bread dissolves and washes out through a faucet; remove faucet aerators first so it can't clog them.</li><li>Still won't stop? Use a push-fit fitting for this one joint.</li></ol>",
+     "faq": [
+      [
+       "Is the bread trick really OK?",
+       "It's an old plumber's trick and works for a slow trickle. Clean aerators afterward. Never use anything that won't dissolve, like a rag."
+      ]
+     ]
+    },
+    {
+     "id": "c3",
+     "t": "Deburr inside and out",
+     "time": "2 min per end",
+     "idea": "Removing the cut's sharp lip lets water flow freely and keeps O-rings from tearing.",
+     "fig": "deburr",
+     "need": [
+      "reamer",
+      "emery"
+     ],
+     "help": [
+      "deburrHelp"
+     ],
+     "b": "<ol><li>Push the cone of the reamer (often a fold-out blade on the cutter) into the pipe end.</li><li>Twist it a few times until the inside edge is smooth and the opening looks full size.</li><li>Run emery cloth or a file around the outside edge to knock off any sharp ridge.</li><li>Wipe out any copper shavings.</li></ol>",
+     "faq": [
+      [
+       "Is this really needed?",
+       "Yes. A burr makes turbulence that wears through copper over years, and on push-fit it can slice the O-ring and cause a leak."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Join: solder (sweat)",
+   "steps": [
+    {
+     "id": "s1",
+     "t": "Clean pipe and fitting to bright copper",
+     "time": "2 min per joint",
+     "idea": "Solder only sticks to clean, bare metal.",
+     "when": "a.method==='sweat'",
+     "fig": "clean",
+     "need": [
+      "emery",
+      "brush"
+     ],
+     "help": [
+      "cleanHelp"
+     ],
+     "b": "<ol><li>Wrap emery cloth around the pipe end and twist back and forth over the last 1\" until it's evenly bright.</li><li>Push the fitting brush into each socket of the fitting and twist until the inside shines.</li><li>Blow or tap off grit.</li><li>Don't touch the cleaned areas with your fingers.</li></ol>",
+     "faq": [
+      [
+       "How clean is clean?",
+       "Bright pink-orange all around, like a new penny. Dull or dark spots will leave a gap in the solder."
+      ]
+     ]
+    },
+    {
+     "id": "s2",
+     "t": "Flux and dry-fit",
+     "time": "2 min per joint",
+     "idea": "Flux keeps the copper clean while it heats; a dry fit proves everything lines up before heat.",
+     "when": "a.method==='sweat'",
+     "fig": "flux",
+     "need": [
+      "flux"
+     ],
+     "b": "<ol><li>Stir the flux. Brush a thin, even coat on the cleaned pipe end.</li><li>Brush a thin coat inside the fitting socket.</li><li>Push the pipe into the fitting and twist a quarter turn to spread the flux. It should bottom out against the stop inside.</li><li>Fit every piece of the section together and check angles and lengths. Wipe off any flux that squeezed out.</li><li>Solder within the same session: flux left for days can corrode the pipe.</li></ol>",
+     "faq": [
+      [
+       "Can I use more flux to be safe?",
+       "No. Excess flux runs inside the pipe and can cause pinhole corrosion later. A thin film is enough."
+      ]
+     ]
+    },
+    {
+     "id": "s3",
+     "t": "Heat the fitting",
+     "time": "30–60 sec per joint",
+     "idea": "Heat the fitting so it pulls solder into the joint.",
+     "when": "a.method==='sweat'",
+     "fig": "heat",
+     "need": [
+      "torch",
+      "shield",
+      "ext",
+      "spray",
+      "gloves"
+     ],
+     "ppe": [
+      "Glasses",
+      "Gloves"
+     ],
+     "help": [
+      "torchHelp"
+     ],
+     "stop": "Check the shield and extinguisher are in place. Keep the flame away from plastic pipe, wires, and your other hand.",
+     "b": "<ol><li>Unroll about 6\" of solder and bend the last 1\" into an L.</li><li>Light the torch and point the tip of the small inner blue cone at the middle of the fitting.</li><li>Move the flame slowly back and forth over the fitting, not the pipe.</li><li>After 10–30 seconds the flux will sizzle and then go clear or start to smoke lightly.</li><li>Touch the solder to the joint on the side opposite the flame. If it melts on contact, go to the next step. If not, heat a few seconds more.</li></ol>",
+     "faq": [
+      [
+       "MAPP or propane?",
+       "Propane works fine on 1/2\". MAPP-type gas burns hotter and is quicker on 3/4\" and on joints near valves or other fittings. Either works with a self-igniting head."
+      ],
+      [
+       "The flux turned black.",
+       "You overheated it. Let it cool, take it apart, clean and flux again. Solder won't stick to burned flux."
+      ]
+     ]
+    },
+    {
+     "id": "s4",
+     "t": "Feed the solder",
+     "time": "15 sec per joint",
+     "idea": "Capillary action pulls melted solder into the thin gap, toward the heat.",
+     "when": "a.method==='sweat'",
+     "fig": "solder",
+     "need": [
+      "solder",
+      "torch"
+     ],
+     "ppe": [
+      "Glasses",
+      "Gloves"
+     ],
+     "b": "<ol><li>Pull the flame back slightly or move it to the far side of the fitting.</li><li>Touch the solder to the seam where pipe enters fitting. It should melt and get sucked in.</li><li>Feed solder around the seam. You need only about as much solder as the pipe's size: about 1/2\" of wire for 1/2\" pipe, 3/4\" for 3/4\" pipe.</li><li>Stop when a thin silver ring shows all the way around and a drip starts to form.</li><li>Solder both ends of a coupling, heating the middle once.</li></ol>",
+     "faq": [
+      [
+       "Solder drips out the bottom.",
+       "Too much solder or too much heat. A small drip is harmless; brush it off while soft."
+      ],
+      [
+       "Solder won't go in on one side.",
+       "That spot wasn't clean or hot enough. Heat that side and try again. If it still won't take, take the joint apart hot (with pliers), clean, flux, and redo."
+      ]
+     ]
+    },
+    {
+     "id": "s5",
+     "t": "Wipe and let it cool",
+     "time": "5 min",
+     "idea": "Don't move the joint until the solder has hardened.",
+     "when": "a.method==='sweat'",
+     "need": [
+      "rag",
+      "gloves",
+      "spray"
+     ],
+     "timers": [
+      [
+       "Joint cooling",
+       5
+      ]
+     ],
+     "b": "<ol><li>Turn off the torch and set it down on a flat, fireproof surface, flame side away from anything.</li><li>While still warm (not hot), wipe the joint with a damp rag to remove flux. Careful: it's hot enough to burn.</li><li>Don't bump, bend or cool the joint with water. Let it cool on its own for about 5 minutes.</li><li>Mist any wood that got warm.</li></ol>",
+     "faq": [
+      [
+       "How do I know it's good?",
+       "A smooth, shiny, continuous ring of solder all the way round. Gaps, lumps or a dull, grainy look are suspect. The real test is turning the water back on."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Join: push-to-connect",
+   "steps": [
+    {
+     "id": "q1",
+     "t": "Mark the insert depth",
+     "time": "2 min per end",
+     "idea": "The mark proves the pipe went all the way through the O-ring and grab ring.",
+     "when": "a.method==='push'",
+     "fig": "depth",
+     "need": [
+      "tool",
+      "marker",
+      "emery"
+     ],
+     "b": "<ol><li>Make sure the end is cut square and deburred, with no scratches in the last inch.</li><li>Clean off paint, corrosion or solder with emery cloth so the O-ring seals on smooth copper.</li><li>Slide the depth gauge over the pipe end (or measure the depth from the fitting's chart).</li><li>Draw a line all the way around at the gauge's edge.</li></ol>",
+     "faq": [
+      [
+       "The old pipe has solder on it.",
+       "Cut back to clean pipe or sand the solder off completely. Push-fit only seals on smooth, round pipe."
+      ]
+     ]
+    },
+    {
+     "id": "q2",
+     "t": "Push the fitting on",
+     "time": "1 min per joint",
+     "idea": "Push straight in until the mark meets the fitting. That's the whole joint.",
+     "when": "a.method==='push'",
+     "fig": "depth",
+     "need": [
+      "fitP",
+      "tool"
+     ],
+     "help": [
+      "pushHelp"
+     ],
+     "b": "<ol><li>Hold the fitting square to the pipe.</li><li>Push firmly with a slight twist until the pipe hits the stop. You'll feel it seat.</li><li>Check that your depth mark is right at the edge of the fitting.</li><li>Tug back on the fitting. It shouldn't come off.</li><li>To remove: push the disconnect clip against the release collar, hold it in, and pull the fitting off.</li></ol>",
+     "stop": "If the mark is more than about 1/16\" away from the fitting, it's not seated and will leak or blow off. Push it on further.",
+     "faq": [
+      [
+       "Can I reuse a push-fit fitting?",
+       "Most makers allow it a few times if the O-ring and teeth are undamaged, but a new one is cheap insurance."
+      ],
+      [
+       "It spins on the pipe. Is that wrong?",
+       "No. Most push-fit fittings can rotate after they're on. That's normal."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Join: press",
+   "steps": [
+    {
+     "id": "r1",
+     "t": "Press the fittings",
+     "time": "1 min per joint",
+     "idea": "A press tool crimps the fitting around an O-ring in seconds, with no flame.",
+     "when": "a.method==='press'",
+     "need": [
+      "fitPr",
+      "press",
+      "marker",
+      "emery"
+     ],
+     "b": "<ol><li>Cut square and deburr. Clean the pipe end so it's smooth.</li><li>Mark the insert depth (from the fitting maker's chart) on the pipe.</li><li>Check the O-ring is seated in the fitting and not twisted.</li><li>Push the pipe in until the mark is at the fitting edge.</li><li>Put the correct size jaw square over the fitting's bead and pull the trigger. The tool runs a full cycle.</li><li>Many fittings have a \"leak before press\" feature or a tag that falls off: remove tags so you can see which joints are done.</li></ol>[[info|Call a pro|Press tools are expensive and need jaws matched to the fitting brand. If you don't want to rent one, hire a plumber; a few joints take them minutes.]]",
+     "faq": [
+      [
+       "Can I use a regular crimper?",
+       "No. Copper press fittings need a powered press tool with the matching jaw profile."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Repairs and transitions",
+   "steps": [
+    {
+     "id": "x1",
+     "t": "Install the repair coupling",
+     "time": "15 min",
+     "idea": "A slip coupling has no inner stop, so it can slide over the gap where you cut out the leak.",
+     "when": "a.job==='repair'",
+     "fig": "slip",
+     "need": [
+      "slip",
+      "marker"
+     ],
+     "b": "<ol><li>Cut out the damaged piece at your marks (no more than the coupling can cover; most leave room for a 1\" gap). Deburr and clean both ends.</li><li>Measure half the coupling length and mark that distance back from each pipe end.</li><li>{{a.method==='push'?'Push the slip coupling fully onto one pipe end until the far end of the coupling reaches the mark the maker shows for sliding.':'Flux both ends and inside the coupling, then slide it all the way onto one pipe.'}}</li><li>Line the pipes up, then slide the coupling back across the gap until each end sits at your mark: centered over the gap.</li><li>{{a.method==='push'?'Check both depth marks are at the coupling ends.':'Solder both ends as in the solder steps.'}}</li></ol>",
+     "faq": [
+      [
+       "The pipes won't line up.",
+       "Loosen nearby pipe straps a little so the pipe can move, then retighten after."
+      ],
+      [
+       "Can I use a regular coupling?",
+       "Only if one pipe can be pulled sideways enough to slip it in, which is rare in a wall. That's what the slip coupling is for."
+      ]
+     ]
+    },
+    {
+     "id": "x2",
+     "t": "Transition to PEX",
+     "time": "15 min",
+     "idea": "An adapter lets you continue the run in flexible PEX tubing.",
+     "when": "a.pex==='yes'",
+     "fig": "pex",
+     "need": [
+      "pexad"
+     ],
+     "b": "<ol><li>{{a.method==='sweat'?'Solder the copper-by-PEX adapter onto the copper first, with no PEX attached.':'Push a push-fit coupling onto the copper (it accepts both pipe types).'}}</li><li>{{a.method==='sweat'?'Let it cool completely, until you can hold it bare-handed.':'Push a PEX stiffener insert into the PEX end if the fitting needs one (many come with it in place).'}}</li><li>Connect the PEX with the method that matches the adapter: crimp ring, cinch clamp, or push-fit.</li><li>Keep PEX at least 18\" away from where you'll use the torch, and from any water heater flue (check the PEX maker's rules).</li></ol>",
+     "faq": [
+      [
+       "Can I solder with PEX attached?",
+       "No. Heat will melt or weaken PEX. Always solder first and let it cool."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Test and finish",
+   "steps": [
+    {
+     "id": "f1",
+     "t": "Turn the water on and check for leaks",
+     "time": "20 min",
+     "idea": "Fill the pipes slowly to avoid hammer, then inspect every joint.",
+     "fig": "test",
+     "need": [
+      "rag"
+     ],
+     "timers": [
+      [
+       "Recheck joints",
+       30
+      ]
+     ],
+     "b": "<ol><li>Remove the aerators (screw-off tips) of the faucets you opened, so debris can flush out.</li><li>Close the lowest tap. Leave the top faucet open.</li><li>Open the main valve a quarter of the way. Listen to the pipes fill.</li><li>When water runs steady from the top faucet with no spitting air, close it and open the main fully.</li><li>Wipe each new joint dry, then hold dry tissue underneath for a minute. It must stay dry.</li><li>Check again after 30 minutes and again the next day before closing any wall.</li><li>Run each faucet briefly, then clean and replace the aerators. Turn the water heater back on last, once its tank is full.</li></ol>",
+     "stop": "A leaking solder joint can't be fixed by adding solder with water in the pipe. Shut off, drain, take it apart, clean and redo it.",
+     "faq": [
+      [
+       "A push-fit joint leaks.",
+       "It's almost always not fully seated, has a scratched pipe, or a burr. Shut off, remove it, check the end and depth mark, and push it on again."
+      ],
+      [
+       "The pipes bang when I turn the water on.",
+       "Trapped air or water hammer. Open faucets to bleed air. Re-secure loose pipe straps."
+      ]
+     ]
+    },
+    {
+     "id": "f2",
+     "t": "Fire watch and clean up",
+     "time": "30 min",
+     "idea": "Hidden fires from torch work show up after you've stopped. Stay and check.",
+     "when": "a.method==='sweat'",
+     "need": [
+      "ext",
+      "spray"
+     ],
+     "timers": [
+      [
+       "Fire watch",
+       30
+      ]
+     ],
+     "b": "<ol><li>Stay in the area for at least 30 minutes after your last joint.</li><li>Feel the wood and shield near each joint with your hand and sniff for smoke a few times.</li><li>Once the joints are cool, wipe off any remaining flux residue with a damp rag.</li><li>Let the torch head cool before storing. Close the cylinder valve if it has one.</li></ol>",
+     "faq": [
+      [
+       "Why 30 minutes?",
+       "Wood or dust that got scorched can smolder slowly and burst into flame later. Most torch fires happen after the plumber has packed up."
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "help": {
+  "cutHelp": {
+   "t": "Use a tubing cutter",
+   "fig": "cutter",
+   "b": "<ol><li>Open the cutter and set the wheel on your mark.</li><li>Tighten until the wheel just touches the pipe.</li><li>Spin it one full turn around the pipe.</li><li>Tighten about a quarter turn, spin again. Repeat until it cuts through.</li><li>Too much pressure dents the pipe so fittings won't slide on.</li></ol>"
+  },
+  "deburrHelp": {
+   "t": "Deburr a pipe end",
+   "fig": "deburr",
+   "b": "<ol><li>Insert the reamer cone into the pipe.</li><li>Twist until the inside lip is gone.</li><li>Smooth the outside edge with emery cloth.</li><li>Shake out any shavings.</li></ol>"
+  },
+  "cleanHelp": {
+   "t": "Clean for solder",
+   "fig": "clean",
+   "b": "<ol><li>Emery cloth around the pipe end, 1\" back, until bright.</li><li>Fitting brush inside each socket until bright.</li><li>No fingers on cleaned copper.</li></ol>"
+  },
+  "torchHelp": {
+   "t": "Use a torch safely",
+   "fig": "heat",
+   "b": "<ol><li>Screw the torch head onto the cylinder hand-tight. Sniff for gas; no smell, no hiss.</li><li>Shield, spray bottle and extinguisher in place.</li><li>Point it away from you, open the valve, pull the trigger to light.</li><li>Aim the tip of the inner blue cone at the fitting.</li><li>Shut the valve fully when you set it down.</li></ol>"
+  },
+  "pushHelp": {
+   "t": "Make a push-fit joint",
+   "fig": "depth",
+   "b": "<ol><li>Square cut, deburred, smooth pipe end.</li><li>Mark the insert depth with the gauge.</li><li>Push straight in to the mark.</li><li>Tug to check. Use the clip to remove.</li></ol>"
+  }
+ },
+ "figs": {
+  "pipeid": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Read the pipe before you buy</text><circle cx=\"60\" cy=\"66\" r=\"28\" class=\"w\"/><circle cx=\"60\" cy=\"66\" r=\"24\" class=\"bk\"/><circle cx=\"190\" cy=\"66\" r=\"38\" class=\"w\"/><circle cx=\"190\" cy=\"66\" r=\"34\" class=\"bk\"/><text x=\"60\" y=\"70\" class=\"k\" text-anchor=\"middle\">1/2\"</text><text x=\"190\" y=\"70\" class=\"k\" text-anchor=\"middle\">3/4\"</text><text x=\"60\" y=\"110\" text-anchor=\"middle\">outside: 5/8\"</text><text x=\"190\" y=\"120\" text-anchor=\"middle\">outside: 7/8\"</text><text x=\"236\" y=\"40\" class=\"k\">Named for the</text><text x=\"236\" y=\"52\">inside size,</text><text x=\"236\" y=\"64\">not outside.</text><rect x=\"20\" y=\"138\" width=\"130\" height=\"12\" rx=\"2\" class=\"w\"/><line x1=\"30\" y1=\"144\" x2=\"140\" y2=\"144\" class=\"good\" style=\"stroke-width:2\"/><rect x=\"20\" y=\"164\" width=\"130\" height=\"12\" rx=\"2\" class=\"w\"/><line x1=\"30\" y1=\"170\" x2=\"140\" y2=\"170\" class=\"a\" style=\"stroke-width:2\"/><rect x=\"20\" y=\"190\" width=\"130\" height=\"12\" rx=\"2\" class=\"w\"/><line x1=\"30\" y1=\"196\" x2=\"140\" y2=\"196\" class=\"bad\" style=\"stroke-width:2\"/><text x=\"160\" y=\"148\" class=\"gd\">K: green, thickest</text><text x=\"160\" y=\"174\" class=\"ac\">L: blue, medium</text><text x=\"160\" y=\"200\" class=\"wa\">M: red, thinnest</text>",
+   "h": 212,
+   "cap": "Measure across the outside: 5/8\" means 1/2\" pipe, 7/8\" means 3/4\" pipe. The printed stripe color tells you the wall thickness."
+  },
+  "drain": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Shut off, then drain from both ends</text><line x1=\"30\" y1=\"170\" x2=\"290\" y2=\"170\" class=\"o\" style=\"stroke-width:4\"/><line x1=\"250\" y1=\"170\" x2=\"250\" y2=\"50\" class=\"o\" style=\"stroke-width:4\"/><line x1=\"140\" y1=\"170\" x2=\"140\" y2=\"110\" class=\"o\" style=\"stroke-width:4\"/><line x1=\"250\" y1=\"50\" x2=\"232\" y2=\"50\" class=\"o\" style=\"stroke-width:4\"/><line x1=\"140\" y1=\"110\" x2=\"122\" y2=\"110\" class=\"o\" style=\"stroke-width:4\"/><line x1=\"290\" y1=\"170\" x2=\"290\" y2=\"186\" class=\"o\" style=\"stroke-width:4\"/><circle cx=\"70\" cy=\"170\" r=\"10\" class=\"badf\"/><line x1=\"62\" y1=\"170\" x2=\"78\" y2=\"170\" class=\"o\" style=\"stroke:#fff;stroke-width:2\"/><text x=\"16\" y=\"154\" class=\"wa\">1 main valve: OFF</text><text x=\"10\" y=\"196\">water meter side</text><circle cx=\"232\" cy=\"50\" r=\"5\" class=\"y\"/><circle cx=\"290\" cy=\"188\" r=\"5\" class=\"y\"/><text x=\"226\" y=\"42\" class=\"k\" text-anchor=\"end\">2 open highest faucet</text><text x=\"282\" y=\"212\" class=\"k\" text-anchor=\"end\">3 open lowest tap</text><path d=\"M290 196 v6\" class=\"a\"/><path d=\"M286 198 v6 M294 198 v6\" class=\"a\"/><text x=\"20\" y=\"60\" class=\"ac\">air in at the top,</text><text x=\"20\" y=\"72\" class=\"ac\">water out the bottom</text>",
+   "h": 218,
+   "cap": "Opening a faucet up high lets air in so the pipes empty through the low one, the way a straw empties when you lift your finger."
+  },
+  "cutter": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Tubing cutter: light, turn, tighten</text><rect x=\"10\" y=\"70\" width=\"300\" height=\"24\" class=\"w\"/><g><rect x=\"132\" y=\"36\" width=\"28\" height=\"74\" rx=\"6\" class=\"tb\"/><circle cx=\"146\" cy=\"56\" r=\"8\" class=\"bk\"/><rect x=\"141\" y=\"110\" width=\"10\" height=\"16\" class=\"tb\"/><rect x=\"128\" y=\"126\" width=\"36\" height=\"12\" rx=\"3\" class=\"y\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 0;0 -4;0 0;0 4;0 0\" dur=\"1.6s\" repeatCount=\"indefinite\"/></g><path d=\"M120 46 a40 40 0 0 0 0 72\" class=\"a\"/><polygon points=\"120,118 128,112 128,122\" class=\"af\"/><text x=\"146\" y=\"28\" text-anchor=\"middle\">wheel sits on your mark</text><text x=\"172\" y=\"124\" class=\"k\">knob: +1/4 turn</text><text x=\"172\" y=\"136\">after each spin</text><text x=\"10\" y=\"164\">Spin the cutter all the way around the pipe.</text><text x=\"10\" y=\"178\">Tighten a little, spin again. Repeat.</text><text x=\"10\" y=\"192\" class=\"wa\">Cranking hard dents the pipe out of round.</text>",
+   "h": 200,
+   "title": "Use a tubing cutter",
+   "cap": "Snug the wheel onto the mark, spin the cutter around the pipe, then tighten the knob about a quarter turn. It takes 8 to 15 spins."
+  },
+  "deburr": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Remove the burr, inside and out</text><rect x=\"20\" y=\"50\" width=\"100\" height=\"10\" class=\"w\"/><rect x=\"20\" y=\"96\" width=\"100\" height=\"10\" class=\"w\"/><rect x=\"20\" y=\"60\" width=\"100\" height=\"36\" class=\"bk\"/><polygon points=\"120,60 112,60 120,70\"  class=\"badf\"/><polygon points=\"120,96 112,96 120,86\" class=\"badf\"/><rect x=\"180\" y=\"50\" width=\"100\" height=\"10\" class=\"w\"/><rect x=\"180\" y=\"96\" width=\"100\" height=\"10\" class=\"w\"/><rect x=\"180\" y=\"60\" width=\"100\" height=\"36\" class=\"bk\"/><text x=\"20\" y=\"40\" class=\"wa\">BURR: lip curls inward</text><text x=\"180\" y=\"40\" class=\"gd\">CLEAN: full-size opening</text><text x=\"20\" y=\"124\">Chokes flow, whistles,</text><text x=\"20\" y=\"136\">cuts O-rings in push-fit.</text><text x=\"180\" y=\"124\">Twist the reamer on the</text><text x=\"180\" y=\"136\">cutter inside the end;</text><text x=\"180\" y=\"148\">file or emery the outside.</text>",
+   "h": 158,
+   "cap": "Every cut leaves a small curled lip inside the pipe. Ream it away until the inside edge is smooth and full size."
+  },
+  "clean": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Clean to bright copper</text><rect x=\"10\" y=\"56\" width=\"150\" height=\"28\" class=\"w\"/><rect x=\"104\" y=\"56\" width=\"56\" height=\"28\" class=\"y\"/><text x=\"132\" y=\"100\" class=\"k\" text-anchor=\"middle\">1\" shiny</text><text x=\"12\" y=\"100\">dull / oxidized</text><rect x=\"110\" y=\"44\" width=\"44\" height=\"10\" rx=\"2\" class=\"th\"/><text x=\"132\" y=\"38\" text-anchor=\"middle\">emery cloth</text><rect x=\"190\" y=\"50\" width=\"70\" height=\"40\" rx=\"4\" class=\"tb\"/><rect x=\"232\" y=\"58\" width=\"28\" height=\"24\" class=\"y\"/><rect x=\"268\" y=\"66\" width=\"44\" height=\"8\" rx=\"2\" class=\"bk\"/><line x1=\"240\" y1=\"62\" x2=\"240\" y2=\"78\" class=\"o\"/><line x1=\"245\" y1=\"62\" x2=\"245\" y2=\"78\" class=\"o\"/><line x1=\"250\" y1=\"62\" x2=\"250\" y2=\"78\" class=\"o\"/><line x1=\"255\" y1=\"62\" x2=\"255\" y2=\"78\" class=\"o\"/><line x1=\"260\" y1=\"62\" x2=\"260\" y2=\"78\" class=\"o\"/><text x=\"225\" y=\"108\" text-anchor=\"middle\">fitting brush</text><text x=\"225\" y=\"120\" text-anchor=\"middle\">inside the socket</text><text x=\"10\" y=\"140\">Shine where solder or the seal will sit.</text><text x=\"10\" y=\"152\" class=\"wa\">Then hands off: skin oil stops solder.</text>",
+   "h": 162,
+   "cap": "Rub until the copper is evenly bright like a new penny, on the pipe end and inside the fitting socket."
+  },
+  "flux": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Flux: a thin, even coat</text><rect x=\"10\" y=\"62\" width=\"160\" height=\"30\" class=\"w\"/><rect x=\"120\" y=\"60\" width=\"50\" height=\"34\" rx=\"3\" class=\"th\"/><g transform=\"rotate(-30 190 60)\"><rect x=\"176\" y=\"36\" width=\"70\" height=\"8\" rx=\"2\" class=\"y\"/><rect x=\"166\" y=\"34\" width=\"12\" height=\"12\" rx=\"2\" class=\"th\"/></g><text x=\"145\" y=\"112\" class=\"k\" text-anchor=\"middle\">thin coat, 1\" long</text><rect x=\"210\" y=\"62\" width=\"100\" height=\"30\" rx=\"2\" class=\"w\"/><rect x=\"250\" y=\"56\" width=\"60\" height=\"42\" rx=\"3\" class=\"badf\" opacity=\".35\"/><text x=\"260\" y=\"112\" class=\"wa\" text-anchor=\"middle\">too thick: drips,</text><text x=\"260\" y=\"124\" text-anchor=\"middle\">pits the pipe later</text><text x=\"10\" y=\"148\">Coat the pipe end AND inside the fitting.</text>",
+   "h": 158,
+   "cap": "Flux keeps the cleaned copper from re-oxidizing while you heat it. Use a lead-free, water-soluble paste and a small brush, never your finger."
+  },
+  "heat": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Heat the fitting, not the solder</text><rect x=\"10\" y=\"80\" width=\"300\" height=\"24\" class=\"w\"/><rect x=\"120\" y=\"72\" width=\"80\" height=\"40\" rx=\"4\" class=\"tb\"/><line x1=\"160\" y1=\"72\" x2=\"160\" y2=\"112\" class=\"o d\"/><rect x=\"146\" y=\"166\" width=\"28\" height=\"30\" rx=\"4\" class=\"bk\"/><path d=\"M160 166 C140 150 146 128 160 116 C174 128 180 150 160 166z\" class=\"y\"/><path d=\"M160 166 C152 156 154 146 160 138 C166 146 168 156 160 166z\" class=\"af\"/><text x=\"200\" y=\"148\" class=\"ac\">tip of the inner blue</text><text x=\"200\" y=\"160\">cone touches the</text><text x=\"200\" y=\"172\">fitting, middle-ish</text><text x=\"10\" y=\"140\">Sweep the flame</text><text x=\"10\" y=\"152\">over the fitting</text><text x=\"160\" y=\"62\" class=\"k\" text-anchor=\"middle\">solder goes on the far side</text>",
+   "h": 202,
+   "cap": "The hottest spot of a torch flame is just past the tip of the small blue inner cone. Put that on the fitting body, not on the solder."
+  },
+  "solder": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Capillary action pulls solder in</text><rect x=\"10\" y=\"74\" width=\"300\" height=\"10\" class=\"w\"/><rect x=\"10\" y=\"116\" width=\"300\" height=\"10\" class=\"w\"/><rect x=\"100\" y=\"60\" width=\"120\" height=\"14\" class=\"tb\"/><rect x=\"100\" y=\"126\" width=\"120\" height=\"14\" class=\"tb\"/><line x1=\"160\" y1=\"60\" x2=\"160\" y2=\"140\" class=\"o d\"/><rect x=\"100\" y=\"72\" width=\"0\" height=\"4\" class=\"th\"><animate attributeName=\"width\" values=\"0;58;58\" keyTimes=\"0;0.7;1\" dur=\"3s\" repeatCount=\"indefinite\"/></rect><rect x=\"100\" y=\"124\" width=\"0\" height=\"4\" class=\"th\"><animate attributeName=\"width\" values=\"0;58;58\" keyTimes=\"0;0.7;1\" dur=\"3s\" repeatCount=\"indefinite\"/></rect><line x1=\"88\" y1=\"40\" x2=\"100\" y2=\"58\" class=\"o\" style=\"stroke-width:3\"/><text x=\"10\" y=\"36\">solder wire touches the joint</text><line x1=\"110\" y1=\"98\" x2=\"150\" y2=\"98\" class=\"a\"/><polygon points=\"150.0,98.0 143.7,101.0 143.7,95.0\" class=\"af\"/><text x=\"168\" y=\"102\" class=\"ac\">solder flows in toward</text><text x=\"168\" y=\"114\" class=\"ac\">the heat, filling the gap</text><text x=\"10\" y=\"166\">Done when a silver ring shows all the way around.</text>",
+   "h": 176,
+   "title": "Watch solder wick in",
+   "cap": "If the joint is hot enough, solder melts on contact and disappears into the gap. If it balls up and rolls off, the fitting is not hot yet."
+  },
+  "shield": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Protect the wall before you light up</text><rect x=\"10\" y=\"30\" width=\"18\" height=\"150\" class=\"w\"/><rect x=\"140\" y=\"30\" width=\"18\" height=\"150\" class=\"w\"/><rect x=\"28\" y=\"30\" width=\"112\" height=\"150\" class=\"b\" opacity=\".35\"/><text x=\"84\" y=\"46\" text-anchor=\"middle\">wood + insulation</text><rect x=\"44\" y=\"60\" width=\"80\" height=\"80\" rx=\"3\" class=\"y\"/><text x=\"84\" y=\"96\" class=\"k\" text-anchor=\"middle\">heat</text><text x=\"84\" y=\"108\" class=\"k\" text-anchor=\"middle\">shield</text><rect x=\"10\" y=\"140\" width=\"160\" height=\"12\" class=\"w\"/><circle cx=\"96\" cy=\"146\" r=\"9\" class=\"tb\"/><text x=\"190\" y=\"60\" class=\"k\">Fire cloth or metal</text><text x=\"190\" y=\"72\">shield behind joint</text><text x=\"190\" y=\"96\" class=\"k\">Spray bottle of</text><text x=\"190\" y=\"108\">water in reach</text><text x=\"190\" y=\"132\" class=\"k\">ABC extinguisher</text><text x=\"190\" y=\"144\">within arm's reach</text><text x=\"10\" y=\"198\" class=\"wa\">Stay and check for 30 min after the last joint.</text>",
+   "h": 206,
+   "cap": "Most torch fires start smoldering inside a wall or joist bay and show up after you leave. Shield it, wet it, and watch it."
+  },
+  "bread": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">A trickle of water ruins a solder joint</text><rect x=\"10\" y=\"60\" width=\"140\" height=\"22\" class=\"w\"/><rect x=\"20\" y=\"64\" width=\"110\" height=\"14\" class=\"wt\"/><path d=\"M150 70 q8 0 8 14 q0 6 -4 6 q-4 0 -4 -6z\" class=\"wt\"/><text x=\"10\" y=\"104\" class=\"wa\">water turns to steam and</text><text x=\"10\" y=\"116\" class=\"wa\">blows the solder out</text><rect x=\"180\" y=\"60\" width=\"130\" height=\"22\" class=\"w\"/><rect x=\"250\" y=\"64\" width=\"40\" height=\"14\" class=\"th\"/><rect x=\"190\" y=\"64\" width=\"50\" height=\"14\" class=\"wt\"/><text x=\"270\" y=\"56\" class=\"k\" text-anchor=\"middle\">bread</text><text x=\"180\" y=\"104\" class=\"gd\">soft bread, no crust,</text><text x=\"180\" y=\"116\">holds water back, then</text><text x=\"180\" y=\"128\">dissolves later</text><text x=\"10\" y=\"156\">Better fixes: open a lower faucet, or use</text><text x=\"10\" y=\"168\">a push-fit fitting, which works on wet pipe.</text>",
+   "h": 178,
+   "cap": "You cannot solder a pipe with water in it. Stop the trickle first or switch that joint to push-fit."
+  },
+  "depth": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Push-fit: mark the depth, push to it</text><rect x=\"150\" y=\"50\" width=\"120\" height=\"70\" rx=\"6\" class=\"tb\"/><rect x=\"160\" y=\"62\" width=\"10\" height=\"46\" class=\"y\"/><rect x=\"180\" y=\"60\" width=\"8\" height=\"50\" rx=\"2\" class=\"badf\" opacity=\".6\"/><line x1=\"210\" y1=\"50\" x2=\"210\" y2=\"120\" class=\"o\" style=\"stroke-width:3\"/><rect x=\"30\" y=\"70\" width=\"180\" height=\"30\" class=\"w\"/><line x1=\"150\" y1=\"66\" x2=\"150\" y2=\"104\" class=\"o\" style=\"stroke-width:3\"/><line x1=\"30\" y1=\"66\" x2=\"30\" y2=\"104\" class=\"o d\"/><text x=\"124\" y=\"140\" class=\"gd\" text-anchor=\"middle\">mark: shows at the edge</text><line x1=\"150\" y1=\"130\" x2=\"150\" y2=\"106\" class=\"good\"/><polygon points=\"150.0,106.0 153.0,112.3 147.0,112.3\" class=\"goodf\"/><text x=\"165\" y=\"42\" text-anchor=\"middle\">grab ring</text><text x=\"214\" y=\"138\">stop</text><text x=\"10\" y=\"160\">1/2\" pipe goes in about 7/8\"; 3/4\" about 1\".</text><text x=\"10\" y=\"172\">Use the gauge or chart from the maker.</text><text x=\"196\" y=\"42\">O-ring</text>",
+   "h": 180,
+   "cap": "Mark the insert depth on the pipe before you push. When the fitting is fully on, the mark sits right at the fitting edge."
+  },
+  "slip": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Fix a pinhole with a repair coupling</text><text x=\"10\" y=\"36\" class=\"wa\">BEFORE</text><rect x=\"10\" y=\"44\" width=\"300\" height=\"20\" class=\"w\"/><circle cx=\"160\" cy=\"54\" r=\"3\" class=\"badf\"/><path d=\"M160 64 q-4 8 0 12 q4 -4 0 -12\" class=\"wt\"/><line x1=\"140\" y1=\"40\" x2=\"140\" y2=\"68\" class=\"bad d\"/><line x1=\"180\" y1=\"40\" x2=\"180\" y2=\"68\" class=\"bad d\"/><text x=\"190\" y=\"36\" class=\"wa\">cut out about 1\"</text><text x=\"10\" y=\"100\" class=\"gd\">AFTER</text><rect x=\"10\" y=\"108\" width=\"128\" height=\"20\" class=\"w\"/><rect x=\"182\" y=\"108\" width=\"128\" height=\"20\" class=\"w\"/><rect x=\"110\" y=\"102\" width=\"100\" height=\"32\" rx=\"4\" class=\"tb\"/><line x1=\"110\" y1=\"140\" x2=\"110\" y2=\"146\" class=\"o\"/><line x1=\"210\" y1=\"140\" x2=\"210\" y2=\"146\" class=\"o\"/><line x1=\"110\" y1=\"146\" x2=\"210\" y2=\"146\" class=\"o\"/><text x=\"160\" y=\"160\" text-anchor=\"middle\">centered over the gap</text><text x=\"10\" y=\"182\">Slip coupling: no stop inside, so it slides</text><text x=\"10\" y=\"194\">all the way on, then back to center.</text>",
+   "h": 202,
+   "cap": "Mark half the coupling length on each pipe end so you can see it is centered. Each end must cover at least the full socket depth."
+  },
+  "pex": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Changing from copper to PEX</text><rect x=\"10\" y=\"60\" width=\"110\" height=\"20\" class=\"w\"/><text x=\"10\" y=\"52\">copper</text><rect x=\"118\" y=\"54\" width=\"54\" height=\"32\" rx=\"4\" class=\"tb\"/><text x=\"145\" y=\"104\" class=\"k\" text-anchor=\"middle\">adapter</text><rect x=\"170\" y=\"62\" width=\"140\" height=\"16\" rx=\"3\" class=\"m\"/><text x=\"310\" y=\"52\" text-anchor=\"end\">PEX</text><text x=\"10\" y=\"128\">Push-fit: copper in one side, PEX (with its</text><text x=\"10\" y=\"140\">stiffener insert) in the other.</text><text x=\"10\" y=\"160\">Solder: sweat a copper-by-PEX adapter, let it</text><text x=\"10\" y=\"172\">cool fully, THEN crimp or clamp the PEX.</text>",
+   "h": 182,
+   "cap": "Never heat near PEX. Solder the adapter first and let it cool, or use a push-fit transition with no heat at all."
+  },
+  "test": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Turn water on slowly, then look</text><circle cx=\"60\" cy=\"80\" r=\"34\" class=\"bk\"/><line x1=\"60\" y1=\"80\" x2=\"60\" y2=\"52\" class=\"o\" style=\"stroke-width:4\"/><path d=\"M60 40 a40 40 0 0 1 36 22\" class=\"a\"/><polygon points=\"96,62 88,58 98,54\" class=\"af\"/><text x=\"60\" y=\"136\" class=\"k\" text-anchor=\"middle\">main: open a little</text><text x=\"60\" y=\"148\" text-anchor=\"middle\">at a time</text><rect x=\"150\" y=\"70\" width=\"160\" height=\"20\" class=\"w\"/><rect x=\"200\" y=\"64\" width=\"50\" height=\"32\" rx=\"4\" class=\"tb\"/><rect x=\"212\" y=\"102\" width=\"26\" height=\"14\" rx=\"2\" class=\"bk\"/><text x=\"225\" y=\"128\" text-anchor=\"middle\">dry tissue</text><text x=\"150\" y=\"52\" class=\"k\">wipe dry, then check each joint</text><text x=\"150\" y=\"146\" class=\"wa\">Any drop? Water off,</text><text x=\"150\" y=\"158\" class=\"wa\">drain, redo the joint.</text>",
+   "h": 166,
+   "cap": "Bleed air at a faucet as the pipes fill. Then hold dry tissue under each joint. A wet spot shows a leak too small to see."
+  }
+ },
+ "glossary": [
+  [
+   "Sweat / solder",
+   "Joining copper by heating a fitting and melting solder into the joint."
+  ],
+  [
+   "Flux",
+   "A paste that cleans and protects copper while it's heated so solder can flow."
+  ],
+  [
+   "Capillary action",
+   "The way liquid is pulled into a very narrow gap. It draws melted solder into the joint."
+  ],
+  [
+   "Burr",
+   "The sharp lip left inside a pipe after cutting."
+  ],
+  [
+   "Type M / L / K",
+   "Copper wall thickness: M is thinnest (red print), L medium (blue), K thickest (green)."
+  ],
+  [
+   "Nominal size",
+   "The trade name of the pipe size (1/2\", 3/4\"). The outside is 1/8\" bigger."
+  ],
+  [
+   "Push-to-connect",
+   "A fitting with an O-ring and grab ring that seals when you push the pipe in."
+  ],
+  [
+   "Press fitting",
+   "A fitting with an O-ring that is crimped onto the pipe with a powered press tool."
+  ],
+  [
+   "Slip (repair) coupling",
+   "A coupling with no stop inside, so it can slide along the pipe to bridge a gap."
+  ],
+  [
+   "MAPP",
+   "A hotter-burning torch gas than propane, sold in yellow cylinders."
+  ],
+  [
+   "PEX",
+   "Flexible plastic water tubing, often red, blue or white."
+  ]
+ ]
+}
