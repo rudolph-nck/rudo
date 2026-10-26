@@ -1,0 +1,754 @@
+{
+ "slug": "toilet-repair",
+ "title": "Fix a Toilet",
+ "eyebrow": "Plumbing · toilets",
+ "category": "Plumbing",
+ "difficulty": "Beginner",
+ "time": "15 min–2 hours",
+ "summary": "Find and fix the common toilet problems: a toilet that runs, flushes weakly, leaks, fills slowly or has a loose handle. Pick your problem and only the steps you need are shown.",
+ "safety": "Shut off the water at the valve behind the toilet before taking parts apart. The tank lid is heavy porcelain: set it on a towel where it can't fall. <b>Never mix bleach with vinegar or other cleaners.</b> Don't force old valves or crank nuts on porcelain.",
+ "pro": "the shutoff valve won't close or leaks from its body, the porcelain is cracked, the floor around the toilet is soft, or every drain in the house is slow. Repairs like these normally don't need a permit.",
+ "questions": [
+  {
+   "id": "problem",
+   "label": "What's wrong?",
+   "type": "choice",
+   "default": "runs",
+   "options": [
+    {
+     "v": "runs",
+     "label": "Runs constantly",
+     "hint": "or refills by itself"
+    },
+    {
+     "v": "weak",
+     "label": "Weak or incomplete flush"
+    },
+    {
+     "v": "base",
+     "label": "Leaks at the base"
+    },
+    {
+     "v": "tankbowl",
+     "label": "Leaks between tank and bowl"
+    },
+    {
+     "v": "slowfill",
+     "label": "Fills slowly"
+    },
+    {
+     "v": "handle",
+     "label": "Handle loose"
+    }
+   ]
+  },
+  {
+   "id": "flap",
+   "label": "Flapper size",
+   "type": "choice",
+   "default": "2",
+   "options": [
+    {
+     "v": "2",
+     "label": "2\"",
+     "hint": "most common"
+    },
+    {
+     "v": "3",
+     "label": "3\"",
+     "hint": "many newer toilets"
+    }
+   ],
+   "hint": "Measure the drain opening the flapper covers, or read the old flapper."
+  }
+ ],
+ "overviewFig": "anatomy",
+ "tools": [
+  {
+   "id": "color",
+   "c": "Supplies",
+   "n": "Food coloring (dark)",
+   "must": true,
+   "w": "Shows whether the flapper leaks.",
+   "q": "food coloring",
+   "when": "a.problem==='runs'"
+  },
+  {
+   "id": "flapper",
+   "c": "Parts",
+   "n": "{{a.flap}}\" toilet flapper",
+   "must": true,
+   "w": "The most common fix for a running toilet. Bring the old one to match.",
+   "q": "{{a.flap}} inch toilet flapper",
+   "qty": "1",
+   "when": "a.problem==='runs'"
+  },
+  {
+   "id": "fill",
+   "c": "Parts",
+   "n": "Universal anti-siphon fill valve kit",
+   "must": false,
+   "w": "If the old fill valve hisses, won't shut off, or won't adjust.",
+   "q": "universal toilet fill valve",
+   "qty": "1",
+   "when": "a.problem==='runs'||a.problem==='slowfill'"
+  },
+  {
+   "id": "t2b",
+   "c": "Parts",
+   "n": "Tank-to-bowl gasket and bolt kit",
+   "must": true,
+   "w": "New gasket, bolts and washers. Check it fits your toilet brand.",
+   "q": "tank to bowl gasket bolt kit",
+   "qty": "1",
+   "when": "a.problem==='tankbowl'"
+  },
+  {
+   "id": "wax",
+   "c": "Parts",
+   "n": "Wax ring + brass closet bolts",
+   "must": true,
+   "w": "Resealing a toilet always needs a new ring.",
+   "q": "toilet wax ring brass closet bolts",
+   "qty": "1 each",
+   "when": "a.problem==='base'"
+  },
+  {
+   "id": "supply",
+   "c": "Parts",
+   "n": "Braided toilet supply line, 3/8\" comp x 7/8\" ballcock",
+   "must": false,
+   "w": "Replace an old or leaking line while you're there.",
+   "q": "toilet supply line braided 3/8 x 7/8",
+   "qty": "1",
+   "when": "a.problem==='base'||a.problem==='slowfill'"
+  },
+  {
+   "id": "caulk",
+   "c": "Parts",
+   "n": "Kitchen and bath caulk + shims",
+   "must": false,
+   "w": "To finish the base after resetting.",
+   "q": "kitchen bath caulk white",
+   "when": "a.problem==='base'"
+  },
+  {
+   "id": "handle",
+   "c": "Parts",
+   "n": "Universal toilet handle (front, side or angle mount)",
+   "must": true,
+   "w": "Match where your handle sits on the tank.",
+   "q": "universal toilet tank lever",
+   "qty": "1",
+   "when": "a.problem==='handle'"
+  },
+  {
+   "id": "plunger",
+   "c": "Tools",
+   "n": "Flange plunger (bell or accordion type)",
+   "must": true,
+   "w": "A flat sink plunger can't seal in a toilet.",
+   "q": "toilet flange plunger",
+   "when": "a.problem==='weak'"
+  },
+  {
+   "id": "auger",
+   "c": "Tools",
+   "n": "Closet auger",
+   "must": false,
+   "w": "For a clog the plunger can't clear.",
+   "q": "toilet closet auger",
+   "when": "a.problem==='weak'"
+  },
+  {
+   "id": "vinegar",
+   "c": "Supplies",
+   "n": "White vinegar, small mirror, stiff wire or Allen key",
+   "must": true,
+   "w": "To dissolve and pick out mineral crust in the rim holes.",
+   "q": "white vinegar gallon",
+   "when": "a.problem==='weak'"
+  },
+  {
+   "id": "wrench",
+   "c": "Tools",
+   "n": "Adjustable wrench x2",
+   "must": true,
+   "w": "Nuts on the supply line, tank and fill valve.",
+   "q": "adjustable wrench"
+  },
+  {
+   "id": "screwdriver",
+   "c": "Tools",
+   "n": "Screwdriver (flat and Phillips)",
+   "must": true,
+   "w": "Holds tank bolts and adjusts old float screws.",
+   "q": "screwdriver set"
+  },
+  {
+   "id": "knife",
+   "c": "Tools",
+   "n": "Putty knife",
+   "must": true,
+   "w": "Scrapes old wax.",
+   "q": "putty knife",
+   "when": "a.problem==='base'"
+  },
+  {
+   "id": "pad",
+   "c": "Supplies",
+   "n": "Non-scratch scrub pad",
+   "must": false,
+   "w": "Cleans the flapper seat and mineral spots.",
+   "q": "non scratch scrub sponge"
+  },
+  {
+   "id": "sponge",
+   "c": "Supplies",
+   "n": "Large sponge, bucket, towels",
+   "must": true,
+   "w": "Empties the tank so you can work.",
+   "q": "large sponge bucket"
+  },
+  {
+   "id": "gloves",
+   "c": "Safety",
+   "n": "Rubber gloves",
+   "must": true,
+   "w": "Toilet water and wax are dirty.",
+   "q": "rubber gloves"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Understand the toilet",
+   "steps": [
+    {
+     "id": "k1",
+     "t": "How a toilet tank works",
+     "time": "5 min",
+     "idea": "Know the parts, and most toilet problems are easy to find.",
+     "fig": "anatomy",
+     "b": "<ol><li>Take the lid off the tank and set it on a towel. It's heavy porcelain and breaks easily.</li><li>Push the handle and watch: the chain lifts the <b>flapper</b>, and the tank water rushes into the bowl.</li><li>When the tank empties, the flapper drops back and seals.</li><li>The <b>float</b> drops, which opens the <b>fill valve</b>. It refills the tank, and the small <b>refill tube</b> squirts water down the overflow tube to refill the bowl.</li><li>When the float rises to the set level, the fill valve shuts off.</li><li>The <b>overflow tube</b> is a safety drain: if the water ever gets too high, it spills into the bowl instead of the floor.</li></ol>",
+     "faq": [
+      [
+       "Is tank water clean?",
+       "It's clean supply water, but the tank can grow slime. Wear gloves if it's grimy."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Find the cause",
+   "steps": [
+    {
+     "id": "d1",
+     "t": "Do the food-coloring test",
+     "time": "25 min",
+     "idea": "A leaky flapper lets tank water seep into the bowl, so the tank keeps refilling.",
+     "when": "a.problem==='runs'",
+     "fig": "dye",
+     "need": [
+      "color"
+     ],
+     "timers": [
+      [
+       "Dye test",
+       20
+      ]
+     ],
+     "b": "<ol><li>Let the tank fill completely and stop.</li><li>Put about 10 drops of food coloring in the tank water. Don't flush.</li><li>Wait 20 minutes.</li><li>Look in the bowl. Colored water = the flapper is leaking. Replace it.</li><li>No color? Look at the overflow tube: if water trickles into it, the water level is too high. Adjust the fill valve.</li><li>Flush afterward so the color doesn't stain.</li></ol>",
+     "faq": [
+      [
+       "The toilet refills by itself every so often.",
+       "That's called a phantom flush. It's almost always a leaking flapper."
+      ]
+     ]
+    },
+    {
+     "id": "d2",
+     "t": "Check the water level",
+     "time": "5 min",
+     "idea": "Too high and it runs into the overflow; too low and the flush is weak.",
+     "when": "a.problem==='runs'||a.problem==='weak'",
+     "fig": "level",
+     "b": "<ol><li>Let the tank fill and stop.</li><li>Look for a fill line marked on the inside of the tank or on the overflow tube.</li><li>The water should sit at that line, or about 1\" below the top of the overflow tube.</li><li>Water spilling into the overflow tube? The level is too high.</li><li>Water 2\" or more below the line? Too low: that gives a weak flush. Adjust it in the Fix section.</li></ol>"
+    },
+    {
+     "id": "d3",
+     "t": "Check the chain",
+     "time": "5 min",
+     "idea": "A chain that's too tight holds the flapper open; too long and the flapper closes early or snags.",
+     "when": "a.problem==='runs'||a.problem==='weak'||a.problem==='handle'",
+     "fig": "chain",
+     "b": "<ol><li>With the flapper closed, look at the chain. It should hang with about 1/2\" of slack.</li><li>Tight with no slack: unclip it and move it one or two links longer.</li><li>Lots of slack or a kink under the flapper: move it shorter.</li><li>Flush and watch: the flapper should lift fully and drop flat.</li><li>Cut off extra chain past the clip, leaving 1\" so you can adjust later.</li></ol>",
+     "faq": [
+      [
+       "The chain is fine but the handle has to be held down.",
+       "The chain may be too long, or the flapper is waterlogged and sinking early. Try a shorter chain, then a new flapper."
+      ]
+     ]
+    },
+    {
+     "id": "d4",
+     "t": "Make sure the shutoff is fully open",
+     "time": "5 min",
+     "idea": "A half-closed valve or kinked line starves the tank.",
+     "when": "a.problem==='slowfill'||a.problem==='weak'",
+     "b": "<ol><li>Turn the shutoff valve behind the toilet counterclockwise until it stops. Quarter-turn valves: handle in line with the pipe.</li><li>Follow the supply line: no kinks or flattened spots.</li><li>Check other faucets. If the whole house has low pressure, the problem isn't the toilet.</li></ol>",
+     "stop": "If an old valve won't turn by hand, don't force it with pliers: it can break and flood. Shut off the main first, or call a plumber."
+    },
+    {
+     "id": "d5",
+     "t": "Find where the water comes from",
+     "time": "30 min",
+     "idea": "Water on the floor can come from four places. Fix the right one.",
+     "when": "a.problem==='base'||a.problem==='tankbowl'",
+     "fig": "tankbolt",
+     "need": [
+      "sponge"
+     ],
+     "b": "<ol><li>Dry everything: floor, base, tank, bolts, supply line.</li><li>Lay dry paper towels around the base.</li><li>Run a dry tissue around the supply nuts and the shutoff valve stem. Wet = supply leak.</li><li>Check under the tank at each bolt and in the middle. Wet = tank-to-bowl leak.</li><li>Is the whole tank outside beaded with water? That's condensation (sweating), not a leak.</li><li>Flush a few times and watch the base. Water seeping from under the base right after a flush = the wax ring.</li></ol>",
+     "faq": [
+      [
+       "How do I stop condensation?",
+       "It's a humidity problem. Run the bath fan during and after showers, or install a tank liner or anti-sweat valve."
+      ],
+      [
+       "There's a crack in the porcelain.",
+       "A cracked tank or bowl can't be safely repaired. Replace the toilet."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Fix it",
+   "steps": [
+    {
+     "id": "x0",
+     "t": "Shut off the water and drain the tank",
+     "time": "10 min",
+     "idea": "An empty tank lets you work without a flood.",
+     "when": "a.problem!=='weak'&&a.problem!=='handle'",
+     "need": [
+      "sponge",
+      "gloves"
+     ],
+     "b": "<ol><li>Turn the shutoff valve clockwise until it stops.</li><li>Flush and hold the handle down to empty the tank.</li><li>Wait a minute: if water keeps coming in, the valve isn't sealing. Shut off the main.</li><li>Sponge out the water left in the bottom of the tank.</li></ol>"
+    },
+    {
+     "id": "x1",
+     "t": "Replace the flapper",
+     "time": "15 min",
+     "idea": "A new flapper stops most running toilets.",
+     "when": "a.problem==='runs'",
+     "fig": [
+      "flapper",
+      "chain"
+     ],
+     "need": [
+      "flapper",
+      "pad"
+     ],
+     "b": "<ol><li>Unhook the chain from the handle lever.</li><li>Unhook the flapper's two side ears from the pegs on the overflow tube. Ring-style? Slide it up off the tube, or cut it.</li><li>Look at the opening: about 2\" or 3\" across? Buy the matching size ({{a.flap}}\" chosen).</li><li>Wipe the seat (the rim the flapper sits on) with a non-scratch pad until smooth.</li><li>Hook the new flapper onto the pegs. Cut off the ring if your tube has pegs and the flapper came with both.</li><li>Clip the chain to the lever with about 1/2\" of slack.</li><li>Turn the water on and test.</li></ol>",
+     "faq": [
+      [
+       "New flapper still leaks.",
+       "The seat may be pitted or cracked. A flapper seat repair kit, or replacing the flush valve, fixes that."
+      ],
+      [
+       "Some flappers have a dial.",
+       "Adjustable flappers close sooner to save water. Set it to the highest setting first, then turn down only if it still flushes well."
+      ]
+     ]
+    },
+    {
+     "id": "x2",
+     "t": "Adjust the water level",
+     "time": "10 min",
+     "idea": "Set the fill valve so water stops at the line, not in the overflow.",
+     "when": "a.problem==='runs'||a.problem==='weak'||a.problem==='slowfill'",
+     "fig": [
+      "fillvalve",
+      "level"
+     ],
+     "need": [
+      "screwdriver"
+     ],
+     "b": "<ol><li>Find the float: a plastic cup that slides on the fill valve, or a ball on an arm.</li><li><b>Cup:</b> pinch the metal clip or turn the adjusting screw. Slide down for less water, up for more.</li><li><b>Ball on an arm:</b> turn the screw on top of the valve, or gently bend the arm down for less water.</li><li>Flush and let it refill. Check the level: at the line, or about 1\" below the overflow top.</li><li>Repeat in small steps until it's right.</li></ol>",
+     "faq": [
+      [
+       "Can't get it low enough.",
+       "The fill valve may be set too low in height. Raise it by twisting the body, or replace the valve."
+      ]
+     ]
+    },
+    {
+     "id": "x3",
+     "t": "Fix the refill tube",
+     "time": "5 min",
+     "idea": "The refill tube should squirt into the overflow, not siphon water down it.",
+     "when": "a.problem==='runs'",
+     "fig": "level",
+     "b": "<ol><li>Find the thin rubber tube from the fill valve.</li><li>Its end should clip to the top of the overflow tube, above the water.</li><li>If it's pushed down inside the overflow tube, pull it up and use the clip. Otherwise it siphons tank water away constantly.</li><li>If the clip is missing, buy a refill tube clip or fill valve kit.</li></ol>"
+    },
+    {
+     "id": "x4",
+     "t": "Replace the fill valve",
+     "time": "30 min",
+     "idea": "A worn fill valve hisses, refills slowly or won't shut off. A new one is under $20.",
+     "when": "a.problem==='runs'||a.problem==='slowfill'",
+     "fig": [
+      "fillvalve",
+      "level"
+     ],
+     "need": [
+      "fill",
+      "wrench",
+      "sponge"
+     ],
+     "b": "<ol><li>With the water off and tank sponged dry, unscrew the supply line from under the tank.</li><li>Under the tank, unscrew the big plastic locknut on the fill valve (counterclockwise from below).</li><li>Lift the old valve out.</li><li>Set the new valve's height so its CL mark is at least 1\" above the top of the overflow tube. Twist the body to adjust.</li><li>Push it through the hole with the cone washer inside the tank.</li><li>Thread on the locknut. Hand-tight plus a quarter turn.</li><li>Clip the refill tube above the overflow. Reconnect the supply line and turn the water on.</li><li>Set the water level with the float.</li></ol>",
+     "stop": "Don't overtighten the plastic locknut or supply nut: they crack and leak later. Hand-tight plus a quarter turn.",
+     "help": [
+      "leakCheck"
+     ],
+     "faq": [
+      [
+       "Why does the CL mark matter?",
+       "It keeps tank water from ever being sucked back into your drinking water. Most codes and makers require it."
+      ]
+     ]
+    },
+    {
+     "id": "x5",
+     "t": "Flush valve replacement (advanced)",
+     "time": "1-2 hours",
+     "idea": "If the flapper seat or overflow tube is cracked, the whole flush valve must be replaced, which means removing the tank.",
+     "when": "a.problem==='runs'",
+     "fig": "tankbolt",
+     "need": [
+      "t2b",
+      "wrench"
+     ],
+     "b": "<ol><li>Try a new flapper first. Only do this if the seat is cracked or badly pitted.</li><li>With water off and tank empty, disconnect the supply and remove the tank bolts.</li><li>Lift the tank off and lay it on its back on a towel.</li><li>Unscrew the big nut under the tank and lift out the flush valve.</li><li>Install the new valve, the new gasket and new tank bolts from a matching kit.</li><li>Reinstall the tank (see the tank-to-bowl step method) and test.</li></ol>",
+     "stop": "This is the most involved toilet repair. If your toilet is old, replacing the whole toilet may cost little more. A plumber can do it in an hour."
+    },
+    {
+     "id": "w1",
+     "t": "Clean the rim holes and siphon jet",
+     "time": "1 hour",
+     "idea": "Mineral crust in the small holes under the rim chokes the flush.",
+     "when": "a.problem==='weak'",
+     "fig": "rimjets",
+     "need": [
+      "vinegar",
+      "gloves"
+     ],
+     "ppe": [
+      "Gloves",
+      "Glasses"
+     ],
+     "timers": [
+      [
+       "Vinegar soak",
+       60
+      ]
+     ],
+     "b": "<ol><li>Look under the rim with a small mirror. Crusted or blocked holes mean limescale.</li><li>Turn the water off and flush to empty the tank.</li><li>Slowly pour about 1 qt of white vinegar down the overflow tube. It flows out through the rim holes.</li><li>Let it sit an hour.</li><li>Poke each rim hole with a stiff wire or small Allen key.</li><li>Clear the siphon jet (the larger hole at the bottom front of the bowl) the same way.</li><li>Turn the water on and flush several times.</li></ol>",
+     "stop": "Never mix vinegar or other cleaners with bleach. It releases toxic gas. Rinse the bowl well between products.",
+     "faq": [
+      [
+       "Can I use a store cleaner?",
+       "Yes, a limescale remover works too. Follow the label and ventilate."
+      ]
+     ]
+    },
+    {
+     "id": "w2",
+     "t": "Clear a partial clog",
+     "time": "20 min",
+     "idea": "A partial clog lets the bowl drain slowly and makes the flush weak.",
+     "when": "a.problem==='weak'",
+     "fig": "plunger",
+     "need": [
+      "plunger",
+      "auger",
+      "gloves"
+     ],
+     "ppe": [
+      "Gloves"
+     ],
+     "b": "<ol><li>Lay towels around the toilet. Don't flush again if the bowl is full.</li><li>Need water to cover the plunger cup: add some from a bucket if it's low.</li><li>Fold out the plunger's inner flange and put it into the drain hole at the bottom of the bowl.</li><li>Push down gently once to squeeze out the air.</li><li>Then push and pull hard 15-20 times, keeping the seal. Pull it off sharply at the end.</li><li>Water drains with a gurgle? Pour a bucket of water in to test before flushing.</li><li>Still slow: use a closet auger. Crank it into the drain, then pull back.</li></ol>",
+     "faq": [
+      [
+       "Can I use chemical drain cleaner?",
+       "Don't. It rarely clears toilet clogs, and it makes plunging dangerous if it splashes."
+      ],
+      [
+       "Every flush in the house is slow and gurgles.",
+       "The main drain or the roof vent may be blocked. Call a plumber or drain service."
+      ]
+     ]
+    },
+    {
+     "id": "b0",
+     "t": "Fix supply line or shutoff drips",
+     "time": "15 min",
+     "idea": "Small leaks at the line or valve are usually a nut that needs a little snugging.",
+     "when": "a.problem==='base'",
+     "need": [
+      "wrench",
+      "supply"
+     ],
+     "b": "<ol><li><b>Valve stem drip</b> (behind the handle): snug the packing nut just behind the handle 1/8 turn clockwise.</li><li><b>Nut at the valve:</b> hold the valve with one wrench, turn the nut 1/8 turn clockwise with the other.</li><li><b>Nut under the tank:</b> it's plastic. Snug by hand only.</li><li>Still drips? Turn the water off and replace the supply line. If the old line is cracked, bulged or plastic, replace it anyway.</li></ol>",
+     "stop": "If the valve leaks around its body or base, or it won't shut off, turn off the main and replace the valve or call a plumber."
+    },
+    {
+     "id": "b1",
+     "t": "Pull the toilet",
+     "time": "30 min",
+     "idea": "A leak at the base after flushing means the wax ring failed. The only fix is to lift the toilet and reseal it.",
+     "when": "a.problem==='base'",
+     "need": [
+      "wrench",
+      "sponge",
+      "gloves"
+     ],
+     "ppe": [
+      "Gloves"
+     ],
+     "b": "<ol><li>Water off, flush, and sponge the tank and bowl dry.</li><li>Disconnect the supply line under the tank.</li><li>Pry off the bolt caps and unscrew the two floor nuts. Rusted solid? Cut the bolts with a mini hacksaw.</li><li>Cut any caulk around the base with a utility knife.</li><li>Rock the toilet side to side, then lift it straight up with your legs. Get help: it's 60-100 lb.</li><li>Set it on cardboard or a trash bag. Stuff a rag in the drain.</li></ol>",
+     "stop": "Porcelain edges are sharp if it cracks. Wear gloves and lift with a helper if you can't do it comfortably."
+    },
+    {
+     "id": "b2",
+     "t": "Clean and check the flange",
+     "time": "20 min",
+     "idea": "New wax only seals on a clean, solid flange at the right height.",
+     "when": "a.problem==='base'",
+     "need": [
+      "knife",
+      "gloves"
+     ],
+     "b": "<ol><li>Scrape all the old wax off the flange and the toilet's outlet. Bag it for the trash.</li><li>Check the flange: cracked? Loose? Below the finished floor?</li><li>Press around the floor with your foot. Soft floor = rot.</li><li>A broken flange needs a repair ring; a low one needs a spacer. See the Replace a Toilet guide for those fixes.</li></ol>",
+     "stop": "Soft or rotted floor, or a cracked drain pipe, needs a pro before the toilet goes back."
+    },
+    {
+     "id": "b3",
+     "t": "Reseal and set the toilet",
+     "time": "30 min",
+     "idea": "New bolts, new ring, straight down, snug the nuts evenly.",
+     "when": "a.problem==='base'",
+     "need": [
+      "wax",
+      "wrench",
+      "caulk"
+     ],
+     "b": "<ol><li>Put new closet bolts in the flange slots, parallel to the wall.</li><li>Press the new wax ring onto the toilet's outlet horn.</li><li>Take the rag out of the drain.</li><li>Lower the toilet straight down onto the bolts. No sliding.</li><li>Press down and rock gently to seat it.</li><li>Shim if it rocks. Tighten the nuts a quarter turn each side, back and forth, until snug. Don't crank them.</li><li>Trim the bolts, add the caps, reconnect the water.</li><li>Caulk the front and sides of the base, leaving 1-2\" open at the back.</li></ol>",
+     "stop": "Take the rag out of the drain before setting the toilet. And if you lift it after it touched the wax, use a new ring.",
+     "help": [
+      "evenTighten"
+     ]
+    },
+    {
+     "id": "t1",
+     "t": "Snug the tank bolts",
+     "time": "10 min",
+     "idea": "A drip at a tank bolt is often fixed with 1/8 turn.",
+     "when": "a.problem==='tankbowl'",
+     "fig": "tankbolt",
+     "need": [
+      "wrench",
+      "screwdriver"
+     ],
+     "b": "<ol><li>Hold the bolt head inside the tank still with a screwdriver.</li><li>From below, turn the nut 1/8 turn clockwise.</li><li>Do the same on the other bolt to keep the tank level.</li><li>Dry it, flush a few times and check with a tissue.</li><li>Still dripping after one or two small turns? Stop and replace the gasket and bolts.</li></ol>",
+     "stop": "Cranking tank bolts cracks the tank or bowl. If 1/4 turn total doesn't stop it, replace the parts instead.",
+     "help": [
+      "evenTighten"
+     ]
+    },
+    {
+     "id": "t2",
+     "t": "Replace the tank gasket and bolts",
+     "time": "45 min",
+     "idea": "Fresh rubber in a tank-to-bowl kit stops leaks between tank and bowl.",
+     "when": "a.problem==='tankbowl'",
+     "fig": "tankbolt",
+     "need": [
+      "t2b",
+      "wrench",
+      "screwdriver",
+      "sponge"
+     ],
+     "b": "<ol><li>Water off, flush, sponge the tank completely dry.</li><li>Disconnect the supply line under the tank.</li><li>Hold each bolt head inside and unscrew the nut below. Cut rusted bolts with a mini hacksaw.</li><li>Lift the tank off and lay it on a towel.</li><li>Pull off the old gasket and washers. Clean the surfaces.</li><li>Fit the new gasket over the big nut under the tank. Put the new bolts through with rubber washers inside.</li><li>Set the tank on the bowl. Tighten the nuts a little at a time, side to side, until level and firm.</li><li>Reconnect the water and test.</li></ol>",
+     "help": [
+      "evenTighten",
+      "leakCheck"
+     ]
+    },
+    {
+     "id": "s1",
+     "t": "Clean the fill valve",
+     "time": "15 min",
+     "idea": "Grit from the pipes can block the fill valve and slow the refill.",
+     "when": "a.problem==='slowfill'",
+     "fig": "fillvalve",
+     "need": [
+      "sponge"
+     ],
+     "b": "<ol><li>Turn off the water and flush.</li><li>On most modern valves: press down on the top cap and turn it 1/8 turn counterclockwise to lift it off.</li><li>Hold a cup upside down over the open valve.</li><li>Turn the water on and off a few times to blast grit out.</li><li>Rinse the seal under the cap and put the cap back on.</li><li>Test the fill time. Still slow? Replace the fill valve.</li></ol>",
+     "faq": [
+      [
+       "My valve looks different.",
+       "Older brass or other-brand valves vary. Look up the model on the valve, or replace it with a universal one."
+      ]
+     ]
+    },
+    {
+     "id": "h1",
+     "t": "Tighten or replace the handle",
+     "time": "15 min",
+     "idea": "A loose handle usually just needs its nut snugged.",
+     "when": "a.problem==='handle'",
+     "fig": "handle",
+     "need": [
+      "handle",
+      "wrench"
+     ],
+     "b": "<ol><li>Look inside the tank at the nut holding the handle to the wall of the tank.</li><li>Most are reverse thread: from inside the tank, turn it counterclockwise to tighten.</li><li>Snug it by hand, then a little with a wrench. It's often plastic.</li><li>Broken handle? Unhook the chain, unscrew the nut, slide the old handle and arm out.</li><li>Slide the new arm in through the hole, thread on the nut, and set the chain with 1/2\" slack.</li><li>Bend or trim the new arm if it rubs the lid or other parts.</li></ol>"
+    }
+   ]
+  },
+  {
+   "name": "Test",
+   "steps": [
+    {
+     "id": "z1",
+     "t": "Turn on the water and test",
+     "time": "15 min",
+     "idea": "Prove the fix with a few full flushes and a dry-tissue check.",
+     "need": [
+      "sponge"
+     ],
+     "b": "<ol><li>Open the shutoff valve fully and let the tank fill.</li><li>Check the water stops at the right level.</li><li>Flush 5 times. Watch the flapper close and the tank refill.</li><li>Run a dry tissue around every joint you touched.</li><li>Put the tank lid back. Check again the next morning.</li></ol>",
+     "help": [
+      "leakCheck"
+     ],
+     "faq": [
+      [
+       "Still running after all this?",
+       "Do the dye test again. If the flapper seals and the level is right, the fill valve is passing water: replace it."
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "help": {
+  "evenTighten": {
+   "t": "Tighten nuts on porcelain",
+   "b": "<ol><li>Thread the nuts on by hand.</li><li>Turn one a quarter turn, then the other.</li><li>Keep alternating.</li><li>Stop as soon as the part doesn't move.</li><li>Never lean on the wrench: porcelain cracks without warning.</li></ol>"
+  },
+  "leakCheck": {
+   "t": "Check for leaks",
+   "b": "<ol><li>Wipe every joint dry.</li><li>Flush a few times.</li><li>Touch each joint with a dry tissue. Any wet spot is a leak.</li><li>Check again after an hour and the next day.</li></ol>"
+  }
+ },
+ "figs": {
+  "anatomy": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Inside the tank</text><rect x=\"90\" y=\"30\" width=\"140\" height=\"150\" rx=\"4\" class=\"bk\"/><rect x=\"92\" y=\"74\" width=\"136\" height=\"104\" class=\"wt\"/><rect x=\"118\" y=\"52\" width=\"12\" height=\"114\" class=\"bk\"/><rect x=\"112\" y=\"166\" width=\"64\" height=\"6\" class=\"bk\"/><rect x=\"132\" y=\"180\" width=\"28\" height=\"14\" class=\"bk\"/><path d=\"M132 166 Q152 158 172 166 Z\" class=\"m\"/><rect x=\"66\" y=\"38\" width=\"24\" height=\"10\" rx=\"3\" class=\"y\"/><line x1=\"90\" y1=\"44\" x2=\"160\" y2=\"44\" class=\"o\" style=\"stroke-width:3\"/><path d=\"M156 46 Q150 100 154 160\" class=\"o d\" fill=\"none\" style=\"stroke-width:1.5\"/><rect x=\"200\" y=\"60\" width=\"10\" height=\"124\" class=\"bk\"/><rect x=\"194\" y=\"50\" width=\"22\" height=\"12\" rx=\"2\" class=\"bk\"/><rect x=\"196\" y=\"90\" width=\"18\" height=\"26\" rx=\"2\" class=\"y\"/><rect x=\"198\" y=\"184\" width=\"14\" height=\"8\" class=\"inkf\"/><line x1=\"196\" y1=\"66\" x2=\"214\" y2=\"66\" class=\"a\" style=\"stroke-width:2\"/><path d=\"M196 54 Q164 34 126 50\" class=\"o\" fill=\"none\" style=\"stroke-width:1.5\"/><text x=\"10\" y=\"34\" class=\"k\">handle</text><text x=\"10\" y=\"100\" class=\"k\">overflow tube</text><line x1=\"80\" y1=\"98\" x2=\"116\" y2=\"98\" class=\"o\"/><text x=\"10\" y=\"128\" class=\"k\">chain</text><line x1=\"42\" y1=\"126\" x2=\"150\" y2=\"126\" class=\"o\"/><text x=\"10\" y=\"168\" class=\"k\">flapper</text><line x1=\"52\" y1=\"166\" x2=\"134\" y2=\"166\" class=\"o\"/><text x=\"236\" y=\"36\" class=\"k\">refill tube</text><line x1=\"234\" y1=\"34\" x2=\"190\" y2=\"42\" class=\"o\"/><text x=\"236\" y=\"68\" class=\"ac\">CL mark</text><text x=\"236\" y=\"84\">water level</text><line x1=\"234\" y1=\"82\" x2=\"228\" y2=\"76\" class=\"o\"/><text x=\"236\" y=\"108\" class=\"k\">float cup</text><text x=\"236\" y=\"150\" class=\"k\">fill valve</text><line x1=\"234\" y1=\"148\" x2=\"212\" y2=\"148\" class=\"o\"/><text x=\"10\" y=\"206\">Handle lifts flapper, tank empties, valve refills.</text>",
+   "h": 214,
+   "cap": "Two parts do almost everything: the flapper (lets water out) and the fill valve (lets water in). Most \"running toilet\" problems are one of these two."
+  },
+  "level": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Set the water level</text><rect x=\"20\" y=\"24\" width=\"280\" height=\"156\" rx=\"4\" class=\"bk\"/><rect x=\"22\" y=\"88\" width=\"276\" height=\"90\" class=\"wt\"/><rect x=\"100\" y=\"60\" width=\"16\" height=\"118\" class=\"bk\"/><rect x=\"180\" y=\"34\" width=\"14\" height=\"144\" class=\"bk\"/><rect x=\"172\" y=\"26\" width=\"30\" height=\"10\" rx=\"2\" class=\"bk\"/><line x1=\"170\" y1=\"34\" x2=\"206\" y2=\"34\" class=\"a\" style=\"stroke-width:2\"/><text x=\"212\" y=\"37\" class=\"ac\">CL mark</text><line x1=\"100\" y1=\"60\" x2=\"200\" y2=\"60\" class=\"o d\"/><line x1=\"84\" y1=\"62\" x2=\"84\" y2=\"86\" class=\"a\"/><polygon points=\"84.0,86.0 81.4,80.6 86.6,80.6\" class=\"af\"/><polygon points=\"84.0,62.0 86.6,67.4 81.4,67.4\" class=\"af\"/><text x=\"28\" y=\"76\" class=\"ac\">about 1\"</text><line x1=\"212\" y1=\"58\" x2=\"212\" y2=\"40\" class=\"a\"/><polygon points=\"212.0,40.0 214.6,45.4 209.4,45.4\" class=\"af\"/><polygon points=\"212.0,58.0 209.4,52.6 214.6,52.6\" class=\"af\"/><text x=\"220\" y=\"54\">1\" or more</text><path d=\"M172 40 Q140 30 112 54\" class=\"o\" fill=\"none\" style=\"stroke-width:1.5\"/><text x=\"28\" y=\"48\">refill tube</text><line x1=\"90\" y1=\"46\" x2=\"114\" y2=\"52\" class=\"o\"/><text x=\"124\" y=\"130\">overflow tube</text><text x=\"10\" y=\"196\">Water: about 1\" below the top of the overflow tube,</text><text x=\"10\" y=\"208\">or at the line marked inside the tank.</text>",
+   "h": 214,
+   "cap": "The refill tube clips above the overflow tube, never down inside it. The fill valve's CL (critical level) mark must sit at least 1\" above the overflow top."
+  },
+  "dye": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Food-coloring test</text><rect x=\"20\" y=\"40\" width=\"100\" height=\"80\" rx=\"3\" class=\"bk\"/><rect x=\"22\" y=\"64\" width=\"96\" height=\"54\" class=\"mp\"/><path d=\"M50 30 q4 6 0 10 q-4 -4 0 -10 z\" class=\"badf\"/><path d=\"M70 30 q4 6 0 10 q-4 -4 0 -10 z\" class=\"badf\"/><path d=\"M90 30 q4 6 0 10 q-4 -4 0 -10 z\" class=\"badf\"/><text x=\"20\" y=\"136\">1  10 drops in</text><text x=\"20\" y=\"148\">the tank</text><line x1=\"130\" y1=\"80\" x2=\"170\" y2=\"80\" class=\"a\" style=\"stroke-width:2\"/><polygon points=\"170.0,80.0 164.6,82.6 164.6,77.4\" class=\"af\"/><text x=\"150\" y=\"70\" class=\"ac\" text-anchor=\"middle\">20 min</text><path d=\"M184 50 H300 Q300 100 250 110 L244 124 H226 L224 110 Q184 100 184 50 Z\" class=\"tb\"/><path d=\"M200 70 H284 Q280 98 242 102 Q206 98 200 70 Z\" class=\"mp\"/><text x=\"184\" y=\"136\">2  Color in the bowl</text><text x=\"184\" y=\"148\" class=\"wa\">= flapper leaks</text><text x=\"10\" y=\"170\">Don't flush while you wait.</text>",
+   "h": 178,
+   "cap": "No color after 20 minutes means the flapper seals. Then the water is escaping down the overflow tube: lower the water level."
+  },
+  "chain": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Chain length</text><line x1=\"20\" y1=\"40\" x2=\"84\" y2=\"40\" class=\"o\" style=\"stroke-width:3\"/><line x1=\"24\" y1=\"140\" x2=\"100\" y2=\"140\" class=\"o\" style=\"stroke-width:2\"/><line x1=\"70\" y1=\"40\" x2=\"70\" y2=\"126\" class=\"o d\"/><path d=\"M46 140 L94 124 L94 130 Z\" class=\"m\"/><line x1=\"125\" y1=\"40\" x2=\"189\" y2=\"40\" class=\"o\" style=\"stroke-width:3\"/><line x1=\"129\" y1=\"140\" x2=\"205\" y2=\"140\" class=\"o\" style=\"stroke-width:2\"/><path d=\"M175 40 Q165 90 175 136\" class=\"o d\" fill=\"none\" style=\"stroke-width:1\"/><path d=\"M145 140 Q175 132 205 140 Z\" class=\"m\"/><line x1=\"225\" y1=\"40\" x2=\"289\" y2=\"40\" class=\"o\" style=\"stroke-width:3\"/><line x1=\"229\" y1=\"140\" x2=\"305\" y2=\"140\" class=\"o\" style=\"stroke-width:2\"/><path d=\"M275 40 Q235 160 275 136\" class=\"o d\" fill=\"none\" style=\"stroke-width:1\"/><path d=\"M245 140 Q275 132 305 140 Z\" class=\"m\"/><circle cx=\"255\" cy=\"128\" r=\"4\" class=\"bad\"/><text x=\"14\" y=\"162\" class=\"wa\">Too tight</text><text x=\"14\" y=\"174\">flapper leaks</text><text x=\"122\" y=\"162\" class=\"gd\">About 1/2\" slack</text><text x=\"122\" y=\"174\">just right</text><text x=\"224\" y=\"162\" class=\"wa\">Too long</text><text x=\"224\" y=\"174\">snags, weak flush</text>",
+   "h": 182,
+   "cap": "With the flapper closed, the chain should hang with about 1/2\" of slack. Clip it to the hole that gives that, and trim extra links so they can't catch."
+  },
+  "flapper": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Flapper seal: good vs worn</text><rect x=\"20\" y=\"100\" width=\"30\" height=\"10\" class=\"bk\"/><rect x=\"100\" y=\"100\" width=\"30\" height=\"10\" class=\"bk\"/><rect x=\"50\" y=\"100\" width=\"50\" height=\"10\" class=\"wt\"/><path d=\"M16 100 Q75 86 134 100 Z\" class=\"m\"/><rect x=\"180\" y=\"100\" width=\"30\" height=\"10\" class=\"bk\"/><rect x=\"260\" y=\"100\" width=\"30\" height=\"10\" class=\"bk\"/><rect x=\"210\" y=\"100\" width=\"50\" height=\"10\" class=\"wt\"/><path d=\"M176 94 Q235 76 294 92 L294 96 Q235 82 176 98 Z\" class=\"m\"/><line x1=\"226\" y1=\"104\" x2=\"226\" y2=\"124\" class=\"bad\"/><polygon points=\"226.0,124.0 223.4,118.6 228.6,118.6\" class=\"badf\"/><line x1=\"244\" y1=\"104\" x2=\"244\" y2=\"124\" class=\"bad\"/><polygon points=\"244.0,124.0 241.4,118.6 246.6,118.6\" class=\"badf\"/><text x=\"10\" y=\"136\" class=\"gd\">Soft, flat, sits evenly</text><text x=\"170\" y=\"136\" class=\"wa\">Warped or slimy: water</text><text x=\"170\" y=\"148\">seeps under the edge</text><text x=\"10\" y=\"170\">Wipe the seat with a scrub pad when you replace it.</text>",
+   "h": 178,
+   "cap": "Flappers last about 4-6 years. If the rubber feels stiff, warped or leaves black on your fingers, replace it."
+  },
+  "fillvalve": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Adjust the fill valve</text><rect x=\"124\" y=\"92\" width=\"16\" height=\"82\" class=\"bk\"/><rect x=\"120\" y=\"40\" width=\"24\" height=\"56\" rx=\"2\" class=\"bk\"/><rect x=\"114\" y=\"30\" width=\"36\" height=\"12\" rx=\"2\" class=\"bk\"/><line x1=\"156\" y1=\"42\" x2=\"156\" y2=\"72\" class=\"o\" style=\"stroke-width:2\"/><rect x=\"146\" y=\"72\" width=\"20\" height=\"30\" rx=\"2\" class=\"y\"/><rect x=\"151\" y=\"50\" width=\"10\" height=\"8\" class=\"inkf\"/><rect x=\"110\" y=\"174\" width=\"44\" height=\"6\" class=\"tl\"/><path d=\"M104 128 A26 8 0 0 0 160 128\" class=\"a\" fill=\"none\" style=\"stroke-width:2\"/><polygon points=\"160.0,128.0 156.7,133.0 154.0,128.5\" class=\"af\"/><text x=\"10\" y=\"110\" class=\"k\">Valve height:</text><text x=\"10\" y=\"122\">twist the lower</text><text x=\"10\" y=\"134\">body to slide it</text><text x=\"10\" y=\"146\">up or down</text><text x=\"176\" y=\"52\" class=\"k\">Water level:</text><text x=\"176\" y=\"64\">pinch the clip,</text><text x=\"176\" y=\"76\">slide the float.</text><text x=\"176\" y=\"92\">down = less water</text><text x=\"176\" y=\"104\">up = more water</text><text x=\"10\" y=\"196\">Older brass float ball? Turn the screw on top.</text>",
+   "h": 204,
+   "cap": "Two separate adjustments: the valve's height (set once, so its CL mark is 1\" above the overflow) and the float (sets the water level)."
+  },
+  "rimjets": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Where the flush water comes out</text><path d=\"M40 46 H280 V60 Q268 140 182 150 L176 176 H144 L138 150 Q52 140 40 60 Z\" class=\"tb\"/><path d=\"M110 106 Q160 116 210 106 Q200 138 160 142 Q120 138 110 106 Z\" class=\"wt\"/><rect x=\"40\" y=\"46\" width=\"240\" height=\"14\" class=\"tb\"/><circle cx=\"60\" cy=\"61\" r=\"2.5\" class=\"inkf\"/><circle cx=\"80\" cy=\"61\" r=\"2.5\" class=\"inkf\"/><circle cx=\"100\" cy=\"61\" r=\"2.5\" class=\"inkf\"/><circle cx=\"120\" cy=\"61\" r=\"2.5\" class=\"inkf\"/><circle cx=\"140\" cy=\"61\" r=\"2.5\" class=\"inkf\"/><circle cx=\"160\" cy=\"61\" r=\"2.5\" class=\"inkf\"/><circle cx=\"180\" cy=\"61\" r=\"2.5\" class=\"inkf\"/><circle cx=\"200\" cy=\"61\" r=\"2.5\" class=\"inkf\"/><circle cx=\"220\" cy=\"61\" r=\"2.5\" class=\"inkf\"/><circle cx=\"240\" cy=\"61\" r=\"2.5\" class=\"inkf\"/><circle cx=\"260\" cy=\"61\" r=\"2.5\" class=\"inkf\"/><circle cx=\"160\" cy=\"138\" r=\"4\" class=\"inkf\"/><text x=\"60\" y=\"36\" class=\"k\">rim holes, under the rim</text><line x1=\"120\" y1=\"38\" x2=\"120\" y2=\"58\" class=\"o\"/><text x=\"196\" y=\"170\" class=\"k\">siphon jet</text><line x1=\"194\" y1=\"166\" x2=\"166\" y2=\"140\" class=\"o\"/><text x=\"10\" y=\"196\">Mineral crust in these holes = slow, weak flush.</text>",
+   "h": 204,
+   "cap": "Look under the rim with a small mirror. White or brown crust blocking the holes is limescale; vinegar and a wire clear it."
+  },
+  "plunger": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Use a flange plunger</text><path d=\"M40 36 Q60 140 140 150 L140 176\" class=\"o\" fill=\"none\" style=\"stroke-width:2\"/><path d=\"M280 36 Q260 140 180 150 L180 176\" class=\"o\" fill=\"none\" style=\"stroke-width:2\"/><path d=\"M64 86 H256 Q244 140 180 150 H140 Q76 140 64 86 Z\" class=\"wt\"/><g><rect x=\"156\" y=\"20\" width=\"8\" height=\"94\" class=\"w\"/><path d=\"M116 128 Q160 86 204 128 Z\" class=\"m\"/><rect x=\"150\" y=\"128\" width=\"20\" height=\"16\" class=\"m\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 -10;0 4;0 -10\" dur=\"1.2s\" repeatCount=\"indefinite\"/></g><text x=\"200\" y=\"168\" class=\"k\">flange in the hole</text><line x1=\"198\" y1=\"164\" x2=\"172\" y2=\"140\" class=\"o\"/><text x=\"10\" y=\"194\">Cup under water, flange sealed in the hole.</text><text x=\"10\" y=\"207\" class=\"ac\">Push gently first, then pump hard 15-20 times.</text>",
+   "h": 214,
+   "title": "Plunge a toilet",
+   "cap": "The first push is gentle to squeeze out the air. Then push and pull hard, keeping the seal. The pull does as much work as the push."
+  },
+  "tankbolt": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Tank-to-bowl joint</text><rect x=\"60\" y=\"30\" width=\"200\" height=\"50\" rx=\"3\" class=\"tb\"/><text x=\"160\" y=\"58\" text-anchor=\"middle\">tank</text><rect x=\"140\" y=\"80\" width=\"40\" height=\"8\" class=\"bk\"/><rect x=\"128\" y=\"84\" width=\"64\" height=\"20\" rx=\"4\" class=\"mp\"/><text x=\"160\" y=\"97\" text-anchor=\"middle\">gasket</text><rect x=\"50\" y=\"104\" width=\"220\" height=\"40\" rx=\"3\" class=\"tb\"/><text x=\"160\" y=\"128\" text-anchor=\"middle\">bowl</text><line x1=\"90\" y1=\"66\" x2=\"90\" y2=\"158\" class=\"o\" style=\"stroke-width:3\"/><rect x=\"82\" y=\"72\" width=\"16\" height=\"6\" class=\"inkf\"/><rect x=\"84\" y=\"66\" width=\"12\" height=\"6\" class=\"bk\"/><rect x=\"82\" y=\"144\" width=\"16\" height=\"4\" class=\"bk\"/><rect x=\"84\" y=\"148\" width=\"12\" height=\"8\" class=\"inkf\"/><line x1=\"230\" y1=\"66\" x2=\"230\" y2=\"158\" class=\"o\" style=\"stroke-width:3\"/><rect x=\"222\" y=\"72\" width=\"16\" height=\"6\" class=\"inkf\"/><rect x=\"224\" y=\"66\" width=\"12\" height=\"6\" class=\"bk\"/><rect x=\"222\" y=\"144\" width=\"16\" height=\"4\" class=\"bk\"/><rect x=\"224\" y=\"148\" width=\"12\" height=\"8\" class=\"inkf\"/><path d=\"M90 160 q-3 6 0 9 q3 -3 0 -9 z\" class=\"wt\"/><text x=\"10\" y=\"62\">rubber</text><text x=\"10\" y=\"73\">washer</text><text x=\"10\" y=\"84\">inside</text><text x=\"100\" y=\"170\" class=\"wa\">drip here = bolt washer</text><text x=\"10\" y=\"190\">Hold the bolt head inside, turn the nut 1/8 at a time.</text>",
+   "h": 198,
+   "cap": "A drip at a bolt means its rubber washer isn't sealing. A drip from the middle means the big gasket. Both are in a tank-to-bowl kit."
+  },
+  "handle": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Handle nut: reverse thread</text><rect x=\"150\" y=\"30\" width=\"12\" height=\"120\" class=\"tb\"/><rect x=\"100\" y=\"70\" width=\"50\" height=\"14\" rx=\"4\" class=\"y\"/><rect x=\"162\" y=\"66\" width=\"18\" height=\"22\" rx=\"2\" class=\"bk\"/><line x1=\"180\" y1=\"77\" x2=\"280\" y2=\"77\" class=\"o\" style=\"stroke-width:3\"/><text x=\"168\" y=\"40\">tank wall</text><text x=\"125\" y=\"62\" text-anchor=\"middle\">handle</text><path d=\"M196 112 A22 22 0 1 0 172 112\" class=\"a\" fill=\"none\" style=\"stroke-width:2\"/><polygon points=\"172.0,112.0 172.1,106.0 176.8,108.3\" class=\"af\"/><text x=\"210\" y=\"104\" class=\"k\">from inside:</text><text x=\"210\" y=\"116\">counterclockwise</text><text x=\"210\" y=\"128\">= tighten</text><text x=\"10\" y=\"166\">Not tightening? Try the other way: some are standard.</text>",
+   "h": 174,
+   "cap": "Most toilet handle nuts tighten the opposite way to a normal nut. Snug it by hand plus a little with a wrench; it's plastic."
+  }
+ },
+ "glossary": [
+  [
+   "Flapper",
+   "The rubber valve at the bottom of the tank that opens to flush and seals to hold water."
+  ],
+  [
+   "Fill valve",
+   "The valve that refills the tank. Older ones are called ballcocks."
+  ],
+  [
+   "Float",
+   "The cup or ball that rises with the water and shuts the fill valve off."
+  ],
+  [
+   "Overflow tube",
+   "The open tube in the middle of the tank that drains extra water into the bowl."
+  ],
+  [
+   "Refill tube",
+   "The thin tube that tops up the bowl through the overflow tube."
+  ],
+  [
+   "CL mark",
+   "Critical level: a line on the fill valve that must sit 1\" above the overflow tube so tank water can't flow back into the supply."
+  ],
+  [
+   "Flush valve",
+   "The part the flapper seals against, with the overflow tube attached."
+  ],
+  [
+   "Wax ring",
+   "The seal between the toilet's outlet and the floor flange."
+  ],
+  [
+   "Siphon jet",
+   "The hole at the bottom of the bowl that starts the siphon that empties it."
+  ],
+  [
+   "Rim holes",
+   "Small holes under the bowl rim that wash the bowl during a flush."
+  ]
+ ]
+}
