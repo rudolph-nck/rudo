@@ -1,0 +1,1329 @@
+{
+ "slug": "add-drain-line",
+ "title": "Add a Drain Line",
+ "eyebrow": "Plumbing · drains and vents",
+ "category": "Plumbing",
+ "difficulty": "Advanced",
+ "time": "2–4 days plus permit and inspection",
+ "summary": "Plan and rough in a new drain for a bathroom sink, kitchen or bar sink, washer standpipe or utility sink: a proper P-trap, a vented trap arm, a sloped drain and a correct tie-in to the existing drain, tested and inspected before the walls close.",
+ "safety": "Drains carry sewage: wear gloves and glasses, and make sure nobody uses fixtures upstream while a drain is open. Turn off power to walls you open and check for wires before cutting or drilling. Right-angle drills with large bits kick hard; brace them. Primer and cement are flammable with strong fumes: ventilate, no flames. Support heavy cast iron before cutting.",
+ "pro": "New drains usually need a permit and inspection, and some areas require a licensed plumber. Call a plumber for cast iron or galvanized tie-ins, drains under a concrete slab, any work on the main stack or building drain, long or complicated runs, wet-vent designs, and anything the inspector flags.",
+ "questions": [
+  {
+   "id": "fixture",
+   "label": "What is the new drain for?",
+   "type": "choice",
+   "default": "bath",
+   "options": [
+    {
+     "v": "bath",
+     "label": "Bathroom sink"
+    },
+    {
+     "v": "kitchen",
+     "label": "Kitchen or bar sink"
+    },
+    {
+     "v": "washer",
+     "label": "Washer standpipe",
+     "hint": "2\" drain"
+    },
+    {
+     "v": "utility",
+     "label": "Utility sink"
+    }
+   ]
+  },
+  {
+   "id": "drain",
+   "label": "Where is the nearest drain?",
+   "type": "choice",
+   "default": "below",
+   "options": [
+    {
+     "v": "wall",
+     "label": "In the wall nearby"
+    },
+    {
+     "v": "below",
+     "label": "Below, in a basement or crawlspace"
+    },
+    {
+     "v": "far",
+     "label": "Far away or unknown",
+     "hint": "plumber plans it"
+    }
+   ]
+  },
+  {
+   "id": "tiein",
+   "label": "Is the pipe you'll tie into vertical or horizontal?",
+   "type": "choice",
+   "default": "horizontal",
+   "when": "a.drain!=='far'",
+   "options": [
+    {
+     "v": "vertical",
+     "label": "Vertical (stack)"
+    },
+    {
+     "v": "horizontal",
+     "label": "Horizontal"
+    }
+   ],
+   "hint": "This decides the fitting."
+  },
+  {
+   "id": "vent",
+   "label": "How will the new trap be vented?",
+   "type": "choice",
+   "default": "existing",
+   "options": [
+    {
+     "v": "existing",
+     "label": "Connect to an existing vent"
+    },
+    {
+     "v": "aav",
+     "label": "Air admittance valve",
+     "hint": "only if code allows"
+    },
+    {
+     "v": "unsure",
+     "label": "Not sure yet"
+    }
+   ]
+  },
+  {
+   "id": "material",
+   "label": "What is the existing drain made of?",
+   "type": "choice",
+   "default": "pvc",
+   "options": [
+    {
+     "v": "pvc",
+     "label": "PVC",
+     "hint": "white or cream plastic"
+    },
+    {
+     "v": "abs",
+     "label": "ABS",
+     "hint": "black plastic"
+    },
+    {
+     "v": "cast",
+     "label": "Cast iron",
+     "hint": "pro recommended"
+    },
+    {
+     "v": "galv",
+     "label": "Galvanized steel",
+     "hint": "pro"
+    }
+   ]
+  },
+  {
+   "id": "run",
+   "label": "Length of the new drain, fixture to tie-in",
+   "type": "number",
+   "unit": "ft",
+   "default": 10,
+   "step": 1,
+   "hint": "Measure along the route, not a straight line."
+  },
+  {
+   "id": "holes",
+   "label": "Joists or studs to drill through",
+   "type": "number",
+   "unit": "holes",
+   "default": 3,
+   "step": 1
+  }
+ ],
+ "calcs": [
+  {
+   "id": "pipe",
+   "expr": "a.fixture==='washer'?2:1.5"
+  },
+  {
+   "id": "size",
+   "label": "Drain and trap arm size",
+   "expr": "c.pipe",
+   "fmt": "{{a.fixture==='washer'?'2\"':'1-1/2\"'}} (trap {{a.fixture==='bath'?'1-1/4\"':a.fixture==='washer'?'2\"':'1-1/2\"'}})"
+  },
+  {
+   "id": "drop",
+   "label": "Total drop over the run",
+   "expr": "a.run*0.25",
+   "fmt": "{{frac(c.drop)}} over {{a.run}} ft at 1/4\" per foot"
+  },
+  {
+   "id": "armIPC",
+   "label": "Trap arm limit (typical)",
+   "expr": "c.pipe===2?8:6",
+   "fmt": "about {{c.armIPC}} ft IPC/IRC, {{c.armUPC}} UPC"
+  },
+  {
+   "id": "armUPC",
+   "expr": "c.pipe===2?'5 ft':'3-1/2 ft'"
+  },
+  {
+   "id": "drainLen",
+   "label": "Drain pipe",
+   "expr": "Math.ceil(a.run*1.15+(a.drain==='below'?4:2))",
+   "fmt": "{{c.drainLen}} ft of {{a.fixture==='washer'?'2\"':'1-1/2\"'}} ({{c.drainSticks}} x 10 ft)"
+  },
+  {
+   "id": "drainSticks",
+   "expr": "Math.ceil(c.drainLen/10)"
+  },
+  {
+   "id": "ventLen",
+   "label": "Vent pipe",
+   "expr": "a.vent==='aav'?2:8",
+   "fmt": "{{a.vent==='aav'?'about 2 ft of 1-1/2\" (AAV riser)':'about 8 ft of 1-1/2\" ('+c.ventSticks+' x 10 ft)'}}"
+  },
+  {
+   "id": "ventSticks",
+   "expr": "Math.ceil(c.ventLen/10)"
+  },
+  {
+   "id": "bends",
+   "label": "Bends (estimate)",
+   "expr": "2+Math.floor(a.run/10)+(a.vent==='aav'?0:2)",
+   "fmt": "{{c.bends}} long sweeps / 1/8 bends"
+  },
+  {
+   "id": "fit",
+   "label": "Fittings in all (estimate)",
+   "expr": "c.bends+1+1+2+1+1+(a.vent==='aav'?1:1)",
+   "fmt": "about {{c.fit}}, plus a few spares"
+  },
+  {
+   "id": "hangers",
+   "label": "Hangers",
+   "expr": "Math.ceil(a.run/4)+2",
+   "fmt": "{{c.hangers}} hangers"
+  },
+  {
+   "id": "plates",
+   "label": "Nail plates",
+   "expr": "Math.max(2,Math.round(a.holes)*2)",
+   "fmt": "up to {{c.plates}} (both faces of drilled studs)"
+  }
+ ],
+ "calcNote": "Pipe adds 15% to the run plus the vertical drop and stub-out. Bends assume two turns plus one per 10 ft, and two more for a vent run. Fittings count the tie-in, vent tee, two couplings, a trap adapter, a cleanout and the vent connection. Hangers assume one every 4 ft plus the ends. Trap arm limits are typical code values; your local code decides.",
+ "overviewFig": [
+  "system",
+  "vent"
+ ],
+ "tools": [
+  {
+   "id": "tape",
+   "c": "Tools",
+   "n": "Tape measure, pencil, marker",
+   "must": true,
+   "w": "For the route, the stub-out height and every pipe cut.",
+   "q": "25 ft tape measure"
+  },
+  {
+   "id": "level",
+   "c": "Tools",
+   "n": "Torpedo level and a 2 ft or 4 ft level",
+   "must": true,
+   "w": "Checks the 1/4\" per foot slope and plumb vents.",
+   "q": "torpedo level"
+  },
+  {
+   "id": "finder",
+   "c": "Tools",
+   "n": "Stud finder and flashlight",
+   "must": true,
+   "w": "Finds framing; the light lets you look into cavities before cutting.",
+   "q": "stud finder"
+  },
+  {
+   "id": "tester",
+   "c": "Tools",
+   "n": "Non-contact voltage tester",
+   "must": true,
+   "w": "Checks for live wires before you cut drywall or drill.",
+   "q": "non contact voltage tester"
+  },
+  {
+   "id": "jab",
+   "c": "Tools",
+   "n": "Drywall jab saw and utility knife",
+   "must": true,
+   "w": "Opens the wall and ceiling for access.",
+   "q": "drywall jab saw"
+  },
+  {
+   "id": "pvcsaw",
+   "c": "Tools",
+   "n": "PVC saw or hacksaw, plus a miter box",
+   "must": true,
+   "w": "Square cuts on new pipe. A wobbly cut won't seat fully in a fitting.",
+   "q": "pvc pipe saw"
+  },
+  {
+   "id": "recip",
+   "c": "Tools",
+   "n": "Reciprocating saw with a fine-tooth blade",
+   "must": false,
+   "w": "Cuts the existing drain in tight spaces.",
+   "q": "reciprocating saw blade pvc"
+  },
+  {
+   "id": "deburr",
+   "c": "Tools",
+   "n": "Deburring tool or utility knife, and sandpaper",
+   "must": true,
+   "w": "Removes burrs that catch hair and debris and chamfers the end so it slides in.",
+   "q": "pvc deburring tool"
+  },
+  {
+   "id": "drill",
+   "c": "Tools",
+   "n": "Heavy-duty right-angle drill (1/2\" chuck)",
+   "must": true,
+   "w": "Large bits bind hard; a right-angle drill fits between joists and controls the kick. Hold it with both hands.",
+   "q": "right angle drill",
+   "rent": true
+  },
+  {
+   "id": "holesaw",
+   "c": "Tools",
+   "n": "Hole saw or self-feed bit, {{a.fixture==='washer'?'2-5/8\"':'2-1/8\"'}} for the drain, 2-1/8\" for a 1-1/2\" vent",
+   "must": true,
+   "w": "Slightly larger than the pipe's outside diameter so it slides through and can move with temperature.",
+   "q": "{{a.fixture==='washer'?'2-5/8 in':'2-1/8 in'}} self feed bit"
+  },
+  {
+   "id": "snap",
+   "c": "Tools",
+   "n": "Soil pipe snap cutter (rental)",
+   "must": true,
+   "w": "The clean way to cut cast iron. A grinder works but throws sparks and dust.",
+   "q": "soil pipe cutter rental",
+   "rent": true,
+   "when": "a.material==='cast'"
+  },
+  {
+   "id": "riser",
+   "c": "Parts",
+   "n": "Riser clamps sized to the stack (2)",
+   "must": true,
+   "w": "Hold a vertical cast iron stack up above and below the cut.",
+   "q": "riser clamp cast iron",
+   "when": "a.material==='cast'"
+  },
+  {
+   "id": "pipe",
+   "c": "Pipe",
+   "n": "Schedule 40 {{a.material==='abs'?'ABS':'PVC'}} DWV pipe, {{a.fixture==='washer'?'2\"':'1-1/2\"'}} (drain)",
+   "must": true,
+   "w": "DWV is drain-waste-vent pipe. Don't use thin-wall sewer pipe indoors.",
+   "q": "{{a.fixture==='washer'?'2\"':'1-1/2\"'}} schedule 40 {{a.material==='abs'?'abs':'pvc'}} dwv pipe",
+   "qty": "{{c.drainSticks}} x 10 ft"
+  },
+  {
+   "id": "ventpipe",
+   "c": "Pipe",
+   "n": "Schedule 40 {{a.material==='abs'?'ABS':'PVC'}} DWV pipe, 1-1/2\" (vent)",
+   "must": true,
+   "w": "Vent pipe for one fixture is usually 1-1/4\" or 1-1/2\"; 1-1/2\" is the safe common choice. Check local code.",
+   "q": "1-1/2 in {{a.material==='abs'?'abs':'pvc'}} dwv pipe",
+   "qty": "{{a.vent==='aav'?'2 ft piece':c.ventSticks+' x 10 ft'}}"
+  },
+  {
+   "id": "tiein",
+   "c": "Fittings",
+   "n": "Tie-in fitting: {{a.tiein==='vertical'?'sanitary tee':'wye + 1/8 bend, or a combo wye'}} (existing size x {{a.fixture==='washer'?'2\"':'1-1/2\"'}} branch)",
+   "must": true,
+   "w": "Joins the new branch to the old drain. Match the run size to the existing pipe.",
+   "q": "{{a.tiein==='vertical'?'dwv sanitary tee reducing':'dwv wye reducing'}}",
+   "qty": "1"
+  },
+  {
+   "id": "venttee",
+   "c": "Fittings",
+   "n": "Sanitary tee at the fixture (vent up, drain down)",
+   "must": true,
+   "w": "Where the trap arm meets the vent.",
+   "q": "{{a.fixture==='washer'?'2\"':'1-1/2\"'}} dwv sanitary tee",
+   "qty": "1"
+  },
+  {
+   "id": "bends",
+   "c": "Fittings",
+   "n": "Long-sweep 1/4 bends and 1/8 bends (45s)",
+   "must": true,
+   "w": "Turns in the route. Long sweeps flow better than tight elbows.",
+   "q": "{{a.fixture==='washer'?'2\"':'1-1/2\"'}} dwv long sweep 1/4 bend",
+   "qty": "{{c.bends}} plus 2 spares"
+  },
+  {
+   "id": "couplings",
+   "c": "Fittings",
+   "n": "Shielded no-hub couplings sized to the existing drain (2)",
+   "must": true,
+   "w": "Close the gap where you cut into the old drain, and join different materials. Get the shielded (steel band) kind.",
+   "q": "shielded no hub coupling",
+   "qty": "2"
+  },
+  {
+   "id": "cleanout",
+   "c": "Fittings",
+   "n": "Cleanout tee or cleanout adapter with plug",
+   "must": false,
+   "w": "Lets you snake the line later. Required in some spots; ask the inspector.",
+   "q": "{{a.fixture==='washer'?'2\"':'1-1/2\"'}} dwv cleanout adapter plug"
+  },
+  {
+   "id": "trap",
+   "c": "Fittings",
+   "n": "{{a.fixture==='washer'?'2\" P-trap (glued) and a washer outlet box or 2\" standpipe':a.fixture==='bath'?'1-1/4\" P-trap kit and a trap adapter for the stub-out':'1-1/2\" P-trap kit and a trap adapter for the stub-out'}}",
+   "must": true,
+   "w": "The trap holds the water seal; the adapter lets a slip-joint trap connect to glued pipe.",
+   "q": "{{a.fixture==='washer'?'washing machine outlet box 2 in':a.fixture==='bath'?'1-1/4 in p trap kit':'1-1/2 in p trap kit'}}"
+  },
+  {
+   "id": "aav",
+   "c": "Fittings",
+   "n": "Air admittance valve rated for the pipe size, plus adapter",
+   "must": true,
+   "w": "Only where your code allows it. Get one listed to ASSE 1050 or 1051 (the AAV standards) for this use.",
+   "q": "air admittance valve 1-1/2 in",
+   "when": "a.vent==='aav'"
+  },
+  {
+   "id": "primer",
+   "c": "Glue",
+   "n": "{{a.material==='abs'?'ABS cement':'Purple primer and PVC cement (small cans)'}}",
+   "must": true,
+   "w": "Primer softens the plastic so the cement welds it. ABS normally takes ABS cement alone.",
+   "q": "{{a.material==='abs'?'abs cement':'pvc primer and cement'}}"
+  },
+  {
+   "id": "hangers",
+   "c": "Supports",
+   "n": "Plastic pipe hangers or J-hooks",
+   "must": true,
+   "w": "Hold the slope. Plastic or coated so they don't cut the pipe.",
+   "q": "{{a.fixture==='washer'?'2\"':'1-1/2\"'}} pipe hanger j hook",
+   "qty": "{{c.hangers}}"
+  },
+  {
+   "id": "plates",
+   "c": "Supports",
+   "n": "Steel nail plates",
+   "must": true,
+   "w": "Stop drywall screws from piercing the pipe where it passes through studs.",
+   "q": "nail plate protector",
+   "qty": "{{c.plates}}"
+  },
+  {
+   "id": "test",
+   "c": "Testing",
+   "n": "Test cap and test plug or ball sized to the branch",
+   "must": true,
+   "w": "Seal the new piping so you can fill it with water.",
+   "q": "{{a.fixture==='washer'?'2\"':'1-1/2\"'}} test plug drain"
+  },
+  {
+   "id": "firecaulk",
+   "c": "Finish",
+   "n": "Fire-rated caulk",
+   "must": false,
+   "w": "Seals pipe holes through top and bottom plates between floors.",
+   "q": "fire rated caulk"
+  },
+  {
+   "id": "patch",
+   "c": "Finish",
+   "n": "Drywall patch materials",
+   "must": true,
+   "w": "Close the wall after the inspection.",
+   "q": "drywall repair kit"
+  },
+  {
+   "id": "bucket",
+   "c": "Safety",
+   "n": "Bucket, rags, gloves, safety glasses",
+   "must": true,
+   "w": "Old drains hold dirty water and sludge. Protect your eyes when cutting and drilling.",
+   "q": "nitrile gloves safety glasses"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Understand the system",
+   "steps": [
+    {
+     "id": "u1",
+     "t": "See how a drain system works",
+     "time": "10 min",
+     "idea": "Every fixture needs a trap to block sewer gas, a sloped pipe to carry water, and a vent so the trap can't be sucked dry.",
+     "fig": [
+      "system",
+      "vent"
+     ],
+     "b": "<ol><li>Look under an existing sink. Find the U-shaped trap. It always holds a few inches of water: that's the seal that blocks sewer gas.</li><li>Follow the pipe from the trap into the wall. That level pipe is the <b>trap arm</b>.</li><li>Inside the wall the arm meets a fitting: one pipe goes down (the drain) and one goes up (the vent).</li><li>The vent joins other vents and leaves through the roof. Go outside and look for the pipe sticking out of the roof.</li><li>The drain joins the <b>stack</b>, a big vertical pipe (often 3\" or 4\") that runs down to the building drain and the sewer or septic.</li><li>Your new {{a.fixture==='bath'?'bathroom sink':a.fixture==='kitchen'?'kitchen or bar sink':a.fixture==='washer'?'washer standpipe':'utility sink'}} needs every piece of this: trap, trap arm, vent and a drain that ties into the system.</li></ol>",
+     "faq": [
+      [
+       "What happens if I skip the vent?",
+       "The trap gets siphoned dry, so you smell sewer gas. You also get gurgling and slow drains. Unvented drains fail inspection."
+      ],
+      [
+       "Is a gurgling drain already a vent problem?",
+       "Often, yes: a blocked roof vent or an unvented fixture. Fix that before adding more fixtures to the line."
+      ]
+     ]
+    },
+    {
+     "id": "u2",
+     "t": "Know the pipe size for your fixture",
+     "time": "10 min",
+     "idea": "Each fixture has a minimum trap and drain size; never step down in size as you go downstream.",
+     "fig": "sizes",
+     "b": "<ol><li>Your fixture: <b>{{a.fixture==='bath'?'bathroom sink':a.fixture==='kitchen'?'kitchen or bar sink':a.fixture==='washer'?'washer standpipe':'utility sink'}}</b>. Typical trap size: <b>{{a.fixture==='bath'?'1-1/4\"':a.fixture==='washer'?'2\"':'1-1/2\"'}}</b>. Typical drain and trap arm: <b>{{a.fixture==='washer'?'2\"':'1-1/2\"'}}</b>.</li><li>Bathroom sinks usually use a 1-1/4\" trap, but the arm in the wall is commonly 1-1/2\", which is easier to find and flows better.</li><li>Washer standpipes need a 2\" trap and 2\" drain. A washer dumps water fast, and a smaller pipe overflows.</li><li>Kitchen, bar and utility sinks: 1-1/2\" trap and drain. Some codes or plumbers use 2\" for kitchens.</li><li>The new branch can join a bigger pipe, but never a smaller one.</li><li>Confirm the sizes with your building department when you ask about the permit.</li></ol>",
+     "faq": [
+      [
+       "Can I tie a washer into a 1-1/2\" sink drain?",
+       "Usually not. A washer needs a 2\" drain, and it can overflow the sink if they share a small line. Ask your inspector."
+      ],
+      [
+       "What does 'nominal size' mean?",
+       "The name, roughly the inside size. 1-1/2\" PVC is about 1.9\" outside. Bits, couplings and hangers go by the nominal size."
+      ]
+     ]
+    },
+    {
+     "id": "u3",
+     "t": "Learn the trap arm and slope rules",
+     "time": "15 min",
+     "idea": "The trap must reach its vent within a short distance, on a steady downhill slope, through a P-trap you can get to.",
+     "fig": [
+      "traparm",
+      "strap",
+      "slope"
+     ],
+     "b": "<ol><li>Measure from the trap to the vent fitting. That distance is the trap arm, and it has a limit. For your {{a.fixture==='washer'?'2\"':'1-1/2\"'}} arm it is about <b>{{c.armIPC}} ft</b> in areas using the IPC or IRC and about <b>{{c.armUPC}}</b> in UPC areas. Your local code decides.</li><li>The vent must connect within that distance. If the old vent is farther away, you need a new vent (or an AAV where allowed).</li><li>Slope the trap arm and drain 1/4\" per foot, downhill toward the stack.</li><li>Don't let the arm drop so much that the vent opening ends up below the trap's weir (the lip where water spills out of the trap).</li><li>Use a P-trap only. S-traps, drum traps and \"bell\" traps are not allowed.</li><li>The trap must stay reachable: under a cabinet or behind an access panel, never sealed in a wall.</li></ol>",
+     "faq": [
+      [
+       "Why is there a maximum length?",
+       "A long, sloped arm can fill completely with water as it drains and siphon the trap. A short arm and a nearby vent stop that."
+      ],
+      [
+       "Can I add a second trap to be safe?",
+       "No. Double trapping is not allowed: it causes an air lock and slow drains."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Plan and permit",
+   "steps": [
+    {
+     "id": "g1",
+     "t": "Stop: get the drain located first",
+     "time": "—",
+     "idea": "If you can't find a drain nearby, the plan needs a plumber before any cutting.",
+     "when": "a.drain==='far'",
+     "stop": "A far or unknown drain usually means a long run, a new vent, or breaking a concrete slab. Have a licensed plumber design the route (and give you a quote) before you buy anything.",
+     "b": "<ol><li>Look below the new location: basement ceiling or crawlspace. Is there a drain pipe within a few feet?</li><li>Look for the main stack: it often sits behind a toilet wall or in a basement corner.</li><li>On a slab foundation, drains are under the concrete. Tying in means cutting and digging the slab: that's pro work.</li><li>Call a plumber for a route plan. Ask what you can do yourself (opening walls, patching) to save money.</li><li>Once you know where the drain is and it's close, change your answer on the Start tab and continue.</li></ol>",
+     "faq": [
+      [
+       "Could I use a pump instead?",
+       "Yes, a drain pump (a sink or laundry pump box) can lift water up to a drain. It still needs a vent, a permit and a check valve; ask a plumber."
+      ]
+     ]
+    },
+    {
+     "id": "g2",
+     "t": "Stop: metal drains lean to a pro",
+     "time": "—",
+     "idea": "Cast iron and galvanized drains are heavy, brittle or rusted, and cutting them can break joints you can't see.",
+     "when": "a.material==='cast'||a.material==='galv'",
+     "fig": "castiron",
+     "stop": "{{a.material==='galv'?'Old galvanized drains are often rusted thin inside and can crumble when cut. Have a plumber replace that section with PVC or ABS and install the tie-in fitting.':'Cutting a cast iron stack is heavy, hazardous work. A plumber is strongly recommended for the tie-in. If you do it, follow the cast iron step exactly and get help.'}}",
+     "b": "<ol><li>Identify the pipe: cast iron is dark, heavy and rings when tapped; joints are bulging hubs or rubber no-hub bands. Galvanized steel is gray with threaded joints.</li><li>Look for rust, cracks or weeping joints. A drain that's already failing is a replacement job, not a tie-in.</li><li>Get a plumber's quote for just the tie-in. You can often do the rest (new pipe, vent, fixture) and have the plumber connect it.</li><li>Ask the inspector whether a homeowner may do this part in your area.</li></ol>",
+     "faq": [
+      [
+       "Can I use a rubber coupling right on cast iron?",
+       "Yes, with a heavy-duty shielded coupling made for cast iron to plastic. The hard part is cutting and supporting the old pipe, not the coupling."
+      ]
+     ]
+    },
+    {
+     "id": "p1",
+     "t": "Choose your vent plan",
+     "time": "30 min",
+     "idea": "Decide how the new trap gets air: through a pipe to an existing vent, or through an AAV where the code allows it.",
+     "fig": [
+      "ventrim",
+      "aav"
+     ],
+     "b": "<ol><li>Find the nearest existing vent: from the attic, from the fixture's wall, or by following the pipes up from the basement.</li><li><b>Tie into an existing vent:</b> run a new dry vent straight up from the vent tee. Keep it vertical until it's above the fixture's flood rim (often at least 6\" above, check code), then slope it slightly back toward the drain as it runs over to the old vent.</li><li><b>Air admittance valve (AAV):</b> a one-way valve that lets air in. Many IPC/IRC areas allow one; many UPC areas restrict it. Ask your building department before you plan on it.</li><li>An AAV must stay accessible and upright, sit above the trap arm by the maker's minimum (often 4\"), and is never a replacement for the house's main vent through the roof.</li><li>Your choice: <b>{{a.vent==='existing'?'tie into an existing vent':a.vent==='aav'?'AAV, if your code allows it':'not sure yet'}}</b>.</li><li>{{a.vent==='unsure'?'Bring your sketch to the building department and ask which vent option they accept. Don\\'t cut anything until you know.':'Write the plan on your sketch for the permit.'}}</li></ol>",
+     "stop": "{{a.vent==='unsure'?'Settle the vent before you cut. A drain with no approved vent fails inspection and can let sewer gas into the house.':'Never use a horizontal dry vent below the flood rim. If the fixture backs up, the vent fills with waste and clogs.'}}",
+     "faq": [
+      [
+       "Can I connect the vent into the drain of another fixture?",
+       "Not into a drain below. A vent must join another vent (dry), above the flood rim of the highest fixture it serves, unless your code allows a special wet-vent design. That's plumber design work."
+      ],
+      [
+       "Can an AAV go inside the wall?",
+       "Only in a ventilated box with an access grille. It must get air and you must be able to replace it."
+      ]
+     ]
+    },
+    {
+     "id": "p2",
+     "t": "Pick the tie-in point and fitting",
+     "time": "30 min",
+     "idea": "Join the old drain where it's big enough, downstream of the new fixture, with the right fitting for its direction.",
+     "fig": "fittings",
+     "need": [
+      "tape",
+      "finder"
+     ],
+     "b": "<ol><li>Find a drain at least as big as your new pipe ({{a.fixture==='washer'?'2\"':'1-1/2\"'}} or larger), {{a.drain==='below'?'in the basement or crawlspace below':'in the wall near the fixture'}}.</li><li>The tie-in must be lower than the new trap arm by enough for 1/4\" per foot all the way.</li><li>Pick a straight section with at least 8\"-12\" of clear pipe on each side, away from existing fittings, so the couplings fit.</li><li>Don't tie a sink or washer into a toilet's short arm, or below a toilet into its own 3\" drain without asking the inspector.</li><li>Choose the fitting by direction: <b>{{a.tiein==='vertical'?'vertical stack: a sanitary tee, branch coming in from the side':'horizontal drain: a wye with a 1/8 bend, or a combo wye, branch rolled up above the center line'}}</b>.</li><li>Never lay a sanitary tee on its back on a horizontal line.</li><li>Existing pipe: <b>{{a.material==='pvc'?'PVC':a.material==='abs'?'ABS':a.material==='cast'?'cast iron':'galvanized steel'}}</b>. Measure its outside size and buy couplings for that size.</li></ol>",
+     "faq": [
+      [
+       "How do I tell the size of the old drain?",
+       "Wrap a string around it and measure: about 6\" around is 1-1/2\", 7-1/2\" is 2\", 11\" is 3\" plastic. Cast iron is a little different; take the measurement to the store."
+      ],
+      [
+       "Why not a sanitary tee everywhere?",
+       "Its sharp turn is designed for water falling down. On a horizontal pipe, waste shoots straight into the opposite wall and backs up."
+      ]
+     ]
+    },
+    {
+     "id": "p3",
+     "t": "Plan the route and the stub-out height",
+     "time": "45 min",
+     "idea": "A short, steadily sloped route through framing you're allowed to drill, ending at the right height for the fixture.",
+     "fig": [
+      "stubout",
+      "washer",
+      "joist"
+     ],
+     "need": [
+      "tape",
+      "finder"
+     ],
+     "help": [
+      "drillHelp"
+     ],
+     "b": "<ol><li>Sketch the route from the fixture to the tie-in. Measure along the path, including up and down: {{a.run}} ft.</li><li>Drop on the way: {{a.run}} ft at 1/4\" per foot = <b>{{frac(c.drop)}}</b>. The tie-in must be at least that much lower than where the drain starts.</li><li>Stub-out height: {{a.fixture==='bath'?'bathroom sinks are commonly 16\"-20\" to the center of the drain':a.fixture==='kitchen'?'kitchen and bar sinks are commonly 15\"-18\"; lower if a disposal is going in':a.fixture==='washer'?'washer trap commonly 6\"-18\" above the floor, standpipe top 18\"-42\" above the trap weir (30\" max in UPC areas); a recessed washer box puts the top around 42\"-48\"':'utility sinks vary, often 12\"-18\"; read the tub\\'s spec sheet'}}. The fixture's spec sheet wins.</li><li>Count the joists or studs you'll drill: {{a.holes}}. Check each against the drilling limits.</li><li>Avoid exterior walls in cold climates, and load-bearing 2x4 walls for a horizontal run.</li><li>Plan a cleanout where the inspector wants one, often at the upper end of a long horizontal run or where bends add up.</li></ol>",
+     "faq": [
+      [
+       "The route crosses the joists. Do I drill all of them?",
+       "Often you can hang the pipe below the joists in a basement instead. That keeps the slope easy and skips drilling."
+      ],
+      [
+       "What if the drop is more than I have room for?",
+       "Shorten the route, tie in lower, or ask a plumber. Never flatten the slope to make it fit."
+      ]
+     ]
+    },
+    {
+     "id": "p4",
+     "t": "Get the permit",
+     "time": "1 hr + wait",
+     "idea": "New drains are permit work almost everywhere, and the inspection is your proof the system is safe.",
+     "fig": "system",
+     "b": "<ol><li>Call or visit your city or county building department. Ask: \"I'm adding a drain for a {{a.fixture==='bath'?'bathroom sink':a.fixture==='kitchen'?'kitchen or bar sink':a.fixture==='washer'?'washer standpipe':'utility sink'}} and tying into an existing drain. Do I need a plumbing permit? Can a homeowner pull it?\"</li><li>Ask which code they use (IPC, IRC or UPC) and the local limits: trap arm length, vent options (AAV allowed?), standpipe height, and cleanouts.</li><li>Ask what test they want (water test or air test) and when to call for inspection: usually rough-in before walls close, then final.</li><li>Bring your sketch: fixture, pipe sizes, route, slope, vent and tie-in point.</li><li>Apply and wait for approval before cutting into the existing drain.</li></ol>",
+     "stop": "If your area requires a licensed plumber for drain work, hire one. Unpermitted drain work can cause problems with insurance claims and home sales, and a bad drain can leak sewage inside walls.",
+     "wait": "permit approval",
+     "faq": [
+      [
+       "Is a laundry standpipe really permit work?",
+       "In most areas, yes: it is a new fixture drain with a trap and vent."
+      ],
+      [
+       "Will the inspector help me plan?",
+       "Many will answer code questions. They won't design it for you, but they'll tell you what they need to see."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Rough-in",
+   "steps": [
+    {
+     "id": "p5",
+     "t": "Buy the parts",
+     "time": "1 hr",
+     "idea": "Match the new pipe to your plan and the old pipe, and buy extra fittings to return.",
+     "need": [
+      "pipe",
+      "ventpipe",
+      "tiein",
+      "venttee",
+      "bends",
+      "couplings",
+      "trap",
+      "aav",
+      "primer",
+      "hangers",
+      "plates",
+      "test",
+      "cleanout"
+     ],
+     "b": "<ol><li>Drain pipe: {{c.drainSticks}} x 10 ft of {{a.fixture==='washer'?'2\"':'1-1/2\"'}} Schedule 40 {{a.material==='abs'?'ABS':'PVC'}} DWV ({{c.drainLen}} ft needed).</li><li>Vent pipe: {{a.vent==='aav'?'a short piece of 1-1/2\" for the AAV riser':c.ventSticks+' x 10 ft of 1-1/2\"'}}.</li><li>Fittings: about {{c.fit}} in all (tie-in, vent tee, bends, couplings, trap adapter, cleanout). Buy two or three spare bends and couplings; return what you don't use.</li><li>Look for \"DWV\" printed on fittings. Pressure fittings have tight turns that don't belong on drains.</li><li>Shielded couplings sized to the old pipe: {{a.material==='cast'?'heavy-duty, made for cast iron to plastic':'match the outside size of the existing pipe'}}.</li><li>{{a.material==='abs'?'Your old drain is ABS: use ABS pipe and ABS cement, or a shielded coupling where ABS meets PVC. Don\\'t glue ABS to PVC unless your code allows transition cement.':'Primer and cement for PVC.'}}</li><li>Also: {{c.hangers}} hangers, {{c.plates}} nail plates, a test cap and test plug.</li></ol>",
+     "faq": [
+      [
+       "Foam core or solid PVC?",
+       "Both are sold as Schedule 40 DWV and many codes accept both for drains. Solid wall is quieter and stronger. Check with your inspector."
+      ]
+     ]
+    },
+    {
+     "id": "r1",
+     "t": "Open the wall and ceiling",
+     "time": "1 hr",
+     "idea": "Make enough access to work safely and see what's inside before any drilling.",
+     "need": [
+      "tester",
+      "finder",
+      "jab",
+      "bucket"
+     ],
+     "ppe": [
+      "Glasses",
+      "Dust mask"
+     ],
+     "b": "<ol><li>Turn off the breaker for outlets and lights on the wall you're opening. Check outlets with the voltage tester.</li><li>Mark the studs. Cut a test hole about 4\" square and look inside with a flashlight for wires, pipes and ducts.</li><li>Cut the opening between studs, from the stub-out height down to the floor, or the ceiling strip under the route.</li><li>Keep drywall pieces if you want to reuse them.</li><li>Move insulation aside or bag it.</li></ol>",
+     "stop": "If you find wiring in the path, reroute the pipe or have an electrician move it. Never drill blind through a wall or floor.",
+     "faq": [
+      [
+       "How big should the hole be?",
+       "Big enough for your hands and a drill: usually one stud bay wide and from the floor to a few inches above the stub-out."
+      ]
+     ]
+    },
+    {
+     "id": "r2",
+     "t": "Drill the framing",
+     "time": "1–2 hr",
+     "idea": "Holes go where the wood can spare them, and each joist hole steps down to keep the slope.",
+     "fig": [
+      "joist",
+      "stud"
+     ],
+     "need": [
+      "drill",
+      "holesaw",
+      "level",
+      "tape"
+     ],
+     "ppe": [
+      "Glasses",
+      "Gloves"
+     ],
+     "help": [
+      "drillHelp",
+      "slopeHelp"
+     ],
+     "b": "<ol><li>Snap a sloped line along the joists or studs: start at the stub-out height and drop 1/4\" per foot.</li><li>Mark each hole center on that line. Check: middle of the joist, not within 2\" of the top or bottom, no bigger than 1/3 of the depth.</li><li>Studs: hole no bigger than 40% of the stud width in a bearing wall (60% in a non-bearing wall), at least 5/8\" from either edge.</li><li>Brace the right-angle drill with its side handle. Drill at low speed and let the bit cut.</li><li>Check each hole lines up: slide a length of pipe through as you go.</li><li>Holes through top or bottom plates: note them for fire caulk later.</li></ol>",
+     "stop": "Right-angle drills with big bits kick hard when they bind. Keep both hands on the drill, brace the handle against a stud, and never stand where the handle can swing into you. Don't cut I-joists, trusses or beams outside the maker's rules.",
+     "faq": [
+      [
+       "My hole has to be bigger than the limit.",
+       "Hang the pipe below the joists, re-route, add a stud shoe where your code allows, or fur out the wall. Never weaken a load-bearing member to fit a pipe."
+      ]
+     ]
+    },
+    {
+     "id": "r3",
+     "t": "Build the fixture end",
+     "time": "1 hr",
+     "idea": "The vent tee, trap arm and stub-out set the height and the vent for the whole job.",
+     "fig": [
+      "traparm",
+      "washer",
+      "stubout"
+     ],
+     "need": [
+      "venttee",
+      "pipe",
+      "pvcsaw",
+      "deburr",
+      "tape",
+      "level"
+     ],
+     "help": [
+      "cutHelp"
+     ],
+     "b": "<ol><li>Set the sanitary tee in the wall: run up (vent), run down (drain), and the curved branch facing the fixture.</li><li>{{a.fixture==='washer'?'Mount the washer box or set the trap so its weir is 6\"-18\" above the floor (or per your code). Glue the 2\" trap below the box and connect its outlet to the tee.':'Cut a short stub from the tee\\'s branch out through the wall. Its center should be at the planned stub-out height.'}}</li><li>Check the arm slope: 1/4\" per foot downhill toward the tee.</li><li>Check the distance from the trap to the tee is within your trap arm limit (about {{c.armIPC}} ft IPC/IRC, {{c.armUPC}} UPC).</li><li>Fasten the tee to a block or strap so it can't move when you push the trap on later.</li><li>Dry-fit only for now. Mark each joint with a line across pipe and fitting so you can glue it in the same position.</li></ol>",
+     "faq": [
+      [
+       "Which way does the san tee face?",
+       "The curved inlet points at the fixture and curves down. If you can read the arrow cast on it, it points in the flow direction (down)."
+      ]
+     ]
+    },
+    {
+     "id": "r4",
+     "t": "Run the drain with slope and hangers",
+     "time": "1–2 hr",
+     "idea": "Steady downhill slope with support every few feet carries waste without settling.",
+     "fig": [
+      "slope",
+      "support"
+     ],
+     "need": [
+      "pipe",
+      "bends",
+      "hangers",
+      "level",
+      "pvcsaw",
+      "deburr",
+      "cleanout"
+     ],
+     "help": [
+      "slopeHelp",
+      "cutHelp"
+     ],
+     "b": "<ol><li>Measure and cut each piece, dry-fit and mark it.</li><li>Use long-sweep bends or two 1/8 bends for turns from horizontal to horizontal or vertical to horizontal.</li><li>Check slope on every horizontal piece: 1/4\" per foot. No flat spots, no high spots.</li><li>Hang the pipe at least every 4 ft, and near each fitting. Snug, not pinching.</li><li>Put in the cleanout where the inspector wants it, facing where you can get a snake in.</li><li>Stop the run a few inches short of the tie-in. You'll connect it last.</li></ol>",
+     "faq": [
+      [
+       "Can I use regular 90 elbows?",
+       "A tight (short) 1/4 bend is only for turning from horizontal to vertical (water going down). For turns that flow sideways or from vertical to horizontal, use long sweeps or two 45s."
+      ],
+      [
+       "Steeper is better, right?",
+       "Steeper is usually fine, but it uses up your height. Aim for 1/4\" per foot and stay consistent."
+      ]
+     ]
+    },
+    {
+     "id": "r5",
+     "t": "Run the dry vent",
+     "time": "1 hr",
+     "idea": "The vent goes straight up from the tee until it's above the flood rim, then over to the existing vent.",
+     "when": "a.vent!=='aav'",
+     "fig": "ventrim",
+     "need": [
+      "ventpipe",
+      "bends",
+      "pvcsaw",
+      "level"
+     ],
+     "b": "<ol><li>Run 1-1/2\" pipe straight up from the top of the vent tee.</li><li>Keep it vertical until it's above the fixture's flood rim (the top edge of the sink or standpipe), at least 6\" above where your code requires.</li><li>Turn it over toward the existing vent with long sweeps. Slope horizontal sections slightly back toward the drain so condensation drains away.</li><li>Plan to join the existing vent with a sanitary tee (inverted, so it catches air) or a wye. You'll cut in during the tie-in.</li><li>Use shielded couplings to close the cut in the old vent, the same way as on the drain.</li><li>Through ceilings and top plates: drill the plate, keep the hole within limits, and fire caulk later.</li></ol>",
+     "stop": "{{a.vent==='unsure'?'You marked the vent plan as not sure. Don\\'t build it until your inspector approves the plan.':'Don\\'t join a vent into a drain pipe below the flood rim, and don\\'t lay a dry vent flat below it.'}}",
+     "faq": [
+      [
+       "How do I know the old pipe is a vent and not a drain?",
+       "Trace it: a vent goes up to the roof with no fixtures above it. Run water upstairs and listen. If water runs through it, it's a drain."
+      ]
+     ]
+    },
+    {
+     "id": "r6",
+     "t": "Set the air admittance valve",
+     "time": "30 min",
+     "idea": "The AAV sits upright on a short riser above the trap arm, where it gets air and can be replaced.",
+     "when": "a.vent==='aav'",
+     "fig": "aav",
+     "need": [
+      "aav",
+      "ventpipe",
+      "level"
+     ],
+     "b": "<ol><li>Glue a short vertical riser into the top of the vent tee.</li><li>Cut it so the bottom of the AAV sits at least the maker's minimum above the trap arm (often 4\"). Higher is fine.</li><li>Keep it plumb: most AAVs must be within about 15° of vertical. Check with the torpedo level.</li><li>Screw the AAV on (threaded adapter) or push it on as the maker says. Don't glue the valve itself, so it can be replaced.</li><li>Inside a cabinet it's already accessible. In a wall, use an AAV box with an access grille.</li><li>Keep it out of insulation and attics where it can freeze unless the maker allows it.</li></ol>",
+     "faq": [
+      [
+       "Can I add AAVs everywhere instead of venting?",
+       "No. The house must keep at least one vent open to the roof, and codes limit where AAVs go."
+      ]
+     ]
+    },
+    {
+     "id": "r7",
+     "t": "Glue the new piping",
+     "time": "1 hr",
+     "idea": "Primer and cement weld the plastic. A joint that isn't pushed in fully or turned leaks.",
+     "need": [
+      "primer",
+      "deburr"
+     ],
+     "ppe": [
+      "Glasses",
+      "Gloves"
+     ],
+     "help": [
+      "glueHelp"
+     ],
+     "timers": [
+      [
+       "Cement set before handling (check can)",
+       15
+      ]
+     ],
+     "b": "<ol><li>Open a window or run a fan. Primer and cement fumes are strong and flammable: no flames or smoking.</li><li>Take one joint apart at a time. Wipe both parts clean and dry.</li><li>{{a.material==='abs'?'Brush ABS cement on the pipe end and inside the fitting.':'Brush purple primer on the pipe end and inside the fitting. While wet, brush on PVC cement.'}}</li><li>Push the pipe fully in with a quarter turn, lining up your marks. Hold 30 seconds; it pushes back.</li><li>Wipe extra cement. Work from the fixture toward the tie-in.</li><li>Check slope and hangers again once it's all glued.</li></ol>",
+     "faq": [
+      [
+       "I glued one wrong.",
+       "Cut it out and use a new fitting with couplings. Glued joints can't be pulled apart."
+      ],
+      [
+       "Do I need primer on ABS?",
+       "Usually no. Use ABS cement made for DWV. Some areas require a cleaner; ask."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Tie in",
+   "steps": [
+    {
+     "id": "t1",
+     "t": "Stop the water going down the drain",
+     "time": "15 min",
+     "idea": "Nobody upstream may run water while the old drain is open.",
+     "need": [
+      "bucket"
+     ],
+     "b": "<ol><li>Find every fixture that drains through the pipe you'll cut: sinks, tubs, toilets, washer upstairs.</li><li>Tell everyone at home. Tape a note on each fixture: \"Don't use: drain open.\"</li><li>Turn off the washer and dishwasher if they drain here.</li><li>Put a bucket and rags under the cut point. Wear gloves and glasses.</li><li>Expect some dirty water and smell. Keep a fan running.</li></ol>",
+     "stop": "An open drain plus a flushed toilet upstairs sends sewage onto you and the floor. Make sure everyone knows."
+    },
+    {
+     "id": "t2",
+     "t": "Support and cut the plastic drain",
+     "time": "30 min",
+     "idea": "Hold the old pipe up on both sides, then cut out a gap that fits the new fitting.",
+     "when": "a.material==='pvc'||a.material==='abs'",
+     "fig": "coupling",
+     "need": [
+      "pvcsaw",
+      "recip",
+      "tape",
+      "hangers",
+      "deburr"
+     ],
+     "ppe": [
+      "Glasses",
+      "Gloves"
+     ],
+     "help": [
+      "cutHelp"
+     ],
+     "b": "<ol><li>Add a hanger or strap on both sides of the cut, within about a foot, so the pipe can't sag or drop.</li><li>Hold the new fitting next to the pipe. Mark the cut length: the fitting's length plus about 1/4\" for the couplings' center stops, or as the coupling maker says.</li><li>Cut square with the saw. Keep the blade straight; the cut ends must meet the coupling's stop.</li><li>Clean off burrs and wipe the ends dry.</li><li>If the pipe is vertical, cut the bottom first, then the top, and support the section above before the second cut.</li></ol>",
+     "faq": [
+      [
+       "Can I glue the new fitting in instead?",
+       "If the pipe can flex enough, yes, using a repair coupling (slip coupling, no inner stop) on one side. Shielded couplings are easier on a fixed pipe."
+      ],
+      [
+       "Water keeps trickling out.",
+       "Something upstream is still draining. Find it, or plug the upstream end with a rag or test ball while you work."
+      ]
+     ]
+    },
+    {
+     "id": "t3",
+     "t": "Cut into cast iron (pro recommended)",
+     "time": "1–2 hr",
+     "idea": "Clamp the stack above and below, then cut it square with a snap cutter.",
+     "when": "a.material==='cast'",
+     "fig": "castiron",
+     "need": [
+      "snap",
+      "riser",
+      "couplings"
+     ],
+     "ppe": [
+      "Glasses",
+      "Gloves",
+      "Hearing protection"
+     ],
+     "stop": "Cast iron is heavy and brittle. If the stack isn't clamped above and below, it can drop when cut, break joints elsewhere, and injure you. Hire a plumber if you're unsure.",
+     "b": "<ol><li>Install a riser clamp above the cut, resting on the floor framing. On a vertical stack, add one below the cut too.</li><li>Mark the cut: fitting length plus the coupling's stops.</li><li>Wrap the snap cutter chain around the pipe at the first mark. Pump the handle until the pipe snaps cleanly.</li><li>Repeat at the second mark. Have a helper hold the section that comes out.</li><li>Check the ends: square, not cracked. Wire brush them clean.</li><li>Use heavy-duty shielded couplings made for cast iron to plastic.</li></ol>",
+     "faq": [
+      [
+       "Can I use a grinder?",
+       "It works but throws sparks and lots of dust, and the cut is slower. A rented snap cutter is cleaner and safer."
+      ]
+     ]
+    },
+    {
+     "id": "t4",
+     "t": "Install the tie-in fitting",
+     "time": "45 min",
+     "idea": "The new fitting fills the gap; the couplings seal it to the old pipe.",
+     "fig": [
+      "coupling",
+      "fittings"
+     ],
+     "need": [
+      "tiein",
+      "couplings",
+      "level"
+     ],
+     "b": "<ol><li>{{a.material==='galv'?'Your plumber replaces the rusty galvanized section and leaves this fitting in place. Check it matches your plan, then skip to connecting the new branch.':'Slide a shielded coupling onto each cut end, rubber sleeve first.'}}</li><li>Set the fitting in the gap. Branch facing your new line: {{a.tiein==='vertical'?'sanitary tee on the stack, branch in from the side':'wye pointing downstream, branch rolled up at or above the center line'}}.</li><li>Center each coupling over its joint. Tighten the band clamps evenly to the torque on the coupling (often 60 inch-pounds; a torque wrench or preset T-handle helps).</li><li>Connect your new branch to the fitting: glue it or use another coupling.</li><li>Check the slope from the fixture to here one last time.</li><li>Leave the upstream fixtures off until the test is done.</li></ol>",
+     "faq": [
+      [
+       "Do I need a torque wrench?",
+       "Over-tightening cuts the rubber; under-tightening leaks. A 5/16\" nut driver torque tool for no-hub couplings is cheap and removes the guesswork."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Test and inspect",
+   "steps": [
+    {
+     "id": "x1",
+     "t": "Water test the new drain",
+     "time": "1 hr",
+     "idea": "Fill the new piping with water and prove no joint leaks before the walls close.",
+     "fig": "test",
+     "need": [
+      "test",
+      "bucket"
+     ],
+     "timers": [
+      [
+       "Cement cure before testing (check can)",
+       120
+      ],
+      [
+       "Hold the water test",
+       15
+      ]
+     ],
+     "b": "<ol><li>Wait for the cement to cure as the can says before testing. Cold weather takes longer.</li><li>Cap the stub-out with a test cap.</li><li>Plug the new branch at the tie-in with a test ball or plug, so test water can't escape into the old drain.</li><li>Fill the new piping with a hose or bucket through the top of the vent until it's full to the highest point.</li><li>Mark the water level. Wait 15 minutes (or what your inspector asks). The level must not drop.</li><li>Walk every joint with a dry paper towel. Release the water slowly into a bucket afterward.</li></ol>",
+     "stop": "If the level drops, find the leak and fix it now. A leaking drain in a closed wall rots framing and grows mold before you notice.",
+     "faq": [
+      [
+       "My inspector wants an air test.",
+       "That uses plugs and a gauge at 5 psi. Ask them exactly what they want; some accept a water test for a small branch."
+      ],
+      [
+       "I can't fill to the top of the vent.",
+       "Fill as high as you can and tell the inspector. With an AAV, fill to just below the valve."
+      ]
+     ]
+    },
+    {
+     "id": "x2",
+     "t": "Get the rough-in inspection",
+     "time": "varies",
+     "idea": "The inspector checks sizes, slope, venting and the test before anything gets covered.",
+     "fig": "system",
+     "b": "<ol><li>Call for the rough-in inspection with the walls and ceiling still open.</li><li>Leave everything visible: the tie-in, the vent, hangers, nail plate spots, cleanout.</li><li>Have the test ready if they want to watch it.</li><li>Fix anything the inspector flags. If it involves the stack, slab or main drain, call a plumber.</li><li>Keep the signed inspection card.</li></ol>",
+     "wait": "rough-in inspection",
+     "faq": [
+      [
+       "What do inspectors flag most?",
+       "Wrong fittings on horizontal lines, flat or back-sloped pipe, long trap arms, missing cleanouts, and unsupported pipe."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Close up and hook up",
+   "steps": [
+    {
+     "id": "f1",
+     "t": "Protect and close the wall",
+     "time": "1–2 hr + drying",
+     "idea": "Plates stop future screws; fire caulk restores the fire block; then the wall goes back.",
+     "fig": "stud",
+     "need": [
+      "plates",
+      "firecaulk",
+      "patch"
+     ],
+     "b": "<ol><li>Nail a steel plate on the stud face wherever the pipe is within 1-1/4\" of the edge. In 2x4 and most 2x6 walls, that's every stud you drilled.</li><li>Fill holes through top and bottom plates with fire-rated caulk.</li><li>Put insulation back.</li><li>Patch the drywall. Leave an access panel if a cleanout or AAV is in the wall.</li></ol>",
+     "faq": [
+      [
+       "Do I need an access panel?",
+       "Yes for a cleanout, an AAV in the wall or any slip-joint fitting. Those must stay reachable."
+      ]
+     ]
+    },
+    {
+     "id": "f2",
+     "t": "Install the trap and fixture",
+     "time": "1 hr",
+     "idea": "The trap connects the fixture to the stub-out and holds the water seal.",
+     "fig": "strap",
+     "need": [
+      "trap"
+     ],
+     "b": "<ol><li>{{a.fixture==='washer'?'Set the washer drain hose into the standpipe about 6\"-8\" deep, loose, never sealed or taped. Strap it so it can\\'t jump out.':'Glue the trap adapter onto the stub-out. Install the fixture per its instructions.'}}</li><li>{{a.fixture==='washer'?'Check the standpipe top is above the washer\\'s flood level and within the code height.':'Connect the tailpiece, trap and trap arm. Slip nuts go on first, then beveled washers with the bevel facing the joint.'}}</li><li>{{a.fixture==='washer'?'Hand-tighten any washer box valves and check for drips.':'Hand-tighten slip nuts, then about a quarter turn more with pliers. Don\\'t crush the plastic.'}}</li><li>The trap must be a P-trap, level side to side, with no long dip or second trap.</li></ol>",
+     "faq": [
+      [
+       "The trap doesn't line up with the stub-out.",
+       "Trap arms can be cut shorter or swiveled. If it's off by more than an inch or two, add a short piece; don't stretch slip joints."
+      ]
+     ]
+    },
+    {
+     "id": "f3",
+     "t": "Flow test and final inspection",
+     "time": "30 min",
+     "idea": "Run lots of water and watch every joint and listen for gurgling.",
+     "need": [
+      "bucket"
+     ],
+     "b": "<ol><li>Remove all test plugs and caps. Tell the household the drains are back on.</li><li>{{a.fixture==='washer'?'Run a full washer drain cycle and watch the standpipe top. No overflow, no bubbling back.':'Fill the sink, then pull the plug. Watch under it with a flashlight.'}}</li><li>Listen: gurgling means a vent problem. The trap should stay full afterward.</li><li>Check the tie-in and every joint you can reach for drips with a dry paper towel.</li><li>Check again the next day.</li><li>Call for the final inspection if your permit needs one.</li></ol>",
+     "stop": "If it gurgles, drains slowly or smells like sewer gas, the vent isn't working or the slope is wrong. Don't just live with it: have a plumber look.",
+     "faq": [
+      [
+       "The trap smells after a few weeks of no use.",
+       "The water evaporated. Run water monthly in rarely used drains or add a few drops of mineral oil."
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "days": [
+  {
+   "t": "Learn, plan and apply for the permit",
+   "ids": [
+    "u1",
+    "u2",
+    "u3",
+    "g1",
+    "g2",
+    "p1",
+    "p2",
+    "p3",
+    "p4"
+   ],
+   "wait": "permit approval"
+  },
+  {
+   "t": "Buy parts and rough in",
+   "ids": [
+    "p5",
+    "r1",
+    "r2",
+    "r3",
+    "r4",
+    "r5",
+    "r6",
+    "r7"
+   ],
+   "wait": "cement cure overnight is a good idea"
+  },
+  {
+   "t": "Tie in, test, inspection",
+   "ids": [
+    "t1",
+    "t2",
+    "t3",
+    "t4",
+    "x1",
+    "x2"
+   ],
+   "wait": "rough-in inspection"
+  },
+  {
+   "t": "Close up and hook up",
+   "ids": [
+    "f1",
+    "f2",
+    "f3"
+   ],
+   "wait": "final inspection if required"
+  }
+ ],
+ "help": {
+  "glueHelp": {
+   "t": "Prime and glue plastic drain pipe",
+   "fig": "coupling",
+   "b": "<ol><li>Square cut, deburred, chamfered.</li><li>Dry-fit and mark across the joint.</li><li>PVC: purple primer on pipe and socket, then cement while wet. ABS: ABS cement only.</li><li>Push fully home with a 1/4 turn to the mark.</li><li>Hold 30 seconds. Wipe extra.</li></ol>"
+  },
+  "slopeHelp": {
+   "t": "Check 1/4\" per foot slope",
+   "fig": "slope",
+   "b": "<ol><li>Set the level on the pipe.</li><li>Lift the low end until the bubble centers.</li><li>The gap should be 1/4\" per foot of level: 1/4\" under a 1 ft torpedo, 1\" under a 4 ft level.</li><li>Many torpedo levels have a 1/4\" slope line on the vial.</li></ol>"
+  },
+  "drillHelp": {
+   "t": "Drill framing within limits",
+   "fig": "joist",
+   "b": "<ol><li>Joists: middle, 2\" from edges, max 1/3 depth.</li><li>Studs: 40% of width (bearing), 60% (non-bearing), 5/8\" from edges.</li><li>Never notch for a drain.</li><li>Engineered lumber: maker's chart only.</li><li>Plate any stud face where the pipe is within 1-1/4\".</li></ol>"
+  },
+  "cutHelp": {
+   "t": "Cut plastic pipe square",
+   "fig": "coupling",
+   "b": "<ol><li>Mark all the way around (wrap a strip of paper as a guide).</li><li>Use a miter box or saw slowly while turning the pipe.</li><li>Remove burrs inside and out; chamfer the outside edge slightly.</li><li>Dry-fit: the pipe must reach the fitting's stop.</li></ol>"
+  }
+ },
+ "figs": {
+  "system": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">How a drain system works</text><path d=\"M180 34 L270 14 L320 24\" class=\"o\"/><rect x=\"10\" y=\"176\" width=\"240\" height=\"8\" class=\"w\"/><path d=\"M26 70 H96 L90 92 H32 Z\" class=\"tb\"/><path d=\"M270 8 V218 Q270 230 282 230 H318\" class=\"o\" style=\"stroke-width:14;stroke-linecap:butt\" fill=\"none\"/><path d=\"M270 8 V218 Q270 230 282 230 H318\" class=\"o\" style=\"stroke:var(--tub);stroke-width:11;stroke-linecap:butt\" fill=\"none\"/><path d=\"M61 92 V122 Q61 134 71 134 Q81 134 81 122 V116 L140 119\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M61 92 V122 Q61 134 71 134 Q81 134 81 122 V116 L140 119\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M61 114 V122 Q61 134 71 134 Q81 134 81 122 V116\" class=\"o\" style=\"stroke:var(--water);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M140 119 V50 Q140 46 144 46 H263\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M140 119 V50 Q140 46 144 46 H263\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M140 119 V200 L263 206\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M140 119 V200 L263 206\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><line x1=\"200\" y1=\"40\" x2=\"236\" y2=\"40\" class=\"a\"/><polygon points=\"236.0,40.0 230.6,42.6 230.6,37.4\" class=\"af\"/><line x1=\"150\" y1=\"150\" x2=\"150\" y2=\"180\" class=\"a\"/><polygon points=\"150.0,180.0 147.4,174.6 152.6,174.6\" class=\"af\"/><circle cx=\"22\" cy=\"58\" r=\"8\" class=\"af\"/><text x=\"22\" y=\"61\" class=\"nm\" text-anchor=\"middle\">1</text><circle cx=\"98\" cy=\"146\" r=\"8\" class=\"af\"/><text x=\"98\" y=\"149\" class=\"nm\" text-anchor=\"middle\">2</text><circle cx=\"110\" cy=\"104\" r=\"8\" class=\"af\"/><text x=\"110\" y=\"107\" class=\"nm\" text-anchor=\"middle\">3</text><circle cx=\"156\" cy=\"80\" r=\"8\" class=\"af\"/><text x=\"156\" y=\"83\" class=\"nm\" text-anchor=\"middle\">4</text><circle cx=\"160\" cy=\"158\" r=\"8\" class=\"af\"/><text x=\"160\" y=\"161\" class=\"nm\" text-anchor=\"middle\">5</text><circle cx=\"292\" cy=\"120\" r=\"8\" class=\"af\"/><text x=\"292\" y=\"123\" class=\"nm\" text-anchor=\"middle\">6</text><circle cx=\"300\" cy=\"210\" r=\"8\" class=\"af\"/><text x=\"300\" y=\"213\" class=\"nm\" text-anchor=\"middle\">7</text><text x=\"286\" y=\"40\">roof</text><text x=\"20\" y=\"172\">floor</text><text x=\"10\" y=\"250\" class=\"k\">1 fixture  2 trap (water seal)  3 trap arm</text><text x=\"10\" y=\"263\" class=\"k\">4 vent  5 drain  6 stack  7 building drain to sewer</text>",
+   "h": 270,
+   "cap": "Water leaves the fixture, passes the trap (which stays full of water to block sewer gas), runs along the trap arm, and drops down the drain to the stack. The vent lets air in and out so the trap is never sucked dry."
+  },
+  "vent": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Why vents matter</text><text x=\"10\" y=\"32\" class=\"gd\">With a vent</text><text x=\"170\" y=\"32\" class=\"wa\">No vent</text><path d=\"M20 46 H80 L76 62 H24 Z\" class=\"tb\"/><path d=\"M50 62 V88 Q50 98 60 98 Q70 98 70 88 V82 L110 84\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M50 62 V88 Q50 98 60 98 Q70 98 70 88 V82 L110 84\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M50 80 V88 Q50 98 60 98 Q70 98 70 88 V82\" class=\"o\" style=\"stroke:var(--water);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M110 40 V170\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M110 40 V170\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><g><line x1=\"126\" y1=\"46\" x2=\"126\" y2=\"74\" class=\"a\"/><polygon points=\"126.0,74.0 123.4,68.6 128.6,68.6\" class=\"af\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 -6;0 10;0 -6\" dur=\"1.6s\" repeatCount=\"indefinite\"/></g><text x=\"118\" y=\"40\" class=\"ac\">air in</text><path d=\"M180 46 H240 L236 62 H184 Z\" class=\"tb\"/><path d=\"M210 62 V88 Q210 98 220 98 Q230 98 230 88 V82 L270 84 V170\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M210 62 V88 Q210 98 220 98 Q230 98 230 88 V82 L270 84 V170\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M210 80 V88 Q210 98 220 98 Q230 98 230 88 V82\" class=\"o\" style=\"stroke:var(--water);stroke-width:7;stroke-linecap:butt\" fill=\"none\" opacity=\"0.15\"><animate attributeName=\"opacity\" values=\"1;1;0.15;0.15;1\" keyTimes=\"0;0.3;0.55;0.9;1\" dur=\"4s\" repeatCount=\"indefinite\"/></path><line x1=\"296\" y1=\"160\" x2=\"296\" y2=\"70\" class=\"bad\"/><polygon points=\"296.0,70.0 298.6,75.4 293.4,75.4\" class=\"badf\"/><text x=\"176\" y=\"132\" class=\"wa\">gurgling</text><text x=\"176\" y=\"146\" class=\"wa\">sewer gas in</text><text x=\"10\" y=\"190\">Air from the vent keeps</text><text x=\"10\" y=\"202\">the trap full.</text><text x=\"170\" y=\"190\">Falling water sucks the</text><text x=\"170\" y=\"202\">trap dry (siphons it).</text>",
+   "h": 210,
+   "title": "What a vent does",
+   "cap": "Without a vent, draining water pulls a vacuum behind it and siphons the trap. An empty trap lets sewer gas into the room. Gurgling and slow drains are the warning signs."
+  },
+  "sizes": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Typical sizes (check your local code)</text><circle cx=\"60\" cy=\"52\" r=\"13\" class=\"tb\"/><circle cx=\"60\" cy=\"52\" r=\"10\" class=\"bk\"/><text x=\"60\" y=\"86\" class=\"k\" text-anchor=\"middle\">1-1/4\"</text><circle cx=\"150\" cy=\"52\" r=\"15\" class=\"tb\"/><circle cx=\"150\" cy=\"52\" r=\"12\" class=\"bk\"/><text x=\"150\" y=\"86\" class=\"k\" text-anchor=\"middle\">1-1/2\"</text><circle cx=\"250\" cy=\"52\" r=\"19\" class=\"tb\"/><circle cx=\"250\" cy=\"52\" r=\"16\" class=\"bk\"/><text x=\"250\" y=\"86\" class=\"k\" text-anchor=\"middle\">2\"</text><text x=\"10\" y=\"112\" class=\"k\">Fixture</text><text x=\"130\" y=\"112\" class=\"k\">Trap</text><text x=\"200\" y=\"112\" class=\"k\">Drain / arm</text><line x1=\"10\" y1=\"118\" x2=\"310\" y2=\"118\" class=\"o\"/><text x=\"10\" y=\"134\">Bathroom sink</text><text x=\"130\" y=\"134\" class=\"ac\">1-1/4\"</text><text x=\"200\" y=\"134\">1-1/2\" common</text><text x=\"10\" y=\"150\">Kitchen / bar sink</text><text x=\"130\" y=\"150\" class=\"ac\">1-1/2\"</text><text x=\"200\" y=\"150\">1-1/2\" (or 2\")</text><text x=\"10\" y=\"166\">Washer standpipe</text><text x=\"130\" y=\"166\" class=\"ac\">2\"</text><text x=\"200\" y=\"166\">2\"</text><text x=\"10\" y=\"182\">Utility sink</text><text x=\"130\" y=\"182\" class=\"ac\">1-1/2\"</text><text x=\"200\" y=\"182\">1-1/2\"</text><text x=\"10\" y=\"206\" class=\"wa\">Never make the pipe smaller as water flows downstream.</text>",
+   "h": 214,
+   "cap": "Nominal sizes are the inside size; the pipe is bigger outside. A drain can be larger than the trap but never smaller."
+  },
+  "traparm": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Trap arm: from trap to vent</text><path d=\"M20 40 H90 L84 60 H26 Z\" class=\"tb\"/><path d=\"M55 60 V104 Q55 116 67 116 Q79 116 79 104 V96 L250 104\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M55 60 V104 Q55 116 67 116 Q79 116 79 104 V96 L250 104\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M55 96 V104 Q55 116 67 116 Q79 116 79 104 V96\" class=\"o\" style=\"stroke:var(--water);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M250 24 V190\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M250 24 V190\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><line x1=\"162.0\" y1=\"74.0\" x2=\"80\" y2=\"74\" class=\"a\"/><polygon points=\"80.0,74.0 85.4,71.4 85.4,76.6\" class=\"af\"/><line x1=\"162.0\" y1=\"74.0\" x2=\"244\" y2=\"74\" class=\"a\"/><polygon points=\"244.0,74.0 238.6,76.6 238.6,71.4\" class=\"af\"/><text x=\"162\" y=\"68\" class=\"ac\" text-anchor=\"middle\">trap arm: within the limit</text><text x=\"110\" y=\"128\" class=\"k\">falls 1/4\" per foot</text><text x=\"260\" y=\"40\" class=\"k\">vent</text><text x=\"260\" y=\"108\">san tee</text><text x=\"260\" y=\"180\" class=\"k\">drain</text><text x=\"10\" y=\"150\">Keep the vent opening above the trap weir.</text><text x=\"10\" y=\"164\">No S-traps: the arm must reach a vent.</text><text x=\"10\" y=\"178\">Trap stays reachable (cabinet or panel).</text>",
+   "h": 196,
+   "cap": "The trap arm runs from the trap to the vent fitting. Its maximum length depends on pipe size and your code; slope it 1/4\" per foot and keep it short."
+  },
+  "ventrim": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Dry vent: up, then over above the rim</text><path d=\"M20 80 H100 L94 100 H26 Z\" class=\"tb\"/><line x1=\"10\" y1=\"80\" x2=\"300\" y2=\"80\" class=\"o d\"/><text x=\"10\" y=\"74\">flood rim</text><path d=\"M270 10 V200\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M270 10 V200\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M60 100 V130 Q60 140 70 140 Q80 140 80 130 V126 L130 130\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M60 100 V130 Q60 140 70 140 Q80 140 80 130 V126 L130 130\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M130 130 V48 Q130 44 134 44 H265\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M130 130 V48 Q130 44 134 44 H265\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M130 130 V200\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M130 130 V200\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><line x1=\"230.0\" y1=\"65.0\" x2=\"230\" y2=\"50\" class=\"a\"/><polygon points=\"230.0,50.0 232.6,55.4 227.4,55.4\" class=\"af\"/><line x1=\"230.0\" y1=\"65.0\" x2=\"230\" y2=\"80\" class=\"a\"/><polygon points=\"230.0,80.0 227.4,74.6 232.6,74.6\" class=\"af\"/><text x=\"226\" y=\"68\" class=\"ac\" text-anchor=\"end\">6\" min</text><text x=\"140\" y=\"96\" class=\"gd\">vent rises straight up</text><line x1=\"136\" y1=\"112\" x2=\"262\" y2=\"112\" class=\"bad d\"/><text x=\"142\" y=\"124\" class=\"wa\">wrong: flat below rim</text><text x=\"190\" y=\"34\" class=\"k\">existing vent</text><text x=\"140\" y=\"180\">drain</text>",
+   "h": 208,
+   "cap": "A dry vent leaves the drain going up and stays vertical until it is above the fixture's flood rim (often at least 6\" above, check your code), then turns over to join the existing vent."
+  },
+  "aav": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Air admittance valve (AAV)</text><rect x=\"10\" y=\"60\" width=\"220\" height=\"6\" class=\"tl\"/><rect x=\"10\" y=\"66\" width=\"220\" height=\"134\" class=\"bk\"/><path d=\"M40 66 H120 L114 92 H46 Z\" class=\"tb\"/><rect x=\"230\" y=\"20\" width=\"10\" height=\"180\" class=\"b\"/><rect x=\"10\" y=\"200\" width=\"300\" height=\"8\" class=\"w\"/><path d=\"M80 92 V128 Q80 138 90 138 Q100 138 100 128 V124 L190 128\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M80 92 V128 Q80 138 90 138 Q100 138 100 128 V124 L190 128\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M80 120 V128 Q80 138 90 138 Q100 138 100 128 V124\" class=\"o\" style=\"stroke:var(--water);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M190 128 V200\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M190 128 V200\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M190 128 V96\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M190 128 V96\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><rect x=\"178\" y=\"70\" width=\"24\" height=\"28\" rx=\"3\" class=\"y\"/><line x1=\"184\" y1=\"76\" x2=\"184\" y2=\"92\" class=\"o\"/><line x1=\"190\" y1=\"76\" x2=\"190\" y2=\"92\" class=\"o\"/><line x1=\"196\" y1=\"76\" x2=\"196\" y2=\"92\" class=\"o\"/><line x1=\"214.0\" y1=\"113.0\" x2=\"214\" y2=\"98\" class=\"a\"/><polygon points=\"214.0,98.0 216.6,103.4 211.4,103.4\" class=\"af\"/><line x1=\"214.0\" y1=\"113.0\" x2=\"214\" y2=\"128\" class=\"a\"/><polygon points=\"214.0,128.0 211.4,122.6 216.6,122.6\" class=\"af\"/><text x=\"246\" y=\"80\" class=\"k\">AAV</text><text x=\"246\" y=\"92\">air valve</text><text x=\"246\" y=\"112\" class=\"ac\">4\"+ above</text><text x=\"246\" y=\"124\" class=\"ac\">trap arm</text><text x=\"20\" y=\"190\">sink cabinet</text><text x=\"10\" y=\"222\">Accessible, upright, in open air: never buried in a wall.</text><text x=\"10\" y=\"236\">Only where code allows. The house still needs</text><text x=\"10\" y=\"248\" class=\"wa\">its main vent through the roof.</text>",
+   "h": 256,
+   "cap": "An AAV opens to let air in when water drains and closes to keep gas out. Mount it upright, above the trap arm by at least the maker's minimum (often 4\"), where you can reach and replace it."
+  },
+  "fittings": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Which fitting where</text><path d=\"M50 30 V150\" class=\"o\" style=\"stroke-width:12;stroke-linecap:butt\" fill=\"none\"/><path d=\"M50 30 V150\" class=\"o\" style=\"stroke:var(--tub);stroke-width:9;stroke-linecap:butt\" fill=\"none\"/><path d=\"M14 78 H34 Q50 78 50 96\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M14 78 H34 Q50 78 50 96\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><line x1=\"60\" y1=\"100\" x2=\"60\" y2=\"140\" class=\"a\"/><polygon points=\"60.0,140.0 57.4,134.6 62.6,134.6\" class=\"af\"/><path d=\"M110 130 L210 136\" class=\"o\" style=\"stroke-width:12;stroke-linecap:butt\" fill=\"none\"/><path d=\"M110 130 L210 136\" class=\"o\" style=\"stroke:var(--tub);stroke-width:9;stroke-linecap:butt\" fill=\"none\"/><path d=\"M136 46 V100 L160 124\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M136 46 V100 L160 124\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><line x1=\"120\" y1=\"150\" x2=\"196\" y2=\"154\" class=\"a\"/><polygon points=\"196.0,154.0 190.5,156.3 190.7,151.1\" class=\"af\"/><path d=\"M220 130 L310 136\" class=\"o\" style=\"stroke-width:12;stroke-linecap:butt\" fill=\"none\"/><path d=\"M220 130 L310 136\" class=\"o\" style=\"stroke:var(--tub);stroke-width:9;stroke-linecap:butt\" fill=\"none\"/><path d=\"M265 46 V126\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M265 46 V126\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M258 140 l14 -14 M258 126 l14 14\" class=\"bad\"/><text x=\"10\" y=\"170\" class=\"k\">Stack (vertical):</text><text x=\"10\" y=\"182\" class=\"gd\">sanitary tee</text><text x=\"10\" y=\"194\">side inlet</text><text x=\"112\" y=\"170\" class=\"k\">Horizontal drain:</text><text x=\"112\" y=\"182\" class=\"gd\">wye + 1/8 bend</text><text x=\"112\" y=\"194\">or combo wye</text><text x=\"222\" y=\"170\" class=\"k\">Horizontal drain:</text><text x=\"222\" y=\"182\" class=\"wa\">sanitary tee</text><text x=\"222\" y=\"194\" class=\"wa\">WRONG: clogs</text><text x=\"10\" y=\"214\" class=\"k\">San tee only where flow turns DOWN into a stack.</text>",
+   "h": 222,
+   "cap": "A sanitary tee's short curve works when flow falls into a vertical pipe. On a horizontal line it sends waste straight into the far wall and backs up. Use a wye with a 1/8 bend (or a combo wye) there."
+  },
+  "slope": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Slope: 1/4\" per foot, downhill to the drain</text><path d=\"M20 70 L300 100\" class=\"o\" style=\"stroke-width:12;stroke-linecap:butt\" fill=\"none\"/><path d=\"M20 70 L300 100\" class=\"o\" style=\"stroke:var(--tub);stroke-width:9;stroke-linecap:butt\" fill=\"none\"/><rect x=\"40\" y=\"58\" width=\"160\" height=\"8\" class=\"y\"/><rect x=\"114\" y=\"59\" width=\"12\" height=\"6\" class=\"mos\"/><line x1=\"204.0\" y1=\"74.5\" x2=\"204\" y2=\"66\" class=\"a\"/><polygon points=\"204.0,66.0 206.6,71.4 201.4,71.4\" class=\"af\"/><line x1=\"204.0\" y1=\"74.5\" x2=\"204\" y2=\"83\" class=\"a\"/><polygon points=\"204.0,83.0 201.4,77.6 206.6,77.6\" class=\"af\"/><text x=\"212\" y=\"36\" class=\"ac\">1\" gap at the</text><text x=\"212\" y=\"48\" class=\"ac\">end of a 4 ft level</text><text x=\"40\" y=\"48\" class=\"k\">4 ft level, bubble centered</text><line x1=\"60\" y1=\"94\" x2=\"240\" y2=\"112\" class=\"a\"/><polygon points=\"240.0,112.0 234.4,114.1 234.9,108.9\" class=\"af\"/><text x=\"250\" y=\"118\" class=\"ac\">flow</text><text x=\"10\" y=\"140\" class=\"k\">1/4\"/ft = 1\" over 4 ft = 2-1/2\" over 10 ft</text><text x=\"10\" y=\"156\">Pipe 2-1/2\" and smaller: at least 1/4\" per foot.</text><text x=\"10\" y=\"170\">No flat spots, no sags, never uphill.</text>",
+   "h": 178,
+   "cap": "Set a level on the pipe and lift its low end until the bubble centers. The gap under the end tells you the slope: 1/4\" under a 1 ft torpedo level, 1\" under a 4 ft level."
+  },
+  "coupling": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Cut in a new fitting</text><rect x=\"10\" y=\"22\" width=\"300\" height=\"6\" class=\"w\"/><line x1=\"60\" y1=\"28\" x2=\"60\" y2=\"44\" class=\"o\"/><line x1=\"260\" y1=\"28\" x2=\"260\" y2=\"44\" class=\"o\"/><path d=\"M10 50 H310\" class=\"o\" style=\"stroke-width:12;stroke-linecap:butt\" fill=\"none\"/><path d=\"M10 50 H310\" class=\"o\" style=\"stroke:var(--tub);stroke-width:9;stroke-linecap:butt\" fill=\"none\"/><line x1=\"120\" y1=\"38\" x2=\"120\" y2=\"62\" class=\"bad d\"/><line x1=\"200\" y1=\"38\" x2=\"200\" y2=\"62\" class=\"bad d\"/><text x=\"160\" y=\"76\" class=\"wa\" text-anchor=\"middle\">cut out the gap</text><text x=\"66\" y=\"40\">strap</text><text x=\"266\" y=\"40\">strap</text><path d=\"M10 130 H116\" class=\"o\" style=\"stroke-width:12;stroke-linecap:butt\" fill=\"none\"/><path d=\"M10 130 H116\" class=\"o\" style=\"stroke:var(--tub);stroke-width:9;stroke-linecap:butt\" fill=\"none\"/><path d=\"M204 130 H310\" class=\"o\" style=\"stroke-width:12;stroke-linecap:butt\" fill=\"none\"/><path d=\"M204 130 H310\" class=\"o\" style=\"stroke:var(--tub);stroke-width:9;stroke-linecap:butt\" fill=\"none\"/><path d=\"M124 130 H196\" class=\"o\" style=\"stroke-width:16;stroke-linecap:butt\" fill=\"none\"/><path d=\"M124 130 H196\" class=\"o\" style=\"stroke:var(--tub);stroke-width:13;stroke-linecap:butt\" fill=\"none\"/><path d=\"M138 96 V108 L158 126\" class=\"o\" style=\"stroke-width:12;stroke-linecap:butt\" fill=\"none\"/><path d=\"M138 96 V108 L158 126\" class=\"o\" style=\"stroke:var(--tub);stroke-width:9;stroke-linecap:butt\" fill=\"none\"/><text x=\"160\" y=\"100\" class=\"ac\">new wye + 1/8 bend</text><g><rect x=\"104\" y=\"120\" width=\"22\" height=\"20\" rx=\"2\" class=\"bk\"/><circle cx=\"110\" cy=\"116\" r=\"2\" class=\"inkf\"/><circle cx=\"120\" cy=\"116\" r=\"2\" class=\"inkf\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"-26 0;-26 0;0 0;0 0\" keyTimes=\"0;0.25;0.6;1\" dur=\"4s\" repeatCount=\"indefinite\"/></g><g><rect x=\"194\" y=\"120\" width=\"22\" height=\"20\" rx=\"2\" class=\"bk\"/><circle cx=\"200\" cy=\"116\" r=\"2\" class=\"inkf\"/><circle cx=\"210\" cy=\"116\" r=\"2\" class=\"inkf\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"26 0;26 0;0 0;0 0\" keyTimes=\"0;0.25;0.6;1\" dur=\"4s\" repeatCount=\"indefinite\"/></g><text x=\"40\" y=\"162\" class=\"k\">shielded no-hub coupling on each side</text><text x=\"40\" y=\"176\">slide over, center, tighten the bands</text>",
+   "h": 184,
+   "title": "Couplings close the gap",
+   "cap": "Support the pipe, cut out a section, set the new fitting in the gap, then slide a shielded coupling over each joint and tighten its bands to the maker's torque."
+  },
+  "washer": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Washer standpipe heights</text><rect x=\"240\" y=\"50\" width=\"4\" height=\"160\" class=\"b\"/><rect x=\"10\" y=\"210\" width=\"300\" height=\"8\" class=\"w\"/><path d=\"M270 50 V210\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M270 50 V210\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M150 100 V176 Q150 190 162 190 Q174 190 174 176 V172 L270 174\" class=\"o\" style=\"stroke-width:12;stroke-linecap:butt\" fill=\"none\"/><path d=\"M150 100 V176 Q150 190 162 190 Q174 190 174 176 V172 L270 174\" class=\"o\" style=\"stroke:var(--tub);stroke-width:9;stroke-linecap:butt\" fill=\"none\"/><path d=\"M150 170 V176 Q150 190 162 190 Q174 190 174 176 V172\" class=\"o\" style=\"stroke:var(--water);stroke-width:9;stroke-linecap:butt\" fill=\"none\"/><line x1=\"110\" y1=\"67\" x2=\"236\" y2=\"67\" class=\"bad d\"/><line x1=\"110\" y1=\"127\" x2=\"236\" y2=\"127\" class=\"good d\"/><line x1=\"110\" y1=\"172\" x2=\"200\" y2=\"172\" class=\"o d\"/><path d=\"M60 40 Q150 30 150 112\" class=\"o\" style=\"stroke-width:4\" fill=\"none\"/><text x=\"160\" y=\"40\">hose: loose fit, not sealed</text><text x=\"10\" y=\"80\" class=\"wa\">max 42\" IPC/IRC</text><text x=\"10\" y=\"92\" class=\"wa\">max 30\" UPC</text><text x=\"10\" y=\"124\" class=\"gd\">min 18\" above</text><text x=\"10\" y=\"136\" class=\"gd\">the trap weir</text><text x=\"186\" y=\"162\">weir</text><line x1=\"120.0\" y1=\"191.0\" x2=\"120\" y2=\"174\" class=\"a\"/><polygon points=\"120.0,174.0 122.6,179.4 117.4,179.4\" class=\"af\"/><line x1=\"120.0\" y1=\"191.0\" x2=\"120\" y2=\"208\" class=\"a\"/><polygon points=\"120.0,208.0 117.4,202.6 122.6,202.6\" class=\"af\"/><text x=\"10\" y=\"184\">trap 6\"-18\"</text><text x=\"10\" y=\"196\">above floor</text><text x=\"278\" y=\"64\">vent</text><text x=\"278\" y=\"200\">drain</text>",
+   "h": 222,
+   "cap": "Measure standpipe height from the trap weir, not the floor. Common limits: at least 18\" and no more than 42\" (IPC/IRC) or 30\" (UPC). Check your local code and the washer manual."
+  },
+  "stubout": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Typical drain stub-out heights</text><text x=\"10\" y=\"30\">Center of pipe above finished floor; spec sheet wins.</text><rect x=\"10\" y=\"190\" width=\"300\" height=\"8\" class=\"w\"/><line x1=\"29\" y1=\"165\" x2=\"29\" y2=\"138\" class=\"o\"/><polygon points=\"29.0,138.0 31.6,143.4 26.4,143.4\" class=\"inkf\"/><line x1=\"29\" y1=\"165\" x2=\"29\" y2=\"188\" class=\"o\"/><polygon points=\"29.0,188.0 26.4,182.6 31.6,182.6\" class=\"inkf\"/><circle cx=\"45\" cy=\"136\" r=\"7\" class=\"tb\"/><circle cx=\"45\" cy=\"136\" r=\"4\" class=\"bk\"/><text x=\"45\" y=\"210\" class=\"k\" text-anchor=\"middle\">bath sink</text><text x=\"45\" y=\"222\" class=\"ac\" text-anchor=\"middle\">16\"-20\"</text><line x1=\"109\" y1=\"165\" x2=\"109\" y2=\"144\" class=\"o\"/><polygon points=\"109.0,144.0 111.6,149.4 106.4,149.4\" class=\"inkf\"/><line x1=\"109\" y1=\"165\" x2=\"109\" y2=\"188\" class=\"o\"/><polygon points=\"109.0,188.0 106.4,182.6 111.6,182.6\" class=\"inkf\"/><circle cx=\"125\" cy=\"142\" r=\"7\" class=\"tb\"/><circle cx=\"125\" cy=\"142\" r=\"4\" class=\"bk\"/><text x=\"125\" y=\"210\" class=\"k\" text-anchor=\"middle\">kitchen/bar</text><text x=\"125\" y=\"222\" class=\"ac\" text-anchor=\"middle\">15\"-18\"</text><line x1=\"189\" y1=\"165\" x2=\"189\" y2=\"150\" class=\"o\"/><polygon points=\"189.0,150.0 191.6,155.4 186.4,155.4\" class=\"inkf\"/><line x1=\"189\" y1=\"165\" x2=\"189\" y2=\"188\" class=\"o\"/><polygon points=\"189.0,188.0 186.4,182.6 191.6,182.6\" class=\"inkf\"/><circle cx=\"205\" cy=\"148\" r=\"7\" class=\"tb\"/><circle cx=\"205\" cy=\"148\" r=\"4\" class=\"bk\"/><text x=\"205\" y=\"210\" class=\"k\" text-anchor=\"middle\">utility</text><text x=\"205\" y=\"222\" class=\"ac\" text-anchor=\"middle\">12\"-18\"</text><rect x=\"262\" y=\"46\" width=\"36\" height=\"36\" class=\"bk\"/><circle cx=\"280\" cy=\"70\" r=\"6\" class=\"tb\"/><line x1=\"252\" y1=\"120\" x2=\"252\" y2=\"48\" class=\"o\"/><polygon points=\"252.0,48.0 254.6,53.4 249.4,53.4\" class=\"inkf\"/><line x1=\"252\" y1=\"120\" x2=\"252\" y2=\"188\" class=\"o\"/><polygon points=\"252.0,188.0 249.4,182.6 254.6,182.6\" class=\"inkf\"/><text x=\"280\" y=\"210\" class=\"k\" text-anchor=\"middle\">washer box</text><text x=\"280\" y=\"222\" class=\"ac\" text-anchor=\"middle\">top ~42\"-48\"</text>",
+   "h": 230,
+   "cap": "These are common ranges, not rules. The fixture's spec sheet (and the cabinet, disposal or vanity) decides the exact height. Lower is easier to fix than higher."
+  },
+  "joist": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Drilling a floor joist</text><rect x=\"10\" y=\"30\" width=\"300\" height=\"92\" class=\"w\"/><line x1=\"10\" y1=\"50\" x2=\"310\" y2=\"50\" class=\"o d\"/><line x1=\"10\" y1=\"102\" x2=\"310\" y2=\"102\" class=\"o d\"/><rect x=\"40\" y=\"30\" width=\"40\" height=\"20\" class=\"badf\" opacity=\".35\"/><rect x=\"40\" y=\"102\" width=\"40\" height=\"20\" class=\"badf\" opacity=\".35\"/><text x=\"86\" y=\"44\" class=\"wa\">2\" no-hole zone</text><text x=\"86\" y=\"116\" class=\"wa\">2\" no-hole zone</text><circle cx=\"200\" cy=\"72\" r=\"13\" class=\"bk\"/><circle cx=\"200\" cy=\"72\" r=\"10\" class=\"tb\"/><circle cx=\"260\" cy=\"80\" r=\"13\" class=\"bk\"/><circle cx=\"260\" cy=\"80\" r=\"10\" class=\"tb\"/><text x=\"10\" y=\"140\" class=\"k\">Hole no bigger than 1/3 of the joist depth.</text><text x=\"10\" y=\"154\">Each hole a little lower to keep the slope.</text><text x=\"10\" y=\"168\">Bore, never notch. Not near the bearing ends.</text><text x=\"10\" y=\"182\" class=\"wa\">I-joists, trusses: maker's chart or engineer.</text>",
+   "h": 190,
+   "cap": "Holes go through the middle of the joist, away from the top and bottom edges that carry the load. Running perpendicular to joists? Often you can hang the pipe below them instead."
+  },
+  "stud": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Drain holes in studs (side of stud)</text><rect x=\"50\" y=\"30\" width=\"70\" height=\"120\" class=\"w\"/><rect x=\"180\" y=\"30\" width=\"110\" height=\"120\" class=\"w\"/><circle cx=\"85\" cy=\"90\" r=\"21\" class=\"bk\"/><circle cx=\"85\" cy=\"90\" r=\"21\" class=\"bad\"/><circle cx=\"235\" cy=\"90\" r=\"21\" class=\"bk\"/><circle cx=\"235\" cy=\"90\" r=\"19\" class=\"tb\"/><circle cx=\"235\" cy=\"90\" r=\"21\" class=\"good\"/><rect x=\"46\" y=\"62\" width=\"4\" height=\"56\" class=\"inkf\"/><rect x=\"120\" y=\"62\" width=\"4\" height=\"56\" class=\"inkf\"/><rect x=\"176\" y=\"62\" width=\"4\" height=\"56\" class=\"inkf\"/><rect x=\"290\" y=\"62\" width=\"4\" height=\"56\" class=\"inkf\"/><text x=\"130\" y=\"94\">plates</text><text x=\"85\" y=\"166\" class=\"k\" text-anchor=\"middle\">2x4 bearing wall</text><text x=\"235\" y=\"166\" class=\"k\" text-anchor=\"middle\">2x6 bearing wall</text><text x=\"85\" y=\"178\" class=\"wa\" text-anchor=\"middle\">40% max: 1-3/8\"</text><text x=\"235\" y=\"178\" class=\"gd\" text-anchor=\"middle\">40% max: 2-3/16\"</text><text x=\"85\" y=\"190\" class=\"wa\" text-anchor=\"middle\">1-1/2\" drain: no</text><text x=\"235\" y=\"190\" class=\"gd\" text-anchor=\"middle\">1-1/2\" drain: OK</text><text x=\"10\" y=\"208\">Non-bearing walls: up to 60%. Stay 5/8\" from edges.</text><text x=\"10\" y=\"220\">Plate both faces where pipe is near the edge.</text>",
+   "h": 228,
+   "cap": "A 1-1/2\" drain needs about a 2-1/8\" hole, which is too big for a load-bearing 2x4. That is why drains usually live in 2x6 walls, run vertically in one stud bay, or drop below the floor."
+  },
+  "support": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Hang plastic drain pipe</text><rect x=\"10\" y=\"30\" width=\"300\" height=\"8\" class=\"w\"/><path d=\"M10 70 L310 86\" class=\"o\" style=\"stroke-width:12;stroke-linecap:butt\" fill=\"none\"/><path d=\"M10 70 L310 86\" class=\"o\" style=\"stroke:var(--tub);stroke-width:9;stroke-linecap:butt\" fill=\"none\"/><line x1=\"40\" y1=\"38\" x2=\"40\" y2=\"65.6\" class=\"o\"/><path d=\"M32 69.6 a8 8 0 0 0 16 0\" class=\"o\" fill=\"none\"/><line x1=\"140\" y1=\"38\" x2=\"140\" y2=\"70.93333333333334\" class=\"o\"/><path d=\"M132 74.93333333333334 a8 8 0 0 0 16 0\" class=\"o\" fill=\"none\"/><line x1=\"240\" y1=\"38\" x2=\"240\" y2=\"76.26666666666667\" class=\"o\"/><path d=\"M232 80.26666666666667 a8 8 0 0 0 16 0\" class=\"o\" fill=\"none\"/><line x1=\"90.0\" y1=\"112.0\" x2=\"40\" y2=\"112\" class=\"a\"/><polygon points=\"40.0,112.0 45.4,109.4 45.4,114.6\" class=\"af\"/><line x1=\"90.0\" y1=\"112.0\" x2=\"140\" y2=\"112\" class=\"a\"/><polygon points=\"140.0,112.0 134.6,114.6 134.6,109.4\" class=\"af\"/><line x1=\"190.0\" y1=\"112.0\" x2=\"140\" y2=\"112\" class=\"a\"/><polygon points=\"140.0,112.0 145.4,109.4 145.4,114.6\" class=\"af\"/><line x1=\"190.0\" y1=\"112.0\" x2=\"240\" y2=\"112\" class=\"a\"/><polygon points=\"240.0,112.0 234.6,114.6 234.6,109.4\" class=\"af\"/><text x=\"90\" y=\"126\" class=\"ac\" text-anchor=\"middle\">4 ft max</text><text x=\"190\" y=\"126\" class=\"ac\" text-anchor=\"middle\">4 ft max</text><text x=\"10\" y=\"150\" class=\"k\">PVC/ABS: hang horizontal pipe at least every 4 ft.</text><text x=\"10\" y=\"164\">Plastic or coated hangers; snug, not pinching.</text><text x=\"10\" y=\"178\">Vertical: at each floor plus a mid-height guide.</text>",
+   "h": 186,
+   "cap": "Support keeps the slope from sagging into a belly where waste settles. Add a hanger near each change of direction too."
+  },
+  "test": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Water test the new piping</text><path d=\"M10 178 H310\" class=\"o\" style=\"stroke-width:12;stroke-linecap:butt\" fill=\"none\"/><path d=\"M10 178 H310\" class=\"o\" style=\"stroke:var(--tub);stroke-width:9;stroke-linecap:butt\" fill=\"none\"/><path d=\"M188 172 L180 166 H100 V50\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M188 172 L180 166 H100 V50\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M184 168 L180 166 H100 V60\" class=\"o\" style=\"stroke:var(--water);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M100 110 H50\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M100 110 H50\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><path d=\"M100 110 H50\" class=\"o\" style=\"stroke:var(--water);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><rect x=\"42\" y=\"102\" width=\"8\" height=\"16\" class=\"bk\"/><circle cx=\"186\" cy=\"169\" r=\"6\" class=\"y\"/><line x1=\"130\" y1=\"56\" x2=\"106\" y2=\"60\" class=\"a\"/><polygon points=\"106.0,60.0 110.9,56.5 111.8,61.7\" class=\"af\"/><text x=\"110\" y=\"46\" class=\"ac\">fill to the top of the vent</text><text x=\"20\" y=\"98\" class=\"k\">test cap</text><text x=\"196\" y=\"150\" class=\"k\">test ball</text><text x=\"230\" y=\"166\">existing drain</text><text x=\"10\" y=\"200\" class=\"k\">Wait 15 minutes: the level must not drop.</text>",
+   "h": 208,
+   "cap": "Plug the new branch where it meets the old drain, cap the stub-out, and fill the new pipe to its highest point. A dropping water level means a leaking joint. Your inspector may ask for a specific test."
+  },
+  "strap": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">S-trap vs P-trap</text><path d=\"M20 30 H80 L76 46 H24 Z\" class=\"tb\"/><path d=\"M180 30 H240 L236 46 H184 Z\" class=\"tb\"/><path d=\"M50 46 V86 Q50 98 62 98 Q74 98 74 86 V80 Q74 70 84 70 Q94 70 94 80 V150\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M50 46 V86 Q50 98 62 98 Q74 98 74 86 V80 Q74 70 84 70 Q94 70 94 80 V150\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><rect x=\"10\" y=\"150\" width=\"140\" height=\"8\" class=\"w\"/><path d=\"M210 46 V86 Q210 98 222 98 Q234 98 234 86 V82 L294 84 V150\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M210 46 V86 Q210 98 222 98 Q234 98 234 86 V82 L294 84 V150\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><rect x=\"290\" y=\"20\" width=\"8\" height=\"130\" class=\"b\"/><rect x=\"170\" y=\"150\" width=\"140\" height=\"8\" class=\"w\"/><path d=\"M294 20 V84\" class=\"o\" style=\"stroke-width:10;stroke-linecap:butt\" fill=\"none\"/><path d=\"M294 20 V84\" class=\"o\" style=\"stroke:var(--tub);stroke-width:7;stroke-linecap:butt\" fill=\"none\"/><text x=\"10\" y=\"174\" class=\"wa\">S-trap: WRONG</text><text x=\"10\" y=\"186\">siphons itself dry</text><text x=\"170\" y=\"174\" class=\"gd\">P-trap + vented arm</text><text x=\"170\" y=\"186\">keeps its water seal</text>",
+   "h": 194,
+   "cap": "An S-trap drops straight down after the trap, so the falling water siphons the seal out. Modern codes require a P-trap with a horizontal trap arm to a vent."
+  },
+  "castiron": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Cast iron: support, then cut</text><rect x=\"110\" y=\"54\" width=\"80\" height=\"8\" class=\"y\"/><rect x=\"100\" y=\"62\" width=\"20\" height=\"12\" class=\"w\"/><rect x=\"180\" y=\"62\" width=\"20\" height=\"12\" class=\"w\"/><rect x=\"110\" y=\"160\" width=\"80\" height=\"8\" class=\"y\"/><rect x=\"100\" y=\"168\" width=\"20\" height=\"12\" class=\"w\"/><rect x=\"180\" y=\"168\" width=\"20\" height=\"12\" class=\"w\"/><path d=\"M150 26 V190\" class=\"o\" style=\"stroke-width:22;stroke-linecap:butt\" fill=\"none\"/><path d=\"M150 26 V190\" class=\"o\" style=\"stroke:var(--tub);stroke-width:19;stroke-linecap:butt\" fill=\"none\"/><line x1=\"132\" y1=\"92\" x2=\"168\" y2=\"92\" class=\"bad d\"/><line x1=\"132\" y1=\"124\" x2=\"168\" y2=\"124\" class=\"bad d\"/><path d=\"M136 86 l6 6 l6 -6 l6 6 l6 -6 l6 6\" class=\"o\"/><text x=\"206\" y=\"58\" class=\"k\">riser clamp</text><text x=\"206\" y=\"70\">on framing</text><text x=\"176\" y=\"94\">snap cutter chain</text><text x=\"176\" y=\"126\">second cut</text><text x=\"206\" y=\"164\" class=\"k\">riser clamp</text><text x=\"206\" y=\"176\">below</text><text x=\"20\" y=\"104\">old cast</text><text x=\"20\" y=\"116\">iron stack</text><text x=\"10\" y=\"208\" class=\"wa\">Pro recommended: heavy, brittle, can shift.</text>",
+   "h": 216,
+   "cap": "A cast iron stack weighs a lot and is held up by its joints. Clamp it above and below before cutting, or the pipe can drop, crack joints upstairs, or hurt you."
+  }
+ },
+ "glossary": [
+  [
+   "DWV",
+   "Drain-waste-vent: the pipe and fittings made for drains and vents, with gentle turns. Different from pressure fittings."
+  ],
+  [
+   "Trap",
+   "The U-shaped pipe under a fixture that holds water to block sewer gas. A P-trap is the allowed shape."
+  ],
+  [
+   "Trap weir",
+   "The lip inside the trap where water spills over into the trap arm. It sets the trap's water level."
+  ],
+  [
+   "Trap arm",
+   "The pipe from the trap to the vent fitting. Its length is limited by code."
+  ],
+  [
+   "Vent",
+   "A pipe that lets air into the drain so traps aren't siphoned. It ends at the roof or an approved AAV."
+  ],
+  [
+   "Dry vent",
+   "A vent pipe that never carries water."
+  ],
+  [
+   "Flood rim",
+   "The top edge of a fixture, where water would spill over if it filled up."
+  ],
+  [
+   "AAV",
+   "Air admittance valve: a one-way valve that lets air into a drain but not gas out. Allowed only where local code permits."
+  ],
+  [
+   "Stack",
+   "A large vertical drain pipe that collects branches and continues up as a vent through the roof."
+  ],
+  [
+   "Sanitary tee",
+   "A tee with a curved inlet, for joining a horizontal branch into a vertical pipe."
+  ],
+  [
+   "Wye",
+   "A Y-shaped fitting for joining branches into horizontal drains. Used with a 1/8 bend; a combo wye has the bend built in."
+  ],
+  [
+   "1/8 bend / 1/4 bend",
+   "45° and 90° drain fittings. Long-sweep 1/4 bends turn more gently."
+  ],
+  [
+   "Shielded no-hub coupling",
+   "A rubber sleeve with a stainless steel band and clamps that joins pipe ends, including different materials."
+  ],
+  [
+   "Standpipe",
+   "The vertical pipe a washer hose drains into, with a trap at its base."
+  ],
+  [
+   "Stub-out",
+   "The short pipe coming out of the wall where the fixture connects."
+  ],
+  [
+   "Cleanout",
+   "A removable plug that gives a drain snake access to the pipe."
+  ],
+  [
+   "S-trap",
+   "An old trap shape that drops straight down after the bend. It siphons itself and isn't allowed."
+  ],
+  [
+   "IPC / IRC / UPC",
+   "The model plumbing codes most US areas adopt. Your local version and amendments are what count."
+  ]
+ ]
+}
