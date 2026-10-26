@@ -1,0 +1,1000 @@
+{
+ "slug": "interior-painting",
+ "title": "Paint a Room",
+ "eyebrow": "Painting · interior",
+ "category": "Painting",
+ "difficulty": "Beginner",
+ "time": "2–3 days",
+ "summary": "Paint a {{a.len}} x {{a.wid}} ft room: {{a.ceiling==='yes'?'ceiling, ':''}}walls{{a.trim==='yes'?' and trim':''}}, with clean lines, an even finish and the right amount of paint.",
+ "safety": "In homes built before 1978, test for lead before sanding or scraping. Keep the room ventilated. Use a ladder you can stand on without stretching, never the top step. Wear glasses when painting overhead.",
+ "pro": "you find lead paint you need to disturb, peeling paint over large areas, water damage or mold, or very high ceilings and stairwells that need scaffolding.",
+ "questions": [
+  {
+   "id": "len",
+   "label": "Room length",
+   "type": "number",
+   "unit": "ft",
+   "default": 12,
+   "step": 0.5
+  },
+  {
+   "id": "wid",
+   "label": "Room width",
+   "type": "number",
+   "unit": "ft",
+   "default": 11,
+   "step": 0.5
+  },
+  {
+   "id": "ht",
+   "label": "Ceiling height",
+   "type": "number",
+   "unit": "ft",
+   "default": 8,
+   "step": 0.5
+  },
+  {
+   "id": "doors",
+   "label": "Doors",
+   "type": "number",
+   "unit": "doors",
+   "default": 1,
+   "step": 1
+  },
+  {
+   "id": "windows",
+   "label": "Windows",
+   "type": "number",
+   "unit": "windows",
+   "default": 2,
+   "step": 1
+  },
+  {
+   "id": "coats",
+   "label": "Coats",
+   "type": "choice",
+   "default": "2",
+   "options": [
+    {
+     "v": "1",
+     "label": "1",
+     "hint": "same color refresh"
+    },
+    {
+     "v": "2",
+     "label": "2",
+     "hint": "recommended"
+    }
+   ]
+  },
+  {
+   "id": "ceiling",
+   "label": "Paint the ceiling?",
+   "type": "choice",
+   "default": "yes",
+   "options": [
+    {
+     "v": "yes",
+     "label": "Yes"
+    },
+    {
+     "v": "no",
+     "label": "No"
+    }
+   ]
+  },
+  {
+   "id": "trim",
+   "label": "Paint the trim?",
+   "type": "choice",
+   "default": "yes",
+   "options": [
+    {
+     "v": "yes",
+     "label": "Yes"
+    },
+    {
+     "v": "no",
+     "label": "No"
+    }
+   ]
+  },
+  {
+   "id": "prime",
+   "label": "Primer",
+   "type": "choice",
+   "default": "spot",
+   "options": [
+    {
+     "v": "none",
+     "label": "None",
+     "hint": "same color, no patches"
+    },
+    {
+     "v": "spot",
+     "label": "Patches and stains"
+    },
+    {
+     "v": "full",
+     "label": "Whole walls",
+     "hint": "dark to light, new drywall"
+    }
+   ]
+  },
+  {
+   "id": "wallSheen",
+   "label": "Wall sheen",
+   "type": "choice",
+   "default": "eggshell",
+   "options": [
+    {
+     "v": "flat",
+     "label": "Flat/matte"
+    },
+    {
+     "v": "eggshell",
+     "label": "Eggshell"
+    },
+    {
+     "v": "satin",
+     "label": "Satin",
+     "hint": "kitchens, baths"
+    }
+   ]
+  },
+  {
+   "id": "texture",
+   "label": "Wall texture",
+   "type": "choice",
+   "default": "smooth",
+   "options": [
+    {
+     "v": "smooth",
+     "label": "Smooth"
+    },
+    {
+     "v": "light",
+     "label": "Light texture"
+    },
+    {
+     "v": "heavy",
+     "label": "Heavy texture"
+    }
+   ]
+  },
+  {
+   "id": "age",
+   "label": "Home built before 1978?",
+   "type": "choice",
+   "default": "unsure",
+   "options": [
+    {
+     "v": "no",
+     "label": "No"
+    },
+    {
+     "v": "yes",
+     "label": "Yes"
+    },
+    {
+     "v": "unsure",
+     "label": "Not sure"
+    }
+   ]
+  },
+  {
+   "id": "cover",
+   "label": "Coverage on the can",
+   "type": "number",
+   "unit": "sq ft/gal",
+   "default": 350,
+   "step": 25,
+   "hint": "Usually 350 to 400. Use the low number."
+  }
+ ],
+ "calcs": [
+  {
+   "id": "wallNet",
+   "label": "Wall area to paint",
+   "expr": "Math.max(0,Math.round(2*(a.len+a.wid)*a.ht-a.doors*21-a.windows*15))",
+   "fmt": "{{c.wallNet}} sq ft"
+  },
+  {
+   "id": "wallGal",
+   "label": "Wall paint",
+   "expr": "Math.max(1,Math.ceil(c.wallNet*Number(a.coats)/a.cover))",
+   "fmt": "{{c.wallGal}} gal"
+  },
+  {
+   "id": "ceilGal",
+   "label": "Ceiling paint",
+   "expr": "Math.max(1,Math.ceil(a.len*a.wid*Number(a.coats)/a.cover))",
+   "fmt": "{{c.ceilGal}} gal ({{Math.round(a.len*a.wid)}} sq ft)",
+   "when": "a.ceiling==='yes'"
+  },
+  {
+   "id": "trimLen",
+   "label": "Trim length",
+   "expr": "Math.round(2*(a.len+a.wid)-a.doors*3+a.doors*34+a.windows*16)",
+   "fmt": "about {{c.trimLen}} ft",
+   "when": "a.trim==='yes'"
+  },
+  {
+   "id": "trimQt",
+   "label": "Trim paint",
+   "expr": "Math.max(1,Math.ceil(c.trimLen*0.4*Number(a.coats)/90))",
+   "fmt": "{{c.trimQt>3?'1 gal':c.trimQt+' qt'}}",
+   "when": "a.trim==='yes'"
+  },
+  {
+   "id": "primeGal",
+   "label": "Primer",
+   "expr": "Math.max(1,Math.ceil(c.wallNet/300))",
+   "fmt": "{{a.prime==='full'?c.primeGal+' gal':'1 qt for spots'}}",
+   "when": "a.prime!=='none'"
+  },
+  {
+   "id": "tapeRolls",
+   "expr": "Math.max(1,Math.ceil((2*(a.len+a.wid)+a.doors*17+a.windows*16)/150))"
+  },
+  {
+   "id": "caulk",
+   "expr": "Math.max(1,Math.ceil((typeof c.trimLen==='number'?c.trimLen:2*(a.len+a.wid))/40))"
+  }
+ ],
+ "calcNote": "Walls subtract about 21 sq ft per door and 15 per window. Coverage is {{a.cover}} sq ft per gallon per coat; textured walls and big color changes use more.",
+ "overviewFig": "order",
+ "tools": [
+  {
+   "id": "wallpaint",
+   "c": "Paint",
+   "n": "Wall paint, {{a.wallSheen}} finish",
+   "must": true,
+   "w": "Interior latex (acrylic). Eggshell or satin cleans easier than flat.",
+   "q": "interior paint {{a.wallSheen}}",
+   "qty": "{{c.wallGal}} gal"
+  },
+  {
+   "id": "ceilpaint",
+   "c": "Paint",
+   "n": "Ceiling paint, flat",
+   "must": true,
+   "w": "Flat paint hides ceiling flaws and reduces glare.",
+   "q": "flat ceiling paint",
+   "qty": "{{c.ceilGal}} gal",
+   "when": "a.ceiling==='yes'"
+  },
+  {
+   "id": "trimpaint",
+   "c": "Paint",
+   "n": "Trim paint, semi-gloss",
+   "must": true,
+   "w": "Hard and washable for trim and doors.",
+   "q": "semi gloss interior trim paint",
+   "qty": "{{c.trimQt>3?'1 gal':c.trimQt+' qt'}}",
+   "when": "a.trim==='yes'"
+  },
+  {
+   "id": "primer",
+   "c": "Paint",
+   "n": "Primer {{a.prime==='full'?'(ask for it tinted toward the new color)':'(stain-blocking for stains)'}}",
+   "must": true,
+   "w": "Seals patches and stains, and helps cover a big color change.",
+   "q": "{{a.prime==='full'?'interior primer':'stain blocking primer'}}",
+   "qty": "{{a.prime==='full'?c.primeGal+' gal':'1 qt'}}",
+   "when": "a.prime!=='none'"
+  },
+  {
+   "id": "brush",
+   "c": "Applicators",
+   "n": "2-1/2\" angled sash brush",
+   "must": true,
+   "w": "Cuts clean lines at corners, ceilings and trim.",
+   "q": "2.5 inch angled sash brush"
+  },
+  {
+   "id": "roller",
+   "c": "Applicators",
+   "n": "9\" roller frame + covers, {{a.texture==='smooth'?'3/8\"':a.texture==='light'?'1/2\"':'3/4\"'}} nap",
+   "must": true,
+   "w": "One cover per color is easiest.",
+   "q": "9 inch roller cover {{a.texture==='smooth'?'3/8':a.texture==='light'?'1/2':'3/4'}} nap",
+   "qty": "{{a.ceiling==='yes'?3:2}}"
+  },
+  {
+   "id": "pole",
+   "c": "Applicators",
+   "n": "Extension pole (2–4 ft)",
+   "must": true,
+   "w": "Rolls ceilings and tall walls without a ladder.",
+   "q": "paint roller extension pole"
+  },
+  {
+   "id": "tray",
+   "c": "Applicators",
+   "n": "Roller tray or 5-gallon bucket with grid, and liners",
+   "must": true,
+   "w": "Loads the roller evenly.",
+   "q": "paint tray liners"
+  },
+  {
+   "id": "cup",
+   "c": "Applicators",
+   "n": "Handheld paint cup",
+   "must": false,
+   "w": "Easier to hold than a can when cutting in from a ladder.",
+   "q": "handy paint cup"
+  },
+  {
+   "id": "ladder",
+   "c": "Prep",
+   "n": "Stepladder",
+   "must": true,
+   "w": "Safe reach for cutting in at the ceiling.",
+   "q": "step ladder"
+  },
+  {
+   "id": "drop",
+   "c": "Prep",
+   "n": "Canvas drop cloths and plastic sheeting",
+   "must": true,
+   "w": "Canvas doesn't get slippery; plastic covers furniture.",
+   "q": "canvas drop cloth"
+  },
+  {
+   "id": "ptape",
+   "c": "Prep",
+   "n": "Painter's tape, 1-1/2\"",
+   "must": false,
+   "w": "Optional edge protection for trim and ceilings.",
+   "q": "painters tape 1.5 inch",
+   "qty": "{{c.tapeRolls}} rolls"
+  },
+  {
+   "id": "spackle",
+   "c": "Prep",
+   "n": "Lightweight spackle and a putty knife",
+   "must": true,
+   "w": "Fills nail holes and dings.",
+   "q": "lightweight spackle"
+  },
+  {
+   "id": "sanding",
+   "c": "Prep",
+   "n": "Sanding sponge (fine) and 220-grit paper",
+   "must": true,
+   "w": "Smooths patches and scuffs glossy trim.",
+   "q": "fine sanding sponge"
+  },
+  {
+   "id": "cleaner",
+   "c": "Prep",
+   "n": "TSP substitute, bucket, sponges",
+   "must": true,
+   "w": "Removes grease and grime so paint sticks.",
+   "q": "TSP substitute"
+  },
+  {
+   "id": "caulk",
+   "c": "Prep",
+   "n": "Paintable acrylic latex caulk + caulk gun",
+   "must": true,
+   "w": "Fills gaps between trim and wall.",
+   "q": "paintable acrylic latex caulk",
+   "qty": "{{c.caulk}} tubes",
+   "when": "a.trim==='yes'"
+  },
+  {
+   "id": "screwdriver",
+   "c": "Prep",
+   "n": "Screwdriver",
+   "must": true,
+   "w": "Removes outlet covers and switch plates.",
+   "q": "screwdriver"
+  },
+  {
+   "id": "leadkit",
+   "c": "Safety",
+   "n": "EPA-recognized lead test kit",
+   "must": true,
+   "w": "Checks old paint before you sand or scrape.",
+   "q": "lead paint test kit",
+   "when": "a.age!=='no'"
+  },
+  {
+   "id": "glasses",
+   "c": "Safety",
+   "n": "Safety glasses, gloves, N95 mask for sanding",
+   "must": true,
+   "w": "Protects eyes when painting overhead and lungs when sanding.",
+   "q": "safety glasses"
+  },
+  {
+   "id": "rags",
+   "c": "Cleanup",
+   "n": "Rags, a 5-gallon bucket, brush comb",
+   "must": true,
+   "w": "Cleanup and wiping drips.",
+   "q": "paint brush comb"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Plan and buy",
+   "steps": [
+    {
+     "id": "p1",
+     "t": "Test for lead paint",
+     "time": "20 min",
+     "when": "a.age!=='no'",
+     "fig": "lead",
+     "need": [
+      "leadkit",
+      "glasses"
+     ],
+     "idea": "Homes built before 1978 may have lead paint under the newer layers. Sanding or scraping it makes toxic dust.",
+     "stop": "If the test shows lead, don't dry-sand, scrape, or heat-strip. Keep kids and pregnant people out, and hire an EPA RRP-certified painter for prep, or follow lead-safe practices for minor work.",
+     "b": "<ol><li>Pick spots you'll sand or scrape: window sills, door frames, baseboards, and chipped areas.</li><li>Cut a small notch through all paint layers with a utility knife.</li><li>Rub the test swab on the notch as the kit's instructions say.</li><li>Read the color. Red or pink usually means lead.</li><li>Painting over intact, unsanded lead paint is generally OK; the danger is dust and chips.</li></ol>",
+     "faq": [
+      [
+       "The test is negative. Am I done?",
+       "Home kits can miss low levels. If you're unsure, a certified inspector can test with an XRF gun."
+      ]
+     ]
+    },
+    {
+     "id": "p2",
+     "t": "Choose paint and sheen, and buy supplies",
+     "time": "1 hr",
+     "fig": [
+      "sheen",
+      "nap"
+     ],
+     "need": [
+      "wallpaint",
+      "ceilpaint",
+      "trimpaint",
+      "primer",
+      "roller"
+     ],
+     "idea": "The right sheen for each surface and enough paint from one batch avoids mismatched color.",
+     "b": "<ol><li>Pick the sheen for each surface (chart). Typical: flat ceiling, {{a.wallSheen}} walls, semi-gloss trim.</li><li>Buy <b>{{c.wallGal}} gal</b> of wall paint{{a.ceiling==='yes'?', <b>'+c.ceilGal+' gal</b> of ceiling paint':''}}{{a.trim==='yes'?', and <b>'+(c.trimQt>3?'1 gal':c.trimQt+' qt')+'</b> of trim paint':''}}.</li><li>If you need 4 or more gallons of one color, a 5-gallon bucket is often cheaper.</li><li>Ask the store to shake every can. Buy it all at once; mix cans of the same color in a bucket (\"box\" them) so the color is even.</li><li>Choose a roller nap for your wall texture: {{a.texture==='smooth'?'3/8\"':a.texture==='light'?'1/2\"':'3/4\"'}}.</li></ol>",
+     "faq": [
+      [
+       "Do I need expensive paint?",
+       "Mid-range or better paint covers in fewer coats and washes better. Very cheap paint often needs an extra coat."
+      ],
+      [
+       "Paint and primer in one?",
+       "Fine over clean, sound, painted walls of a similar color. Use separate primer on patches, stains and bare drywall."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Prepare the room",
+   "steps": [
+    {
+     "id": "r1",
+     "t": "Empty the room and cover the floor",
+     "time": "45 min",
+     "need": [
+      "drop",
+      "screwdriver"
+     ],
+     "idea": "Space to work and covered floors save hours of cleanup.",
+     "b": "<ol><li>Move small furniture out. Push big pieces to the center, at least 3 ft from walls, and cover with plastic.</li><li>Take pictures and nails off the walls (leave nails where art goes back, or mark spots).</li><li>Unscrew outlet covers and switch plates. Put screws in a bag taped to each plate.</li><li>Lay canvas drop cloths along every wall, tight to the baseboard.</li><li>Take down curtain rods, and loosen light fixture canopies if you're painting the ceiling.</li></ol>",
+     "faq": [
+      [
+       "Do I need to turn off the power to remove plates?",
+       "No, just don't touch anything inside the box. Cover openings with painter's tape so paint doesn't get in."
+      ]
+     ]
+    },
+    {
+     "id": "r2",
+     "t": "Fill holes and fix damage",
+     "time": "30 min",
+     "need": [
+      "spackle",
+      "sanding"
+     ],
+     "timers": [
+      [
+       "Spackle dry",
+       60
+      ]
+     ],
+     "idea": "Paint shows every hole, so fill them first. Big holes need a real patch.",
+     "b": "<ol><li>Fill nail holes and dings with lightweight spackle and a putty knife.</li><li>Scrape a little over the hole, then wipe flat with the knife.</li><li>Larger holes, cracks, nail pops or water stains: see the Drywall Repair guide.</li><li>Let it dry, then sand flush with a fine sanding sponge.</li><li>Mark each patch with a light pencil circle so you remember to prime it.</li></ol>"
+    },
+    {
+     "id": "r3",
+     "t": "Clean the walls",
+     "time": "45 min",
+     "need": [
+      "cleaner",
+      "rags"
+     ],
+     "ppe": [
+      "Gloves",
+      "Glasses"
+     ],
+     "idea": "Paint doesn't stick well to grease, dust or soap film.",
+     "b": "<ol><li>Vacuum or dust the walls and baseboards, top to bottom.</li><li>Mix TSP substitute with water as the label says.</li><li>Wash greasy areas (kitchens, around switches) with a sponge.</li><li>Rinse with clean water and a second sponge.</li><li>Let walls dry, about an hour.</li></ol>",
+     "faq": [
+      [
+       "There's mildew in the bathroom.",
+       "Clean it with a mildew cleaner, rinse and dry it before painting. Use a bath paint with mildewcide."
+      ]
+     ]
+    },
+    {
+     "id": "r4",
+     "t": "Caulk gaps at the trim",
+     "time": "30 min",
+     "when": "a.trim==='yes'",
+     "fig": "caulk",
+     "need": [
+      "caulk",
+      "rags"
+     ],
+     "timers": [
+      [
+       "Caulk dry (check the tube)",
+       120
+      ]
+     ],
+     "idea": "A thin bead of caulk closes the cracks where trim meets wall, so the paint line looks straight.",
+     "b": "<ol><li>Cut the caulk tip at an angle, with a small hole (1/8\").</li><li>Push the gun along the gap at a steady speed.</li><li>Smooth the bead with a damp finger and wipe your finger on a rag often.</li><li>Wipe off extra with a damp rag right away.</li><li>Let it dry for the time on the tube before painting.</li></ol>"
+    },
+    {
+     "id": "r5",
+     "t": "Scuff the glossy trim",
+     "time": "30 min",
+     "when": "a.trim==='yes'",
+     "need": [
+      "sanding",
+      "rags"
+     ],
+     "ppe": [
+      "N95 mask",
+      "Glasses"
+     ],
+     "idea": "New paint grips a dull surface. Glossy trim needs a light scuff.",
+     "stop": "Old trim in a pre-1978 home may have lead paint. Test before sanding.",
+     "b": "<ol><li>Test the old paint: rub a spot with rubbing alcohol on a rag. If paint comes off, it's latex. If not, it's probably oil.</li><li>Lightly sand all glossy trim with a fine sanding sponge until the shine is gone. Don't sand to bare wood.</li><li>Wipe the dust off with a damp rag.</li><li>Oil-based trim? Use a bonding primer before latex paint, or the new paint can peel.</li></ol>"
+    },
+    {
+     "id": "r6",
+     "t": "Prime what needs it",
+     "time": "1 hr",
+     "when": "a.prime!=='none'",
+     "need": [
+      "primer",
+      "roller",
+      "brush"
+     ],
+     "timers": [
+      [
+       "Primer dry (check the can)",
+       60
+      ]
+     ],
+     "idea": "Primer seals patches, blocks stains, and helps a new color cover.",
+     "b": "<ol><li>Prime every spackle patch and drywall repair.</li><li>Prime stains (water, smoke, marker) with a stain-blocking primer.</li><li>{{a.prime==='full'?'Big color change or new drywall: prime the whole wall. Ask the store to tint the primer toward your new color.':'Spot priming only: feather the edges so no ridge shows.'}}</li><li>Let it dry fully.</li></ol>",
+     "faq": [
+      [
+       "Do I need primer to go from dark to light?",
+       "It helps a lot. A tinted primer coat usually saves a third coat of paint."
+      ]
+     ]
+    },
+    {
+     "id": "r7",
+     "t": "Tape the edges (optional)",
+     "time": "30 min",
+     "fig": "tape",
+     "need": [
+      "ptape"
+     ],
+     "idea": "Tape protects trim and ceilings if your brush hand isn't steady yet.",
+     "b": "<ol><li>Run tape along the edges you want to protect: tops of baseboards, door and window casing{{a.ceiling==='yes'?'':', and the ceiling edge'}}.</li><li>Tear it in 2 to 3 ft pieces; long pieces stretch and wander.</li><li>Press the edge down firmly with a putty knife so paint can't creep under.</li><li>Don't tape over fresh paint or caulk until it's dry.</li></ol>"
+    }
+   ]
+  },
+  {
+   "name": "Paint the ceiling",
+   "steps": [
+    {
+     "id": "c1",
+     "t": "Cut in the ceiling",
+     "time": "30 min",
+     "when": "a.ceiling==='yes'",
+     "fig": [
+      "order",
+      "cutin"
+     ],
+     "need": [
+      "ceilpaint",
+      "brush",
+      "ladder",
+      "cup"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "idea": "Brush a band around the edges of the ceiling where the roller can't reach.",
+     "b": "<ol><li>Pour 1\" to 2\" of paint into a paint cup.</li><li>Dip the brush 1/3 of the way in. Tap both sides on the cup; don't wipe.</li><li>Brush a 2\" to 3\" band around the ceiling edges and around light fixtures.</li><li>Let ceiling paint go onto the wall slightly. Walls get painted after.</li><li>Move the ladder often. Don't stretch to reach.</li></ol>",
+     "help": [
+      "brushHelp"
+     ]
+    },
+    {
+     "id": "c2",
+     "t": "Roll the ceiling",
+     "time": "45 min",
+     "when": "a.ceiling==='yes'",
+     "fig": [
+      "wroll",
+      "wetedge"
+     ],
+     "need": [
+      "ceilpaint",
+      "roller",
+      "pole",
+      "tray"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "timers": [
+      [
+       "Ceiling recoat (check the can)",
+       240
+      ]
+     ],
+     "idea": "Roll while the cut-in band is still wet, working across the room in strips.",
+     "b": "<ol><li>Load the roller in the tray: roll it into the paint, then on the ridges until even.</li><li>Start in a corner. Roll strips about 3 ft wide across the short direction of the room.</li><li>Roll right up to the cut-in band and overlap it.</li><li>Overlap each strip into the last one while it's wet.</li><li>Finish each strip with light passes all in one direction.</li></ol>",
+     "help": [
+      "rollHelp"
+     ],
+     "faq": [
+      [
+       "I see lines when it dries.",
+       "Usually a dry roller or uneven pressure. A second coat in the opposite direction usually fixes it."
+      ]
+     ]
+    },
+    {
+     "id": "c3",
+     "t": "Second coat on the ceiling",
+     "time": "1 hr",
+     "when": "a.ceiling==='yes'&&a.coats==='2'",
+     "fig": "wetedge",
+     "need": [
+      "ceilpaint",
+      "roller",
+      "brush",
+      "pole"
+     ],
+     "timers": [
+      [
+       "Ceiling dry before walls",
+       240
+      ]
+     ],
+     "idea": "A second coat hides roller marks and evens out the color.",
+     "b": "<ol><li>Wait until the first coat's recoat time on the can has passed.</li><li>Cut in again, then roll in the other direction from the first coat.</li><li>Check from different angles with the light on.</li><li>Let it dry before cutting in the walls.</li></ol>",
+     "help": [
+      "rollHelp"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Paint the walls",
+   "steps": [
+    {
+     "id": "w1",
+     "t": "Cut in the walls",
+     "time": "1 hr",
+     "fig": "cutin",
+     "need": [
+      "wallpaint",
+      "brush",
+      "cup",
+      "ladder"
+     ],
+     "idea": "Brush the corners and edges, one wall at a time, so you can roll while it's still wet.",
+     "b": "<ol><li>Box the paint: pour all cans of the same color into a 5-gallon bucket and stir.</li><li>Start at the top corner of one wall. Brush a 2\" to 3\" band along the ceiling line{{a.ceiling==='yes'?' (the ceiling paint should be dry)':''}}, inside corners, and around trim, outlets and switches.</li><li>For a straight ceiling line: start the stroke 1/2\" below the line, then press gently and slide so the bristles fan up to the line.</li><li>Cut in only one or two walls at a time, then roll them before the band dries.</li></ol>",
+     "help": [
+      "brushHelp"
+     ],
+     "faq": [
+      [
+       "I got paint on the ceiling.",
+       "Wipe it right away with a damp rag wrapped on a putty knife. Dried? Touch up with ceiling paint later."
+      ]
+     ]
+    },
+    {
+     "id": "w2",
+     "t": "Roll the walls",
+     "time": "1–2 hr",
+     "fig": [
+      "wroll",
+      "wetedge"
+     ],
+     "need": [
+      "wallpaint",
+      "roller",
+      "pole",
+      "tray"
+     ],
+     "timers": [
+      [
+       "Wall recoat (check the can)",
+       240
+      ]
+     ],
+     "idea": "Roll each wall corner to corner without stopping, overlapping into wet paint.",
+     "b": "<ol><li>Load the roller evenly; it should be full but not dripping.</li><li>Start about a roller width from a corner. Roll a W about 3 ft tall.</li><li>Fill in the W without lifting the roller.</li><li>Finish the section with light straight passes top to bottom.</li><li>Move over and roll the next section back into the wet edge of the last.</li><li>Keep rolling over the cut-in band so brush and roller textures match.</li></ol>",
+     "help": [
+      "rollHelp"
+     ],
+     "faq": [
+      [
+       "The paint looks patchy when wet.",
+       "That's normal for one coat, especially with a color change. Judge it when dry, and after the second coat."
+      ]
+     ]
+    },
+    {
+     "id": "w3",
+     "t": "Second coat on the walls",
+     "time": "1–2 hr",
+     "when": "a.coats==='2'",
+     "fig": "wetedge",
+     "need": [
+      "wallpaint",
+      "roller",
+      "brush"
+     ],
+     "timers": [
+      [
+       "Wall recoat (check the can)",
+       240
+      ]
+     ],
+     "idea": "The second coat gives an even color and sheen.",
+     "b": "<ol><li>Wait for the recoat time on the can, often 2 to 4 hours. Cool or humid rooms take longer.</li><li>Cut in again, then roll exactly as before.</li><li>Look along each wall with the light from the side for thin spots or drips.</li><li>Fix drips while wet by rolling them out; if dried, sand smooth and touch up later.</li></ol>",
+     "help": [
+      "rollHelp"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Paint the trim",
+   "steps": [
+    {
+     "id": "t1",
+     "t": "Paint the trim",
+     "time": "2–3 hr",
+     "when": "a.trim==='yes'",
+     "fig": "order",
+     "need": [
+      "trimpaint",
+      "brush"
+     ],
+     "timers": [
+      [
+       "Trim recoat (check the can)",
+       240
+      ]
+     ],
+     "idea": "Trim goes last because it's easier to cut a straight line onto trim than onto walls.",
+     "b": "<ol><li>Let the walls dry. Tape the wall above the baseboards if you like.</li><li>Start high: window casing, then door casing and doors, then baseboards last.</li><li>Load the brush lightly. Brush along the length of each piece in long strokes.</li><li>Finish each section with one light stroke end to end (\"tipping off\") to level the brush marks.</li><li>Check for drips at corners and bottom edges after 5 minutes and brush them out.</li><li>Second coat after the recoat time.</li></ol>",
+     "help": [
+      "brushHelp"
+     ],
+     "faq": [
+      [
+       "Brush marks show in semi-gloss.",
+       "Use thinner coats and a good brush, and don't go back over paint that has started to dry. A paint conditioner (extender) helps it level."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Finish",
+   "steps": [
+    {
+     "id": "f1",
+     "t": "Pull the tape",
+     "time": "15 min",
+     "fig": "tape",
+     "need": [
+      "ptape"
+     ],
+     "idea": "Remove tape soon after the final coat, before the paint fully hardens.",
+     "b": "<ol><li>Wait until the last coat is dry to the touch, usually 1 to 2 hours.</li><li>Pull the tape back over itself at about 45 degrees, slowly.</li><li>If paint starts to tear, score the edge with a sharp utility knife and keep pulling.</li><li>Touch up any bleed with a small brush.</li></ol>"
+    },
+    {
+     "id": "f2",
+     "t": "Clean up and store paint",
+     "time": "30 min",
+     "need": [
+      "rags"
+     ],
+     "idea": "Clean tools last for years. Leftover paint is for touch-ups, not the drain.",
+     "b": "<ol><li>Scrape extra paint from the roller and brush back into the can.</li><li>Latex paint: wash brushes and rollers with warm, soapy water until it runs clear. Comb the bristles straight and hang to dry.</li><li>Never pour paint down a sink, toilet or storm drain. If you're on a septic system, check before rinsing paint in a sink.</li><li>Close cans tightly: lay plastic wrap over the opening and tap the lid down with a block.</li><li>Label each can with the room and date. Store where it won't freeze.</li><li>Get rid of unwanted paint the way your area allows: dry out small amounts with cat litter or hardener, or take it to a paint recycling or hazardous waste drop-off.</li></ol>",
+     "faq": [
+      [
+       "What about oil-based paint?",
+       "Clean it with mineral spirits, never water. Lay used rags flat outdoors to dry, or put them in a sealed metal can with water: oily rags can catch fire on their own."
+      ]
+     ]
+    },
+    {
+     "id": "f3",
+     "t": "Put the room back and touch up",
+     "time": "30 min",
+     "need": [
+      "screwdriver",
+      "brush"
+     ],
+     "idea": "Give paint a day before putting things against it, and touch up small spots with the same paint.",
+     "b": "<ol><li>Reinstall outlet covers and switch plates once the paint is dry.</li><li>Wait at least a day before pushing furniture against walls; paint stays soft for weeks.</li><li>Look the room over in daylight. Circle spots with painter's tape.</li><li>Touch up with a small brush and the same can, feathering the edges.</li><li>Big touch-ups show? Repaint that wall corner to corner.</li></ol>"
+    }
+   ]
+  }
+ ],
+ "days": [
+  {
+   "t": "Prep the room",
+   "ids": [
+    "p1",
+    "p2",
+    "r1",
+    "r2",
+    "r3",
+    "r4",
+    "r5",
+    "r6",
+    "r7"
+   ],
+   "wait": "Filler, caulk and primer dry"
+  },
+  {
+   "t": "Ceiling and first wall coat",
+   "ids": [
+    "c1",
+    "c2",
+    "c3",
+    "w1",
+    "w2"
+   ],
+   "wait": "Recoat time on the can, often 2 to 4 hours"
+  },
+  {
+   "t": "Second coat, trim, and finish",
+   "ids": [
+    "w3",
+    "t1",
+    "f1",
+    "f2",
+    "f3"
+   ]
+  }
+ ],
+ "help": {
+  "brushHelp": {
+   "t": "Load and hold a brush",
+   "fig": "cutin",
+   "b": "<ol><li>Dip the bristles 1/3 to 1/2 of their length.</li><li>Tap each side against the inside of the cup. Don't scrape it off.</li><li>Hold the brush by the ferrule (metal band) like a pencil.</li><li>Lay paint down with the first strokes, then smooth with light, long strokes.</li><li>Reload before the brush runs dry; dry brushing leaves streaks.</li></ol>"
+  },
+  "rollHelp": {
+   "t": "Load and use a roller",
+   "fig": "wroll",
+   "b": "<ol><li>Dampen a new cover with water for latex paint and spin it nearly dry.</li><li>Roll into the deep end of the tray, then back and forth on the ridges.</li><li>The cover should be evenly full, not dripping.</li><li>Let the roller do the work: light, steady pressure.</li><li>Reload often. A dry roller leaves thin, patchy paint.</li></ol>"
+  }
+ },
+ "figs": {
+  "order": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Work top to bottom</text><rect x=\"20\" y=\"30\" width=\"280\" height=\"30\" class=\"b\"/><rect x=\"20\" y=\"60\" width=\"280\" height=\"110\" class=\"tl\"/><rect x=\"20\" y=\"60\" width=\"280\" height=\"12\" class=\"mos\"/><rect x=\"50\" y=\"90\" width=\"44\" height=\"80\" class=\"bk\"/><rect x=\"50\" y=\"90\" width=\"44\" height=\"80\" class=\"y\" style=\"opacity:.5\"/><rect x=\"20\" y=\"160\" width=\"280\" height=\"10\" class=\"y\"/><rect x=\"200\" y=\"90\" width=\"60\" height=\"44\" class=\"bk\"/><circle cx=\"160\" cy=\"46\" r=\"9\" class=\"af\"/><text x=\"160\" y=\"49\" class=\"nm\" text-anchor=\"middle\">1</text><circle cx=\"150\" cy=\"114\" r=\"9\" class=\"af\"/><text x=\"150\" y=\"117\" class=\"nm\" text-anchor=\"middle\">2</text><circle cx=\"72\" cy=\"130\" r=\"9\" class=\"af\"/><text x=\"72\" y=\"133\" class=\"nm\" text-anchor=\"middle\">3</text><text x=\"176\" y=\"50\">ceiling</text><text x=\"166\" y=\"118\">walls</text><text x=\"10\" y=\"190\">3 = trim: doors, casing, then baseboards last</text>",
+   "h": 198,
+   "cap": "Drips fall down, so start high. Trim goes last because it's easiest to cut a straight line onto it."
+  },
+  "sheen": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Pick the sheen by the surface</text><rect x=\"10\" y=\"34\" width=\"24\" height=\"20\" rx=\"3\" class=\"tl\"/><rect x=\"10\" y=\"34\" width=\"24\" height=\"20\" rx=\"3\" class=\"y\" style=\"opacity:0.15\"/><text x=\"44\" y=\"43\" class=\"k\">Flat / matte</text><text x=\"44\" y=\"53\">ceilings: hides flaws</text><rect x=\"10\" y=\"62\" width=\"24\" height=\"20\" rx=\"3\" class=\"tl\"/><rect x=\"10\" y=\"62\" width=\"24\" height=\"20\" rx=\"3\" class=\"y\" style=\"opacity:0.35\"/><text x=\"44\" y=\"71\" class=\"k\">Eggshell</text><text x=\"44\" y=\"81\">living rooms, bedrooms</text><rect x=\"10\" y=\"90\" width=\"24\" height=\"20\" rx=\"3\" class=\"tl\"/><rect x=\"10\" y=\"90\" width=\"24\" height=\"20\" rx=\"3\" class=\"y\" style=\"opacity:0.55\"/><text x=\"44\" y=\"99\" class=\"k\">Satin</text><text x=\"44\" y=\"109\">kitchens, baths, kids</text><rect x=\"10\" y=\"118\" width=\"24\" height=\"20\" rx=\"3\" class=\"tl\"/><rect x=\"10\" y=\"118\" width=\"24\" height=\"20\" rx=\"3\" class=\"y\" style=\"opacity:0.75\"/><text x=\"44\" y=\"127\" class=\"k\">Semi-gloss</text><text x=\"44\" y=\"137\">trim, doors, cabinets</text><rect x=\"10\" y=\"146\" width=\"24\" height=\"20\" rx=\"3\" class=\"tl\"/><rect x=\"10\" y=\"146\" width=\"24\" height=\"20\" rx=\"3\" class=\"y\" style=\"opacity:0.95\"/><text x=\"44\" y=\"155\" class=\"k\">Gloss</text><text x=\"44\" y=\"165\">railings, accents</text><line x1=\"296\" y1=\"40\" x2=\"296\" y2=\"160\" class=\"a\"/><polygon points=\"296,160 293.4,154.6 298.6,154.6\" class=\"af\"/><text x=\"286\" y=\"92\" text-anchor=\"end\">more shine,</text><text x=\"286\" y=\"104\" text-anchor=\"end\">easier to wash,</text><text x=\"286\" y=\"116\" text-anchor=\"end\">shows more flaws</text>",
+   "h": 180,
+   "cap": "Shinier paint wipes clean but shows every bump and patch. Flatter paint hides them."
+  },
+  "cutin": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Cut in with an angled brush</text><rect x=\"10\" y=\"26\" width=\"300\" height=\"24\" class=\"b\"/><rect x=\"10\" y=\"50\" width=\"300\" height=\"120\" class=\"tl\"/><rect x=\"10\" y=\"50\" width=\"200\" height=\"22\" class=\"mos\"/><g transform=\"rotate(-20 210 90)\"><rect x=\"196\" y=\"56\" width=\"30\" height=\"20\" class=\"y\"/><rect x=\"200\" y=\"76\" width=\"22\" height=\"10\" class=\"bk\"/><rect x=\"204\" y=\"86\" width=\"14\" height=\"60\" rx=\"5\" class=\"w\"/></g><line x1=\"150\" y1=\"90\" x2=\"60\" y2=\"90\" class=\"a\"/><polygon points=\"60,90 65.4,87.4 65.4,92.6\" class=\"af\"/><text x=\"14\" y=\"40\">ceiling</text><text x=\"14\" y=\"104\" class=\"ac\">2\" to 3\" band</text><text x=\"14\" y=\"118\">along every edge</text><text x=\"14\" y=\"150\">Long strokes. Bristle tips</text><text x=\"14\" y=\"162\">point at the corner line.</text>",
+   "h": 178,
+   "cap": "Hold the brush like a pencil, narrow edge toward the line, and let the bristles push a thin bead of paint into the corner."
+  },
+  "wroll": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Roll a W, then fill it in</text><rect x=\"10\" y=\"26\" width=\"300\" height=\"140\" class=\"tl\"/><path d=\"M40 50 L70 140 L100 60 L130 140 L160 50\" class=\"a\" fill=\"none\" style=\"stroke-width:3\"/><rect x=\"34\" y=\"40\" width=\"132\" height=\"110\" class=\"mos\" style=\"opacity:.35\"/><g><rect x=\"186\" y=\"60\" width=\"16\" height=\"44\" rx=\"6\" class=\"y\"/><path d=\"M202 82 h16 v40\" class=\"o\" style=\"stroke-width:3\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"0 -20;0 40;0 -20\" dur=\"2.4s\" repeatCount=\"indefinite\"/></g><text x=\"228\" y=\"60\" class=\"k\">1 roll a W,</text><text x=\"228\" y=\"72\">about 3 ft</text><text x=\"228\" y=\"90\">2 fill in</text><text x=\"228\" y=\"102\">without lifting</text><text x=\"228\" y=\"120\">3 finish with</text><text x=\"228\" y=\"132\">light strokes</text><text x=\"228\" y=\"144\">top to bottom</text>",
+   "h": 174,
+   "title": "Roll a W pattern",
+   "cap": "The W spreads the paint out evenly. Finish each 3 ft section with one light, straight pass."
+  },
+  "wetedge": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Keep a wet edge</text><rect x=\"10\" y=\"26\" width=\"300\" height=\"110\" class=\"tl\"/><rect x=\"10\" y=\"26\" width=\"150\" height=\"110\" class=\"mos\" style=\"opacity:.6\"/><rect x=\"140\" y=\"26\" width=\"90\" height=\"110\" class=\"mos\" style=\"opacity:.35\"/><line x1=\"140\" y1=\"26\" x2=\"140\" y2=\"136\" class=\"o d\"/><line x1=\"160\" y1=\"26\" x2=\"160\" y2=\"136\" class=\"o d\"/><text x=\"14\" y=\"150\" class=\"k\">painted</text><text x=\"140\" y=\"150\" class=\"ac\">overlap while wet</text><text x=\"14\" y=\"166\">Roll from the dry side back into the wet paint.</text><text x=\"14\" y=\"180\">Stopping mid-wall leaves a lap mark.</text>",
+   "h": 188,
+   "cap": "Finish a whole wall corner to corner without a break, so the edges always overlap paint that's still wet."
+  },
+  "tape": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Pull tape back at a low angle</text><rect x=\"10\" y=\"90\" width=\"300\" height=\"40\" class=\"tl\"/><rect x=\"10\" y=\"90\" width=\"300\" height=\"10\" class=\"mos\"/><rect x=\"10\" y=\"100\" width=\"150\" height=\"10\" class=\"y\"/><path d=\"M160 105 Q180 90 220 60 L230 70 Q190 100 166 110 Z\" class=\"y\"/><line x1=\"230\" y1=\"64\" x2=\"270\" y2=\"36\" class=\"a\"/><polygon points=\"270,36 267.1,41.2 264.1,37.0\" class=\"af\"/><path d=\"M160 104 A26 26 0 0 0 176 88\" class=\"o\" fill=\"none\"/><text x=\"60\" y=\"74\" class=\"k\">about 45 degrees</text><text x=\"10\" y=\"150\">Pull slowly, folding the tape back on itself.</text><text x=\"10\" y=\"164\">Paint dry and tearing? Score the edge first</text><text x=\"10\" y=\"176\">with a sharp utility knife.</text>",
+   "h": 184,
+   "cap": "Pull tape when the last coat is dry to the touch, within a few hours. Waiting days makes paint peel with it."
+  },
+  "nap": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Roller nap by surface</text><rect x=\"20\" y=\"40\" width=\"70\" height=\"20\" rx=\"4\" class=\"bk\"/><line x1=\"24\" y1=\"40\" x2=\"24\" y2=\"34\" class=\"o\"/><line x1=\"31\" y1=\"40\" x2=\"31\" y2=\"34\" class=\"o\"/><line x1=\"38\" y1=\"40\" x2=\"38\" y2=\"34\" class=\"o\"/><line x1=\"45\" y1=\"40\" x2=\"45\" y2=\"34\" class=\"o\"/><line x1=\"52\" y1=\"40\" x2=\"52\" y2=\"34\" class=\"o\"/><line x1=\"59\" y1=\"40\" x2=\"59\" y2=\"34\" class=\"o\"/><line x1=\"66\" y1=\"40\" x2=\"66\" y2=\"34\" class=\"o\"/><line x1=\"73\" y1=\"40\" x2=\"73\" y2=\"34\" class=\"o\"/><line x1=\"80\" y1=\"40\" x2=\"80\" y2=\"34\" class=\"o\"/><line x1=\"87\" y1=\"40\" x2=\"87\" y2=\"34\" class=\"o\"/><text x=\"110\" y=\"48\" class=\"k\">3/8\"</text><text x=\"150\" y=\"48\">smooth walls, ceilings</text><rect x=\"20\" y=\"82\" width=\"70\" height=\"20\" rx=\"4\" class=\"bk\"/><line x1=\"24\" y1=\"82\" x2=\"24\" y2=\"72\" class=\"o\"/><line x1=\"31\" y1=\"82\" x2=\"31\" y2=\"72\" class=\"o\"/><line x1=\"38\" y1=\"82\" x2=\"38\" y2=\"72\" class=\"o\"/><line x1=\"45\" y1=\"82\" x2=\"45\" y2=\"72\" class=\"o\"/><line x1=\"52\" y1=\"82\" x2=\"52\" y2=\"72\" class=\"o\"/><line x1=\"59\" y1=\"82\" x2=\"59\" y2=\"72\" class=\"o\"/><line x1=\"66\" y1=\"82\" x2=\"66\" y2=\"72\" class=\"o\"/><line x1=\"73\" y1=\"82\" x2=\"73\" y2=\"72\" class=\"o\"/><line x1=\"80\" y1=\"82\" x2=\"80\" y2=\"72\" class=\"o\"/><line x1=\"87\" y1=\"82\" x2=\"87\" y2=\"72\" class=\"o\"/><text x=\"110\" y=\"90\" class=\"k\">1/2\"</text><text x=\"150\" y=\"90\">light texture</text><rect x=\"20\" y=\"124\" width=\"70\" height=\"20\" rx=\"4\" class=\"bk\"/><line x1=\"24\" y1=\"124\" x2=\"24\" y2=\"108\" class=\"o\"/><line x1=\"31\" y1=\"124\" x2=\"31\" y2=\"108\" class=\"o\"/><line x1=\"38\" y1=\"124\" x2=\"38\" y2=\"108\" class=\"o\"/><line x1=\"45\" y1=\"124\" x2=\"45\" y2=\"108\" class=\"o\"/><line x1=\"52\" y1=\"124\" x2=\"52\" y2=\"108\" class=\"o\"/><line x1=\"59\" y1=\"124\" x2=\"59\" y2=\"108\" class=\"o\"/><line x1=\"66\" y1=\"124\" x2=\"66\" y2=\"108\" class=\"o\"/><line x1=\"73\" y1=\"124\" x2=\"73\" y2=\"108\" class=\"o\"/><line x1=\"80\" y1=\"124\" x2=\"80\" y2=\"108\" class=\"o\"/><line x1=\"87\" y1=\"124\" x2=\"87\" y2=\"108\" class=\"o\"/><text x=\"110\" y=\"132\" class=\"k\">3/4\"</text><text x=\"150\" y=\"132\">heavy texture</text>",
+   "h": 168,
+   "cap": "Longer nap holds more paint and reaches into bumps, but leaves more texture on a smooth wall."
+  },
+  "caulk": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Caulk the gap, not the face</text><rect x=\"10\" y=\"26\" width=\"140\" height=\"120\" class=\"tl\"/><rect x=\"150\" y=\"70\" width=\"18\" height=\"76\" class=\"w\"/><path d=\"M150 70 q4 -4 8 0 v6 q-4 -2 -8 0z\" class=\"bk\"/><path d=\"M146 66 q8 -2 10 6\" class=\"a\" style=\"stroke-width:5\" fill=\"none\"/><text x=\"176\" y=\"80\" class=\"k\">casing or</text><text x=\"176\" y=\"92\">baseboard</text><text x=\"40\" y=\"60\" class=\"k\">wall</text><text x=\"176\" y=\"120\" class=\"ac\">1/4\" bead max</text><text x=\"176\" y=\"132\">wet finger smooths it</text><text x=\"10\" y=\"164\">Use paintable acrylic latex caulk.</text>",
+   "h": 172,
+   "cap": "Caulk fills the line where trim meets wall so paint looks crisp. Gaps over 1/4\" need a foam backer rod first."
+  },
+  "lead": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Before 1978? Test for lead</text><rect x=\"20\" y=\"30\" width=\"110\" height=\"110\" class=\"tl\"/><line x1=\"20\" y1=\"50\" x2=\"130\" y2=\"50\" class=\"th-l\"/><line x1=\"20\" y1=\"70\" x2=\"130\" y2=\"70\" class=\"th-l\"/><line x1=\"20\" y1=\"90\" x2=\"130\" y2=\"90\" class=\"th-l\"/><line x1=\"20\" y1=\"110\" x2=\"130\" y2=\"110\" class=\"th-l\"/><rect x=\"60\" y=\"64\" width=\"34\" height=\"40\" class=\"bk\"/><rect x=\"66\" y=\"70\" width=\"22\" height=\"12\" class=\"mp\"/><text x=\"150\" y=\"50\" class=\"k\">1 Swab the test kit</text><text x=\"150\" y=\"62\">on a scraped spot</text><text x=\"150\" y=\"82\" class=\"wa\">2 Red/pink = lead</text><text x=\"150\" y=\"102\" class=\"k\">3 Stop: no dry sanding</text><text x=\"150\" y=\"114\">or scraping. Use a</text><text x=\"150\" y=\"126\">certified pro.</text><text x=\"20\" y=\"158\">Old paint layers may hide lead under new paint.</text>",
+   "h": 166,
+   "cap": "Use an EPA-recognized kit and test each painted surface you'll sand, especially windows, doors and trim."
+  }
+ },
+ "glossary": [
+  [
+   "Cutting in",
+   "Brushing a band of paint along edges and corners where a roller can't reach."
+  ],
+  [
+   "Sheen",
+   "How shiny dried paint is: flat, eggshell, satin, semi-gloss, gloss."
+  ],
+  [
+   "Nap",
+   "The length of a roller cover's fibers."
+  ],
+  [
+   "Wet edge",
+   "Paint that's still wet at the edge of the area you've painted, so the next section blends in."
+  ],
+  [
+   "Lap mark",
+   "A darker stripe where wet paint was rolled over paint that had started to dry."
+  ],
+  [
+   "Boxing paint",
+   "Mixing several cans of the same color together so the color is even."
+  ],
+  [
+   "Primer",
+   "A first coat that seals and helps paint stick and cover."
+  ],
+  [
+   "TSP substitute",
+   "A wall cleaner that removes grease without the phosphates of old TSP."
+  ],
+  [
+   "Tipping off",
+   "A final light brush stroke along the length of the piece to level marks."
+  ],
+  [
+   "Recoat time",
+   "How long the can says to wait before the next coat."
+  ],
+  [
+   "Feathering",
+   "Thinning the edges of paint or filler so no ridge shows."
+  ]
+ ]
+}
