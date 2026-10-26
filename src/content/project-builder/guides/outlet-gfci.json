@@ -1,0 +1,571 @@
+{
+ "slug": "outlet-gfci",
+ "title": "Replace an Outlet or GFCI",
+ "eyebrow": "Electrical · outlets",
+ "category": "Electrical",
+ "difficulty": "Beginner",
+ "time": "30–60 min per outlet",
+ "summary": "Swap a worn, loose or two-prong outlet for a new tamper-resistant outlet or a GFCI, wired correctly and tested.",
+ "safety": "Turn the breaker off and <b>prove the outlet is dead with a tester</b> before touching any wire. Test the tester on a live outlet first. Never work with the power on.",
+ "pro": "you find aluminum wiring, scorched or crumbling insulation, a hot or melted outlet, a box crammed with many cables, or the breaker keeps tripping. Adding new outlets or circuits usually needs a permit.",
+ "questions": [
+  {
+   "id": "kind",
+   "label": "What are you installing?",
+   "type": "choice",
+   "default": "standard",
+   "options": [
+    {
+     "v": "standard",
+     "label": "Standard outlet"
+    },
+    {
+     "v": "gfci",
+     "label": "GFCI outlet",
+     "hint": "near water"
+    }
+   ]
+  },
+  {
+   "id": "cables",
+   "label": "How many cables come into the box?",
+   "type": "choice",
+   "default": "one",
+   "options": [
+    {
+     "v": "one",
+     "label": "One",
+     "hint": "end of the line"
+    },
+    {
+     "v": "two",
+     "label": "Two",
+     "hint": "feeds more outlets"
+    }
+   ],
+   "hint": "Not sure yet? Pick one; you'll count them in step 5 and can change it."
+  },
+  {
+   "id": "ground",
+   "label": "Is there a bare or green ground wire?",
+   "type": "choice",
+   "default": "yes",
+   "options": [
+    {
+     "v": "yes",
+     "label": "Yes"
+    },
+    {
+     "v": "no",
+     "label": "No",
+     "hint": "two-slot outlet"
+    }
+   ]
+  },
+  {
+   "id": "amps",
+   "label": "Amp rating on the old outlet",
+   "type": "choice",
+   "default": "15",
+   "options": [
+    {
+     "v": "15",
+     "label": "15 amp"
+    },
+    {
+     "v": "20",
+     "label": "20 amp",
+     "hint": "T-shaped slot"
+    }
+   ]
+  },
+  {
+   "id": "count",
+   "label": "How many outlets are you replacing?",
+   "type": "number",
+   "unit": "outlets",
+   "default": 1,
+   "step": 1
+  }
+ ],
+ "tools": [
+  {
+   "id": "pen",
+   "c": "Testing",
+   "n": "Non-contact voltage tester",
+   "must": true,
+   "w": "Tells you if a wire is live before you touch it.",
+   "q": "non-contact voltage tester"
+  },
+  {
+   "id": "plug",
+   "c": "Testing",
+   "n": "Plug-in outlet tester (with GFCI button)",
+   "must": true,
+   "w": "Confirms the new outlet is wired correctly.",
+   "q": "receptacle tester GFCI"
+  },
+  {
+   "id": "screwdrivers",
+   "c": "Hand tools",
+   "n": "Screwdrivers: #2 Phillips and 1/4\" flat",
+   "must": true,
+   "w": "Plate screws, mounting screws and terminal screws.",
+   "q": "insulated screwdriver set"
+  },
+  {
+   "id": "stripper",
+   "c": "Hand tools",
+   "n": "Wire stripper with gauge marks",
+   "must": true,
+   "w": "Strips insulation cleanly without nicking the copper.",
+   "q": "wire stripper 10-18 AWG"
+  },
+  {
+   "id": "needlenose",
+   "c": "Hand tools",
+   "n": "Needle-nose pliers",
+   "must": true,
+   "w": "Bends the hook in the wire end.",
+   "q": "needle nose pliers"
+  },
+  {
+   "id": "light",
+   "c": "Hand tools",
+   "n": "Headlamp or flashlight",
+   "must": true,
+   "w": "The power to the room is off.",
+   "q": "headlamp"
+  },
+  {
+   "id": "glasses",
+   "c": "Safety",
+   "n": "Safety glasses",
+   "must": false,
+   "w": "Protects your eyes from wire ends and sparks.",
+   "q": "safety glasses"
+  },
+  {
+   "id": "recept",
+   "c": "Parts",
+   "n": "{{a.amps}} amp tamper-resistant outlet (TR)",
+   "must": true,
+   "w": "Match the amp rating printed on the old outlet. Tamper-resistant is required for replacements in homes.",
+   "q": "{{a.amps}} amp tamper resistant receptacle",
+   "qty": "{{a.count}}",
+   "when": "a.kind==='standard'"
+  },
+  {
+   "id": "gfciR",
+   "c": "Parts",
+   "n": "{{a.amps}} amp tamper-resistant GFCI outlet",
+   "must": true,
+   "w": "Required near water: bathrooms, kitchen counters, laundry, garage, outdoors.",
+   "q": "{{a.amps}} amp GFCI receptacle tamper resistant",
+   "qty": "{{a.count}}",
+   "when": "a.kind==='gfci'"
+  },
+  {
+   "id": "plate",
+   "c": "Parts",
+   "n": "Wall plate to match",
+   "must": true,
+   "w": "GFCIs need a decorator-style (rectangle) plate.",
+   "q": "{{a.kind==='gfci'?'decorator wall plate':'duplex outlet wall plate'}}",
+   "qty": "{{a.count}}"
+  },
+  {
+   "id": "nuts",
+   "c": "Parts",
+   "n": "Wire nuts + 6\" of matching wire for pigtails",
+   "must": false,
+   "w": "Only if two cables share the outlet or the old wire ends are too short.",
+   "q": "wire nuts assortment",
+   "when": "a.cables==='two'"
+  },
+  {
+   "id": "labels",
+   "c": "Parts",
+   "n": "Masking tape and a marker",
+   "must": true,
+   "w": "Label the breaker and the wires before you take anything apart.",
+   "q": "masking tape"
+  },
+  {
+   "id": "stickers",
+   "c": "Parts",
+   "n": "\"No equipment ground\" sticker",
+   "must": true,
+   "w": "Required when a GFCI protects an outlet with no ground wire. Usually in the GFCI box.",
+   "q": "GFCI no equipment ground label",
+   "when": "a.ground==='no'"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Prepare",
+   "steps": [
+    {
+     "id": "p1",
+     "t": "Check what you have and buy the right outlet",
+     "time": "15 min",
+     "idea": "The new outlet must match the circuit, and some locations require a GFCI.",
+     "fig": "anatomy",
+     "need": [
+      "recept",
+      "gfciR",
+      "plate"
+     ],
+     "b": "<ol><li>Read the old outlet: the amp rating (15 or 20) is stamped on the face or the metal strap. Buy the same rating.</li><li>Is the outlet within 6 ft of a sink, in a bathroom, kitchen counter, laundry, garage, basement or outdoors? It needs GFCI protection.</li><li>Buy tamper-resistant (\"TR\") outlets. They're required in homes when you replace one.</li><li>Look at the slots: if the old outlet has only two slots and no round hole, there's probably no ground wire. A GFCI is the code-approved fix for that.</li></ol>",
+     "faq": [
+      [
+       "Can I put a 20 amp outlet on a 15 amp circuit?",
+       "No. Match the old outlet, and never install a higher rating than the breaker."
+      ],
+      [
+       "What's the T-shaped slot on a 20 amp outlet?",
+       "It lets 20 amp plugs fit. Regular plugs still work in it."
+      ],
+      [
+       "Does it need to be AFCI too?",
+       "Many areas now require arc-fault (AFCI) protection when you replace outlets in bedrooms and living areas. That can come from an AFCI breaker already in the panel or an AFCI outlet. Ask your local building department."
+      ]
+     ],
+     "help": []
+    },
+    {
+     "id": "p2",
+     "t": "Turn off the power at the breaker",
+     "time": "10 min",
+     "idea": "Kill the power to the outlet at the panel, and make sure nobody turns it back on.",
+     "fig": "breaker",
+     "need": [
+      "labels",
+      "light"
+     ],
+     "b": "<ol><li>Plug a lamp or radio into the outlet and turn it on.</li><li>At the panel, flip the breaker labeled for that room fully to OFF.</li><li>If the lamp is still on, turn that breaker back on and try the next one until the lamp goes off.</li><li>Put tape over the breaker handle with a note: \"Working on outlet. Don't touch.\"</li><li>Check both halves of the outlet: sometimes the top and bottom are on different circuits.</li></ol>",
+     "help": []
+    },
+    {
+     "id": "p3",
+     "t": "Prove the outlet is dead",
+     "time": "5 min",
+     "idea": "Never trust a breaker label. Test before you touch.",
+     "fig": "testers",
+     "need": [
+      "pen",
+      "plug"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "b": "<ol><li>Test your non-contact tester on an outlet you know is live. It should beep or light up.</li><li>Hold its tip at the short slot of each half of the outlet you're replacing. No beep = no power.</li><li>Plug the plug-in tester into both halves. No lights = no power.</li><li>Test the pen on the live outlet again, to prove it still works.</li></ol>",
+     "stop": "If anything beeps or lights up, stop. Find the right breaker before going on.",
+     "help": [
+      "testHelp"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Remove the old outlet",
+   "steps": [
+    {
+     "id": "r1",
+     "t": "Take off the plate and pull the outlet out",
+     "time": "5 min",
+     "idea": "Get the outlet out of the box without touching the wire ends.",
+     "need": [
+      "screwdrivers",
+      "pen"
+     ],
+     "b": "<ol><li>Remove the cover plate screw(s) and the plate.</li><li>Remove the two long screws at the top and bottom of the outlet.</li><li>Hold the metal strap and pull the outlet straight out of the box, gently, so the wires come with it.</li><li>Hold the non-contact tester near every wire in the box. Nothing should beep.</li></ol>",
+     "stop": "Silver-colored wires (not copper) or \"AL\" printed on the cable mean aluminum wiring. Don't replace the outlet yourself; it needs special parts and an electrician.",
+     "help": [
+      "testHelp"
+     ]
+    },
+    {
+     "id": "r2",
+     "t": "Photograph and label the wires",
+     "time": "5 min",
+     "idea": "A photo of the old wiring is your map for the new one.",
+     "need": [
+      "labels"
+     ],
+     "b": "<ol><li>Take two photos from different angles before you loosen anything.</li><li>Count the cables entering the box. One cable = 1 black, 1 white, 1 bare. Two cables = two of each.</li><li>If there are two cables, put a piece of tape on each wire of one cable and mark it \"A\".</li><li>Note any wires pushed into holes in the back of the outlet (\"backstab\") instead of under screws.</li></ol>",
+     "faq": [
+      [
+       "There's a red wire too.",
+       "The outlet may be half switch-controlled. Note which screw it's on and keep the metal tab between the brass screws in the same state as the old outlet. If unsure, stop and ask an electrician."
+      ]
+     ],
+     "help": []
+    },
+    {
+     "id": "r3",
+     "t": "Disconnect the old outlet",
+     "time": "5 min",
+     "idea": "Free the wires without damaging them.",
+     "need": [
+      "screwdrivers",
+      "stripper"
+     ],
+     "b": "<ol><li>Loosen each terminal screw and unhook the wire.</li><li>Backstabbed wires: push a small flat screwdriver into the release slot next to the hole and pull the wire out. No slot? Cut the wire right at the outlet.</li><li>Look at the copper ends. If they're nicked, darkened or brittle, cut them off and strip fresh: 3/4\" of bare copper.</li><li>You need at least 3\" of wire sticking out of the box. Shorter? Add a pigtail (step in the next phase).</li></ol>",
+     "help": []
+    }
+   ]
+  },
+  {
+   "name": "Wire the new outlet",
+   "steps": [
+    {
+     "id": "w0",
+     "t": "Find the LINE cable (power in)",
+     "time": "15 min",
+     "idea": "A GFCI must know which cable brings power from the panel.",
+     "when": "a.kind==='gfci'&&a.cables==='two'",
+     "fig": "gfci",
+     "need": [
+      "pen",
+      "labels"
+     ],
+     "b": "<ol><li>Separate the two cables so no bare ends touch anything or each other. Spread the wires out of the box.</li><li>Turn the breaker on. Keep hands away from the box.</li><li>Hold the non-contact tester near each black wire. The one that beeps is the LINE (power in). Only one should beep.</li><li>Turn the breaker off again and test again: nothing beeps.</li><li>Tape-label that cable's black and white \"LINE\".</li></ol>",
+     "stop": "Leave the breaker on only as long as the test takes. Never touch bare wire while it's on.",
+     "help": [
+      "testHelp"
+     ]
+    },
+    {
+     "id": "w1",
+     "t": "Prepare the wire ends",
+     "time": "10 min",
+     "idea": "Clean, correctly stripped hooks make tight, safe connections.",
+     "fig": "hook",
+     "need": [
+      "stripper",
+      "needlenose"
+     ],
+     "b": "<ol><li>Strip 3/4\" of insulation using the matching gauge hole on the stripper (14 for 15 amp, 12 for 20 amp, usually).</li><li>With needle-nose pliers, bend each end into a U-shaped hook.</li><li>Straighten the bare ground wire and hook it the same way.</li></ol>",
+     "help": [
+      "hookHelp"
+     ]
+    },
+    {
+     "id": "w2",
+     "t": "Add pigtails (two cables)",
+     "time": "15 min",
+     "idea": "One short wire to the outlet, joined to both cables, keeps power flowing to the next outlet.",
+     "when": "a.cables==='two'&&a.kind==='standard'",
+     "fig": [
+      "pigtail",
+      "nut"
+     ],
+     "need": [
+      "nuts",
+      "stripper"
+     ],
+     "b": "<ol><li>Cut three 6\" pieces of wire the same size as the house wire: black, white, bare/green.</li><li>Hold the two black wires and one new black piece with the ends even. Twist on a wire nut clockwise until tight.</li><li>Do the same with the whites, and with the grounds.</li><li>Tug each wire. Nothing should pull out.</li><li>The pigtails now go to the outlet like a single cable.</li></ol>",
+     "faq": [
+      [
+       "Can't I just use both sets of screws?",
+       "Yes, an outlet has two brass and two silver screws for that. Pigtails are easier and keep power flowing even if the outlet fails."
+      ]
+     ],
+     "help": []
+    },
+    {
+     "id": "w3",
+     "t": "Connect the new outlet",
+     "time": "10 min",
+     "idea": "Ground first, then neutral to silver, then hot to brass.",
+     "when": "a.kind==='standard'",
+     "fig": [
+      "anatomy",
+      "hook"
+     ],
+     "need": [
+      "recept",
+      "screwdrivers",
+      "needlenose"
+     ],
+     "b": "<ol><li><b>Ground:</b> hook the bare wire clockwise around the green screw and tighten.</li><li><b>Neutral:</b> white wire clockwise around a silver screw. Tighten firmly.</li><li><b>Hot:</b> black wire clockwise around a brass screw, on the opposite side from the white. Tighten firmly.</li><li>Tug each wire. None should move.</li><li>Tighten any unused terminal screws so they don't stick out.</li></ol>",
+     "help": [
+      "hookHelp"
+     ]
+    },
+    {
+     "id": "w4",
+     "t": "Connect the GFCI",
+     "time": "15 min",
+     "idea": "Power in goes to LINE. LOAD is only for protecting outlets further down the circuit.",
+     "when": "a.kind==='gfci'",
+     "fig": [
+      "gfci",
+      "anatomy"
+     ],
+     "need": [
+      "gfciR",
+      "screwdrivers"
+     ],
+     "b": "<ol><li>Find the words LINE and LOAD on the back of the GFCI. LOAD is usually covered with yellow tape.</li><li><b>Ground:</b> bare wire to the green screw.</li><li><b>LINE:</b> the power-in white to the LINE silver terminal, the power-in black to the LINE brass terminal. Many GFCIs clamp a straight wire under a plate: insert the straight end and tighten.</li><li>{{a.cables==='two'?'<b>Second cable:</b> to protect the outlets after this one, connect it to LOAD (white to silver, black to brass). Or pigtail it with the LINE wires so those outlets are not protected.':'Leave the tape on the LOAD terminals.'}}</li><li>Tug every wire.</li></ol>",
+     "faq": [
+      [
+       "Do I need LOAD?",
+       "Only if you want the GFCI to protect other outlets after it, like the rest of a bathroom circuit."
+      ]
+     ],
+     "help": [
+      "hookHelp"
+     ]
+    },
+    {
+     "id": "w5",
+     "t": "No ground wire? Label it",
+     "time": "2 min",
+     "idea": "A GFCI makes an ungrounded outlet safe for people, but it must be labeled.",
+     "when": "a.ground==='no'",
+     "need": [
+      "stickers"
+     ],
+     "b": "<ol><li>Connect the GFCI without a ground wire (leave the green screw empty).</li><li>Stick the \"No equipment ground\" label on the wall plate.</li><li>Outlets protected through its LOAD side also get \"GFCI protected\" and \"No equipment ground\" labels.</li></ol>",
+     "faq": [
+      [
+       "Is that safe?",
+       "Yes for people. A GFCI cuts power when current leaks, ground wire or not. Some electronics prefer a real ground, which needs new wiring."
+      ]
+     ],
+     "help": []
+    }
+   ]
+  },
+  {
+   "name": "Finish and test",
+   "steps": [
+    {
+     "id": "f1",
+     "t": "Fold the wires in and mount the outlet",
+     "time": "10 min",
+     "idea": "Fold the wires neatly so nothing loosens or gets pinched.",
+     "need": [
+      "screwdrivers",
+      "plate"
+     ],
+     "b": "<ol><li>Fold the wires behind the outlet in an accordion (S) shape.</li><li>Push the outlet straight in. Don't force it; GFCIs are bulky, so fold the wires tight to the back of the box.</li><li>Screw the strap to the box until it's snug and straight. Don't crack the plastic.</li><li>Attach the cover plate.</li></ol>",
+     "help": []
+    },
+    {
+     "id": "f2",
+     "t": "Power on and test",
+     "time": "10 min",
+     "idea": "Prove the new outlet works and is wired correctly.",
+     "fig": "testers",
+     "need": [
+      "plug",
+      "labels"
+     ],
+     "b": "<ol><li>Remove the tape from the breaker and turn it on.</li><li>Plug in the plug-in tester. Compare the lights to the chart printed on it; you want \"correct\".</li><li>{{a.kind==='gfci'?'Press TEST on the GFCI: it clicks and the power goes off. Press RESET: power comes back. Do this monthly.':'Plug in a lamp to be sure both halves work.'}}</li><li>If anything looks wrong, turn the breaker off and compare your wiring with the photo.</li></ol>",
+     "faq": [
+      [
+       "The GFCI won't reset.",
+       "Usually LINE and LOAD are swapped, or there's no power. Turn the breaker off and check which cable is LINE."
+      ],
+      [
+       "Tester says \"open ground\".",
+       "No ground wire is connected. Fine only for a labeled GFCI; otherwise check the ground connection."
+      ],
+      [
+       "Tester says \"hot/neutral reversed\".",
+       "Black and white are swapped. Turn off power and switch them."
+      ]
+     ],
+     "help": []
+    }
+   ]
+  }
+ ],
+ "help": {
+  "testHelp": {
+   "t": "Use a non-contact voltage tester",
+   "fig": "testers",
+   "b": "<ol><li>Turn it on (some have a button you hold).</li><li>Touch the tip to the short slot of an outlet you know is live. It should beep or flash.</li><li>Now hold it at the outlet or wire you're testing. Silence means no voltage detected.</li><li>Test it on the live outlet again afterward. A dead battery gives a false \"safe\".</li></ol>"
+  },
+  "hookHelp": {
+   "t": "Make a wire hook",
+   "fig": "hook",
+   "b": "<ol><li>Strip 3/4\" of insulation using the right gauge hole.</li><li>Grip the very end with needle-nose pliers and roll it into a U.</li><li>Hook it around the screw so the open end points clockwise.</li><li>Squeeze the hook closed around the screw, then tighten the screw firmly.</li></ol>"
+  }
+ },
+ "figs": {
+  "anatomy": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Know the screws before you start</text><rect x=\"110\" y=\"24\" width=\"100\" height=\"156\" rx=\"14\" class=\"bk\"/><rect x=\"138\" y=\"40\" width=\"6\" height=\"22\" rx=\"1\" class=\"inkf\"/><rect x=\"176\" y=\"43\" width=\"6\" height=\"16\" rx=\"1\" class=\"inkf\"/><path d=\"M154 74 a6 6 0 0 1 12 0 v6 h-12z\" class=\"inkf\"/><rect x=\"138\" y=\"112\" width=\"6\" height=\"22\" rx=\"1\" class=\"inkf\"/><rect x=\"176\" y=\"115\" width=\"6\" height=\"16\" rx=\"1\" class=\"inkf\"/><path d=\"M154 146 a6 6 0 0 1 12 0 v6 h-12z\" class=\"inkf\"/><circle cx=\"216\" cy=\"66\" r=\"7\" class=\"y\"/><line x1=\"211\" y1=\"66\" x2=\"221\" y2=\"66\" class=\"o\"/><circle cx=\"104\" cy=\"66\" r=\"7\" class=\"bk\"/><line x1=\"99\" y1=\"66\" x2=\"109\" y2=\"66\" class=\"o\"/><circle cx=\"216\" cy=\"138\" r=\"7\" class=\"y\"/><line x1=\"211\" y1=\"138\" x2=\"221\" y2=\"138\" class=\"o\"/><circle cx=\"104\" cy=\"138\" r=\"7\" class=\"bk\"/><line x1=\"99\" y1=\"138\" x2=\"109\" y2=\"138\" class=\"o\"/><circle cx=\"160\" cy=\"186\" r=\"7\" class=\"goodf\"/><text x=\"230\" y=\"62\" class=\"k\">brass screw</text><text x=\"230\" y=\"74\">HOT · black</text><text x=\"90\" y=\"62\" class=\"k\" text-anchor=\"end\">silver screw</text><text x=\"90\" y=\"74\" text-anchor=\"end\">NEUTRAL · white</text><text x=\"176\" y=\"190\" class=\"gd\">green = GROUND</text><text x=\"176\" y=\"201\">bare or green wire</text><text x=\"141\" y=\"36\" text-anchor=\"middle\">long</text><text x=\"179\" y=\"36\" text-anchor=\"middle\">short</text>",
+   "h": 208,
+   "cap": "The short slot is hot, the long slot is neutral, the round hole is ground. Black goes to brass, white to silver, bare copper to green."
+  },
+  "breaker": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Turn off the right breaker</text><rect x=\"20\" y=\"26\" width=\"150\" height=\"150\" rx=\"4\" class=\"bk\"/><rect x=\"34\" y=\"38\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"100\" y=\"38\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"34\" y=\"64\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"100\" y=\"64\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"34\" y=\"90\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"100\" y=\"90\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"34\" y=\"116\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"100\" y=\"116\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"34\" y=\"142\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"100\" y=\"142\" width=\"50\" height=\"18\" rx=\"2\" class=\"b\"/><rect x=\"34\" y=\"90\" width=\"50\" height=\"18\" rx=\"2\" class=\"mos\"/><rect x=\"40\" y=\"94\" width=\"14\" height=\"10\" class=\"inkf\"/><rect x=\"0\" y=\"94\" width=\"30\" height=\"10\" class=\"y\"/><text x=\"190\" y=\"60\" class=\"k\">1  Flip it fully to OFF</text><text x=\"190\" y=\"72\">(all the way over)</text><text x=\"190\" y=\"96\" class=\"k\">2  Put tape on it</text><text x=\"190\" y=\"108\">\"Working on outlet\"</text><text x=\"190\" y=\"132\" class=\"k\">3  Check the outlet is</text><text x=\"190\" y=\"144\">dead with a tester</text>",
+   "h": 186,
+   "cap": "If the panel labels are missing or wrong, plug a lamp or radio into the outlet and flip breakers until it goes off."
+  },
+  "testers": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Two testers, two jobs</text><rect x=\"20\" y=\"40\" width=\"80\" height=\"110\" rx=\"10\" class=\"bk\"/><rect x=\"44\" y=\"70\" width=\"5\" height=\"18\" class=\"inkf\"/><rect x=\"70\" y=\"72\" width=\"5\" height=\"14\" class=\"inkf\"/><g transform=\"rotate(-25 110 70)\"><rect x=\"96\" y=\"34\" width=\"20\" height=\"90\" rx=\"8\" class=\"y\"/><rect x=\"100\" y=\"28\" width=\"12\" height=\"10\" class=\"badf\"/></g><path d=\"M126 44 q8 -8 0 -16 M134 48 q12 -12 0 -24\" class=\"bad\"/><text x=\"20\" y=\"166\" class=\"k\">Non-contact pen</text><text x=\"20\" y=\"178\">beeps near a live wire</text><rect x=\"190\" y=\"40\" width=\"90\" height=\"70\" rx=\"8\" class=\"bk\"/><circle cx=\"214\" cy=\"62\" r=\"7\" class=\"y\"/><circle cx=\"235\" cy=\"62\" r=\"7\" class=\"y\"/><circle cx=\"256\" cy=\"62\" r=\"7\" class=\"bk\"/><rect x=\"210\" y=\"110\" width=\"6\" height=\"18\" class=\"inkf\"/><rect x=\"254\" y=\"110\" width=\"6\" height=\"18\" class=\"inkf\"/><rect x=\"232\" y=\"114\" width=\"6\" height=\"16\" class=\"inkf\"/><text x=\"190\" y=\"166\" class=\"k\">Plug-in tester</text><text x=\"190\" y=\"178\">checks wiring after</text>",
+   "h": 186,
+   "cap": "Always test the pen on an outlet you know is live first, so you know it works."
+  },
+  "hook": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Wrap the wire clockwise</text><circle cx=\"90\" cy=\"70\" r=\"12\" class=\"y\"/><line x1=\"82\" y1=\"70\" x2=\"98\" y2=\"70\" class=\"o\"/><line x1=\"16\" y1=\"96\" x2=\"54\" y2=\"96\" class=\"o\" style=\"stroke-width:7\"/><path d=\"M54 96 L76 84 A15 15 0 1 1 105 72\" class=\"a\" fill=\"none\" style=\"stroke-width:3\"/><circle cx=\"250\" cy=\"70\" r=\"12\" class=\"y\"/><line x1=\"242\" y1=\"70\" x2=\"258\" y2=\"70\" class=\"o\"/><line x1=\"176\" y1=\"96\" x2=\"214\" y2=\"96\" class=\"o\" style=\"stroke-width:7\"/><path d=\"M214 96 L236 58 A15 15 0 1 0 265 74\" class=\"bad\" fill=\"none\" style=\"stroke-width:3\"/><path d=\"M76 46 a20 20 0 0 1 30 0\" class=\"a\" fill=\"none\"/><polygon points=\"106,46 100,40 98,48\" class=\"af\"/><text x=\"30\" y=\"130\" class=\"gd\">clockwise: tightening</text><text x=\"30\" y=\"142\">pulls the wire in</text><text x=\"186\" y=\"130\" class=\"wa\">counterclockwise:</text><text x=\"186\" y=\"142\">pushes the wire out</text><text x=\"10\" y=\"170\">Strip about 3/4\" of insulation first.</text>",
+   "h": 178,
+   "cap": "Wrap at least three-quarters of the way around the screw. No bare copper should stick out past the screw head."
+  },
+  "gfci": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">GFCI: LINE in, LOAD out</text><rect x=\"10\" y=\"60\" width=\"56\" height=\"44\" rx=\"4\" class=\"bk\"/><text x=\"38\" y=\"86\" class=\"k\" text-anchor=\"middle\">PANEL</text><rect x=\"128\" y=\"36\" width=\"70\" height=\"96\" rx=\"10\" class=\"bk\"/><rect x=\"146\" y=\"58\" width=\"34\" height=\"12\" rx=\"3\" class=\"b\"/><rect x=\"146\" y=\"98\" width=\"34\" height=\"12\" rx=\"3\" class=\"b\"/><text x=\"163\" y=\"67\" text-anchor=\"middle\">TEST</text><text x=\"163\" y=\"107\" text-anchor=\"middle\">RESET</text><line x1=\"66\" y1=\"82\" x2=\"128\" y2=\"120\" class=\"o\" style=\"stroke-width:3\"/><text x=\"78\" y=\"138\" class=\"ac\">LINE: power in</text><line x1=\"198\" y1=\"50\" x2=\"252\" y2=\"70\" class=\"o d\" style=\"stroke-width:3\"/><rect x=\"252\" y=\"56\" width=\"58\" height=\"40\" rx=\"6\" class=\"bk\"/><text x=\"281\" y=\"74\" text-anchor=\"middle\">outlets</text><text x=\"281\" y=\"85\" text-anchor=\"middle\">after it</text><text x=\"206\" y=\"40\" class=\"k\">LOAD (optional)</text><text x=\"206\" y=\"114\">LOAD protects the</text><text x=\"206\" y=\"125\">outlets further on</text><text x=\"10\" y=\"170\">Mixed up? The GFCI won't reset.</text>",
+   "h": 178,
+   "cap": "New GFCIs ship with tape over the LOAD screws. Leave it on if you only have one cable."
+  },
+  "pigtail": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Two cables? Use a pigtail</text><line x1=\"10\" y1=\"60\" x2=\"120\" y2=\"80\" class=\"o\" style=\"stroke-width:5\"/><line x1=\"10\" y1=\"104\" x2=\"120\" y2=\"86\" class=\"o\" style=\"stroke-width:5\"/><line x1=\"140\" y1=\"83\" x2=\"236\" y2=\"83\" class=\"o\" style=\"stroke-width:5\"/><path d=\"M118 70 h26 l6 13 l-6 13 h-26z\" class=\"y\"/><circle cx=\"252\" cy=\"83\" r=\"12\" class=\"y\"/><line x1=\"244\" y1=\"83\" x2=\"260\" y2=\"83\" class=\"o\"/><text x=\"10\" y=\"52\">from panel</text><text x=\"10\" y=\"124\">to next outlet</text><text x=\"132\" y=\"116\" class=\"k\" text-anchor=\"middle\">wire nut</text><text x=\"170\" y=\"74\" class=\"ac\">6\" pigtail</text><text x=\"270\" y=\"87\">screw</text><text x=\"10\" y=\"156\">Twist the nut on clockwise until snug.</text><text x=\"10\" y=\"168\">Tug each wire: none should pull out.</text>",
+   "h": 176,
+   "cap": "Same color to same color: blacks together, whites together, grounds together."
+  },
+  "nut": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Twist clockwise until snug</text><line x1=\"40\" y1=\"70\" x2=\"150\" y2=\"86\" class=\"o\" style=\"stroke-width:5\"/><line x1=\"40\" y1=\"104\" x2=\"150\" y2=\"92\" class=\"o\" style=\"stroke-width:5\"/><g><path d=\"M150 72 h40 l10 17 l-10 17 h-40z\" class=\"y\"/><line x1=\"160\" y1=\"72\" x2=\"160\" y2=\"106\" class=\"o\"/><line x1=\"172\" y1=\"72\" x2=\"172\" y2=\"106\" class=\"o\"/><line x1=\"184\" y1=\"72\" x2=\"184\" y2=\"106\" class=\"o\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"12 0;0 0;0 0\" keyTimes=\"0;0.6;1\" dur=\"2.4s\" repeatCount=\"indefinite\"/></g><g><path d=\"M236 70 a26 26 0 1 1 -2 0\" class=\"a\" fill=\"none\"/><polygon points=\"236,70 230,62 228,74\" class=\"af\"/><animateTransform attributeName=\"transform\" type=\"rotate\" values=\"0 236 96;360 236 96\" dur=\"2.4s\" repeatCount=\"indefinite\"/></g><text x=\"10\" y=\"150\">Then tug each wire. Nothing should pull out.</text>",
+   "h": 158,
+   "title": "Twist on a wire nut",
+   "cap": "No bare copper should show below the nut."
+  }
+ },
+ "glossary": [
+  [
+   "Hot",
+   "The black (sometimes red) wire that carries power from the panel."
+  ],
+  [
+   "Neutral",
+   "The white wire that completes the circuit back to the panel."
+  ],
+  [
+   "Ground",
+   "The bare or green safety wire."
+  ],
+  [
+   "GFCI",
+   "Ground-fault circuit interrupter: an outlet that cuts power in a fraction of a second if current leaks, for example through a person."
+  ],
+  [
+   "LINE / LOAD",
+   "On a GFCI: LINE is power coming in, LOAD feeds and protects outlets further along."
+  ],
+  [
+   "Pigtail",
+   "A short wire joined to the house wires with a wire nut, so only one wire goes to the outlet."
+  ],
+  [
+   "Backstab",
+   "Push-in holes on the back of cheap outlets. Screws make a more reliable connection."
+  ],
+  [
+   "TR",
+   "Tamper-resistant: outlets with shutters that keep kids from pushing things into the slots."
+  ]
+ ]
+}
