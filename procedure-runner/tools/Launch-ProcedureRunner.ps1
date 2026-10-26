@@ -17,7 +17,10 @@ $logDir = Join-Path $env:LOCALAPPDATA 'ProcedureRunner'   # logs stay on this PC
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 
 function Say($msg) { Add-Type -AssemblyName PresentationFramework; [void][System.Windows.MessageBox]::Show($msg, 'Procedure Runner') }
-function Test-Server { try { (Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 -Uri "$($url)api/ping").Content -match 'procedure-runner' } catch { $false } }
+function Get-Running { try { $r = (Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 -Uri "$($url)api/ping").Content | ConvertFrom-Json; if ($r.server -eq 'procedure-runner') { $r } else { $null } } catch { $null } }
+function Test-Server { [bool](Get-Running) }
+function Same-Path($a, $b) { if (-not $a -or -not $b) { return $false }; try { return [IO.Path]::GetFullPath($a).TrimEnd('\').ToLower() -eq [IO.Path]::GetFullPath($b).TrimEnd('\').ToLower() } catch { return $false } }
+$myVersion = if ((Get-Content (Join-Path $root 'server.py') -Raw) -match 'VERSION = "([^"]+)"') { $matches[1] } else { '' }
 
 if ($Stop) {
   $pids = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique
@@ -27,6 +30,20 @@ if ($Stop) {
   exit 0
 }
 
+# A copy that is already running is only reused if it is this version, from this folder, on this data folder.
+# Otherwise (typically the hidden background server of an older version) it is stopped, so the new version really loads.
+$running = Get-Running
+if ($running -and -not ($running.version -eq $myVersion -and (Same-Path $running.appDir $root) -and (Same-Path $running.dataDir $data))) {
+  $oldPid = if ($running.pid) { [int]$running.pid } else { Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -First 1 } # older versions don't report their pid
+  $old = if ($oldPid) { Get-Process -Id $oldPid -ErrorAction SilentlyContinue } else { $null }
+  if ($old -and $old.ProcessName -match '^(py|pyw|python|pythonw)\d*$') {
+    Stop-Process -Id $old.Id -Force
+    for ($i = 0; $i -lt 20 -and (Test-Server); $i++) { Start-Sleep -Milliseconds 250 }
+  } else {
+    Say "An older Procedure Runner ($($running.version), $($running.appDir)) is using port $port and couldn't be stopped automatically.`n`nRun Stop_ProcedureRunner.bat from that folder, then open Procedure Runner again."
+    exit 1
+  }
+}
 if (-not (Test-Server)) {
   # Prefer the windowless Python (pyw / pythonw) so no console window ever appears
   $py = $null; $pre = @()

@@ -13,6 +13,11 @@ No install and no build step. It's plain HTML/JS plus a small Python server from
 | `py server.py --data I:\Core\Procedures\ProcedureRunner\data` | The same, with data on the shared drive. |
 | Open `index.html` directly | **Local mode**: data stays in this browser only. Good for drafting; use Export/Import JSON to move work. |
 
+**Upgrading**: unzip the new version over the existing folder. The zip has no `data/` folder, so your procedures and runs stay put. Then start it as usual.
+- If an older copy is still running, including the desktop app's hidden background server, it's stopped automatically so the new version loads.
+- Windows left open on the old version show **Reload now**.
+- The bottom of the Library shows the version, app folder and data folder in use.
+
 **Desktop app settings**: copy `ProcedureRunner.cfg.example` to `ProcedureRunner.cfg` to change the port, the data folder or who can connect.
 - `DATA=I:\Core\ProcedureRunner\data` keeps everyone on the same runs.
 - `HOST=0.0.0.0` lets teammates connect to your PC.

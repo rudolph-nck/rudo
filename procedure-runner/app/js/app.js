@@ -195,17 +195,25 @@ PR.app = (() => {
             h("button.btn.btn-primary", { onclick: () => saveNewProcedure(PR.templates.get("failover").build()) }, "🔁 Use failover template"),
             h("button.btn", { onclick: () => PR.importer.open() }, "▦ Import Excel playbook"),
             h("button.btn", { onclick: () => PR.word.open() }, "W Import Word document"),
-            h("button.btn", { onclick: (e) => newProcedureMenu(e.currentTarget) }, "More options…"))));
+            h("button.btn", { onclick: (e) => newProcedureMenu(e.currentTarget) }, "More options…"))), aboutLine());
         return;
       }
       wrap.appendChild(h("div.proc-grid", shown.map((p) => procCard(p, lastRun[p.id]))));
+      wrap.appendChild(aboutLine());
+    }
+    // Which copy is this? Shown so an old background server or the wrong data folder is easy to spot.
+    function aboutLine() {
+      const info = S().info;
+      return h("div.about-line", `Procedure Runner ${window.PR_BUILD || ""}`,
+        info ? [` · server ${info.version}${info.version !== window.PR_BUILD ? " ⚠ different version" : ""}`, info.appDir ? ` · app: ${info.appDir}` : "", ` · data: ${info.dataDir}`]
+          : " · local mode — data is kept in this browser only. Start ProcedureRunner.bat to share with the team.");
     }
 
     function procCard(p, lr) {
       const open = () => go(`#/edit/${encodeURIComponent(p.id)}`);
       return h("div.proc-card",
         h("div.pc-top", statusChip(p.status), p.publishedVersion ? h("span.chip.c-gray", `v${p.publishedVersion}`) : null, p.status === "published" && p.hasUnpublished ? h("span.chip.c-amber-o", "unpublished edits") : null,
-          p.directional ? h("span.chip.c-blue-o", "⇄ Failover") : null, h("div.spacer"),
+          p.directional ? h("span.chip.c-blue-o", "⇄ Failover") : null, p.quick ? h("span.chip.c-blue-o", { title: "Starts without run setup — just pick the run sheet" }, "⚡ Quick start") : null, h("div.spacer"),
           h("button.icon-btn", { type: "button", title: "More", onclick: (e) => { e.stopPropagation(); cardMenu(e.currentTarget, p); } }, "⋯")),
         h("div.pc-title", { onclick: open }, p.title),
         h("div.pc-desc", p.description || h("span.muted", "No description")),
@@ -277,6 +285,26 @@ PR.app = (() => {
     if (!onRun) toast(`✍ Approval needed: ${fresh[0].title}${fresh.length > 1 ? ` (+${fresh.length - 1} more)` : ""} — click ✍ in the top bar`, "warn", 7000);
   }
 
+  /* Local mode: add the procedures shipped in seed/seed.js once (the team server does this itself from seed/). */
+  async function seedLocal() {
+    if (PR.store.kind !== "local") return;
+    const seeds = (window.PR_SEED || []).map((x) => (x && x.procedure) || x).filter((x) => x && x.id && Array.isArray(x.sections));
+    if (!seeds.length) return;
+    const done = LS.get("seeded", {});
+    const existing = await S().listProcedures();
+    const low = (t) => String(t || "").trim().toLowerCase();
+    for (const p of seeds) {
+      if (done[p.id]) continue;
+      done[p.id] = now();
+      if (existing.some((e) => e.id === p.id || (low(e.title) === low(p.title) && e.status !== "archived"))) continue;
+      const data = PR.model.normalize(clone(p));
+      await S().putVersion(data.id, 1, data);
+      await S().saveProcedure({ ...PR.model.newDoc(data, "Procedure Runner"), status: "published", publishedVersion: 1, publishedAt: now(), dirtySincePublish: false,
+        versions: [{ version: 1, at: now(), by: "Procedure Runner", note: "Included with the app", steps: PR.model.allSteps(data).length }] }, null);
+    }
+    LS.set("seeded", done);
+  }
+
   /* ---------------- boot ---------------- */
   async function boot() {
     applyTheme(LS.get("theme", matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
@@ -289,6 +317,7 @@ PR.app = (() => {
     PR.comms.load().then(PR.comms.applyBranding).catch(() => {});
     window.addEventListener("hashchange", route);
     window.addEventListener("beforeunload", (e) => { if (PR.app.dirty && PR.app.dirty()) { e.preventDefault(); e.returnValue = ""; } });
+    await seedLocal().catch((e) => console.warn("seed", e));
     await route();
     if (!me) await askName();
     refreshPeople();
@@ -299,9 +328,15 @@ PR.app = (() => {
   function checkVersion() {
     const info = S().info;
     const brand = $(".brand"); if (brand) brand.title = `Procedure Runner ${window.PR_BUILD || ""}${info ? " · server " + info.version : " · local mode"}`;
-    if (!info || !info.version || info.version === window.PR_BUILD) return;
-    document.body.prepend(h("div.update-bar", `This page is an old copy (page ${window.PR_BUILD || "?"}, server ${info.version}).`,
-      h("button.btn.btn-sm", { type: "button", onclick: () => { location.href = location.pathname + "?v=" + Date.now() + location.hash; } }, "Reload now")));
+    if (!info) return;
+    const warn = (v) => {
+      if (!v || v === window.PR_BUILD || $(".update-bar")) return;
+      document.body.prepend(h("div.update-bar", `Procedure Runner was updated to ${v} — this window still shows ${window.PR_BUILD || "an older version"}.`,
+        h("button.btn.btn-sm", { type: "button", onclick: () => { location.href = location.pathname + "?v=" + Date.now() + location.hash; } }, "Reload now")));
+    };
+    warn(info.version);
+    // Windows left open while the server is upgraded find out within a minute
+    setInterval(async () => { try { const j = await (await fetch("api/ping", { cache: "no-store" })).json(); if (j && j.server === "procedure-runner") warn(j.version); } catch { /* offline */ } }, 45000);
   }
   function help() {
     modal({

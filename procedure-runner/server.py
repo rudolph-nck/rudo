@@ -23,16 +23,19 @@ import argparse
 import json
 import os
 import re
+import signal
 import socket
+import subprocess
 import sys
 import threading
 import time
 import uuid
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, unquote
+from urllib.request import urlopen
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-VERSION = "3.10"  # keep in sync with BUILD in index.html
+VERSION = "3.11"  # keep in sync with BUILD in index.html
 MAX_BODY = 60 * 1024 * 1024
 ID_RE = re.compile(r"^[A-Za-z0-9_.\-]{1,120}$")
 
@@ -303,7 +306,8 @@ class Handler(SimpleHTTPRequestHandler):
 
     def api_get(self, parts, q):
         if parts == ["ping"]:
-            return self.send_json(200, {"ok": True, "server": "procedure-runner", "version": VERSION, "dataDir": DATA, "host": socket.gethostname()})
+            return self.send_json(200, {"ok": True, "server": "procedure-runner", "version": VERSION, "dataDir": DATA, "appDir": APP_DIR,
+                                        "pid": os.getpid(), "host": socket.gethostname()})
         if parts == ["settings"]:
             return self.send_json(200, read_json(p("settings.json"), {}) or {})
         if parts and parts[0] == "procedures":
@@ -441,6 +445,62 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_json(404, {"error": "Unknown endpoint"})
 
 
+def same_title(title, skip_id):
+    """id of another (non-deleted) procedure with this title, if any."""
+    d = p("procedures")
+    if not title or not os.path.isdir(d):
+        return None
+    for name in os.listdir(d):
+        if name.endswith(".json") and name[:-5] != skip_id:
+            doc = read_json(os.path.join(d, name)) or {}
+            if ((doc.get("draft") or {}).get("title") or "").strip().lower() == title.strip().lower() and doc.get("status") != "archived":
+                return doc.get("id")
+    return None
+
+
+def running_instance(port):
+    """What is answering on this port on this PC, if it's a Procedure Runner."""
+    try:
+        with urlopen("http://127.0.0.1:%d/api/ping" % port, timeout=2) as r:
+            info = json.loads(r.read().decode("utf-8"))
+        return info if info.get("server") == "procedure-runner" else {}
+    except Exception:
+        return None
+
+
+def port_owner(port):
+    """PID listening on a TCP port (older versions don't report their own pid)."""
+    try:
+        if os.name == "nt":
+            out = subprocess.run(["netstat", "-ano", "-p", "TCP"], capture_output=True, text=True, timeout=10).stdout
+            for line in out.splitlines():
+                cols = line.split()
+                if len(cols) >= 5 and cols[3].upper() == "LISTENING" and cols[1].rsplit(":", 1)[-1] == str(port):
+                    return int(cols[4])
+        elif os.path.exists("/proc/net/tcp"):
+            inodes = set()
+            for tbl in ("/proc/net/tcp", "/proc/net/tcp6"):
+                if os.path.exists(tbl):
+                    for line in open(tbl).read().splitlines()[1:]:
+                        cols = line.split()
+                        if cols[3] == "0A" and int(cols[1].rsplit(":", 1)[1], 16) == port:
+                            inodes.add("socket:[%s]" % cols[9])
+            for d in os.listdir("/proc"):
+                if d.isdigit():
+                    try:
+                        if any(os.readlink("/proc/%s/fd/%s" % (d, fd)) in inodes for fd in os.listdir("/proc/%s/fd" % d)):
+                            return int(d)
+                    except OSError:
+                        pass
+    except Exception:
+        pass
+    return None
+
+
+def same_path(a, b):
+    return bool(a and b) and os.path.normcase(os.path.abspath(a)) == os.path.normcase(os.path.abspath(b))
+
+
 def seed_procedures():
     """Procedures shipped in seed/*.procedure.json are added to a data folder (published as v1) the first time it
     sees them. data/seeded.json remembers what was added, so a seeded procedure you delete stays deleted."""
@@ -461,7 +521,10 @@ def seed_procedures():
                 continue
             t = now_ms()
             fp = p("procedures", pid + ".json")
-            if not os.path.exists(fp):
+            twin = same_title(proc.get("title"), pid)
+            if twin:  # e.g. imported by hand before it shipped with the app — don't add a second copy
+                print("  Kept        : %s (already in the library)" % proc.get("title"))
+            elif not os.path.exists(fp):
                 steps = sum(len(sec.get("steps") or []) for sec in proc.get("sections") or [])
                 write_json(p("procedures", pid, "v1.json"), proc)
                 write_json(fp, {"id": pid, "status": "published", "draft": proc, "publishedVersion": 1, "publishedAt": t,
@@ -485,12 +548,35 @@ def main():
     for sub in ("procedures", "runs", "attachments"):
         os.makedirs(p(sub), exist_ok=True)
     seed_procedures()
-    try:
-        httpd = ThreadingHTTPServer((args.host, args.port), Handler)
-    except OSError:
-        print("Port %d is already in use." % args.port)
-        print("An older Procedure Runner window is probably still running (maybe from a different folder).")
-        print("Close that window, then start this one again - otherwise your browser keeps showing the old version.")
+    httpd = None
+    for attempt in range(40):
+        try:
+            httpd = ThreadingHTTPServer((args.host, args.port), Handler)
+            break
+        except OSError:
+            if attempt:
+                time.sleep(0.25)
+                continue
+            other = running_instance(args.port)
+            if other and other.get("version") == VERSION and same_path(other.get("appDir"), APP_DIR) and same_path(other.get("dataDir"), DATA):
+                print("Procedure Runner %s is already running from this folder: http://localhost:%d/" % (VERSION, args.port))
+                sys.exit(0)
+            pid = other.get("pid") or port_owner(args.port) if other else None
+            if other and pid and pid != os.getpid():
+                # An older copy (often the desktop app's hidden background server) would keep serving the old version.
+                print("Stopping Procedure Runner %s from %s (data: %s) so this copy can use port %d."
+                      % (other.get("version", "?"), other.get("appDir", "another folder"), other.get("dataDir", "?"), args.port))
+                try:
+                    os.kill(int(pid), signal.SIGTERM)
+                except Exception as e:
+                    print("  Couldn't stop it (%s). Close it or run Stop_ProcedureRunner.bat, then try again." % e)
+                    sys.exit(1)
+                continue
+            print("Port %d is already in use by another program." % args.port)
+            print("Start Procedure Runner on a different port, e.g.  py server.py --port 8080  (or PORT=8080 in ProcedureRunner.cfg).")
+            sys.exit(1)
+    if httpd is None:
+        print("Port %d is still busy - close the other Procedure Runner and try again." % args.port)
         sys.exit(1)
     host = socket.gethostname()
     print("Procedure Runner %s" % VERSION)

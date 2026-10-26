@@ -57,7 +57,7 @@ PR.store = (() => {
       id: p.id, title: d.title || p.title || "Untitled", description: d.description || "", tags: d.tags || [], status: p.status,
       publishedVersion: p.publishedVersion || 0, updatedAt: p.updatedAt, updatedBy: p.updatedBy, rev: p.rev,
       steps: (d.sections || []).reduce((a, s) => a + (s.steps || []).length, 0), hasUnpublished: !!p.dirtySincePublish,
-      directional: !!(d.environments && d.environments.directional), estMin: PR.model ? PR.model.estimateMinutes(d) : 0,
+      directional: !!(d.environments && d.environments.directional), quick: !!(d.runOptions && d.runOptions.quickStart), estMin: PR.model ? PR.model.estimateMinutes(d) : 0,
     };
   }
 
