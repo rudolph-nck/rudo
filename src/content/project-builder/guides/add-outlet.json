@@ -1,0 +1,1030 @@
+{
+ "slug": "add-outlet",
+ "title": "Add a New Outlet",
+ "eyebrow": "Electrical · outlets",
+ "category": "Electrical",
+ "difficulty": "Advanced",
+ "time": "1 weekend plus inspection",
+ "summary": "Add a new tamper-resistant outlet by running cable from an existing outlet on a suitable circuit to an old-work box, with a permit, the right wire size and the right protection for the room.",
+ "safety": "Most areas require a <b>permit and inspection</b> for new wiring. Turn the breaker off and <b>prove every wire dead with a tested non-contact tester</b> before touching anything. Wire size must match the breaker. Never extend kitchen countertop, bathroom, laundry or dedicated circuits. Check for pipes and wires before cutting or drilling.",
+ "pro": "the source has no ground, you find aluminum wire, cloth insulation or scorch marks, the circuit is already loaded or trips, the panel is full or you need a new circuit, the wire is smaller than the breaker requires, or your area doesn't let homeowners pull an electrical permit.",
+ "questions": [
+  {
+   "id": "room",
+   "label": "Where is the new outlet?",
+   "type": "choice",
+   "default": "living",
+   "options": [
+    {
+     "v": "living",
+     "label": "Living area",
+     "hint": "bedroom, living room, hall"
+    },
+    {
+     "v": "garage",
+     "label": "Garage or unfinished basement",
+     "hint": "needs GFCI"
+    },
+    {
+     "v": "wet",
+     "label": "Kitchen counter, bath or laundry",
+     "hint": "don't extend"
+    }
+   ],
+   "hint": "Rules vary: check local code."
+  },
+  {
+   "id": "amps",
+   "label": "Breaker size on the circuit",
+   "type": "choice",
+   "default": "15",
+   "options": [
+    {
+     "v": "15",
+     "label": "15 amp",
+     "hint": "14 AWG wire"
+    },
+    {
+     "v": "20",
+     "label": "20 amp",
+     "hint": "12 AWG wire"
+    }
+   ]
+  },
+  {
+   "id": "src",
+   "label": "Cables in the source box now",
+   "type": "choice",
+   "default": "1",
+   "options": [
+    {
+     "v": "1",
+     "label": "One",
+     "hint": "end of the run"
+    },
+    {
+     "v": "2",
+     "label": "Two",
+     "hint": "middle of the run"
+    }
+   ],
+   "hint": "Not sure? Pick two; you'll count when you open the box."
+  },
+  {
+   "id": "route",
+   "label": "How will you run the cable?",
+   "type": "choice",
+   "default": "flex",
+   "options": [
+    {
+     "v": "flex",
+     "label": "Fish it through the closed wall",
+     "hint": "flex bit"
+    },
+    {
+     "v": "open",
+     "label": "Open a strip of wall",
+     "hint": "easier, then patch"
+    }
+   ]
+  },
+  {
+   "id": "dist",
+   "label": "Distance from source to new outlet",
+   "type": "number",
+   "unit": "ft",
+   "default": 6,
+   "step": 0.5
+  }
+ ],
+ "calcs": [
+  {
+   "id": "vol",
+   "expr": "a.amps==='20'?2.25:2"
+  },
+  {
+   "id": "srcN",
+   "label": "Source box count (with new cable)",
+   "expr": "2*(Number(a.src)+1)+1+2+1",
+   "fmt": "{{c.srcN}}"
+  },
+  {
+   "id": "srcVol",
+   "label": "Source box needs at least",
+   "expr": "Math.round(c.srcN*c.vol*100)/100",
+   "fmt": "{{c.srcVol}} cu in"
+  },
+  {
+   "id": "newVol",
+   "label": "New box needs at least",
+   "expr": "Math.round(6*c.vol*100)/100",
+   "fmt": "{{c.newVol}} cu in"
+  },
+  {
+   "id": "cable",
+   "label": "Cable needed",
+   "expr": "Math.ceil(a.dist*1.25+4)",
+   "fmt": "{{c.cable}} ft of {{a.amps==='20'?'12/2':'14/2'}} NM-B"
+  },
+  {
+   "id": "roll",
+   "expr": "c.cable<=25?25:(c.cable<=50?50:100)"
+  },
+  {
+   "id": "studs",
+   "label": "Studs to drill through",
+   "expr": "Math.max(0,Math.ceil(a.dist*12/16))",
+   "fmt": "about {{c.studs}}"
+  }
+ ],
+ "calcNote": "Box fill counts each hot and neutral as 1, all grounds as 1, the outlet as 2 and internal clamps as 1, times 2.0 cu in (14 AWG) or 2.25 cu in (12 AWG). Cable includes 25% extra plus 2 ft at each box.",
+ "overviewFig": [
+  "circuit",
+  "route"
+ ],
+ "tools": [
+  {
+   "id": "pen",
+   "c": "Testing",
+   "n": "Non-contact voltage tester",
+   "must": true,
+   "w": "Tells you if a wire is live before you touch it.",
+   "q": "non-contact voltage tester"
+  },
+  {
+   "id": "plug",
+   "c": "Testing",
+   "n": "Plug-in outlet tester (with GFCI button)",
+   "must": true,
+   "w": "Confirms both outlets are wired correctly.",
+   "q": "receptacle tester GFCI"
+  },
+  {
+   "id": "finder",
+   "c": "Layout",
+   "n": "Stud finder",
+   "must": true,
+   "w": "Finds the studs so the box goes between them.",
+   "q": "stud finder"
+  },
+  {
+   "id": "level",
+   "c": "Layout",
+   "n": "Small level, pencil and tape measure",
+   "must": true,
+   "w": "Sets the new box straight and at the same height as the others.",
+   "q": "torpedo level"
+  },
+  {
+   "id": "saw",
+   "c": "Cutting",
+   "n": "Drywall jab saw",
+   "must": true,
+   "w": "Cuts the box hole.",
+   "q": "drywall jab saw"
+  },
+  {
+   "id": "ripper",
+   "c": "Cutting",
+   "n": "Cable ripper or utility knife",
+   "must": true,
+   "w": "Slits the cable sheath without cutting the wires inside.",
+   "q": "NM cable ripper"
+  },
+  {
+   "id": "stripper",
+   "c": "Hand tools",
+   "n": "Wire stripper with gauge marks",
+   "must": true,
+   "w": "Strips insulation without nicking copper.",
+   "q": "wire stripper 10-18 AWG"
+  },
+  {
+   "id": "screwdrivers",
+   "c": "Hand tools",
+   "n": "Screwdrivers: #2 Phillips and 1/4\" flat",
+   "must": true,
+   "w": "Outlet, plate and box screws.",
+   "q": "insulated screwdriver set"
+  },
+  {
+   "id": "needlenose",
+   "c": "Hand tools",
+   "n": "Needle-nose pliers",
+   "must": true,
+   "w": "Bends wire hooks.",
+   "q": "needle nose pliers"
+  },
+  {
+   "id": "light",
+   "c": "Hand tools",
+   "n": "Headlamp or flashlight",
+   "must": true,
+   "w": "For looking into the wall and the dark box.",
+   "q": "headlamp"
+  },
+  {
+   "id": "fishtape",
+   "c": "Running cable",
+   "n": "Fish tape or glow rods",
+   "must": true,
+   "w": "Pushes through the wall and pulls the cable back.",
+   "q": "fish tape 25 ft"
+  },
+  {
+   "id": "drill",
+   "c": "Running cable",
+   "n": "Drill (corded or 18V+)",
+   "must": true,
+   "w": "Drives the bit through the studs.",
+   "q": "cordless drill"
+  },
+  {
+   "id": "flexbit",
+   "c": "Running cable",
+   "n": "Flex installer bit, 54\" or longer, 3/4\"",
+   "must": true,
+   "w": "Bends inside the wall to drill studs through the box hole.",
+   "q": "flexible installer drill bit 54 inch",
+   "rent": true,
+   "when": "a.route==='flex'"
+  },
+  {
+   "id": "spade",
+   "c": "Running cable",
+   "n": "3/4\" spade bit (right-angle drill helps)",
+   "must": true,
+   "w": "Drills centered holes through exposed studs.",
+   "q": "3/4 inch spade bit",
+   "when": "a.route==='open'"
+  },
+  {
+   "id": "plates",
+   "c": "Running cable",
+   "n": "Steel nail plates",
+   "must": false,
+   "w": "Protect cable in holes closer than 1-1/4\" to the stud face.",
+   "q": "nail plate stud guard",
+   "qty": "{{c.studs+1}}"
+  },
+  {
+   "id": "cable",
+   "c": "Parts",
+   "n": "{{a.amps==='20'?'12':'14'}}/2 NM-B cable with ground",
+   "must": true,
+   "w": "Must match the existing wire size and the breaker.",
+   "q": "{{a.amps==='20'?'12':'14'}}/2 NM-B wire with ground",
+   "qty": "{{c.roll}} ft roll"
+  },
+  {
+   "id": "box",
+   "c": "Parts",
+   "n": "Old-work (remodel) box, 1-gang, at least {{c.newVol}} cu in",
+   "must": true,
+   "w": "Clamps to the drywall with wings. Bigger is easier to wire.",
+   "q": "old work electrical box single gang 20 cu in"
+  },
+  {
+   "id": "recept",
+   "c": "Parts",
+   "n": "{{a.amps}} A tamper-resistant outlet (TR)",
+   "must": true,
+   "w": "Tamper-resistant outlets are required in homes.",
+   "q": "{{a.amps}} amp tamper resistant receptacle",
+   "when": "a.room==='living'"
+  },
+  {
+   "id": "gfci",
+   "c": "Parts",
+   "n": "{{a.amps}} A tamper-resistant GFCI outlet",
+   "must": true,
+   "w": "Garages, unfinished basements and similar areas need GFCI protection.",
+   "q": "{{a.amps}} amp GFCI receptacle tamper resistant",
+   "when": "a.room==='garage'"
+  },
+  {
+   "id": "afci",
+   "c": "Parts",
+   "n": "AFCI protection (breaker or AFCI outlet, as your inspector accepts)",
+   "must": false,
+   "w": "Most codes require AFCI protection when a circuit in living areas is extended.",
+   "q": "AFCI receptacle {{a.amps}} amp",
+   "when": "a.room==='living'"
+  },
+  {
+   "id": "nuts",
+   "c": "Parts",
+   "n": "Wire nuts (or lever connectors) sized for 3 wires",
+   "must": true,
+   "w": "Joins the pigtails at the source box.",
+   "q": "wire nuts assortment"
+  },
+  {
+   "id": "wplate",
+   "c": "Parts",
+   "n": "Wall plate for the new outlet",
+   "must": true,
+   "w": "Use a decorator (rectangle) plate for a GFCI.",
+   "q": "{{a.room==='garage'?'decorator wall plate':'duplex outlet wall plate'}}"
+  },
+  {
+   "id": "mask",
+   "c": "Safety",
+   "n": "Safety glasses and dust mask",
+   "must": true,
+   "w": "Drywall dust and falling debris.",
+   "q": "safety glasses dust mask"
+  },
+  {
+   "id": "patch",
+   "c": "Patching",
+   "n": "Drywall patch kit: mesh tape, joint compound, sanding sponge",
+   "must": true,
+   "w": "Closes the access strip after inspection.",
+   "q": "drywall repair kit joint compound",
+   "when": "a.route==='open'"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Plan and permit",
+   "steps": [
+    {
+     "id": "p0",
+     "t": "Stop: don't extend this circuit",
+     "time": "5 min",
+     "idea": "Kitchen countertop, bathroom and laundry outlets are on circuits that must not feed other outlets.",
+     "when": "a.room==='wet'",
+     "fig": "circuit",
+     "b": "<ol><li>Don't add outlets to kitchen countertop, bathroom or laundry circuits, or to any dedicated circuit (fridge, microwave, dishwasher, furnace, sump pump).</li><li>These rooms usually need their own new circuits from the panel, with GFCI (and often AFCI) protection.</li><li>Call a licensed electrician to quote a new circuit.</li><li>Want an outlet in another room instead? Change your answer on the Start tab.</li></ol>",
+     "stop": "Adding outlets to these circuits overloads them and is not allowed in most codes. This is a job for an electrician.",
+     "help": []
+    },
+    {
+     "id": "p1",
+     "t": "Call your building department",
+     "time": "30 min",
+     "idea": "Most areas require a permit and inspection for any new wiring, even one outlet.",
+     "b": "<ol><li>Call or check the website of your city or county building department.</li><li>Ask: \"Do I need a permit to add one outlet by extending a circuit? Can a homeowner pull it?\"</li><li>Ask which protection they require in this room: AFCI (arc-fault) and/or GFCI (ground-fault), and whether an AFCI breaker or an AFCI outlet is accepted.</li><li>Ask when they want to inspect: before you close any walls (rough-in), at the end (final), or both.</li><li>Write down the answers and apply for the permit.</li></ol>",
+     "faq": [
+      [
+       "What if I skip the permit?",
+       "Unpermitted wiring can cause problems with insurance claims and home sales, and nobody checks your work. Pull the permit."
+      ],
+      [
+       "They say only licensed electricians can pull permits.",
+       "Then hire one. Some will let you do the prep (cutting, fishing) and do the connections themselves."
+      ]
+     ],
+     "help": [],
+     "when": "a.room!=='wet'"
+    },
+    {
+     "id": "p2",
+     "t": "Map the circuit and check its load",
+     "time": "30 min",
+     "idea": "Find everything on the breaker and make sure it has room for more.",
+     "fig": "circuit",
+     "need": [
+      "plug"
+     ],
+     "b": "<ol><li>Plug a lamp or radio into the outlet you plan to use as the source. Turn off breakers one at a time until it goes off.</li><li>Leave that breaker off. Walk the house: list every outlet and light that is now dead (plug the tester into each outlet).</li><li>Is anything on the list in a kitchen countertop, bathroom or laundry? Or a fridge, microwave, space heater, window AC or other big load? Pick a different circuit.</li><li>Does this breaker ever trip? Pick a different circuit.</li><li>As a rule of thumb, keep the steady load under about 80% of the breaker: about 12 A on a 15 A breaker, 16 A on a 20 A breaker.</li><li>Write the breaker number down.</li></ol>",
+     "stop": "If the circuit already trips, feeds a kitchen counter, bathroom or laundry, or is a dedicated circuit, don't extend it.",
+     "faq": [
+      [
+       "How do I know what something draws?",
+       "Look at the label on the plug or the back of the appliance: amps, or watts divided by 120."
+      ]
+     ],
+     "help": [],
+     "when": "a.room!=='wet'"
+    },
+    {
+     "id": "p3",
+     "t": "Choose a source outlet",
+     "time": "15 min",
+     "idea": "Power for the new outlet comes from an existing outlet with a neutral and a ground.",
+     "fig": "source",
+     "b": "<ol><li>Pick an outlet on the circuit you checked, as close as possible to where the new one goes, ideally on the same wall.</li><li>It must be always-on: not controlled by a wall switch.</li><li>It should have a ground: the plug-in tester shows \"correct\", not \"open ground\".</li><li>Don't use a switch box: many have no neutral wire.</li><li>It can be at the end of the run (one cable) or in the middle (two cables). You will check the box size in the parts step.</li></ol>",
+     "faq": [
+      [
+       "Can I use a GFCI outlet as the source?",
+       "Yes. If you connect the new cable to its LOAD terminals, the GFCI protects the new outlet too. If unsure, connect it with pigtails to LINE and protect the new outlet separately."
+      ],
+      [
+       "The tester says open ground.",
+       "No ground at the source. Don't extend from it. Ask an electrician."
+      ]
+     ],
+     "help": [],
+     "when": "a.room!=='wet'"
+    },
+    {
+     "id": "p4",
+     "t": "Match the cable to the breaker",
+     "time": "10 min",
+     "idea": "The new wire must be at least as thick as the breaker requires, and match the existing wire.",
+     "fig": "gauge",
+     "need": [
+      "cable"
+     ],
+     "b": "<ol><li>Read the amp number on the breaker handle: 15 or 20.</li><li>15 A breaker: 14 AWG wire (14/2 with ground NM-B, often white sheath).</li><li>20 A breaker: 12 AWG wire (12/2 with ground NM-B, often yellow sheath).</li><li>When you open the source box, read the print on its cable sheath and make sure it matches.</li><li>Don't trust sheath color alone. The printing is what counts.</li></ol>",
+     "stop": "If you find 14 AWG wire on a 20 A breaker, the existing circuit is unsafe. Stop and have an electrician fix it.",
+     "help": [],
+     "when": "a.room!=='wet'"
+    },
+    {
+     "id": "p5",
+     "t": "Plan the route and find the studs",
+     "time": "30 min",
+     "idea": "Choose a path that misses studs' faces, pipes, ducts and fire blocking.",
+     "fig": "route",
+     "need": [
+      "finder",
+      "level",
+      "light"
+     ],
+     "help": [
+      "studHelp"
+     ],
+     "b": "<ol><li>Mark the studs between the source and the new spot with the stud finder. Light pencil marks.</li><li>Put the new box between two studs, at the same height as the other outlets (measure floor to bottom of the source box).</li><li>Check the other side of the wall and the floor below (basement) for pipes, drains, ducts or other cables in the same bays.</li><li>Avoid exterior walls if you can: insulation makes fishing much harder.</li><li>Fewer studs = easier. Same stud bay is easiest, one or two studs over is fine. Your plan crosses about {{c.studs}}. More than 3 or 4, or a fire block in the way? Consider opening the wall.</li></ol>",
+     "faq": [
+      [
+       "What is fire blocking?",
+       "Horizontal blocks of wood between studs, common in older homes and taller walls. A flex bit can drill through, but you can't see it. Knock lightly along the wall: a solid sound mid-wall can be blocking."
+      ],
+      [
+       "Can I go through the basement instead?",
+       "Often yes: drill up through the bottom plate of each wall bay. It's a good route if you have an open basement ceiling, but it uses more cable and more drilling. The same rules apply."
+      ]
+     ],
+     "when": "a.room!=='wet'"
+    },
+    {
+     "id": "p6",
+     "t": "Buy parts and check box size",
+     "time": "30 min",
+     "idea": "Every box has a maximum number of wires. Too many and the connections overheat.",
+     "fig": "boxfill",
+     "need": [
+      "cable",
+      "box",
+      "recept",
+      "gfci",
+      "afci",
+      "nuts",
+      "wplate",
+      "plates"
+     ],
+     "b": "<ol><li>Read the Start tab: your source box needs at least {{c.srcVol}} cu in after the new cable is added. The new box needs at least {{c.newVol}} cu in.</li><li>When you open the source box, find its volume stamped inside. If it's smaller than {{c.srcVol}} cu in, choose another source or plan a bigger box.</li><li>Buy an old-work (remodel) box with wings or ears, 1-gang, at least {{c.newVol}} cu in. About 20 cu in gives room to work.</li><li>Buy cable: {{c.cable}} ft needed, so a {{c.roll}} ft roll of {{a.amps==='20'?'12/2':'14/2'}} NM-B with ground.</li><li>Buy the outlet for the room ({{a.room==='garage'?'GFCI':'tamper-resistant, plus AFCI protection as your inspector requires'}}).</li></ol>",
+     "faq": [
+      [
+       "The source box has no volume stamped on it.",
+       "Common old metal 1-gang boxes are small, often under 18 cu in. Measure it, or assume it's too small and pick a source with more room."
+      ]
+     ],
+     "help": [],
+     "when": "a.room!=='wet'"
+    }
+   ]
+  },
+  {
+   "name": "Open up",
+   "steps": [
+    {
+     "id": "o1",
+     "t": "Turn off the breaker and prove it dead",
+     "time": "10 min",
+     "idea": "Kill the circuit at the panel and test before you touch anything.",
+     "fig": "testers",
+     "need": [
+      "pen",
+      "plug",
+      "light"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "help": [
+      "testHelp"
+     ],
+     "b": "<ol><li>Turn off the breaker you wrote down. Tape over it: \"Working on outlet. Don't touch.\"</li><li>Test your non-contact tester on a known live outlet. It must beep.</li><li>Plug the plug-in tester into both halves of the source outlet: no lights.</li><li>Hold the pen at the short slot of each half: silence.</li><li>Test the pen on the live outlet again.</li></ol>",
+     "stop": "If anything beeps or lights, stop and find the right breaker.",
+     "when": "a.room!=='wet'"
+    },
+    {
+     "id": "o2",
+     "t": "Open the source box and inspect it",
+     "time": "15 min",
+     "idea": "Look before you commit: the wiring and box must be good enough to extend.",
+     "fig": [
+      "boxfill",
+      "source"
+     ],
+     "need": [
+      "screwdrivers",
+      "pen",
+      "light"
+     ],
+     "b": "<ol><li>Remove the plate and the two outlet mounting screws. Pull the outlet straight out.</li><li>Hold the tester to every wire in the box. Silence everywhere.</li><li>Photograph the wiring.</li><li>Count cables and wires. Read the volume stamped in the box and the print on the cable sheath (14 or 12 AWG).</li><li>Check for a bare ground wire connected to the outlet (and to the box if metal).</li><li>Plastic box nailed to a stud, or metal box? Note it for the next steps.</li></ol>",
+     "stop": "Stop and call an electrician if you see: no ground wire, aluminum (dull silver) wire, cloth or crumbling insulation, scorch marks, wire smaller than the breaker needs, or a box too small for one more cable.",
+     "help": [],
+     "when": "a.room!=='wet'"
+    },
+    {
+     "id": "o3",
+     "t": "Mark and cut the new box hole",
+     "time": "20 min",
+     "idea": "A clean, accurate hole is what lets the old-work box clamp tight.",
+     "fig": "cuthole",
+     "need": [
+      "box",
+      "level",
+      "saw",
+      "finder",
+      "light"
+     ],
+     "ppe": [
+      "Glasses",
+      "Dust mask"
+     ],
+     "b": "<ol><li>Hold the new box's face (not the ears) to the wall between studs, at the same height as the source box. Level it and trace around it.</li><li>Recheck with the stud finder that no stud is under the outline.</li><li>Cut or drill a small test hole in the middle of the outline. Shine a light in and feel around with a bent wire for pipes, cables and blocking.</li><li>All clear? Cut on the line with the jab saw. Push gently; don't punch through hard (there may be wires behind).</li><li>Test-fit the box. It should slide in snug with the ears flat on the wall. Trim only where it binds.</li></ol>",
+     "faq": [
+      [
+       "I cut the hole too big.",
+       "The ears won't hold. Patch and recut a little to the side, or use a box with bigger ears plus a box-support bracket (madison strap)."
+      ],
+      [
+       "There's a stud right there.",
+       "Move over to the next bay. That's why you test first."
+      ]
+     ],
+     "help": [],
+     "when": "a.room!=='wet'"
+    }
+   ]
+  },
+  {
+   "name": "Run the cable",
+   "steps": [
+    {
+     "id": "c1",
+     "t": "Open a knockout in the source box",
+     "time": "15 min",
+     "idea": "The new cable needs a way into the existing box.",
+     "need": [
+      "screwdrivers",
+      "pen"
+     ],
+     "b": "<ol><li>Plastic box: find a knockout tab on the side facing the new outlet (or top/bottom). Push it in with a flat screwdriver and break it off cleanly. Some tabs just flex: leave those, they hold the cable.</li><li>Metal box: pry out a round knockout and plan to install a cable clamp (NM connector) in it. Many metal boxes have built-in clamps instead.</li><li>Hold the existing wires aside so you don't damage their insulation.</li><li>Feel inside the wall through the knockout: you should be able to reach the wall cavity.</li></ol>",
+     "faq": [
+      [
+       "There's no knockout I can use.",
+       "Some boxes are tight against a stud. An electrician can replace the source box with a larger old-work box, which also solves box fill."
+      ]
+     ],
+     "help": [],
+     "when": "a.room!=='wet'"
+    },
+    {
+     "id": "c2",
+     "t": "Drill through the studs with a flex bit",
+     "time": "30–60 min",
+     "idea": "Bore a path through each stud at outlet height without opening the wall.",
+     "when": "a.room!=='wet' && (a.route==='flex')",
+     "fig": [
+      "flexbit",
+      "nailplate"
+     ],
+     "need": [
+      "drill",
+      "flexbit",
+      "light"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "b": "<ol><li>Feed the flex bit through the new box hole and bend it toward the source.</li><li>Rest the tip against the side of the first stud at mid-depth (center of the stud).</li><li>Drill slowly, keeping the bit straight and level. Let the bit do the work.</li><li>Continue to the next stud: reach through the hole you just made, or from the source box side.</li><li>Many flex bits have a hole in the tip. Once through the last stud, clip the cable to it and pull it back (or use the fish tape next).</li><li>Never drill blind near the 1-1/4\" face zone: if you can't keep the bit centered, open the wall at that stud.</li></ol>",
+     "stop": "If the bit hits metal, stop at once and look: it may be a pipe, nail plate or another cable.",
+     "faq": [
+      [
+       "Do I need nail plates here?",
+       "If every hole is at mid-depth (more than 1-1/4\" from both faces), no. If you're unsure, open a small square of drywall at that stud, add a plate, and patch it."
+      ]
+     ],
+     "help": []
+    },
+    {
+     "id": "c2b",
+     "t": "Open the wall and drill the studs",
+     "time": "1–2 hours",
+     "idea": "With a strip of drywall removed you can see and drill every stud cleanly.",
+     "when": "a.room!=='wet' && (a.route==='open')",
+     "fig": [
+      "route",
+      "nailplate"
+     ],
+     "need": [
+      "saw",
+      "drill",
+      "spade",
+      "plates",
+      "light"
+     ],
+     "ppe": [
+      "Glasses",
+      "Dust mask"
+     ],
+     "b": "<ol><li>Score a 6\" tall strip of drywall from the source box to the new box at outlet height. Cut the vertical edges along stud centers so the patch has backing.</li><li>Remove the strip carefully and keep it for patching.</li><li>Drill a 3/4\" hole through the center of each stud, at the same height.</li><li>Any hole closer than 1-1/4\" to the stud face: nail a steel nail plate over it.</li><li>Leave the wall open until your inspector says it can be closed.</li></ol>",
+     "help": []
+    },
+    {
+     "id": "c3",
+     "t": "Fish the cable",
+     "time": "30 min",
+     "idea": "Pull the new cable from the new box hole to the source box.",
+     "fig": "fish",
+     "need": [
+      "fishtape",
+      "cable",
+      "ripper"
+     ],
+     "help": [
+      "fishHelp"
+     ],
+     "b": "<ol><li>Push the fish tape from the source box knockout (or the source bay) through the stud holes to the new box hole.</li><li>Strip 3\" of sheath off the cable end. Hook the bare wires through the tape's hook and fold them back.</li><li>Wrap electrical tape over the joint, smooth and tapered.</li><li>Have a helper feed the cable at the new box while you pull at the source. Pull steady; don't yank against sharp edges.</li><li>Pull until about 12\" of cable sticks out of the source box. Leave 12\" out of the new box hole too, then cut it off the roll.</li><li>Cables fished inside a finished wall don't need staples.</li></ol>",
+     "faq": [
+      [
+       "The fish tape won't reach the source box.",
+       "Fish to the source bay first, then push a stiff wire or a short fish tape out through the knockout from inside the box and hook the cable in."
+      ],
+      [
+       "The cable is stuck.",
+       "Pull it back a bit and try again. Kinks and big tape joints are the usual cause."
+      ]
+     ],
+     "when": "a.room!=='wet'"
+    }
+   ]
+  },
+  {
+   "name": "Wire it",
+   "steps": [
+    {
+     "id": "w1",
+     "t": "Strip the cable ends",
+     "time": "15 min",
+     "idea": "Remove the outer sheath without nicking the wires inside.",
+     "fig": "strip",
+     "need": [
+      "ripper",
+      "stripper"
+     ],
+     "b": "<ol><li>At each end, measure where the cable will enter the box. Mark 1/4\" inside that point.</li><li>Slide the cable ripper on from the end and slit the sheath back to your mark. Peel it back and cut it off.</li><li>Cut away the paper wrap.</li><li>You want at least 6\" of free wire from where the sheath ends, and at least 3\" sticking past the box face. Cut the rest off.</li><li>Check the insulated wires for nicks. Nicked? Cut back and redo.</li></ol>",
+     "help": [],
+     "when": "a.room!=='wet'"
+    },
+    {
+     "id": "w2",
+     "t": "Install the old-work box",
+     "time": "15 min",
+     "idea": "Feed the cable in first, then set the box so it clamps the drywall.",
+     "fig": [
+      "oldwork",
+      "strip"
+     ],
+     "need": [
+      "box",
+      "screwdrivers"
+     ],
+     "b": "<ol><li>Push the new cable through one of the box's cable entries (clamp tab) from the back, so 1/4\" of sheath shows inside.</li><li>Slide the box into the hole, ears flat on the wall, cable following.</li><li>Tighten the wing screws a little at a time, alternating top and bottom.</li><li>Stop when the box is snug and doesn't wiggle. Overtightening crushes the drywall.</li><li>Check: sheath 1/4\" inside, cable not pinched by the wings.</li></ol>",
+     "faq": [
+      [
+       "The box spins or the wings miss.",
+       "The hole is too big or the drywall crumbled. Use a box-support bracket or ask for help."
+      ]
+     ],
+     "help": [],
+     "when": "a.room!=='wet'"
+    },
+    {
+     "id": "w3",
+     "t": "Connect at the source with pigtails",
+     "time": "20 min",
+     "idea": "Join the new cable to the existing wires so power continues to the new outlet.",
+     "fig": [
+      "pigtail",
+      "anatomy"
+     ],
+     "need": [
+      "nuts",
+      "stripper",
+      "needlenose",
+      "screwdrivers"
+     ],
+     "help": [
+      "hookHelp"
+     ],
+     "b": "<ol><li>Remove the wires from the source outlet. If it had wires on two pairs of screws, those cables go into the bundles too.</li><li>Cut three 6\" pigtails from leftover cable: black, white, bare.</li><li>Blacks: existing black(s) + new black + black pigtail under one wire nut. Twist clockwise until tight.</li><li>Whites: same, with the white pigtail. Grounds: same, with the bare pigtail (metal box: add a second ground pigtail to the box's green screw).</li><li>Tug every wire. None may pull out.</li><li>Pigtails to the outlet: bare to green, white to silver, black to brass, clockwise. Use a new TR outlet if the old one is worn.</li></ol>",
+     "stop": "Never connect black to white. If the source has a red wire or the outlet's tab between the brass screws is broken off, it's split or switched: stop and ask an electrician.",
+     "faq": [
+      [
+       "Can I use the second set of screws instead?",
+       "Pigtails are the better practice and are required on some multiwire circuits. Use them."
+      ]
+     ],
+     "when": "a.room!=='wet'"
+    },
+    {
+     "id": "w4",
+     "t": "Wire the new outlet",
+     "time": "15 min",
+     "idea": "Ground to green, white to silver, black to brass.",
+     "fig": "anatomy",
+     "need": [
+      "recept",
+      "gfci",
+      "afci",
+      "stripper",
+      "needlenose",
+      "screwdrivers"
+     ],
+     "help": [
+      "hookHelp"
+     ],
+     "b": "<ol><li>Strip 3/4\" off each insulated wire.</li><li>Ground: bare wire clockwise around the green screw. Tighten.</li><li>{{a.room==='garage'?'GFCI: white to the LINE silver terminal, black to the LINE brass terminal. Leave the LOAD terminals taped.':'Neutral: white clockwise around a silver screw. Tighten firmly.'}}</li><li>{{a.room==='garage'?'Tighten the clamp screws firmly.':'Hot: black clockwise around a brass screw. Tighten firmly.'}}</li><li>Tug each wire. Tighten any unused screws.</li></ol>",
+     "faq": [
+      [
+       "Where does AFCI protection go?",
+       "It depends on what your inspector accepts: an AFCI breaker in the panel protects the whole circuit; an AFCI (or dual-function) outlet at the first outlet on the circuit protects everything after it. Follow the device instructions."
+      ]
+     ],
+     "when": "a.room!=='wet'"
+    },
+    {
+     "id": "w5",
+     "t": "Fold the wires and mount both outlets",
+     "time": "15 min",
+     "idea": "Tuck the wires neatly so nothing loosens or gets pinched.",
+     "need": [
+      "screwdrivers",
+      "wplate"
+     ],
+     "b": "<ol><li>Fold the wires behind each outlet in an accordion shape. Wire nuts toward the back of the box.</li><li>Push each outlet straight in and screw it to the box until snug and straight.</li><li>Attach the cover plates.</li></ol>",
+     "help": [],
+     "when": "a.room!=='wet'"
+    }
+   ]
+  },
+  {
+   "name": "Finish",
+   "steps": [
+    {
+     "id": "t1",
+     "t": "Power on and test both outlets",
+     "time": "15 min",
+     "idea": "Prove the old outlet still works and the new one is wired correctly.",
+     "fig": "testers",
+     "need": [
+      "plug"
+     ],
+     "b": "<ol><li>Remove the tape and turn the breaker on.</li><li>Plug the tester into both halves of the source outlet: \"correct\".</li><li>Plug it into both halves of the new outlet: \"correct\".</li><li>{{a.room==='garage'?'Press TEST on the GFCI: power goes off. Press RESET: power returns.':'If you added an AFCI device, press its TEST button: power goes off. Reset it.'}}</li><li>Check that the other outlets downstream of the source still work.</li></ol>",
+     "faq": [
+      [
+       "The tester shows open neutral or no power.",
+       "A wire nut at the source isn't gripping. Breaker off, prove dead, redo that connection."
+      ],
+      [
+       "The breaker trips right away.",
+       "A hot is touching ground or neutral somewhere. Breaker off and check both boxes for pinched or swapped wires."
+      ]
+     ],
+     "help": [],
+     "when": "a.room!=='wet'"
+    },
+    {
+     "id": "t2",
+     "t": "Get it inspected",
+     "time": "1 hour",
+     "idea": "An inspector checks the work before it's hidden for good.",
+     "wait": "Inspection",
+     "b": "<ol><li>Schedule the inspection your building department asked for.</li><li>{{a.route==='open'?'Leave the wall open until the inspector signs off.':'Leave the plates off if the inspector wants to see the connections.'}}</li><li>Have the box volume, cable type and breaker size ready to show.</li><li>Fix anything on the correction list, then reschedule.</li></ol>",
+     "help": [],
+     "when": "a.room!=='wet'"
+    },
+    {
+     "id": "t3",
+     "t": "Patch the wall",
+     "time": "2–3 sessions",
+     "idea": "Close the access strip once the inspector approves.",
+     "when": "a.room!=='wet' && (a.route==='open')",
+     "need": [
+      "patch"
+     ],
+     "ppe": [
+      "Dust mask"
+     ],
+     "timers": [
+      [
+       "Setting compound (quick-set)",
+       45
+      ]
+     ],
+     "b": "<ol><li>Screw the saved drywall strip back to the studs (add wood backing strips if an edge has no stud).</li><li>Tape the seams with mesh tape.</li><li>Spread a thin coat of joint compound. Let it dry fully (premixed: overnight; quick-set: per the bag).</li><li>Add 1–2 more thin, wider coats, drying between.</li><li>Sand smooth, prime and paint.</li></ol>",
+     "help": []
+    }
+   ]
+  }
+ ],
+ "days": [
+  {
+   "t": "Plan, check the circuit, get the permit",
+   "ids": [
+    "p0",
+    "p1",
+    "p2",
+    "p3",
+    "p4",
+    "p5",
+    "p6"
+   ],
+   "wait": "Permit issued"
+  },
+  {
+   "t": "Cut, fish and wire",
+   "ids": [
+    "o1",
+    "o2",
+    "o3",
+    "c1",
+    "c2",
+    "c2b",
+    "c3",
+    "w1",
+    "w2",
+    "w3",
+    "w4",
+    "w5",
+    "t1"
+   ],
+   "wait": "Inspection"
+  },
+  {
+   "t": "Inspection and patching",
+   "ids": [
+    "t2",
+    "t3"
+   ]
+  }
+ ],
+ "help": {
+  "testHelp": {
+   "t": "Use a non-contact voltage tester",
+   "fig": "testers",
+   "b": "<ol><li>Turn it on (some have a button you hold).</li><li>Touch the tip to the short slot of an outlet you know is live. It should beep or flash.</li><li>Now hold it at the outlet or wire you're testing. Silence means no voltage detected.</li><li>Test it on the live outlet again afterward. A dead battery gives a false \"safe\".</li></ol>"
+  },
+  "hookHelp": {
+   "t": "Make a wire hook",
+   "b": "<ol><li>Strip 3/4\" of insulation using the right gauge hole.</li><li>Grip the very end with needle-nose pliers and roll it into a U.</li><li>Hook it around the screw so the open end points clockwise.</li><li>Squeeze the hook closed, then tighten the screw firmly.</li></ol>"
+  },
+  "studHelp": {
+   "t": "Use a stud finder",
+   "fig": "route",
+   "b": "<ol><li>Hold it flat on the wall and press the button before you move it (it calibrates on a hollow spot).</li><li>Slide slowly sideways. Mark where it lights up from each direction; the stud is between the marks.</li><li>Studs are usually 16\" apart. Confirm with a tiny nail hole where the plate will cover it.</li></ol>"
+  },
+  "fishHelp": {
+   "t": "Use a fish tape or glow rods",
+   "fig": "fish",
+   "b": "<ol><li>Unreel only what you need and keep the reel close to the opening.</li><li>Push gently and twist slightly to get past obstacles. Don't force it.</li><li>Glow rods are stiff and snap together: better for straight pushes across a bay.</li><li>Pull the cable steadily, with a helper feeding it so it doesn't kink.</li></ol>"
+  }
+ },
+ "figs": {
+  "circuit": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Extending a circuit</text><rect x=\"10\" y=\"40\" width=\"50\" height=\"70\" rx=\"3\" class=\"bk\"/><text x=\"35\" y=\"62\" class=\"k\" text-anchor=\"middle\">PANEL</text><rect x=\"22\" y=\"72\" width=\"26\" height=\"10\" class=\"mos\"/><line x1=\"48\" y1=\"77\" x2=\"236\" y2=\"77\" class=\"o\" style=\"stroke-width:3\"/><line x1=\"236\" y1=\"77\" x2=\"270\" y2=\"77\" class=\"o d\" style=\"stroke-width:3\"/><rect x=\"90\" y=\"59\" width=\"26\" height=\"36\" rx=\"4\" class=\"bk\"/><rect x=\"98\" y=\"68\" width=\"3\" height=\"8\" class=\"inkf\"/><rect x=\"105\" y=\"68\" width=\"3\" height=\"8\" class=\"inkf\"/><rect x=\"150\" y=\"59\" width=\"26\" height=\"36\" rx=\"4\" class=\"bk\"/><rect x=\"158\" y=\"68\" width=\"3\" height=\"8\" class=\"inkf\"/><rect x=\"165\" y=\"68\" width=\"3\" height=\"8\" class=\"inkf\"/><rect x=\"210\" y=\"59\" width=\"26\" height=\"36\" rx=\"4\" class=\"bk\"/><rect x=\"218\" y=\"68\" width=\"3\" height=\"8\" class=\"inkf\"/><rect x=\"225\" y=\"68\" width=\"3\" height=\"8\" class=\"inkf\"/><rect x=\"270\" y=\"59\" width=\"26\" height=\"36\" rx=\"4\" class=\"mos\"/><text x=\"90\" y=\"112\">existing outlets</text><text x=\"283\" y=\"112\" class=\"ac\" text-anchor=\"middle\">new</text><text x=\"10\" y=\"124\">breaker</text><text x=\"10\" y=\"146\">Same breaker, same wire, more load.</text><text x=\"10\" y=\"158\">Make sure the circuit has room.</text>",
+   "h": 166,
+   "cap": "A new outlet adds to everything already on that breaker. If it trips now, it will trip more often after."
+  },
+  "source": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Pick the right source box</text><rect x=\"30\" y=\"34\" width=\"50\" height=\"70\" rx=\"3\" class=\"bk\"/><rect x=\"38\" y=\"44\" width=\"34\" height=\"50\" rx=\"4\" class=\"b\"/><line x1=\"45\" y1=\"104\" x2=\"45\" y2=\"126\" class=\"o\" style=\"stroke-width:3\"/><line x1=\"65\" y1=\"104\" x2=\"65\" y2=\"126\" class=\"o\" style=\"stroke-width:3\"/><path d=\"M84 44 l6 6 l12 -14\" class=\"good\" fill=\"none\" style=\"stroke-width:3\"/><rect x=\"135\" y=\"34\" width=\"50\" height=\"70\" rx=\"3\" class=\"bk\"/><rect x=\"152\" y=\"54\" width=\"16\" height=\"30\" rx=\"2\" class=\"b\"/><rect x=\"156\" y=\"58\" width=\"8\" height=\"12\" class=\"inkf\"/><line x1=\"187\" y1=\"33\" x2=\"205\" y2=\"51\" class=\"bad\" style=\"stroke-width:3\"/><line x1=\"205\" y1=\"33\" x2=\"187\" y2=\"51\" class=\"bad\" style=\"stroke-width:3\"/><rect x=\"240\" y=\"34\" width=\"50\" height=\"70\" rx=\"3\" class=\"bk\"/><rect x=\"248\" y=\"44\" width=\"34\" height=\"23\" rx=\"4\" class=\"b\"/><rect x=\"248\" y=\"70\" width=\"34\" height=\"23\" rx=\"4\" class=\"mos\"/><line x1=\"293\" y1=\"33\" x2=\"311\" y2=\"51\" class=\"bad\" style=\"stroke-width:3\"/><line x1=\"311\" y1=\"33\" x2=\"293\" y2=\"51\" class=\"bad\" style=\"stroke-width:3\"/><text x=\"55\" y=\"148\" class=\"gd\" text-anchor=\"middle\">outlet with</text><text x=\"55\" y=\"160\" text-anchor=\"middle\">neutral + ground</text><text x=\"160\" y=\"148\" class=\"wa\" text-anchor=\"middle\">switch box</text><text x=\"160\" y=\"160\" text-anchor=\"middle\">often no neutral</text><text x=\"265\" y=\"148\" class=\"wa\" text-anchor=\"middle\">switched outlet</text><text x=\"265\" y=\"160\" text-anchor=\"middle\">(half on a switch)</text>",
+   "h": 168,
+   "cap": "Use an always-on outlet with a ground wire, in the middle or at the end of the run. Skip switch boxes and switched outlets."
+  },
+  "gauge": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Wire size must match the breaker</text><rect x=\"20\" y=\"36\" width=\"200\" height=\"18\" rx=\"9\" class=\"bk\"/><text x=\"32\" y=\"48\">14/2 W/G  NM-B</text><line x1=\"220\" y1=\"40\" x2=\"246\" y2=\"40\" class=\"o\" style=\"stroke-width:2.5\"/><line x1=\"220\" y1=\"45\" x2=\"246\" y2=\"45\" class=\"o\" style=\"stroke-width:1.5\"/><line x1=\"220\" y1=\"50\" x2=\"246\" y2=\"50\" class=\"o\" style=\"stroke-width:2.5\"/><text x=\"256\" y=\"44\" class=\"k\">15 A</text><text x=\"256\" y=\"56\">breaker</text><rect x=\"20\" y=\"86\" width=\"200\" height=\"18\" rx=\"9\" class=\"y\"/><text x=\"32\" y=\"98\">12/2 W/G  NM-B</text><line x1=\"220\" y1=\"90\" x2=\"246\" y2=\"90\" class=\"o\" style=\"stroke-width:3\"/><line x1=\"220\" y1=\"95\" x2=\"246\" y2=\"95\" class=\"o\" style=\"stroke-width:2\"/><line x1=\"220\" y1=\"100\" x2=\"246\" y2=\"100\" class=\"o\" style=\"stroke-width:3\"/><text x=\"256\" y=\"94\" class=\"k\">20 A</text><text x=\"256\" y=\"106\">breaker</text><text x=\"20\" y=\"68\">usually white sheath</text><text x=\"20\" y=\"118\">usually yellow sheath</text><text x=\"10\" y=\"142\">Read the print on the old cable.</text><text x=\"10\" y=\"156\" class=\"wa\">Never 14 AWG on a 20 A breaker.</text>",
+   "h": 164,
+   "cap": "\"14/2 W/G\" means two 14-gauge wires plus a ground. 12 AWG is fine on a 15 A circuit too, but heavier to work with."
+  },
+  "route": {
+   "svg": "<text x=\"10\" y=\"14\" class=\"k\">Plan the route</text><rect x=\"20\" y=\"40\" width=\"6\" height=\"146\" class=\"w\"/><rect x=\"84\" y=\"40\" width=\"6\" height=\"146\" class=\"w\"/><rect x=\"148\" y=\"40\" width=\"6\" height=\"146\" class=\"w\"/><rect x=\"212\" y=\"40\" width=\"6\" height=\"146\" class=\"w\"/><rect x=\"276\" y=\"40\" width=\"6\" height=\"146\" class=\"w\"/><line x1=\"10\" y1=\"186\" x2=\"310\" y2=\"186\" class=\"o\" style=\"stroke-width:2\"/><rect x=\"90\" y=\"80\" width=\"58\" height=\"6\" class=\"w\"/><text x=\"92\" y=\"74\">fire block</text><rect x=\"258\" y=\"40\" width=\"6\" height=\"146\" class=\"wt\"/><text x=\"220\" y=\"60\" class=\"wa\">pipe:</text><text x=\"220\" y=\"72\">avoid</text><line x1=\"58\" y1=\"143\" x2=\"172\" y2=\"143\" class=\"a\" style=\"stroke-width:3\"/><circle cx=\"87\" cy=\"143\" r=\"3.5\" class=\"bk\"/><circle cx=\"151\" cy=\"143\" r=\"3.5\" class=\"bk\"/><rect x=\"42\" y=\"130\" width=\"16\" height=\"26\" rx=\"2\" class=\"bk\"/><rect x=\"172\" y=\"130\" width=\"16\" height=\"26\" rx=\"2\" class=\"mos\"/><text x=\"30\" y=\"124\">source</text><text x=\"160\" y=\"124\" class=\"ac\">new</text><text x=\"84\" y=\"200\">drill studs at outlet height</text>",
+   "h": 206,
+   "cap": "Studs are usually 16\" apart. Run the cable straight across at outlet height, between pipes and under any fire blocking."
+  },
+  "nailplate": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Holes in the middle of the stud</text><rect x=\"10\" y=\"36\" width=\"300\" height=\"8\" class=\"b\"/><rect x=\"10\" y=\"149\" width=\"300\" height=\"8\" class=\"b\"/><rect x=\"50\" y=\"44\" width=\"45\" height=\"105\" class=\"w\"/><rect x=\"210\" y=\"44\" width=\"45\" height=\"105\" class=\"w\"/><line x1=\"50\" y1=\"81\" x2=\"95\" y2=\"81\" class=\"o d\"/><line x1=\"210\" y1=\"81\" x2=\"255\" y2=\"81\" class=\"o d\"/><line x1=\"20\" y1=\"96\" x2=\"125\" y2=\"96\" class=\"a\" style=\"stroke-width:3\"/><circle cx=\"72\" cy=\"96\" r=\"7\" class=\"o\" fill=\"none\"/><line x1=\"180\" y1=\"62\" x2=\"285\" y2=\"62\" class=\"a\" style=\"stroke-width:3\"/><circle cx=\"232\" cy=\"62\" r=\"7\" class=\"o\" fill=\"none\"/><rect x=\"204\" y=\"40\" width=\"57\" height=\"5\" class=\"inkf\"/><text x=\"100\" y=\"84\">1-1/4\"</text><text x=\"260\" y=\"84\">1-1/4\"</text><text x=\"10\" y=\"180\" class=\"gd\">centered: OK</text><text x=\"150\" y=\"180\" class=\"wa\">near the face: nail plate</text>",
+   "h": 190,
+   "title": "Top view of a stud",
+   "cap": "If a hole is closer than 1-1/4\" to the face of the stud, nail a steel plate over it so drywall screws can't hit the cable."
+  },
+  "flexbit": {
+   "svg": "<text x=\"10\" y=\"14\" class=\"k\">Drill through the box hole</text><rect x=\"10\" y=\"60\" width=\"90\" height=\"6\" class=\"b\"/><rect x=\"130\" y=\"60\" width=\"180\" height=\"6\" class=\"b\"/><rect x=\"40\" y=\"66\" width=\"15\" height=\"35\" class=\"w\"/><rect x=\"200\" y=\"66\" width=\"15\" height=\"35\" class=\"w\"/><rect x=\"104\" y=\"22\" width=\"28\" height=\"16\" rx=\"3\" class=\"y\"/><path d=\"M118 38 L116 66 Q112 86 58 86\" class=\"o\" fill=\"none\" stroke-dasharray=\"130\" style=\"stroke-width:3\"><animate attributeName=\"stroke-dashoffset\" values=\"130;0;0\" keyTimes=\"0;0.7;1\" dur=\"3s\" repeatCount=\"indefinite\"/></path><text x=\"140\" y=\"34\" class=\"k\">drill + long flex bit</text><text x=\"220\" y=\"54\">drywall</text><text x=\"40\" y=\"114\">stud</text><text x=\"10\" y=\"134\">Feed the bit in through the new box hole,</text><text x=\"10\" y=\"146\">bend it toward the stud and drill at</text><text x=\"10\" y=\"158\">mid-depth, level with the outlets.</text>",
+   "h": 166,
+   "title": "Drill with a flex bit",
+   "cap": "A flex bit (installer bit) bends inside the wall so you can reach the next stud without opening the drywall."
+  },
+  "fish": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Hook the cable to the fish tape</text><line x1=\"10\" y1=\"70\" x2=\"150\" y2=\"70\" class=\"o\" style=\"stroke-width:2.5\"/><rect x=\"170\" y=\"64\" width=\"140\" height=\"12\" rx=\"6\" class=\"bk\"/><path d=\"M170 67 C150 62 150 78 170 73\" class=\"o\" fill=\"none\" style=\"stroke-width:2\"/><rect x=\"140\" y=\"61\" width=\"44\" height=\"18\" rx=\"4\" class=\"y\"/><text x=\"10\" y=\"56\" class=\"k\">fish tape</text><text x=\"250\" y=\"56\" class=\"k\">cable</text><text x=\"162\" y=\"98\" class=\"ac\" text-anchor=\"middle\">taped smooth</text><text x=\"10\" y=\"126\">Bend the bare wires through the hook,</text><text x=\"10\" y=\"138\">then wrap tape so nothing can snag.</text>",
+   "h": 146,
+   "cap": "A bulky joint snags on stud holes. Strip back only what you need and taper the tape wrap."
+  },
+  "cuthole": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Trace and cut the box hole</text><line x1=\"30\" y1=\"30\" x2=\"30\" y2=\"150\" class=\"o d\"/><line x1=\"230\" y1=\"30\" x2=\"230\" y2=\"150\" class=\"o d\"/><rect x=\"88\" y=\"44\" width=\"64\" height=\"8\" rx=\"2\" class=\"y\"/><circle cx=\"120\" cy=\"48\" r=\"3\" class=\"o\" fill=\"none\"/><rect x=\"100\" y=\"60\" width=\"40\" height=\"64\" class=\"a\" fill=\"none\" style=\"stroke-width:2\"/><circle cx=\"120\" cy=\"92\" r=\"5\" class=\"bk\"/><text x=\"34\" y=\"30\">stud</text><text x=\"234\" y=\"140\">stud</text><text x=\"88\" y=\"40\" class=\"k\">level</text><text x=\"240\" y=\"70\" class=\"k\">trace the</text><text x=\"240\" y=\"82\">box outline</text><text x=\"240\" y=\"110\" class=\"k\">small test</text><text x=\"240\" y=\"122\">hole first</text><line x1=\"126\" y1=\"92\" x2=\"236\" y2=\"112\" class=\"o d\"/><text x=\"10\" y=\"166\">Between studs, same height as the other</text><text x=\"10\" y=\"178\">outlets. Cut on the line with a drywall saw.</text>",
+   "h": 186,
+   "cap": "Look and feel through the test hole for pipes, wires, studs and blocking before you cut the full outline."
+  },
+  "strip": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Strip the cable sheathing</text><rect x=\"120\" y=\"30\" width=\"90\" height=\"110\" rx=\"3\" class=\"bk\"/><line x1=\"140\" y1=\"132\" x2=\"174\" y2=\"132\" class=\"o\" style=\"stroke-width:3\"/><rect x=\"150\" y=\"124\" width=\"16\" height=\"46\" class=\"b\"/><path d=\"M153 124 C150 90 140 60 140 34\" class=\"o\" fill=\"none\" style=\"stroke-width:3\"/><path d=\"M158 124 C158 90 158 60 158 34\" class=\"o\" fill=\"none\" style=\"stroke-width:1.5\"/><path d=\"M163 124 C166 90 176 60 176 34\" class=\"o\" fill=\"none\" style=\"stroke-width:3\"/><line x1=\"216\" y1=\"34\" x2=\"216\" y2=\"124\" class=\"a\" style=\"stroke-width:2\"/><text x=\"222\" y=\"56\" class=\"k\">6\" free wire</text><text x=\"222\" y=\"68\">at least 3\"</text><text x=\"222\" y=\"80\">past the face</text><text x=\"222\" y=\"120\" class=\"k\">1/4\" of sheath</text><text x=\"222\" y=\"132\">past the clamp</text><text x=\"10\" y=\"96\">Cable ripper:</text><text x=\"10\" y=\"108\">slit, peel back,</text><text x=\"10\" y=\"120\">cut it off.</text>",
+   "h": 176,
+   "cap": "The sheath must enter the box about 1/4\" past the clamp so no bare insulated wire sits in the clamp."
+  },
+  "oldwork": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Old-work box: wings clamp behind</text><rect x=\"150\" y=\"30\" width=\"10\" height=\"114\" class=\"b\"/><rect x=\"160\" y=\"62\" width=\"60\" height=\"66\" class=\"bk\"/><rect x=\"144\" y=\"56\" width=\"6\" height=\"78\" class=\"bk\"/><line x1=\"150\" y1=\"72\" x2=\"160\" y2=\"72\" class=\"o\"/><line x1=\"150\" y1=\"118\" x2=\"160\" y2=\"118\" class=\"o\"/><g><rect x=\"160\" y=\"46\" width=\"4\" height=\"16\" class=\"inkf\"/><animateTransform attributeName=\"transform\" type=\"rotate\" values=\"90 162 62;90 162 62;0 162 62;0 162 62\" keyTimes=\"0;0.3;0.7;1\" dur=\"3s\" repeatCount=\"indefinite\"/></g><g><rect x=\"160\" y=\"128\" width=\"4\" height=\"16\" class=\"inkf\"/><animateTransform attributeName=\"transform\" type=\"rotate\" values=\"-90 162 128;-90 162 128;0 162 128;0 162 128\" keyTimes=\"0;0.3;0.7;1\" dur=\"3s\" repeatCount=\"indefinite\"/></g><rect x=\"40\" y=\"91\" width=\"96\" height=\"8\" rx=\"3\" class=\"y\"/><text x=\"10\" y=\"44\" class=\"k\">room side</text><text x=\"230\" y=\"44\" class=\"k\">inside wall</text><text x=\"40\" y=\"84\">screwdriver</text><text x=\"96\" y=\"138\">drywall</text><text x=\"10\" y=\"160\">Tighten the screws: the wings swing out</text><text x=\"10\" y=\"172\">and clamp the drywall from behind.</text>",
+   "h": 180,
+   "title": "Set an old-work box",
+   "cap": "Snug, not tight: overtightening crushes the drywall and the box goes loose."
+  },
+  "pigtail": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">At the source: pigtail</text><line x1=\"10\" y1=\"60\" x2=\"120\" y2=\"80\" class=\"o\" style=\"stroke-width:5\"/><line x1=\"10\" y1=\"104\" x2=\"120\" y2=\"86\" class=\"a\" style=\"stroke-width:5\"/><line x1=\"140\" y1=\"83\" x2=\"236\" y2=\"83\" class=\"o\" style=\"stroke-width:5\"/><path d=\"M118 70 h26 l6 13 l-6 13 h-26z\" class=\"y\"/><circle cx=\"252\" cy=\"83\" r=\"12\" class=\"y\"/><line x1=\"244\" y1=\"83\" x2=\"260\" y2=\"83\" class=\"o\"/><text x=\"10\" y=\"52\">existing cable</text><text x=\"10\" y=\"124\" class=\"ac\">NEW cable</text><text x=\"132\" y=\"116\" class=\"k\" text-anchor=\"middle\">wire nut</text><text x=\"170\" y=\"74\" class=\"ac\">6\" pigtail</text><text x=\"270\" y=\"87\">outlet</text><text x=\"10\" y=\"150\">Blacks + pigtail. Whites + pigtail.</text><text x=\"10\" y=\"162\">Grounds + pigtail. Tug every wire.</text>",
+   "h": 170,
+   "cap": "Pigtails keep one wire per screw and keep power flowing through even if the outlet fails."
+  },
+  "boxfill": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Count what is in the box</text><text x=\"10\" y=\"38\">Each hot or neutral wire</text><text x=\"310\" y=\"38\" class=\"k\" text-anchor=\"end\">1 each</text><text x=\"10\" y=\"52\">All grounds together</text><text x=\"310\" y=\"52\" class=\"k\" text-anchor=\"end\">1</text><text x=\"10\" y=\"66\">The outlet (device)</text><text x=\"310\" y=\"66\" class=\"k\" text-anchor=\"end\">2</text><text x=\"10\" y=\"80\">Internal cable clamps</text><text x=\"310\" y=\"80\" class=\"k\" text-anchor=\"end\">1</text><text x=\"10\" y=\"94\">Wires that never leave</text><text x=\"310\" y=\"94\" class=\"k\" text-anchor=\"end\">0</text><text x=\"10\" y=\"108\">the box (pigtails)</text><line x1=\"10\" y1=\"120\" x2=\"310\" y2=\"120\" class=\"o\"/><text x=\"10\" y=\"136\" class=\"k\">Total x 2.0 cu in (14 AWG)</text><text x=\"10\" y=\"150\" class=\"k\">Total x 2.25 cu in (12 AWG)</text><text x=\"10\" y=\"170\">Box must be at least that. Volume is</text><text x=\"10\" y=\"182\">stamped inside, e.g. \"18 CU IN\".</text>",
+   "h": 190,
+   "cap": "The Start tab does this math for your source box and new box. Too small? Pick another source or a bigger box."
+  },
+  "anatomy": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Know the screws</text><rect x=\"110\" y=\"24\" width=\"100\" height=\"156\" rx=\"14\" class=\"bk\"/><rect x=\"138\" y=\"40\" width=\"6\" height=\"22\" rx=\"1\" class=\"inkf\"/><rect x=\"176\" y=\"43\" width=\"6\" height=\"16\" rx=\"1\" class=\"inkf\"/><path d=\"M154 74 a6 6 0 0 1 12 0 v6 h-12z\" class=\"inkf\"/><rect x=\"138\" y=\"112\" width=\"6\" height=\"22\" rx=\"1\" class=\"inkf\"/><rect x=\"176\" y=\"115\" width=\"6\" height=\"16\" rx=\"1\" class=\"inkf\"/><path d=\"M154 146 a6 6 0 0 1 12 0 v6 h-12z\" class=\"inkf\"/><circle cx=\"216\" cy=\"66\" r=\"7\" class=\"y\"/><line x1=\"211\" y1=\"66\" x2=\"221\" y2=\"66\" class=\"o\"/><circle cx=\"104\" cy=\"66\" r=\"7\" class=\"bk\"/><line x1=\"99\" y1=\"66\" x2=\"109\" y2=\"66\" class=\"o\"/><circle cx=\"216\" cy=\"138\" r=\"7\" class=\"y\"/><line x1=\"211\" y1=\"138\" x2=\"221\" y2=\"138\" class=\"o\"/><circle cx=\"104\" cy=\"138\" r=\"7\" class=\"bk\"/><line x1=\"99\" y1=\"138\" x2=\"109\" y2=\"138\" class=\"o\"/><circle cx=\"160\" cy=\"186\" r=\"7\" class=\"goodf\"/><text x=\"230\" y=\"62\" class=\"k\">brass screw</text><text x=\"230\" y=\"74\">HOT · black</text><text x=\"90\" y=\"62\" class=\"k\" text-anchor=\"end\">silver screw</text><text x=\"90\" y=\"74\" text-anchor=\"end\">NEUTRAL · white</text><text x=\"176\" y=\"190\" class=\"gd\">green = GROUND</text><text x=\"176\" y=\"201\">bare wire</text>",
+   "h": 208,
+   "cap": "Black to brass, white to silver, bare copper to green. Wrap each wire clockwise under its screw."
+  },
+  "testers": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Two testers, two jobs</text><rect x=\"20\" y=\"40\" width=\"80\" height=\"110\" rx=\"10\" class=\"bk\"/><rect x=\"44\" y=\"70\" width=\"5\" height=\"18\" class=\"inkf\"/><rect x=\"70\" y=\"72\" width=\"5\" height=\"14\" class=\"inkf\"/><g transform=\"rotate(-25 110 70)\"><rect x=\"96\" y=\"34\" width=\"20\" height=\"90\" rx=\"8\" class=\"y\"/><rect x=\"100\" y=\"28\" width=\"12\" height=\"10\" class=\"badf\"/></g><path d=\"M126 44 q8 -8 0 -16 M134 48 q12 -12 0 -24\" class=\"bad\"/><text x=\"20\" y=\"166\" class=\"k\">Non-contact pen</text><text x=\"20\" y=\"178\">beeps near a live wire</text><rect x=\"190\" y=\"40\" width=\"90\" height=\"70\" rx=\"8\" class=\"bk\"/><circle cx=\"214\" cy=\"62\" r=\"7\" class=\"y\"/><circle cx=\"235\" cy=\"62\" r=\"7\" class=\"y\"/><circle cx=\"256\" cy=\"62\" r=\"7\" class=\"bk\"/><rect x=\"210\" y=\"110\" width=\"6\" height=\"18\" class=\"inkf\"/><rect x=\"254\" y=\"110\" width=\"6\" height=\"18\" class=\"inkf\"/><rect x=\"232\" y=\"114\" width=\"6\" height=\"16\" class=\"inkf\"/><text x=\"190\" y=\"166\" class=\"k\">Plug-in tester</text><text x=\"190\" y=\"178\">checks wiring after</text>",
+   "h": 186,
+   "cap": "Always test the pen on an outlet you know is live first, so you know it works."
+  }
+ },
+ "glossary": [
+  [
+   "Circuit",
+   "Everything fed by one breaker."
+  ],
+  [
+   "Source outlet",
+   "The existing outlet you take power from."
+  ],
+  [
+   "Old-work box",
+   "A box with wings or ears that clamps to existing drywall. Also called a remodel box."
+  ],
+  [
+   "NM-B",
+   "Non-metallic sheathed cable (often called Romex). \"14/2 W/G\" = two 14-gauge wires plus a ground."
+  ],
+  [
+   "AWG",
+   "Wire gauge. Smaller number = thicker wire: 12 AWG is thicker than 14 AWG."
+  ],
+  [
+   "Box fill",
+   "The limit on how many wires a box can hold, based on its volume."
+  ],
+  [
+   "Pigtail",
+   "A short wire joined to the house wires with a wire nut, so only one wire goes to the outlet screw."
+  ],
+  [
+   "AFCI",
+   "Arc-fault circuit interrupter: shuts off power when it detects arcing that can start a fire."
+  ],
+  [
+   "GFCI",
+   "Ground-fault circuit interrupter: shuts off power if current leaks, for example through a person."
+  ],
+  [
+   "TR",
+   "Tamper-resistant: outlets with shutters that keep kids from pushing things in."
+  ],
+  [
+   "Flex bit",
+   "A long, bendable drill bit for drilling inside closed walls."
+  ],
+  [
+   "Nail plate",
+   "A steel plate over a stud hole that stops screws and nails from hitting the cable."
+  ],
+  [
+   "Fire blocking",
+   "Horizontal wood blocks between studs that slow fire spread."
+  ]
+ ]
+}

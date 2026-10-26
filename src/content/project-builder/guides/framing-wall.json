@@ -1,0 +1,1072 @@
+{
+ "slug": "framing-wall",
+ "title": "Frame a Partition Wall",
+ "eyebrow": "Carpentry · framing",
+ "category": "Carpentry",
+ "difficulty": "Intermediate",
+ "time": "1–2 days",
+ "summary": "Build a straight, plumb {{a.len}} ft non-load-bearing 2x4 wall{{a.door==='yes'?' with a door opening':''}}, fastened to the floor and ceiling and ready for drywall.",
+ "safety": "Wear safety glasses with saws and nailers. Check for wires, pipes and ducts before nailing into floors and ceilings. Use a helper to tilt walls up. In attics, step only on framing.",
+ "pro": "you're changing or removing an existing wall, the ceiling sags, the wall needs wiring or plumbing, or the room becomes a bedroom. Most areas require a permit for new walls: check local code.",
+ "questions": [
+  {
+   "id": "len",
+   "label": "Wall length",
+   "type": "number",
+   "unit": "ft",
+   "default": 10,
+   "step": 0.5
+  },
+  {
+   "id": "ceil",
+   "label": "Lowest ceiling height along the line",
+   "type": "number",
+   "unit": "in",
+   "default": 96,
+   "step": 0.25,
+   "hint": "8 ft = 96\"."
+  },
+  {
+   "id": "joists",
+   "label": "Ceiling joists run...",
+   "type": "choice",
+   "default": "perpendicular",
+   "options": [
+    {
+     "v": "perpendicular",
+     "label": "Across the wall"
+    },
+    {
+     "v": "parallel",
+     "label": "Parallel to the wall"
+    }
+   ],
+   "hint": "Step 2 shows how to tell."
+  },
+  {
+   "id": "above",
+   "label": "What's above the ceiling?",
+   "type": "choice",
+   "default": "joists",
+   "options": [
+    {
+     "v": "joists",
+     "label": "Joists or a floor"
+    },
+    {
+     "v": "trusses",
+     "label": "Roof trusses",
+     "hint": "triangles in the attic"
+    }
+   ]
+  },
+  {
+   "id": "floor",
+   "label": "Floor",
+   "type": "choice",
+   "default": "wood",
+   "options": [
+    {
+     "v": "wood",
+     "label": "Wood subfloor"
+    },
+    {
+     "v": "concrete",
+     "label": "Concrete slab"
+    }
+   ]
+  },
+  {
+   "id": "method",
+   "label": "How will you build it?",
+   "type": "choice",
+   "default": "tilt",
+   "options": [
+    {
+     "v": "tilt",
+     "label": "Build flat, tilt up",
+     "hint": "faster"
+    },
+    {
+     "v": "stick",
+     "label": "Stick-frame in place",
+     "hint": "tight spaces"
+    }
+   ]
+  },
+  {
+   "id": "topPlate",
+   "label": "Top plate",
+   "type": "choice",
+   "default": "single",
+   "options": [
+    {
+     "v": "single",
+     "label": "Single",
+     "hint": "common for non-bearing"
+    },
+    {
+     "v": "double",
+     "label": "Double",
+     "hint": "stiffer"
+    }
+   ],
+   "hint": "Many codes allow a single top plate on non-bearing walls. Check local code."
+  },
+  {
+   "id": "door",
+   "label": "Door opening?",
+   "type": "choice",
+   "default": "yes",
+   "options": [
+    {
+     "v": "yes",
+     "label": "Yes"
+    },
+    {
+     "v": "no",
+     "label": "No"
+    }
+   ]
+  },
+  {
+   "id": "doorW",
+   "label": "Door width",
+   "type": "choice",
+   "default": "30",
+   "options": [
+    {
+     "v": "24",
+     "label": "24\""
+    },
+    {
+     "v": "28",
+     "label": "28\""
+    },
+    {
+     "v": "30",
+     "label": "30\""
+    },
+    {
+     "v": "32",
+     "label": "32\""
+    },
+    {
+     "v": "36",
+     "label": "36\""
+    }
+   ]
+  },
+  {
+   "id": "roH",
+   "label": "Rough opening height",
+   "type": "number",
+   "unit": "in",
+   "default": 82.5,
+   "step": 0.125,
+   "hint": "82-1/2\" is typical for an 80\" prehung door. Check the door's instructions."
+  }
+ ],
+ "calcs": [
+  {
+   "id": "lenIn",
+   "expr": "a.len*12"
+  },
+  {
+   "id": "wallH",
+   "label": "Wall height",
+   "expr": "a.method==='tilt'?a.ceil-0.5:a.ceil",
+   "fmt": "{{frac(c.wallH)}}"
+  },
+  {
+   "id": "studLen",
+   "label": "Stud length",
+   "expr": "c.wallH-1.5-(a.topPlate==='double'?3:1.5)",
+   "fmt": "{{frac(c.studLen)}}"
+  },
+  {
+   "id": "buyStud",
+   "expr": "c.studLen<=92.625?'92-5/8\" precut':(c.studLen<=96?'8 ft':(c.studLen<=104.625?'104-5/8\" precut':(c.studLen<=120?'10 ft':'12 ft')))"
+  },
+  {
+   "id": "ro",
+   "label": "Rough opening",
+   "expr": "Number(a.doorW)+2",
+   "fmt": "{{c.ro}}\" x {{frac(a.roH)}}",
+   "when": "a.door==='yes'"
+  },
+  {
+   "id": "jack",
+   "expr": "a.roH-1.5"
+  },
+  {
+   "id": "crip",
+   "expr": "c.wallH-(a.topPlate==='double'?3:1.5)-a.roH-1.5"
+  },
+  {
+   "id": "studs",
+   "label": "Studs to buy",
+   "expr": "Math.ceil((Math.ceil(c.lenIn/16)+1+(a.door==='yes'?5:0))*1.1)",
+   "fmt": "{{c.studs}} ({{c.buyStud}})"
+  },
+  {
+   "id": "plateL",
+   "expr": "a.len<=8?8:(a.len<=10?10:(a.len<=12?12:16))"
+  },
+  {
+   "id": "plateN",
+   "expr": "Math.ceil(a.len/c.plateL)"
+  },
+  {
+   "id": "blocks",
+   "expr": "Math.ceil(c.lenIn/24)+1"
+  },
+  {
+   "id": "anchors",
+   "expr": "Math.ceil(c.lenIn/24)+1+(a.door==='yes'?2:0)"
+  }
+ ],
+ "calcNote": "Studs include about 10% extra for crooked boards and the door's header and cripples. {{a.method==='tilt'?'Tilt-up walls are built 1/2\" shorter than the ceiling.':'Stick-framed studs are cut to fit; measure each one.'}}",
+ "overviewFig": "anatomy",
+ "tools": [
+  {
+   "id": "tape",
+   "c": "Layout",
+   "n": "25 ft tape measure, pencil, carpenter's pencil",
+   "must": true,
+   "w": "Layout and cut marks.",
+   "q": "25 ft tape measure"
+  },
+  {
+   "id": "chalk",
+   "c": "Layout",
+   "n": "Chalk line",
+   "must": true,
+   "w": "Snaps straight lines on the floor and ceiling.",
+   "q": "chalk line reel"
+  },
+  {
+   "id": "square",
+   "c": "Layout",
+   "n": "Speed square and framing square",
+   "must": true,
+   "w": "Square cuts and square layout marks.",
+   "q": "speed square"
+  },
+  {
+   "id": "level",
+   "c": "Layout",
+   "n": "4 ft level (6 ft helps)",
+   "must": true,
+   "w": "Checks studs for plumb.",
+   "q": "4 ft level"
+  },
+  {
+   "id": "laser",
+   "c": "Layout",
+   "n": "Plumb laser or plumb bob",
+   "must": true,
+   "w": "Transfers the floor line straight up to the ceiling.",
+   "q": "self leveling laser plumb"
+  },
+  {
+   "id": "finder",
+   "c": "Layout",
+   "n": "Stud finder",
+   "must": true,
+   "w": "Finds ceiling joists and wall studs.",
+   "q": "stud finder"
+  },
+  {
+   "id": "saw",
+   "c": "Power tools",
+   "n": "Circular saw (a miter saw is faster)",
+   "must": true,
+   "w": "Cuts studs and plates square.",
+   "q": "circular saw"
+  },
+  {
+   "id": "drill",
+   "c": "Power tools",
+   "n": "Drill/driver and 1\" spade or auger bit",
+   "must": true,
+   "w": "Drives screws and drills holes for wires.",
+   "q": "cordless drill driver"
+  },
+  {
+   "id": "hammer",
+   "c": "Hand tools",
+   "n": "Framing hammer (or a rented framing nailer)",
+   "must": true,
+   "w": "Drives framing nails.",
+   "q": "framing hammer 20 oz"
+  },
+  {
+   "id": "handsaw",
+   "c": "Hand tools",
+   "n": "Handsaw or reciprocating saw",
+   "must": true,
+   "w": "Cuts the bottom plate out of the doorway.",
+   "q": "hand saw",
+   "when": "a.door==='yes'"
+  },
+  {
+   "id": "ladder",
+   "c": "Hand tools",
+   "n": "Stepladder",
+   "must": true,
+   "w": "Reaching the ceiling.",
+   "q": "6 ft step ladder"
+  },
+  {
+   "id": "glasses",
+   "c": "Safety",
+   "n": "Safety glasses and hearing protection",
+   "must": true,
+   "w": "Saws and nailers throw chips and are loud.",
+   "q": "safety glasses"
+  },
+  {
+   "id": "studs",
+   "c": "Lumber",
+   "n": "2x4 studs: {{c.buyStud}}",
+   "must": true,
+   "w": "Pick straight boards; sight down each one at the store.",
+   "q": "2x4 stud {{c.buyStud}}",
+   "qty": "{{c.studs}}"
+  },
+  {
+   "id": "plates",
+   "c": "Lumber",
+   "n": "2x4 for plates, {{c.plateL}} ft long",
+   "must": true,
+   "w": "Top plate{{a.topPlate==='double'?'s':''}}{{a.floor==='wood'?' and bottom plate':''}}.",
+   "q": "2x4 {{c.plateL}} ft",
+   "qty": "{{a.floor==='wood'?c.plateN*(a.topPlate==='double'?3:2):c.plateN*(a.topPlate==='double'?2:1)}}"
+  },
+  {
+   "id": "pt",
+   "c": "Lumber",
+   "n": "Pressure-treated 2x4, {{c.plateL}} ft",
+   "must": true,
+   "w": "Bottom plate on concrete must be treated against moisture.",
+   "q": "pressure treated 2x4 {{c.plateL}} ft",
+   "qty": "{{c.plateN}}",
+   "when": "a.floor==='concrete'"
+  },
+  {
+   "id": "gasket",
+   "c": "Lumber",
+   "n": "Foam sill gasket",
+   "must": true,
+   "w": "Goes under the treated plate as a moisture break.",
+   "q": "foam sill seal 3-1/2",
+   "qty": "1 roll",
+   "when": "a.floor==='concrete'"
+  },
+  {
+   "id": "block",
+   "c": "Lumber",
+   "n": "2x4 or 2x6 for blocking",
+   "must": true,
+   "w": "Fills between joists where the top plate fastens.",
+   "q": "2x4 8 ft",
+   "qty": "{{Math.ceil(c.blocks/6)}} (cuts {{c.blocks}} blocks)",
+   "when": "a.joists==='parallel'"
+  },
+  {
+   "id": "nails",
+   "c": "Fasteners",
+   "n": "16d framing nails or 3\" structural/construction screws, and 8d nails for toe-nailing",
+   "must": true,
+   "w": "Holds the frame together.",
+   "q": "16d framing nails",
+   "qty": "1 box"
+  },
+  {
+   "id": "tapcon",
+   "c": "Fasteners",
+   "n": "Concrete screws, 3/16\" or 1/4\" x 2-3/4\" (or powder-actuated pins)",
+   "must": true,
+   "w": "Anchors the bottom plate to concrete. Needs a hammer drill and the bit sold with the screws.",
+   "q": "concrete screws 2-3/4",
+   "qty": "{{c.anchors}}",
+   "when": "a.floor==='concrete'"
+  },
+  {
+   "id": "hdrill",
+   "c": "Power tools",
+   "n": "Hammer drill (rent or borrow)",
+   "must": true,
+   "w": "Drills pilot holes in concrete.",
+   "q": "hammer drill",
+   "rent": true,
+   "when": "a.floor==='concrete'"
+  },
+  {
+   "id": "shims",
+   "c": "Fasteners",
+   "n": "Wood shims",
+   "must": true,
+   "w": "Fill gaps at the top plate and plumb the studs.",
+   "q": "wood shims",
+   "qty": "1 pack"
+  },
+  {
+   "id": "clips",
+   "c": "Fasteners",
+   "n": "Truss clips (slotted partition clips)",
+   "must": true,
+   "w": "Connect the top plate to trusses while letting them move.",
+   "q": "truss clip partition",
+   "qty": "{{c.blocks}}",
+   "when": "a.above==='trusses'"
+  },
+  {
+   "id": "nailplate",
+   "c": "Fasteners",
+   "n": "Steel nail plates",
+   "must": false,
+   "w": "Protect wires and pipes in holes close to the stud edge.",
+   "q": "nail plate stud guard",
+   "qty": "1 pack"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Plan",
+   "steps": [
+    {
+     "id": "pl1",
+     "t": "Check permits and what the wall is for",
+     "time": "30 min",
+     "idea": "A new wall usually needs a permit, and a new bedroom has extra rules.",
+     "need": [],
+     "stop": "Call your building department before you start. Most areas require a permit for new walls. If the wall makes a new bedroom, it will need an egress window, smoke alarm and outlets: check local code.",
+     "b": "<ol><li>Call or visit your local building department's website. Ask: \"Do I need a permit for a non-load-bearing interior wall?\"</li><li>Tell them if the room becomes a bedroom. Bedrooms need an escape window of a minimum size, a smoke alarm and usually a CO alarm.</li><li>Check where heat and cooling registers and the thermostat end up. Each room needs heat, and a closed room may need a return air path.</li><li>New walls often need outlets by code. Plan for an electrician if so.</li><li>Sketch the wall on paper with measurements to the existing walls.</li></ol>",
+     "faq": [
+      [
+       "Will my wall be load-bearing?",
+       "No, a new partition carries no load as long as you don't jack it tight against the ceiling. Never remove or change an existing wall without an engineer or a pro."
+      ]
+     ]
+    },
+    {
+     "id": "pl2",
+     "t": "Find the ceiling joists and which way they run",
+     "time": "20 min",
+     "fig": "joists",
+     "need": [
+      "finder",
+      "ladder"
+     ],
+     "idea": "The top plate must fasten into solid wood, so you need to know where the joists are.",
+     "b": "<ol><li>Run a stud finder across the ceiling where the wall will go. Mark each joist.</li><li>Marks in a row across the wall line, every 16\" or 24\"? Joists run <b>perpendicular</b> to your wall.</li><li>No joist crosses your line? They run <b>parallel</b>. Find the nearest one on each side.</li><li>Check from the attic if you can: look at the joists or trusses (triangle-shaped frames) directly.</li><li>Set the \"joists\" and \"above\" answers on the Start tab.</li></ol>",
+     "faq": [
+      [
+       "How do I know if I have trusses?",
+       "In the attic, trusses look like triangles of 2x4s joined by metal plates. Joists are single boards running wall to wall, with rafters above."
+      ]
+     ]
+    },
+    {
+     "id": "pl3",
+     "t": "Add blocking between parallel joists",
+     "time": "1–2 hr",
+     "when": "a.joists==='parallel'",
+     "fig": "joists",
+     "need": [
+      "block",
+      "saw",
+      "nails",
+      "drill"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "idea": "Blocks between the joists give the top plate something to fasten to.",
+     "b": "<ol><li>If you can, move the wall a few inches so it lands right under a joist. Then you can skip blocking.</li><li>From the attic: measure between the joists (usually 14-1/2\" for 16\" spacing, 22-1/2\" for 24\").</li><li>Cut {{c.blocks}} blocks from 2x4 or 2x6 to that length.</li><li>Set them across the joists right above the wall line, every 24\", resting on the ceiling drywall's back.</li><li>Fasten each end with two 16d nails or 3\" screws through the joist into the block.</li><li>No attic access (floor above)? Cut a strip of ceiling drywall along the line, install blocks from below, and patch later.</li></ol>",
+     "stop": "Attics can be hot and have live wires and loose insulation. Step only on joists, never between them. Wear a mask in insulation."
+    },
+    {
+     "id": "pl4",
+     "t": "Snap the wall line on the floor",
+     "time": "30 min",
+     "fig": [
+      "square",
+      "layout"
+     ],
+     "need": [
+      "tape",
+      "chalk",
+      "square"
+     ],
+     "idea": "Two straight lines on the floor show exactly where the bottom plate goes.",
+     "b": "<ol><li>Measure from the existing wall to the new wall's position at both ends. Mark both spots.</li><li>Check square with the 3-4-5 method (picture): adjust until the 5 ft diagonal is exact.</li><li>Snap a chalk line through the marks: this is one face of the wall.</li><li>Snap a second line 3-1/2\" over: the other face.</li><li>Mark the door opening on the floor if you have one.</li></ol>",
+     "help": [
+      "chalkHelp"
+     ],
+     "faq": [
+      [
+       "The floor has carpet.",
+       "Cut it back along the wall line, or fasten through it into the subfloor. Most pros pull the carpet and pad back so the plate sits on the subfloor."
+      ]
+     ]
+    },
+    {
+     "id": "pl5",
+     "t": "Plumb the line up to the ceiling",
+     "time": "20 min",
+     "fig": "plumb",
+     "need": [
+      "laser",
+      "chalk",
+      "ladder"
+     ],
+     "idea": "The top plate must sit straight above the bottom plate, or the wall leans.",
+     "b": "<ol><li>Set the laser on the floor line at one end. Turn it on and mark the dot on the ceiling.</li><li>No laser: hang a plumb bob from the ceiling and move the string until the tip is over the line. Mark where the string meets the ceiling.</li><li>Do the same at the other end.</li><li>Snap a chalk line between the two ceiling marks.</li><li>Check that it hits the joists or blocking you marked.</li></ol>"
+    }
+   ]
+  },
+  {
+   "name": "Cut the parts",
+   "steps": [
+    {
+     "id": "c1",
+     "t": "Choose straight lumber",
+     "time": "30 min",
+     "need": [
+      "studs",
+      "plates"
+     ],
+     "help": [
+      "crownHelp"
+     ],
+     "idea": "Straight studs make a flat wall. Crooked ones show as waves in the drywall.",
+     "b": "<ol><li>At the store, sight down each board from one end. Reject twisted or badly bowed ones.</li><li>Buy {{c.studs}} studs ({{c.buyStud}}) and the plate lumber in the list.</li><li>At home, stack them flat, off the floor, for a day or two to adjust to the room.</li><li>Before using each stud, find the crown (the slight hump) and mark it with an arrow.</li></ol>"
+    },
+    {
+     "id": "c2",
+     "t": "Cut the plates and mark the stud layout",
+     "time": "30 min",
+     "fig": "layout",
+     "need": [
+      "saw",
+      "tape",
+      "square"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "idea": "Marking top and bottom plates together puts every stud perfectly straight up and down.",
+     "b": "<ol><li>Cut the plates to the wall length: <b>{{frac(a.len*12)}}</b>. If one board isn't long enough, the joint must land on the center of a stud.</li><li>Lay the {{a.floor==='concrete'?'treated bottom plate':'bottom plate'}} and top plate side by side, ends even, and clamp or tack them.</li><li>Hook your tape on the end that starts the layout. Mark 15-1/4\", then every 16\": 31-1/4\", 47-1/4\" and so on.</li><li>Use a square to draw each line across both plates. Put an X on the far side of each line: that's where the stud goes.</li><li>Mark a stud flush at each end of the plates.</li></ol>",
+     "faq": [
+      [
+       "Why 15-1/4\" and not 16\"?",
+       "So the 16\" line falls in the middle of a stud. Drywall sheets are 48\" wide; their edges then land on stud centers."
+      ]
+     ]
+    },
+    {
+     "id": "c3",
+     "t": "Mark the door opening",
+     "time": "15 min",
+     "when": "a.door==='yes'",
+     "fig": "door",
+     "need": [
+      "tape",
+      "square"
+     ],
+     "idea": "The door opening replaces the regular studs in that spot with a king, jack and header on each side.",
+     "b": "<ol><li>Find the opening's center on the plates.</li><li>Mark half the rough opening ({{frac(c.ro/2)}}) each side of center. These lines are the inside faces of the jacks.</li><li>Mark a jack (J) 1-1/2\" outside each line, then a king (K) 1-1/2\" beyond.</li><li>Cross out regular layout marks that fall inside the opening; they become cripples above the header (C).</li><li>Keep at least a full stud width between a king and the nearest layout stud, or just use the king as that stud.</li></ol>",
+     "faq": [
+      [
+       "What size door?",
+       "Buy the door first. Rough opening width is the door width plus 2\": {{a.doorW}}\" door = <b>{{c.ro}}\"</b>. Check its instructions for both numbers."
+      ]
+     ]
+    },
+    {
+     "id": "c4",
+     "t": "Cut the studs",
+     "time": "30 min",
+     "fig": [
+      "anatomy",
+      "door"
+     ],
+     "need": [
+      "saw",
+      "tape",
+      "square"
+     ],
+     "ppe": [
+      "Glasses",
+      "Hearing protection"
+     ],
+     "idea": "All full-height studs are the same length, so cut one, check it, then copy it.",
+     "b": "<ol><li>Measure the ceiling height at several spots along the line. Use the <b>lowest</b>.</li><li>{{a.method==='tilt'?'Stud length for a tilt-up wall: <b>'+frac(c.studLen)+'</b> (wall '+frac(c.wallH)+' tall, about 1/2\" short of the ceiling).':'Stick framing: cut each stud to fit between the installed plates, about <b>'+frac(c.studLen)+'</b>. Measure at each stud.'}}</li><li>Cut one stud, test it, then use it as a pattern for the rest.</li>{{a.door==='yes'?'<li>Jacks: <b>'+frac(c.jack)+'</b> (2). Header (flat 2x4): <b>'+frac(c.ro+3)+'</b>. Cripples: <b>'+frac(c.crip)+'</b>.</li>':''}}<li>Make every cut square: hold the saw base flat and follow a line drawn with the speed square.</li></ol>",
+     "help": [
+      "sawHelp"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Build and stand the wall",
+   "steps": [
+    {
+     "id": "t1",
+     "t": "Nail the wall together on the floor",
+     "time": "1 hr",
+     "when": "a.method==='tilt'",
+     "fig": "anatomy",
+     "need": [
+      "hammer",
+      "nails"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "idea": "It's much easier to nail through the plates into the stud ends with the wall lying flat.",
+     "b": "<ol><li>Lay the plates on edge, about a stud length apart, on the floor near the wall line.</li><li>Set each stud on its X, crowns all facing the same way (up).</li><li>Drive two 16d nails (or 3\" screws) through the plate into each stud end.</li><li>Keep the stud edges flush with the plate edges. Stand on the stud to hold it.</li><li>{{a.topPlate==='double'?'Nail the second top plate on top of the first, staggering its joints at least 24\" from the first plate\\'s joints.':'Single top plate: done.'}}</li></ol>",
+     "help": [
+      "nailHelp"
+     ]
+    },
+    {
+     "id": "t2",
+     "t": "Frame the door opening",
+     "time": "45 min",
+     "when": "a.method==='tilt'&&a.door==='yes'",
+     "fig": "door",
+     "need": [
+      "hammer",
+      "nails"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "idea": "The jacks hold the header; the kings hold everything to the plates.",
+     "b": "<ol><li>Nail the kings through the plates like any stud.</li><li>Nail a jack to the inside face of each king: 16d nails every 16\", staggered.</li><li>Set the flat header on top of both jacks. Nail through the kings into its ends.</li><li>Nail the cripples between the header and the top plate on the layout marks.</li><li>Measure the opening: width {{c.ro}}\", height {{frac(a.roH)}}. Fix it now if it's off.</li></ol>",
+     "faq": [
+      [
+       "Is a flat 2x4 header OK?",
+       "On a non-bearing wall, many areas accept a single flat 2x or a doubled 2x4 header. Ask your inspector."
+      ]
+     ]
+    },
+    {
+     "id": "t3",
+     "t": "Tilt the wall up",
+     "time": "20 min",
+     "when": "a.method==='tilt'",
+     "fig": "tilt",
+     "need": [
+      "level",
+      "hammer"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "idea": "With a helper, swing the wall up onto its lines.",
+     "stop": "Get a helper. A wall section is heavy and awkward, and can fall over until it is fastened.",
+     "b": "<ol><li>Slide the wall so the bottom plate sits just beside its floor line.</li><li>Lift the top plate end together, walking your hands down the studs.</li><li>If it jams on the ceiling, stop: tap the bottom out and tilt more slowly, or trim the studs.</li><li>Tap the bottom plate onto its chalk lines with a hammer and a scrap block.</li><li>Have your helper hold it while you fasten the bottom plate (next step).</li></ol>"
+    },
+    {
+     "id": "k1",
+     "t": "Fasten the plates first",
+     "time": "45 min",
+     "when": "a.method==='stick'",
+     "fig": "shims",
+     "need": [
+      "nails",
+      "drill",
+      "level"
+     ],
+     "idea": "In stick framing, the plates go up first and the studs fit between them.",
+     "b": "<ol><li>Fasten the bottom plate on its floor lines (next step explains the fasteners).</li><li>Hold the top plate on its ceiling line and fasten it to each joist or block.</li><li>Shim any gap above the plate before fastening.</li><li>Transfer the stud marks from the bottom plate to the top plate with a level held plumb, if you didn't mark them together.</li></ol>"
+    }
+   ]
+  },
+  {
+   "name": "Fasten it",
+   "steps": [
+    {
+     "id": "f1",
+     "t": "Fasten the bottom plate to a wood floor",
+     "time": "30 min",
+     "when": "a.floor==='wood'",
+     "need": [
+      "nails",
+      "drill",
+      "finder"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "idea": "The bottom plate anchors the wall; fasten into joists where you can.",
+     "b": "<ol><li>Find the floor joists under the line with a stud finder, or look for nail rows in the subfloor.</li><li>Check the plate is exactly on its lines.</li><li>Drive two 16d nails or 3\" screws at each joist, or every 16\" into the subfloor.</li><li>{{a.door==='yes'?'Do not fasten inside the door opening; that part gets cut out.':'Fasten within 6\" of each end.'}}</li><li>Check for pipes, ducts or wires below before you drive anything near them.</li></ol>",
+     "help": [
+      "nailHelp"
+     ]
+    },
+    {
+     "id": "f2",
+     "t": "Fasten the bottom plate to concrete",
+     "time": "45 min",
+     "when": "a.floor==='concrete'",
+     "need": [
+      "pt",
+      "gasket",
+      "tapcon",
+      "hdrill"
+     ],
+     "ppe": [
+      "Glasses",
+      "Hearing protection"
+     ],
+     "idea": "On concrete, a treated plate on a foam gasket resists moisture; concrete screws hold it down.",
+     "b": "<ol><li>Lay the sill gasket on the chalk lines under the treated bottom plate.</li><li>Drill through the plate and into the concrete with the bit sold with the screws, 1/4\" deeper than the screw will go.</li><li>Blow or vacuum the dust out of each hole.</li><li>Drive about {{c.anchors}} screws: one 6\" from each end, {{a.door==='yes'?'one 6\" each side of the door opening, ':''}}and about every 24\" in between.</li><li>Stop when the head is snug. Overdriving strips the concrete.</li></ol>",
+     "stop": "Radiant heat tubing or a post-tensioned slab (common in some regions; look for a warning stamp in the garage) can be damaged by drilling. Check before drilling. If in doubt, ask a pro.",
+     "faq": [
+      [
+       "Can I use a powder-actuated nailer?",
+       "Yes. They're fast. Use the right charge strength for your concrete, and wear eye and ear protection. Follow the tool's instructions exactly."
+      ]
+     ]
+    },
+    {
+     "id": "f3",
+     "t": "Plumb, shim and fasten the top plate",
+     "time": "45 min",
+     "when": "a.method==='tilt'",
+     "fig": [
+      "plumb",
+      "shims"
+     ],
+     "need": [
+      "level",
+      "shims",
+      "nails",
+      "drill",
+      "clips"
+     ],
+     "idea": "Plumb the wall, shim the gap, then fasten the top plate into every joist or block.",
+     "b": "<ol><li>Hold the level against the end stud. Push the top until the bubble is centered, then on the edge too.</li><li>Line the top plate up with the ceiling chalk line.</li><li>At each joist or block, slide a pair of shims into any gap.</li><li>{{a.above==='trusses'?'Attach the top plate to each truss with a slotted truss clip, nailed per the clip\\'s instructions. Don\\'t nail the plate tight to the trusses: they rise and fall with the seasons.':'Drive two 3\" screws or 16d nails through the plate and shims into each joist or block.'}}</li><li>Check plumb again at both ends and the middle.</li></ol>",
+     "help": [
+      "plumbHelp"
+     ]
+    },
+    {
+     "id": "k2",
+     "t": "Toe-nail the studs between the plates",
+     "time": "1–2 hr",
+     "when": "a.method==='stick'",
+     "fig": "toenail",
+     "need": [
+      "hammer",
+      "nails",
+      "level"
+     ],
+     "idea": "Each stud is cut to fit and nailed at an angle into the plates.",
+     "b": "<ol><li>Measure between the plates at each X and cut that stud for a snug fit (tap in, not pounded).</li><li>Set the stud on its marks, crown facing the same way as the rest.</li><li>Drive two 8d nails at about 60 degrees through one face, starting 1\" up, into the plate. Then one from the other face.</li><li>Do the same at the top.</li><li>Check each stud for plumb as you go.</li></ol>",
+     "help": [
+      "nailHelp",
+      "plumbHelp"
+     ],
+     "faq": [
+      [
+       "The stud keeps sliding off the mark when I nail.",
+       "Screw a scrap block to the plate behind the stud as a stop, or start the nails before you set the stud in place."
+      ]
+     ]
+    },
+    {
+     "id": "k3",
+     "t": "Frame the door opening in place",
+     "time": "1 hr",
+     "when": "a.method==='stick'&&a.door==='yes'",
+     "fig": "door",
+     "need": [
+      "hammer",
+      "nails",
+      "level"
+     ],
+     "idea": "Kings first, then jacks, then the header and cripples.",
+     "b": "<ol><li>Toe-nail the kings to the plates on their marks. Check plumb.</li><li>Nail a jack ({{frac(c.jack)}}) to the inside face of each king, every 16\".</li><li>Set the flat header on the jacks and nail through the kings into its ends.</li><li>Toe-nail cripples ({{frac(c.crip)}}) between the header and top plate.</li><li>Measure: {{c.ro}}\" wide, {{frac(a.roH)}} tall.</li></ol>"
+    },
+    {
+     "id": "e1",
+     "t": "Tie into the existing wall",
+     "time": "30–60 min",
+     "fig": "intersect",
+     "need": [
+      "finder",
+      "nails",
+      "drill"
+     ],
+     "idea": "The end stud fastens to the old wall top to bottom so it doesn't wobble.",
+     "b": "<ol><li>Find where the old wall's studs are with a stud finder.</li><li>If an old stud lines up with your end stud: drive 3\" screws through the end stud into it every 16\".</li><li>If not: cut a strip of drywall out of the old wall, about 8\" wide, floor to ceiling.</li><li>Install flat 2x4 blocks between the old studs every 16\" to 24\" (ladder blocking).</li><li>Screw the end stud through the drywall strip area into the blocks, then patch the drywall later.</li></ol>",
+     "faq": [
+      [
+       "Can I just use construction adhesive and toggle bolts?",
+       "Some people do for a short closet wall, but solid blocking is stronger and gives drywall a corner to fasten to. Use blocking when you can."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Finish the framing",
+   "steps": [
+    {
+     "id": "e2",
+     "t": "Cut out the bottom plate in the doorway",
+     "time": "10 min",
+     "when": "a.door==='yes'",
+     "fig": "anatomy",
+     "need": [
+      "handsaw"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "idea": "Now that the wall is fastened, the plate in the opening can go.",
+     "b": "<ol><li>Saw the plate flush with the inside face of each jack.</li><li>Keep the blade from cutting into the subfloor: angle a handsaw, or use a reciprocating saw blade laid flat.</li><li>Pry out the piece.</li><li>Re-check the opening width at the bottom, middle and top. It should be the same.</li></ol>"
+    },
+    {
+     "id": "e3",
+     "t": "Check plumb, straight and square",
+     "time": "20 min",
+     "need": [
+      "level",
+      "chalk"
+     ],
+     "idea": "A quick check now saves fighting the drywall and door later.",
+     "b": "<ol><li>Hold the level on several studs, both faces. Plumb within about 1/8\" over the height.</li><li>Stretch a string along the wall face at the top and bottom; studs bowing out more than 1/4\" need fixing.</li><li>Fix a bowed stud: cut a saw kerf partway into the hollow side, push it straight, and screw a strip across the cut. Or replace it.</li><li>{{a.door==='yes'?'Measure the door opening\\'s diagonals: they should match within 1/8\".':'Measure the wall\\'s ends for plumb again.'}}</li></ol>",
+     "help": [
+      "plumbHelp"
+     ]
+    },
+    {
+     "id": "e4",
+     "t": "Plan wires, pipes and blocking",
+     "time": "1 hr",
+     "fig": "nailplate",
+     "need": [
+      "drill",
+      "nailplate"
+     ],
+     "ppe": [
+      "Glasses"
+     ],
+     "idea": "Holes for wires and solid wood for shelves or TVs go in before the drywall does.",
+     "stop": "New outlets and switches usually need a permit and inspection, and in many areas a licensed electrician. Plumbing in the wall usually needs a plumber.",
+     "b": "<ol><li>Mark where outlets, switches and any shelving or a TV mount will go.</li><li>Drill holes through studs in the middle of the stud, no bigger than about 60% of its depth.</li><li>Any hole closer than 1-1/4\" to the stud face gets a steel nail plate on that face.</li><li>Add flat 2x blocking between studs where heavy things will hang.</li><li>Take photos with a tape measure in view before drywall goes on.</li></ol>",
+     "faq": [
+      [
+       "How big can a hole be?",
+       "In a non-bearing wall, codes generally allow up to 60% of the stud depth (about 2\" in a 2x4), at least 5/8\" from the edge. Check local code."
+      ]
+     ]
+    },
+    {
+     "id": "e5",
+     "t": "Get the framing inspected",
+     "time": "varies",
+     "need": [],
+     "wait": "Inspection before drywall",
+     "idea": "If you have a permit, an inspector checks the framing and any wiring before it's covered.",
+     "b": "<ol><li>Call for the framing (and electrical rough-in) inspection.</li><li>Leave the wall open until it passes.</li><li>Fix anything on the correction list and call back.</li><li>After it passes: drywall, tape and paint (see the Drywall Repair and Interior Painting guides).</li></ol>"
+    }
+   ]
+  }
+ ],
+ "days": [
+  {
+   "t": "Plan and lay out",
+   "ids": [
+    "pl1",
+    "pl2",
+    "pl3",
+    "pl4",
+    "pl5"
+   ],
+   "wait": "Buy lumber; let it sit in the room 1 to 2 days"
+  },
+  {
+   "t": "Cut and build",
+   "ids": [
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "t1",
+    "t2",
+    "t3",
+    "k1",
+    "f1",
+    "f2",
+    "f3",
+    "k2",
+    "k3"
+   ]
+  },
+  {
+   "t": "Tie in and finish",
+   "ids": [
+    "e1",
+    "e2",
+    "e3",
+    "e4",
+    "e5"
+   ],
+   "wait": "Framing inspection, if permitted"
+  }
+ ],
+ "help": {
+  "crownHelp": {
+   "t": "Find a board's crown",
+   "b": "<ol><li>Hold the board by one end at eye level, on edge.</li><li>Look down the narrow edge to the far end.</li><li>It curves one way a little: the high side is the crown.</li><li>Draw an arrow on that side pointing at the crown.</li><li>Install all studs with crowns facing the same way.</li></ol>"
+  },
+  "nailHelp": {
+   "t": "Drive framing nails",
+   "fig": "toenail",
+   "b": "<ol><li>Hold the nail near the tip and tap to start it.</li><li>Let go and swing from the elbow with the hammer handle near its end.</li><li>Keep the face square to the nail; a glancing blow bends it.</li><li>Bent nail? Pull it with the claw and start a new one beside it.</li><li>Screws: use 3\" structural or construction screws, not drywall screws, which snap.</li></ol>"
+  },
+  "plumbHelp": {
+   "t": "Check plumb with a level",
+   "fig": "plumb",
+   "b": "<ol><li>Hold the level flat against the stud's face, vertical.</li><li>Read the end vial (the one across the level's length).</li><li>Bubble centered = plumb.</li><li>Check the narrow edge too: the wall can lean in two directions.</li><li>Flip the level end for end to make sure it reads the same; if not, the level is off.</li></ol>"
+  },
+  "chalkHelp": {
+   "t": "Snap a chalk line",
+   "b": "<ol><li>Hook the line's end on a nail or have a helper hold it on the first mark.</li><li>Pull the line tight over the second mark.</li><li>Press it to the floor with one hand.</li><li>Lift the middle straight up 2\" to 3\" and let go.</li><li>Check the line runs through both marks.</li></ol>"
+  },
+  "sawHelp": {
+   "t": "Make a square cut",
+   "b": "<ol><li>Mark the length, then draw a square line with a speed square.</li><li>Support the board so the cut-off falls free; never cut between two supports, which pinches the blade.</li><li>Line the saw's guide notch up with the waste side of the line.</li><li>Let the blade reach full speed, then push steadily.</li><li>Keep both hands on the saw and stand to the side of the blade.</li></ol>"
+  }
+ },
+ "figs": {
+  "anatomy": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Parts of a partition wall</text><rect x=\"20\" y=\"26\" width=\"206\" height=\"8\" class=\"w\"/><rect x=\"20\" y=\"34\" width=\"206\" height=\"8\" class=\"w\"/><rect x=\"20\" y=\"180\" width=\"76\" height=\"8\" class=\"w\"/><rect x=\"154\" y=\"180\" width=\"72\" height=\"8\" class=\"w\"/><rect x=\"96\" y=\"180\" width=\"58\" height=\"8\" class=\"o d\"/><rect x=\"20\" y=\"42\" width=\"6\" height=\"138\" class=\"w\"/><rect x=\"52\" y=\"42\" width=\"6\" height=\"138\" class=\"w\"/><rect x=\"192\" y=\"42\" width=\"6\" height=\"138\" class=\"w\"/><rect x=\"220\" y=\"42\" width=\"6\" height=\"138\" class=\"w\"/><rect x=\"84\" y=\"42\" width=\"6\" height=\"138\" class=\"w\"/><rect x=\"160\" y=\"42\" width=\"6\" height=\"138\" class=\"w\"/><rect x=\"90\" y=\"58\" width=\"6\" height=\"122\" class=\"w\"/><rect x=\"154\" y=\"58\" width=\"6\" height=\"122\" class=\"w\"/><rect x=\"90\" y=\"52\" width=\"70\" height=\"6\" class=\"w\"/><rect x=\"110\" y=\"42\" width=\"6\" height=\"10\" class=\"w\"/><rect x=\"134\" y=\"42\" width=\"6\" height=\"10\" class=\"w\"/><line x1=\"238\" y1=\"35\" x2=\"200\" y2=\"38\" class=\"a\"/><text x=\"240\" y=\"38\" class=\"k\">top plates</text><line x1=\"238\" y1=\"59\" x2=\"137\" y2=\"48\" class=\"a\"/><text x=\"240\" y=\"62\" class=\"k\">cripple</text><line x1=\"238\" y1=\"79\" x2=\"150\" y2=\"55\" class=\"a\"/><text x=\"240\" y=\"82\" class=\"k\">header</text><line x1=\"238\" y1=\"99\" x2=\"163\" y2=\"102\" class=\"a\"/><text x=\"240\" y=\"102\" class=\"k\">king stud</text><line x1=\"238\" y1=\"119\" x2=\"157\" y2=\"122\" class=\"a\"/><text x=\"240\" y=\"122\" class=\"k\">jack stud</text><line x1=\"238\" y1=\"139\" x2=\"223\" y2=\"142\" class=\"a\"/><text x=\"240\" y=\"142\" class=\"k\">stud</text><line x1=\"238\" y1=\"163\" x2=\"210\" y2=\"184\" class=\"a\"/><text x=\"240\" y=\"166\" class=\"k\">bottom plate</text><text x=\"125\" y=\"174\" class=\"ac\" text-anchor=\"middle\">cut out</text><text x=\"10\" y=\"204\">Studs every 16\" on center. Door opening framed</text><text x=\"10\" y=\"216\">with a king and a jack on each side.</text>",
+   "h": 224,
+   "cap": "The bottom plate runs through the doorway while you build, then gets cut out after the wall is fastened."
+  },
+  "joists": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Which way do the joists run?</text><rect x=\"10\" y=\"30\" width=\"140\" height=\"110\" class=\"b\"/><rect x=\"22\" y=\"30\" width=\"5\" height=\"110\" class=\"w\"/><rect x=\"50\" y=\"30\" width=\"5\" height=\"110\" class=\"w\"/><rect x=\"78\" y=\"30\" width=\"5\" height=\"110\" class=\"w\"/><rect x=\"106\" y=\"30\" width=\"5\" height=\"110\" class=\"w\"/><rect x=\"134\" y=\"30\" width=\"5\" height=\"110\" class=\"w\"/><rect x=\"170\" y=\"30\" width=\"140\" height=\"110\" class=\"b\"/><rect x=\"182\" y=\"30\" width=\"5\" height=\"110\" class=\"w\"/><rect x=\"210\" y=\"30\" width=\"5\" height=\"110\" class=\"w\"/><rect x=\"238\" y=\"30\" width=\"5\" height=\"110\" class=\"w\"/><rect x=\"266\" y=\"30\" width=\"5\" height=\"110\" class=\"w\"/><rect x=\"294\" y=\"30\" width=\"5\" height=\"110\" class=\"w\"/><rect x=\"10\" y=\"78\" width=\"140\" height=\"12\" class=\"mos\"/><circle cx=\"24\" cy=\"84\" r=\"2.5\" class=\"inkf\"/><circle cx=\"52\" cy=\"84\" r=\"2.5\" class=\"inkf\"/><circle cx=\"80\" cy=\"84\" r=\"2.5\" class=\"inkf\"/><circle cx=\"108\" cy=\"84\" r=\"2.5\" class=\"inkf\"/><circle cx=\"136\" cy=\"84\" r=\"2.5\" class=\"inkf\"/><rect x=\"243\" y=\"30\" width=\"12\" height=\"110\" class=\"mos\"/><rect x=\"237\" y=\"44\" width=\"24\" height=\"5\" class=\"w\"/><circle cx=\"249\" cy=\"46\" r=\"2.5\" class=\"inkf\"/><rect x=\"237\" y=\"74\" width=\"24\" height=\"5\" class=\"w\"/><circle cx=\"249\" cy=\"76\" r=\"2.5\" class=\"inkf\"/><rect x=\"237\" y=\"104\" width=\"24\" height=\"5\" class=\"w\"/><circle cx=\"249\" cy=\"106\" r=\"2.5\" class=\"inkf\"/><rect x=\"237\" y=\"128\" width=\"24\" height=\"5\" class=\"w\"/><circle cx=\"249\" cy=\"130\" r=\"2.5\" class=\"inkf\"/><text x=\"10\" y=\"156\" class=\"k\">Perpendicular</text><text x=\"10\" y=\"168\">fasten at every joist</text><text x=\"170\" y=\"156\" class=\"k\">Parallel, between joists</text><text x=\"170\" y=\"168\">add blocking every 24\"</text><text x=\"10\" y=\"186\">Looking up at the ceiling. Blue = new wall.</text>",
+   "h": 194,
+   "cap": "If the wall runs parallel and doesn't land right under a joist, the top plate needs blocking to screw into."
+  },
+  "square": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Square the wall with 3-4-5</text><rect x=\"10\" y=\"26\" width=\"300\" height=\"14\" class=\"b\"/><line x1=\"80\" y1=\"40\" x2=\"80\" y2=\"176\" class=\"a d\"/><line x1=\"80\" y1=\"40\" x2=\"200\" y2=\"40\" class=\"good\" style=\"stroke-width:3\"/><line x1=\"80\" y1=\"40\" x2=\"80\" y2=\"160\" class=\"good\" style=\"stroke-width:3\"/><line x1=\"200\" y1=\"40\" x2=\"80\" y2=\"160\" class=\"a\" style=\"stroke-width:2\"/><text x=\"140\" y=\"56\" class=\"k\" text-anchor=\"middle\">3 ft</text><text x=\"74\" y=\"104\" class=\"k\" text-anchor=\"end\">4 ft</text><text x=\"150\" y=\"108\" class=\"ac\">5 ft exactly</text><text x=\"88\" y=\"176\">new wall line</text><text x=\"212\" y=\"58\">existing wall</text><text x=\"212\" y=\"70\">(mark 3 ft along it)</text>",
+   "h": 184,
+   "cap": "If the diagonal isn't exactly 5 ft, swing the new line until it is. Bigger room? Use 6-8-10."
+  },
+  "plumb": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Transfer the line to the ceiling</text><rect x=\"10\" y=\"26\" width=\"300\" height=\"10\" class=\"b\"/><rect x=\"10\" y=\"176\" width=\"300\" height=\"8\" class=\"w\"/><rect x=\"64\" y=\"160\" width=\"32\" height=\"16\" rx=\"3\" class=\"y\"/><line x1=\"80\" y1=\"160\" x2=\"80\" y2=\"36\" class=\"a\" style=\"stroke-width:2\"/><circle cx=\"80\" cy=\"38\" r=\"3\" class=\"badf\"/><line x1=\"230\" y1=\"36\" x2=\"230\" y2=\"150\" class=\"o\"/><path d=\"M224 150 h12 l-6 16z\" class=\"y\"/><polygon points=\"226,176 234,176 230,170\" class=\"af\"/><text x=\"100\" y=\"158\" class=\"k\">laser on the</text><text x=\"100\" y=\"170\" class=\"k\">floor line</text><text x=\"88\" y=\"58\">mark the dot</text><text x=\"242\" y=\"100\" class=\"k\">plumb bob</text><text x=\"242\" y=\"112\">tip over the</text><text x=\"242\" y=\"124\">floor line</text>",
+   "h": 192,
+   "cap": "Mark both ends of the wall on the ceiling, then snap a chalk line between the marks."
+  },
+  "layout": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Mark studs 16\" on center</text><rect x=\"10\" y=\"66\" width=\"300\" height=\"20\" class=\"w\"/><rect x=\"10\" y=\"66\" width=\"6\" height=\"20\" class=\"mos\"/><line x1=\"10\" y1=\"66\" x2=\"16\" y2=\"86\" class=\"o\"/><line x1=\"10\" y1=\"86\" x2=\"16\" y2=\"66\" class=\"o\"/><rect x=\"71\" y=\"66\" width=\"6\" height=\"20\" class=\"mos\"/><line x1=\"71\" y1=\"66\" x2=\"77\" y2=\"86\" class=\"o\"/><line x1=\"71\" y1=\"86\" x2=\"77\" y2=\"66\" class=\"o\"/><rect x=\"135\" y=\"66\" width=\"6\" height=\"20\" class=\"mos\"/><line x1=\"135\" y1=\"66\" x2=\"141\" y2=\"86\" class=\"o\"/><line x1=\"135\" y1=\"86\" x2=\"141\" y2=\"66\" class=\"o\"/><rect x=\"199\" y=\"66\" width=\"6\" height=\"20\" class=\"mos\"/><line x1=\"199\" y1=\"66\" x2=\"205\" y2=\"86\" class=\"o\"/><line x1=\"199\" y1=\"86\" x2=\"205\" y2=\"66\" class=\"o\"/><rect x=\"263\" y=\"66\" width=\"6\" height=\"20\" class=\"mos\"/><line x1=\"263\" y1=\"66\" x2=\"269\" y2=\"86\" class=\"o\"/><line x1=\"263\" y1=\"86\" x2=\"269\" y2=\"66\" class=\"o\"/><line x1=\"10\" y1=\"40\" x2=\"74\" y2=\"40\" class=\"a\"/><polygon points=\"74,40 69.5,42.2 69.5,37.8\" class=\"af\"/><text x=\"42\" y=\"34\" class=\"ac\" text-anchor=\"middle\">16\"</text><line x1=\"10\" y1=\"54\" x2=\"202\" y2=\"54\" class=\"a\"/><polygon points=\"202,54 197.5,56.2 197.5,51.8\" class=\"af\"/><text x=\"212\" y=\"58\" class=\"ac\">48\" sheet edge</text><text x=\"71\" y=\"104\" class=\"k\" text-anchor=\"middle\">15-1/4\"</text><text x=\"135\" y=\"104\" class=\"k\" text-anchor=\"middle\">31-1/4\"</text><text x=\"199\" y=\"104\" class=\"k\" text-anchor=\"middle\">47-1/4\"</text><text x=\"10\" y=\"126\">Hook the tape on the end. Mark at 15-1/4\",</text><text x=\"10\" y=\"138\">then every 16\". Put an X on the far side.</text><text x=\"10\" y=\"156\">Each stud covers 15-1/4\" to 16-3/4\", so the</text><text x=\"10\" y=\"168\">16\", 32\", 48\" lines fall on stud centers.</text>",
+   "h": 176,
+   "cap": "Clamp the top and bottom plates together and mark both at once, so the studs line up."
+  },
+  "door": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Door rough opening</text><rect x=\"60\" y=\"26\" width=\"200\" height=\"6\" class=\"w\"/><rect x=\"60\" y=\"180\" width=\"38\" height=\"8\" class=\"w\"/><rect x=\"222\" y=\"180\" width=\"38\" height=\"8\" class=\"w\"/><rect x=\"110\" y=\"180\" width=\"100\" height=\"8\" class=\"o d\"/><rect x=\"98\" y=\"32\" width=\"6\" height=\"156\" class=\"w\"/><rect x=\"216\" y=\"32\" width=\"6\" height=\"156\" class=\"w\"/><rect x=\"104\" y=\"50\" width=\"6\" height=\"130\" class=\"w\"/><rect x=\"210\" y=\"50\" width=\"6\" height=\"130\" class=\"w\"/><rect x=\"104\" y=\"44\" width=\"112\" height=\"6\" class=\"w\"/><rect x=\"140\" y=\"32\" width=\"6\" height=\"12\" class=\"w\"/><rect x=\"176\" y=\"32\" width=\"6\" height=\"12\" class=\"w\"/><line x1=\"160\" y1=\"110\" x2=\"110\" y2=\"110\" class=\"o\"/><polygon points=\"110,110 114.5,107.8 114.5,112.2\" class=\"inkf\"/><line x1=\"160\" y1=\"110\" x2=\"210\" y2=\"110\" class=\"o\"/><polygon points=\"210,110 205.5,112.2 205.5,107.8\" class=\"inkf\"/><text x=\"160\" y=\"102\" class=\"ac\" text-anchor=\"middle\">door width + 2\"</text><line x1=\"240\" y1=\"115\" x2=\"240\" y2=\"50\" class=\"o\"/><polygon points=\"240,50 242.2,54.5 237.8,54.5\" class=\"inkf\"/><line x1=\"240\" y1=\"115\" x2=\"240\" y2=\"180\" class=\"o\"/><polygon points=\"240,180 237.8,175.5 242.2,175.5\" class=\"inkf\"/><text x=\"246\" y=\"112\" class=\"ac\">82-1/2\"</text><text x=\"246\" y=\"124\">typical</text><text x=\"10\" y=\"92\" class=\"k\">king</text><line x1=\"34\" y1=\"89\" x2=\"98\" y2=\"89\" class=\"a\"/><text x=\"10\" y=\"140\" class=\"k\">jack</text><line x1=\"34\" y1=\"137\" x2=\"104\" y2=\"137\" class=\"a\"/><text x=\"10\" y=\"52\" class=\"k\">header</text><line x1=\"48\" y1=\"49\" x2=\"104\" y2=\"47\" class=\"a\"/><text x=\"160\" y=\"206\" text-anchor=\"middle\">Check the size your door's instructions give.</text>",
+   "h": 214,
+   "cap": "An 80\" prehung door usually needs 82-1/2\" from the subfloor to the header. Width is the door slab plus 2\"."
+  },
+  "tilt": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Build it short enough to tilt up</text><line x1=\"10\" y1=\"26\" x2=\"310\" y2=\"26\" class=\"o\" style=\"stroke-width:3\"/><rect x=\"10\" y=\"176\" width=\"300\" height=\"6\" class=\"w\"/><path d=\"M46 72 A147 147 0 0 1 150 29\" class=\"a d\" fill=\"none\"/><g><rect x=\"150\" y=\"30\" width=\"10\" height=\"146\" class=\"w\"/><animateTransform attributeName=\"transform\" type=\"rotate\" values=\"-70 150 176;0 150 176;0 150 176\" keyTimes=\"0;0.6;1\" dur=\"3.5s\" repeatCount=\"indefinite\"/></g><text x=\"176\" y=\"46\" class=\"k\">diagonal must clear</text><text x=\"176\" y=\"58\">the ceiling</text><text x=\"176\" y=\"96\" class=\"ac\">build the wall 1/2\"</text><text x=\"176\" y=\"108\">shorter than the</text><text x=\"176\" y=\"120\">ceiling, then shim</text><text x=\"20\" y=\"196\">Lift with a helper. Keep the bottom plate on its line.</text>",
+   "h": 204,
+   "title": "Tilt the wall up",
+   "cap": "The corner-to-corner measurement of the wall is a bit longer than its height, so a full-height wall jams as it swings up."
+  },
+  "toenail": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Toe-nail at about 60 degrees</text><rect x=\"30\" y=\"140\" width=\"260\" height=\"18\" class=\"w\"/><rect x=\"140\" y=\"30\" width=\"30\" height=\"110\" class=\"w\"/><g><line x1=\"132\" y1=\"107\" x2=\"154\" y2=\"146\" class=\"o\" style=\"stroke-width:3\"/><line x1=\"127\" y1=\"110\" x2=\"137\" y2=\"104\" class=\"o\" style=\"stroke-width:3\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"-14 -24;0 0;0 0\" keyTimes=\"0;0.5;1\" dur=\"2.6s\" repeatCount=\"indefinite\"/></g><line x1=\"178\" y1=\"107\" x2=\"156\" y2=\"146\" class=\"o\" style=\"stroke-width:3\"/><line x1=\"173\" y1=\"104\" x2=\"183\" y2=\"110\" class=\"o\" style=\"stroke-width:3\"/><text x=\"10\" y=\"96\" class=\"k\">start about 1\"</text><text x=\"10\" y=\"108\">up the stud</text><text x=\"196\" y=\"96\" class=\"k\">one more from</text><text x=\"196\" y=\"108\">the other side</text><text x=\"30\" y=\"176\">plate</text><text x=\"176\" y=\"40\">stud</text><text x=\"10\" y=\"194\">Two or three per side. A block behind the stud</text><text x=\"10\" y=\"206\">keeps it from sliding off its mark.</text>",
+   "h": 214,
+   "title": "Drive a toe-nail",
+   "cap": "The nail goes through the stud and into the plate at an angle. 8d nails or 3\" screws both work."
+  },
+  "shims": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Shim gaps at the top plate</text><rect x=\"10\" y=\"26\" width=\"300\" height=\"20\" class=\"w\"/><rect x=\"10\" y=\"46\" width=\"300\" height=\"6\" class=\"b\"/><rect x=\"10\" y=\"64\" width=\"300\" height=\"16\" class=\"w\"/><polygon points=\"110,52 210,52 210,64\" class=\"y\"/><polygon points=\"110,52 110,64 210,64\" class=\"y\" style=\"opacity:.7\"/><rect x=\"158\" y=\"34\" width=\"4\" height=\"50\" class=\"inkf\"/><rect x=\"152\" y=\"80\" width=\"16\" height=\"4\" class=\"inkf\"/><text x=\"14\" y=\"40\" class=\"k\">joist</text><text x=\"14\" y=\"76\" class=\"k\">top plate</text><text x=\"10\" y=\"118\" class=\"k\">1 Slide a pair of shims in, one from each side.</text><text x=\"10\" y=\"132\">2 Tap them until snug, not tight.</text><text x=\"10\" y=\"146\">3 Fasten through the shims into the joist.</text><text x=\"10\" y=\"160\">4 Snap off the extra.</text>",
+   "h": 168,
+   "cap": "Without shims, a screw pulls the plate up into a bow and the wall goes out of plumb."
+  },
+  "intersect": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Where the new wall meets an old one</text><rect x=\"10\" y=\"30\" width=\"140\" height=\"120\" class=\"b\"/><rect x=\"14\" y=\"30\" width=\"8\" height=\"120\" class=\"w\"/><rect x=\"138\" y=\"30\" width=\"8\" height=\"120\" class=\"w\"/><rect x=\"22\" y=\"44\" width=\"116\" height=\"6\" class=\"w\"/><rect x=\"22\" y=\"76\" width=\"116\" height=\"6\" class=\"w\"/><rect x=\"22\" y=\"108\" width=\"116\" height=\"6\" class=\"w\"/><rect x=\"22\" y=\"138\" width=\"116\" height=\"6\" class=\"w\"/><rect x=\"66\" y=\"30\" width=\"28\" height=\"120\" class=\"mos\" style=\"opacity:.6\"/><text x=\"10\" y=\"166\" class=\"k\">Ladder blocking</text><text x=\"10\" y=\"178\">flat 2x4s every 16\" to 24\"</text><rect x=\"170\" y=\"60\" width=\"140\" height=\"14\" class=\"b\"/><rect x=\"226\" y=\"40\" width=\"26\" height=\"20\" class=\"w\"/><rect x=\"226\" y=\"74\" width=\"26\" height=\"70\" class=\"mos\"/><rect x=\"232\" y=\"74\" width=\"14\" height=\"10\" class=\"w\"/><text x=\"170\" y=\"34\" class=\"k\">existing stud</text><text x=\"260\" y=\"120\">new</text><text x=\"260\" y=\"132\">wall</text><text x=\"170\" y=\"166\" class=\"k\">Or land on a stud</text><text x=\"170\" y=\"178\">top view: screw into it</text>",
+   "h": 186,
+   "cap": "The new wall's end stud needs solid wood behind the old drywall to screw into, top to bottom."
+  },
+  "nailplate": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Protect wires with a nail plate</text><rect x=\"100\" y=\"70\" width=\"120\" height=\"50\" class=\"w\"/><circle cx=\"160\" cy=\"95\" r=\"20\" class=\"bk\"/><circle cx=\"160\" cy=\"95\" r=\"5\" class=\"y\"/><rect x=\"94\" y=\"64\" width=\"6\" height=\"62\" class=\"tb\"/><rect x=\"220\" y=\"64\" width=\"6\" height=\"62\" class=\"tb\"/><line x1=\"30\" y1=\"95\" x2=\"90\" y2=\"95\" class=\"bad\"/><polygon points=\"90,95 84.6,97.6 84.6,92.4\" class=\"badf\"/><line x1=\"120\" y1=\"140\" x2=\"100\" y2=\"140\" class=\"o\"/><polygon points=\"100,140 104.5,137.8 104.5,142.2\" class=\"inkf\"/><line x1=\"120\" y1=\"140\" x2=\"140\" y2=\"140\" class=\"o\"/><polygon points=\"140,140 135.5,142.2 135.5,137.8\" class=\"inkf\"/><text x=\"10\" y=\"84\" class=\"k\">drywall</text><text x=\"10\" y=\"112\" class=\"k\">screw</text><text x=\"120\" y=\"156\" class=\"ac\">under 1-1/4\": add plates</text><text x=\"100\" y=\"50\" class=\"k\">steel plate on each face</text><text x=\"160\" y=\"36\" text-anchor=\"middle\">stud seen from above (cut)</text><text x=\"10\" y=\"180\">Center holes. Max about 60% of the stud depth.</text>",
+   "h": 188,
+   "cap": "A drywall screw can't reach a wire or pipe behind a steel plate."
+  }
+ },
+ "glossary": [
+  [
+   "Partition wall",
+   "A wall that divides space and carries no load from above."
+  ],
+  [
+   "Load-bearing",
+   "A wall that holds up joists, rafters or a floor above. Never change one without an engineer."
+  ],
+  [
+   "Plate",
+   "The horizontal 2x4s at the bottom (sole plate) and top of a wall."
+  ],
+  [
+   "On center (o.c.)",
+   "Measured from the center of one stud to the center of the next."
+  ],
+  [
+   "Rough opening (RO)",
+   "The framed hole a door or window fits into, a bit bigger than the unit."
+  ],
+  [
+   "King stud",
+   "A full-height stud on each side of an opening."
+  ],
+  [
+   "Jack (trimmer) stud",
+   "A shorter stud nailed to the king that holds up the header."
+  ],
+  [
+   "Header",
+   "The horizontal piece over an opening."
+  ],
+  [
+   "Cripple",
+   "A short stud above a header or below a window."
+  ],
+  [
+   "Blocking",
+   "Short pieces of lumber between joists or studs for fastening or support."
+  ],
+  [
+   "Toe-nail",
+   "A nail driven at an angle through the side of one board into another."
+  ],
+  [
+   "Plumb",
+   "Exactly vertical."
+  ],
+  [
+   "Crown",
+   "The slight upward curve along a board's edge."
+  ],
+  [
+   "Truss",
+   "A factory-built triangle frame that supports a roof; moves slightly with the seasons."
+  ],
+  [
+   "Egress window",
+   "A window big enough and low enough to escape through in a fire."
+  ]
+ ]
+}
