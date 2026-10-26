@@ -244,6 +244,9 @@ details.step.done .ck svg{opacity:1}
 .irow.cur .ist{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .irow .time{font-family:var(--f-mono);font-size:.72rem;color:var(--muted);white-space:nowrap}
 .tagsk{font-family:var(--f-mono);font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border:1px dashed var(--line);border-radius:4px;padding:0 4px}
+.big{display:flex;gap:10px;align-items:flex-start;background:var(--accent-soft);border-radius:8px;padding:10px 12px}
+.big b.tag{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:var(--accent);color:var(--accent-ink);flex:none;margin-top:3px}
+.big p{font-size:1.02rem;font-weight:500}
 .hbtns{display:flex;gap:6px;justify-content:flex-end}
 .hsec{display:flex;flex-direction:column;gap:6px}
 details.qh,details.faq{background:var(--surface);border:1px solid var(--line);border-radius:8px}
@@ -747,9 +750,9 @@ function steps(){
 
   var L=Lb, rows=L.ledgerTop;
   var fSteps=[
-   {id:"f1",t:"Find your level line",time:"30 min",b:"<ol><li>Find the lowest point on the tub rim on each wall. If you didn't mark it when setting the tub, <b>Quick help: Find the lowest point</b> below shows how.</li><li>"+(L.ledgerTop?"Measure up "+m(L.ledgerTop)+" from that low point. That's the top of the ledger board and the bottom of your first full row.":"Your layout starts with a full tile right at the tub. Set "+frac(0.125)+" spacers on the tub and level the first row with leveling clips and shims under the tiles where the tub dips.")+"</li><li>Make a pencil mark at that height. Carry a level line from it around all three walls with the laser or the 4 ft level (<b>Quick help: Mark a level line</b>).</li><li>Check: the line should be the same height above the tub\'s lowest point on every wall, and meet itself where you started.</li></ol>"+(L.ledgerTop?note("info","Why a ledger","Tubs are never perfectly level. If you stack tile on the tub, the error grows every row. The ledger gives you a perfect level start. The bottom row of cut tiles goes in last, and the cut absorbs the tub's dips."):"")},
+   {id:"f1",t:"Mark a level starting line",time:"30 min",b:"<ol><li>Find the lowest point on the tub rim on each wall. If you didn't mark it when setting the tub, <b>Quick help: Find the lowest point</b> below shows how.</li><li>"+(L.ledgerTop?"Measure up "+m(L.ledgerTop)+" from that low point. That's the top of the ledger board and the bottom of your first full row.":"Your layout starts with a full tile right at the tub. Set "+frac(0.125)+" spacers on the tub and level the first row with leveling clips and shims under the tiles where the tub dips.")+"</li><li>Make a pencil mark at that height. Carry a level line from it around all three walls with the laser or the 4 ft level (<b>Quick help: Mark a level line</b>).</li><li>Check: the line should be the same height above the tub\'s lowest point on every wall, and meet itself where you started.</li></ol>"+(L.ledgerTop?note("info","Why a ledger","Tubs are never perfectly level. If you stack tile on the tub, the error grows every row. The ledger gives you a perfect level start. The bottom row of cut tiles goes in last, and the cut absorbs the tub's dips."):"")},
    ];
-  if(L.ledgerTop) fSteps.push({id:"f2",t:"Screw on the ledger board",time:"20 min",b:"<ol><li>Screw your straight 1×3 or 1×4 to the studs with its top edge exactly on the level line.</li><li>Check it with the level along its full length. Shim behind it if needed.</li><li>After you remove it, dab membrane or silicone into each screw hole. The bottom row covers them.</li></ol>"});
+  if(L.ledgerTop) fSteps.push({id:"f2",t:"Screw on a temporary ledger board",time:"20 min",b:"<ol><li>This board is <b>temporary</b>. It holds up your first full row while the thinset hardens. You take it off in Phase 7 and fill the strip under it with cut tiles.</li><li>Screw your straight 1×3 or 1×4 to the studs with its top edge exactly on the level line. Two 3\" screws per stud are plenty; you\'ll be removing them.</li><li>Check it with the level along its full length. Shim behind it if needed.</li><li>After you remove it, dab membrane or silicone into each screw hole. The bottom row covers them.</li></ol>"});
   fSteps.push({id:"f3",t:"Mark your vertical start line",time:"20 min",b:"<ol><li><b>Back wall:</b> measure "+m(Lb.firstEdge)+" from the left corner on row 1 and draw a plumb (perfectly vertical) line. The left edge of your first full tile on row 1 sits on it.</li><li>The smallest cut piece at either end of the back wall is about "+m(Lb.minEnd===Infinity?0:Lb.minEnd)+(Lb.minEnd<2?". That's thin; adjust by shifting the line half a tile.":".")+"</li><li><b>Side walls:</b> start with a full tile at the front edge (the side people see), so the cut goes into the back corner. Smallest cut there: "+m(Ls.minEnd===Infinity?0:Ls.minEnd)+".</li>"+(S.pattern!=="stack"?"<li>For the "+(S.pattern==="third"?"1/3":"1/2")+" offset, mark the offset on the ledger too: each new row shifts "+m(offsetFrac()*((S.orient==="h"?T.b:T.a)+g))+" from the row below.</li>":"")+"</ol>"});
   fSteps.push({id:"f4",t:"Make a story pole and check the niche",time:"20 min",b:"<ol><li>Take a straight scrap board. Mark the ledger height, then every row line up from there ("+m((S.orient==="h"?T.a:T.b)+g)+" apart).</li><li>Hold it against the wall next to the niche. "+(N?"The niche shelf and top should land right on row lines (shelf at "+m(N.sill)+").":"")+" Check where the valve and shower arm fall. A pipe sitting right on a grout line is easy: notch two tiles instead of drilling one.</li><li>Check the top row: "+(S.toCeiling?"your top cut is about "+m(L.top||0)+".":"tile ends with a full row at "+m(S.tileH)+".")+"</li></ol>"});
   P("Layout",fSteps);
@@ -1206,7 +1209,7 @@ function renderSteps(){
     '<div class="eyebrow">Phase '+(x.pi+1)+' · '+esc(x.phase)+' · step '+(x.si+1)+' of '+x.pn+'</div>'+
     '<h2 class="ptitle">'+esc(s.t)+'</h2>'+
     '<div class="pmeta">'+(s.time?'<span class="cue time">Time: '+esc(s.time)+'</span>':'')+(st==="done"?'<span class="cue okc">Done</span>':st==="skip"?'<span class="cue sk">Skipped</span>':'')+'</div>'+
-    cueHTML(meta)+fig+needHTML(meta.need)+'<div class="body">'+s.b+'</div>'+stepHelpHTML(s.id)+
+    bigHTML(s.id)+cueHTML(meta)+fig+needHTML(meta.need)+'<div class="body">'+s.b+'</div>'+stepHelpHTML(s.id)+
     '<div class="pnav"><button class="btn" data-nav="prev"'+(cx===0?' disabled':'')+'>Back</button>'+
       (st==="done"?'<button class="btn ghost" data-nav="undo">Mark not done</button>':st==="skip"?'<button class="btn ghost" data-nav="unskip">Unskip</button>':'<button class="btn ghost" data-nav="skip">Skip</button>')+
       '<button class="btn '+(st==="done"?"primary":"good")+'" data-nav="'+(st==="done"?"next":"done")+'">'+(cx===total-1?(st==="done"?"Finish":"Done, finish"):(st==="done"?"Next step":"Done, next step"))+'</button></div>';
@@ -1368,6 +1371,125 @@ function helpLibraryHTML(){
     Object.keys(HELP).map(function(k){return helpCard(k);}).join("")+
     '<h3 style="margin-top:18px">Words you\'ll see</h3><dl class="gloss">'+GLOSS.map(function(g){return '<dt>'+esc(g[0])+'</dt><dd>'+esc(g[1])+'</dd>';}).join("")+'</dl>';
 }
+
+/* ---------- plain-English layer: big ideas + more figures ---------- */
+Object.assign(FIGS,{
+ ledgerStory:function(c){
+  var L=c.Lb, lt=L.ledgerTop?fr(L.ledgerTop):'';
+  function panel(px,py,n,title,sub,draw){
+    var g='<g transform="translate('+px+' '+py+')">'+rc(0,0,150,96,'bk')+'<clipPath id="lp'+n+'"><rect x="1" y="1" width="148" height="94"/></clipPath><g clip-path="url(#lp'+n+')">'+rc(1,1,148,94,'b')+'<path class="tb" d="M0 78 L60 82 L150 76 V96 H0Z"/>'+draw+'</g>'+num(12,12,n)+'</g>';
+    return g+tx(px,py+108,title,'k')+tx(px,py+119,sub);
+  }
+  function tiles(y0,rows){var t='';for(var r=0;r<rows;r++){var y=y0-(r+1)*16,o=(r%3)*14;for(var x=-40+o;x<150;x+=42) t+=rc(x+1,y+1,40,14,'tl');}return t;}
+  var s='';
+  s+=panel(4,4,1,'Find the low spot','on the tub rim','<circle cx="60" cy="82" r="3.5" class="badf"/>'+ar(60,60,60,76,'bad'));
+  s+=panel(166,4,2,'Draw a level line','that height above it','<circle cx="60" cy="82" r="3" class="badf"/>'+ln(0,48,150,48,'a d')+ln(60,50,60,80,'o d'));
+  s+=panel(4,134,3,'Screw on the ledger','top edge on the line','<rect x="0" y="48" width="150" height="7" class="y"/>'+'<circle cx="30" cy="51.5" r="1.6" class="inkf"/><circle cx="90" cy="51.5" r="1.6" class="inkf"/>');
+  s+=panel(166,134,4,'Tile sits on the ledger','work up the wall','<rect x="0" y="48" width="150" height="7" class="y"/>'+tiles(48,3));
+  s+=panel(4,264,5,'Next day: unscrew it','gap is left at the bottom','<rect x="0" y="48" width="150" height="7" class="y" opacity=".25" stroke-dasharray="3 2"/>'+tiles(48,3)+ar(110,62,140,70,'o'));
+  s+=panel(166,264,6,'Fill the gap with cut tile','1/8" above the tub','<rect x="1" y="49" width="40" height="26" class="tl" fill-opacity="1"/><rect x="43" y="49" width="40" height="28" class="tl"/><rect x="85" y="49" width="40" height="26" class="tl"/><rect x="127" y="49" width="40" height="24" class="tl"/>'+tiles(48,3));
+  return F(sv(s,394),'Yes, the ledger goes on and then comes off. It is a temporary shelf so your first full row is perfectly level.'+(lt?' Yours: top of ledger '+lt+' above the low spot.':''));
+ },
+ jobMap:function(){
+  var ph=[['Plan','buy'],['Tub','set'],['Niche','frame'],['Board','hang'],['Water-','proof'],['Layout','lines'],['Tile','set'],['Grout','caulk']];
+  var s=tx(10,16,'The whole job, in order','k');
+  ph.forEach(function(p,i){var col=i%4,row=Math.floor(i/4),x=12+col*77,y=34+row*70;
+    s+=rc(x,y,64,44,'bk')+num(x+10,y+10,i+1)+tx(x+32,y+30,p[0],'k','middle')+tx(x+32,y+40,p[1],'','middle');
+    if(col<3) s+=ar(x+64,y+22,x+75,y+22,'o');});
+  s+=tx(10,180,'Each phase must be finished before the next starts.');
+  return F(sv(s,188),'Plan on several weekends. Some steps need overnight drying before the next.');
+ },
+ cover:function(){
+  var s=tx(10,16,'Cover the new tub','k');
+  s+='<path class="tb" d="M20 70 h280 v10 q0 50 -40 56 h-200 q-40 -6 -40 -56z"/>';
+  s+=rc(30,60,260,16,'w')+tx(160,72,'cardboard / tub protector','k','middle');
+  s+=rc(20,56,30,6,'y')+rc(270,56,30,6,'y')+tx(36,50,'tape','', 'middle')+tx(284,50,'tape','', 'middle');
+  s+=tx(10,160,'Keep it on until grouting is done.')+tx(10,172,'Stand on it, not the bare tub.');
+  return F(sv(s,174));
+ },
+ clean:function(){
+  var s=tx(10,16,'Clean before waterproofing','k');
+  s+=rc(10,30,150,110,'b');for(var i=0;i<14;i++) s+='<circle cx="'+(20+i*10)+'" cy="'+(40+((i*37)%90))+'" r="1.6" class="inkf" opacity=".5"/>';
+  s+=rc(170,30,140,110,'b')+'<rect x="215" y="70" width="44" height="26" rx="6" class="y"/>'+tx(237,87,'sponge','k','middle');
+  s+=ar(150,85,178,85,'a')+tx(80,156,'dusty: membrane peels','wa','middle')+tx(240,156,'vacuumed + damp wiped','gd','middle');
+  return F(sv(s,166),'Vacuum first, then wipe with a sponge that is damp, not dripping.');
+ },
+ sealer:function(){
+  var s=tx(10,16,'Seal powder grout','k');
+  for(var r=0;r<3;r++) for(var x=-40+(r%3)*40;x<320;x+=120) s+=rc(x+2,28+r*36,116,32,'tl');
+  s+=rc(150,58,14,40,'bk','transform="rotate(30 157 78)"')+ln(118,94,300,94,'a');
+  s+=tx(10,150,'Brush or roll sealer onto the grout lines only.')+tx(10,162,'Wipe any off the tile faces within a few minutes.');
+  return F(sv(s,170));
+ },
+ trim:function(){
+  var s=tx(10,16,'Putting the fixtures back','k');
+  s+=rc(10,30,130,120,'tl')+'<circle cx="75" cy="90" r="34" class="bk"/>'+'<circle cx="75" cy="90" r="10" class="b"/>'+tx(75,140,'trim plate','k','middle');
+  s+=ar(146,62,124,76,'a')+tx(150,60,'silicone top','ac')+tx(150,71,'and sides');
+  s+=ar(146,130,124,118,'bad')+tx(150,132,'leave bottom','wa')+tx(150,143,'open to drain');
+  s+=rc(240,40,50,10,'bk')+'<path class="o" d="M290 38 l16 -10 m-16 24 l16 10"/>'+tx(272,72,'plumber\'s tape','', 'middle')+tx(272,83,'on arm threads','', 'middle');
+  return F(sv(s,158));
+ },
+ cure:function(){
+  var s=tx(10,16,'Typical waits (your labels win)','k');
+  var rows=[['Membrane','12–24 hr'],['Thinset → grout','24 hr'],['Grout → silicone','24 hr'],['Silicone → water','24 hr'],['First shower','about 72 hr']];
+  rows.forEach(function(r,i){var y=34+i*24;s+=rc(10,y,300,18,'bk')+rc(10,y,40+i*55,18,'mos')+tx(16,y+13,r[0],'k')+tx(304,y+13,r[1],'ac','end');});
+  return F(sv(s,160));
+ }
+});
+HELP.ledger={t:"The ledger board, start to finish",fig:"ledgerStory",b:'<ol><li><b>Why:</b> the tub is never perfectly level. If you stack tile on it, every row tilts.</li><li><b>Line:</b> you draw a level line a little more than one tile up from the tub\'s lowest spot.</li><li><b>Ledger on:</b> screw a straight board with its top on that line. It\'s a temporary shelf.</li><li><b>Tile up:</b> your first full row sits on the board. Every row above is level because the first one is.</li><li><b>Ledger off:</b> next day, unscrew it. A strip of wall is left bare at the bottom.</li><li><b>Fill in:</b> cut tiles to fit that strip, each measured separately, sitting 1/8" above the tub. The cuts hide the tub\'s dips.</li></ol>'};
+["f2","f3","g3","g8"].forEach(function(id){STEP_HELP[id]=["ledger"].concat((STEP_HELP[id]||[]).filter(function(h){return h!=="ledger";}));});
+var BIG={
+ a1:"Know what you're building and have everything on hand before you start.",
+ a2:"Set up a place to cut outside, and protect your lungs and eyes.",
+ a3:"Tile is only as flat as the studs behind it. Find and fix crooked ones now.",
+ a4:"Make sure the shower valve will line up with the finished tile surface.",
+ a5:"Add wood inside the wall now for anything you'll screw on later.",
+ b1:"The tub is the base everything sits on. It has to be solid and level.",
+ b2:"Cover the new tub so nothing scratches or chips it.",
+ b3:"Thin strips on the studs let the board sit flat over the tub's lip.",
+ c0:"No niche, so nothing to frame.",
+ c1:"Mark exactly where the niche box goes so it lines up with your tile rows.",
+ c2:"Two wood blocks become the bottom and top of the niche.",
+ c3:"Strips at the back give the niche's back panel something to screw into.",
+ d1:"Plan where each cement board sheet goes before you cut anything.",
+ d2:"Cement board cuts by scoring and snapping, like a chocolate bar.",
+ d3:"Cut holes in the board where the pipes stick out.",
+ d3p:"A plastic sheet behind the board catches water and drains it into the tub.",
+ d4:"Screw the board to the studs. This is the surface you'll tile on.",
+ d5:"Line the inside of the niche with board, like a little box.",
+ d6:"Cover every seam with tape and thinset so the wall acts like one piece.",
+ e1:"Get the board clean so the waterproofing sticks.",
+ e2:"Reinforce the weak spots first: corners, pipes and the niche.",
+ e3:"Roll on the first waterproof coat.",
+ e4:"Second coat, then let it cure. Now the wall is waterproof.",
+ f1:"Draw a perfectly level line. Your tile rows follow this line, not the tub.",
+ f2:"Screw a temporary board on that line. It's a shelf for your first full row. It comes off later.",
+ f3:"Draw one straight-up line so the tiles start in the right spot side to side.",
+ f4:"Double-check where the rows land before you set any tile.",
+ g1:"Mix the tile glue (thinset) to the right thickness.",
+ g2:"Practice spreading thinset and setting a tile so it sticks all over.",
+ g3:"Set your first full row, resting on the ledger board.",
+ g4:"Keep setting rows up the wall, the same way.",
+ g5:"How to make every kind of cut you'll need.",
+ g6:"Same process on the two side walls.",
+ g7:"Tile the inside of the niche, back first.",
+ g8:"Take the temporary ledger off and fill the bottom strip with cut tiles.",
+ g9:"Pop off the leveling clips now that the thinset is hard.",
+ h1:"Clean the joints, and keep grout out of the corners.",
+ h2:"Fill the joints between tiles with grout.",
+ h3:"Seal the corners and the tub joint with silicone.",
+ h4:"Seal powder grout so it doesn't stain.",
+ i1:"Put the handle, spout and shower head back on.",
+ i2:"Let everything cure, then enjoy your shower."
+};
+Object.assign(META.a1||(META.a1={}),{fig:"jobMap"});
+Object.assign(META.b2||(META.b2={}),{fig:"cover"});
+Object.assign(META.e1||(META.e1={}),{fig:"clean"});
+Object.assign(META.h4||(META.h4={}),{fig:"sealer"});
+Object.assign(META.i1||(META.i1={}),{fig:"trim"});
+Object.assign(META.i2||(META.i2={}),{fig:"cure"});
+Object.assign(META.f1||(META.f1={}),{fig:"ledgerStory"});
+function bigHTML(id){return BIG[id]?'<div class="big"><b class="tag">The idea</b><p>'+esc(BIG[id])+'</p></div>':"";}
 
 /* ---------- render: niche ---------- */
 function renderNiche(){
