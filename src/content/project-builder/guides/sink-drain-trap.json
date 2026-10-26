@@ -1,0 +1,974 @@
+{
+ "slug": "sink-drain-trap",
+ "title": "Fix a Sink Drain Trap",
+ "eyebrow": "Plumbing · sink drains",
+ "category": "Plumbing",
+ "difficulty": "Beginner",
+ "time": "30 min–2 hours",
+ "summary": "Stop a leaking P-trap, clear a clogged one, or replace an old trap under a kitchen or bathroom sink. You'll end up with a straight, sealed plastic trap that drains fast and keeps sewer gas out.",
+ "safety": "Wear gloves and safety glasses: trap water is dirty, and <b>if chemical drain cleaner was used it can burn you</b>. Unplug or switch off a garbage disposal before working near it. Never put a hand in a disposal.",
+ "pro": "the pipe in the wall is cracked or crumbling, the leak is at the wall connection and won't seal, the trap needs to drain uphill, you have an S-trap or no vent, or clogs keep coming back (the problem is farther down the line). New drain lines or moving a sink usually need a permit.",
+ "questions": [
+  {
+   "id": "sink",
+   "label": "Which sink?",
+   "type": "choice",
+   "default": "kitchen1",
+   "options": [
+    {
+     "v": "kitchen1",
+     "label": "Kitchen, one bowl"
+    },
+    {
+     "v": "kitchen2",
+     "label": "Kitchen, two bowls"
+    },
+    {
+     "v": "bath",
+     "label": "Bathroom"
+    }
+   ]
+  },
+  {
+   "id": "problem",
+   "label": "What's the job?",
+   "type": "choice",
+   "default": "leak",
+   "options": [
+    {
+     "v": "leak",
+     "label": "Trap leaks"
+    },
+    {
+     "v": "clog",
+     "label": "Clogged drain"
+    },
+    {
+     "v": "replace",
+     "label": "Replace an old or cracked trap"
+    },
+    {
+     "v": "new",
+     "label": "Hook up a new sink"
+    }
+   ]
+  },
+  {
+   "id": "dw",
+   "label": "Is a dishwasher connected?",
+   "type": "choice",
+   "default": "no",
+   "when": "a.sink!=='bath'",
+   "options": [
+    {
+     "v": "no",
+     "label": "No"
+    },
+    {
+     "v": "yes",
+     "label": "Yes"
+    }
+   ]
+  },
+  {
+   "id": "disp",
+   "label": "Is there a garbage disposal?",
+   "type": "choice",
+   "default": "no",
+   "when": "a.sink!=='bath'",
+   "options": [
+    {
+     "v": "no",
+     "label": "No"
+    },
+    {
+     "v": "yes",
+     "label": "Yes"
+    }
+   ]
+  },
+  {
+   "id": "size",
+   "label": "Tailpiece size",
+   "type": "choice",
+   "default": "1.5",
+   "options": [
+    {
+     "v": "1.5",
+     "label": "1-1/2\"",
+     "hint": "kitchen, usually"
+    },
+    {
+     "v": "1.25",
+     "label": "1-1/4\"",
+     "hint": "bathroom, usually"
+    }
+   ],
+   "hint": "Measure across the outside of the straight pipe under the sink."
+  },
+  {
+   "id": "mat",
+   "label": "What's the trap made of now?",
+   "type": "choice",
+   "default": "plastic",
+   "options": [
+    {
+     "v": "plastic",
+     "label": "Plastic",
+     "hint": "white or black"
+    },
+    {
+     "v": "metal",
+     "label": "Metal",
+     "hint": "chrome or brass"
+    }
+   ]
+  },
+  {
+   "id": "arm",
+   "label": "Trap arm length (J-bend to wall)",
+   "type": "number",
+   "unit": "in",
+   "default": 8,
+   "step": 1
+  }
+ ],
+ "calcs": [
+  {
+   "id": "drop",
+   "label": "Trap arm drop",
+   "expr": "frac(Math.max(1,+a.arm)/12*0.25)",
+   "fmt": "{{c.drop}} toward the wall"
+  }
+ ],
+ "calcNote": "The trap arm should fall about 1/4\" per foot toward the wall. On a short arm that's barely visible: just make sure it never runs uphill.",
+ "overviewFig": "anatomy",
+ "tools": [
+  {
+   "id": "bucket",
+   "c": "Prep",
+   "n": "Bucket or shallow pan",
+   "must": true,
+   "w": "Catches the dirty water sitting in the trap.",
+   "q": "5 gallon bucket",
+   "qty": "1"
+  },
+  {
+   "id": "towels",
+   "c": "Prep",
+   "n": "Old towels and a roll of paper towels",
+   "must": true,
+   "w": "Towels for the cabinet floor; paper towels to find leaks.",
+   "q": "shop towels",
+   "qty": "1 roll"
+  },
+  {
+   "id": "light",
+   "c": "Prep",
+   "n": "Headlamp or flashlight",
+   "must": true,
+   "w": "The back of a sink cabinet is dark.",
+   "q": "headlamp"
+  },
+  {
+   "id": "gloves",
+   "c": "Safety",
+   "n": "Nitrile or rubber gloves",
+   "must": true,
+   "w": "Trap water and gunk are full of bacteria.",
+   "q": "nitrile gloves"
+  },
+  {
+   "id": "glasses",
+   "c": "Safety",
+   "n": "Safety glasses",
+   "must": true,
+   "w": "You're working face-up under a pipe full of dirty water.",
+   "q": "safety glasses"
+  },
+  {
+   "id": "pliers",
+   "c": "Hand tools",
+   "n": "10\" or 12\" tongue-and-groove (channel-lock) pliers",
+   "must": true,
+   "w": "For nuts that won't turn by hand. Wrap a rag around chrome to avoid scratches.",
+   "q": "tongue and groove pliers 10 in"
+  },
+  {
+   "id": "tape",
+   "c": "Hand tools",
+   "n": "Tape measure and marker",
+   "must": true,
+   "w": "Measure the pipe size and mark cuts.",
+   "q": "tape measure"
+  },
+  {
+   "id": "brush",
+   "c": "Hand tools",
+   "n": "Bottle brush or old toothbrush, plus a bent wire or zip-it tool",
+   "must": true,
+   "w": "Scrubs the trap and pulls hair out of the trap arm.",
+   "q": "drain cleaning tool",
+   "when": "a.problem==='clog'"
+  },
+  {
+   "id": "auger",
+   "c": "Hand tools",
+   "n": "1/4\" hand drain auger (snake), 15–25 ft",
+   "must": false,
+   "w": "Only if the clog is past the trap, inside the wall.",
+   "q": "drain auger 1/4 inch 25 ft",
+   "when": "a.problem==='clog'"
+  },
+  {
+   "id": "saw",
+   "c": "Hand tools",
+   "n": "Hacksaw (fine-tooth blade) or tubing cutter for plastic",
+   "must": true,
+   "w": "Cuts the tailpiece or trap arm to length.",
+   "q": "hacksaw",
+   "when": "(a.problem==='replace'||a.problem==='new'||a.mat==='metal')"
+  },
+  {
+   "id": "knife",
+   "c": "Hand tools",
+   "n": "Utility knife or small file",
+   "must": true,
+   "w": "Scrapes the rough burr off a cut pipe so the washer seals.",
+   "q": "utility knife",
+   "when": "(a.problem==='replace'||a.problem==='new'||a.mat==='metal')"
+  },
+  {
+   "id": "trapkit",
+   "c": "Parts",
+   "n": "{{a.size==='1.25'?'1-1/4\"':'1-1/2\"'}} plastic P-trap kit (J-bend, trap arm, nuts, washers)",
+   "must": true,
+   "w": "Plastic (PVC or ABS) slip-joint kits are cheap, don't corrode, and are easy to install.",
+   "q": "{{a.size==='1.25'?'1-1/4 in':'1-1/2 in'}} p-trap kit",
+   "qty": "1",
+   "when": "(a.problem==='replace'||a.problem==='new'||a.mat==='metal')"
+  },
+  {
+   "id": "washers",
+   "c": "Parts",
+   "n": "Spare {{a.size==='1.25'?'1-1/4\"':'1-1/2\"'}} slip-joint washers and nuts",
+   "must": true,
+   "w": "A worn washer is the usual cause of a drip. Buy the size of your pipe.",
+   "q": "{{a.size==='1.25'?'1-1/4 in':'1-1/2 in'}} slip joint washer",
+   "qty": "1 pack",
+   "when": "a.problem==='leak'"
+  },
+  {
+   "id": "tail",
+   "c": "Parts",
+   "n": "{{a.size==='1.25'?'1-1/4\"':'1-1/2\"'}} tailpiece or extension tube",
+   "must": false,
+   "w": "Only if the old one is corroded or too short to reach.",
+   "q": "{{a.size==='1.25'?'1-1/4 in':'1-1/2 in'}} sink tailpiece",
+   "qty": "1",
+   "when": "(a.problem==='replace'||a.problem==='new'||a.mat==='metal')&&!(a.sink!=='bath'&&a.dw==='yes')"
+  },
+  {
+   "id": "cw",
+   "c": "Parts",
+   "n": "1-1/2\" continuous waste kit (end outlet or center outlet)",
+   "must": true,
+   "w": "Joins both bowls into one trap.",
+   "q": "1-1/2 in continuous waste kit",
+   "qty": "1",
+   "when": "a.sink==='kitchen2'&&(a.problem==='replace'||a.problem==='new')"
+  },
+  {
+   "id": "dwtail",
+   "c": "Parts",
+   "n": "1-1/2\" dishwasher branch tailpiece",
+   "must": true,
+   "w": "A tailpiece with a side inlet for the dishwasher hose. Not needed if the hose goes to the disposal.",
+   "q": "dishwasher branch tailpiece 1-1/2",
+   "qty": "1",
+   "when": "(a.sink!=='bath'&&a.dw==='yes')&&a.disp==='no'&&(a.problem==='replace'||a.problem==='new')"
+  },
+  {
+   "id": "clamp",
+   "c": "Parts",
+   "n": "Hose clamp (sized for the dishwasher hose, about 7/8\")",
+   "must": true,
+   "w": "Holds the dishwasher hose on its inlet.",
+   "q": "hose clamp dishwasher",
+   "qty": "1",
+   "when": "(a.sink!=='bath'&&a.dw==='yes')"
+  },
+  {
+   "id": "strap",
+   "c": "Parts",
+   "n": "Pipe strap or hose clip + short screws",
+   "must": true,
+   "w": "Holds the dishwasher hose up high under the counter (high loop).",
+   "q": "dishwasher drain hose high loop bracket",
+   "qty": "1",
+   "when": "(a.sink!=='bath'&&a.dw==='yes')"
+  },
+  {
+   "id": "airgap",
+   "c": "Parts",
+   "n": "Dishwasher air gap",
+   "must": false,
+   "w": "Only where your local code requires one instead of a high loop.",
+   "q": "dishwasher air gap",
+   "qty": "1",
+   "when": "(a.sink!=='bath'&&a.dw==='yes')"
+  },
+  {
+   "id": "disckit",
+   "c": "Parts",
+   "n": "Disposal discharge tube kit",
+   "must": false,
+   "w": "Only if the old tube is cracked or the wrong length. Most disposals include one.",
+   "q": "garbage disposal discharge tube",
+   "qty": "1",
+   "when": "(a.sink!=='bath'&&a.disp==='yes')"
+  },
+  {
+   "id": "screwdriver",
+   "c": "Hand tools",
+   "n": "Flat screwdriver and hammer",
+   "must": true,
+   "w": "Knocks out the dishwasher plug inside a new disposal.",
+   "q": "flat screwdriver",
+   "when": "(a.sink!=='bath'&&a.disp==='yes')&&(a.sink!=='bath'&&a.dw==='yes')"
+  },
+  {
+   "id": "adapter",
+   "c": "Parts",
+   "n": "{{a.size==='1.25'?'1-1/4\"':'1-1/2\"'}} trap adapter for the wall pipe",
+   "must": false,
+   "w": "Only if the old metal adapter at the wall is corroded. Threaded for metal pipe, glue-on for plastic.",
+   "q": "{{a.size==='1.25'?'1-1/4 in':'1-1/2 in'}} trap adapter",
+   "qty": "1",
+   "when": "a.mat==='metal'"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Get ready",
+   "steps": [
+    {
+     "id": "p1",
+     "t": "Know your parts and your size",
+     "time": "10 min",
+     "idea": "Every sink drain has the same few parts. Learn their names and measure the size before you buy anything.",
+     "fig": [
+      "anatomy",
+      "size"
+     ],
+     "need": [
+      "tape",
+      "light"
+     ],
+     "b": "<ol><li>Open the cabinet and find the parts in the picture: tailpiece (straight pipe down from the sink), J-bend (the U), trap arm (goes into the wall), slip nuts at each joint.</li><li>Measure across the outside of the tailpiece. About 1-1/4\" = bathroom size. About 1-1/2\" = kitchen size.</li><li>Look at the trap: white or black plastic, or shiny chrome / dull brass metal?</li><li>Look where the trap arm enters the wall: is there a nut at the wall (a slip joint) or is it glued?</li><li>Take two photos from different angles. They're your map when you put it back together.</li></ol>",
+     "faq": [
+      [
+       "Is my trap PVC or ABS?",
+       "White is PVC, black is ABS. For slip-joint traps either one works; they're held by nuts and washers, not glue."
+      ],
+      [
+       "The pipe goes into the floor, not the wall.",
+       "That's usually an S-trap or a floor drain stub. See the S-trap step: it may need a pro."
+      ]
+     ]
+    },
+    {
+     "id": "p2",
+     "t": "Clear the cabinet and set up",
+     "time": "10 min",
+     "idea": "Give yourself room, light, and a place for the dirty water to go.",
+     "need": [
+      "bucket",
+      "towels",
+      "light",
+      "gloves",
+      "glasses"
+     ],
+     "ppe": [
+      "Gloves",
+      "Glasses"
+     ],
+     "b": "<ol><li>Empty everything out of the sink cabinet.</li><li>Lay an old towel on the cabinet floor.</li><li>Put the bucket right under the J-bend.</li><li>{{a.sink!=='bath'&&a.disp==='yes'?'Unplug the garbage disposal (or switch off its breaker). Never put a hand near the disposal while it has power.':'Clear the sink bowl so nothing falls in.'}}</li><li>Tell everyone not to use the sink (or the dishwasher) until you're done.</li></ol>",
+     "stop": "Did anyone pour chemical drain cleaner in this sink in the last day? Then the trap water can burn skin and eyes. Wear gloves and glasses, flush with lots of water first if it drains at all, and don't splash. If it won't drain, call a plumber and tell them what was used.",
+     "faq": [
+      [
+       "Do I need to shut off the water?",
+       "No. The drain isn't under pressure. Just don't run the faucet while the trap is off."
+      ]
+     ]
+    },
+    {
+     "id": "p3",
+     "t": "Find exactly where it leaks",
+     "time": "15 min",
+     "when": "a.problem==='leak'",
+     "idea": "Water runs along pipes, so the drip you see is often below the real leak. Find the source first.",
+     "fig": "test",
+     "need": [
+      "towels"
+     ],
+     "help": [
+      "towelHelp"
+     ],
+     "b": "<ol><li>Dry every pipe and joint with a towel.</li><li>Run the faucet for a minute. Feel each joint with a dry paper towel, from the top down.</li><li>Then fill the sink and pull the plug. Check again.</li><li>Wet at a slip nut? That's a trap job (keep going).</li><li>Wet higher up at the sink strainer, the pop-up or the faucet hoses? That's a different fix (see the FAQ).</li></ol>",
+     "faq": [
+      [
+       "It only leaks when the sink is full and draining.",
+       "Classic slip-joint leak. A full drain floods the joints. Keep going."
+      ],
+      [
+       "The leak is at the faucet or its supply hoses.",
+       "That's water under pressure, not drain. See the Replace a Faucet guide."
+      ],
+      [
+       "The leak is where the strainer meets the sink.",
+       "The strainer (kitchen) or drain body (bath) needs new putty or gaskets. Loosen the trap first to get at it."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Take the trap off",
+   "steps": [
+    {
+     "id": "r1",
+     "t": "Remove the J-bend",
+     "time": "10 min",
+     "idea": "Two nuts hold the J-bend. Loosen them and it drops out over the bucket.",
+     "fig": "remove",
+     "need": [
+      "bucket",
+      "pliers",
+      "gloves"
+     ],
+     "ppe": [
+      "Gloves",
+      "Glasses"
+     ],
+     "help": [
+      "plierHelp"
+     ],
+     "b": "<ol><li>Grip the top nut on the tailpiece side. Turn it so it moves down, away from the threads it sits on. Most come off by hand.</li><li>Do the same with the nut on the trap-arm side.</li><li>If a nut won't move, use the channel-lock pliers. Hold the pipe with your other hand so you don't twist the wall pipe.</li><li>Lower the J-bend straight down and tip the water into the bucket.</li><li>Slide the old nuts and washers off and keep them in order, in case you reuse them.</li></ol>",
+     "faq": [
+      [
+       "The nut is plastic and cracked.",
+       "Replace it. Nuts and washers are sold in packs by pipe size."
+      ],
+      [
+       "A metal nut is rusted solid.",
+       "Cut through the J-bend with a hacksaw and pull the pieces. You're replacing it anyway."
+      ]
+     ]
+    },
+    {
+     "id": "r2",
+     "t": "Clean out the clog",
+     "time": "15 min",
+     "when": "a.problem==='clog'",
+     "idea": "Most sink clogs are a plug of hair, grease or food sitting right in the trap.",
+     "need": [
+      "brush",
+      "bucket",
+      "gloves"
+     ],
+     "ppe": [
+      "Gloves",
+      "Glasses"
+     ],
+     "b": "<ol><li>Look into the J-bend. Push the gunk out with your gloved fingers or the brush into the bucket.</li><li>Scrub the inside clean in the bucket, not in the sink (the drain is open).</li><li>Shine the light into the tailpiece: hair often wraps around the stopper. Pull it out with the wire or zip-it tool.</li><li>Pull out the trap arm if it slides free. Clean it too.</li><li>Feel inside the wall pipe as far as you can reach. If you hit a clog there, use the auger (see FAQ).</li></ol>",
+     "faq": [
+      [
+       "How do I use a hand auger (snake)?",
+       "With the trap off, feed the cable into the wall pipe. Tighten the lock and crank clockwise while pushing gently. When it stops moving forward, keep cranking to bore through. Pull it back out slowly with a rag around it. Reassemble, then run hot water for a minute."
+      ],
+      [
+       "Should I use chemical drain cleaner?",
+       "Avoid it. It rarely clears a hair clog, can damage old metal pipes, and leaves caustic water in the trap that burns you when you open it. Never mix two cleaners."
+      ],
+      [
+       "It clogs again every few weeks.",
+       "The blockage is farther down the line, often in the main or a sag in the pipe. A plumber with a long power auger or camera can find it."
+      ]
+     ]
+    },
+    {
+     "id": "r3",
+     "t": "Check the trap arm and wall pipe",
+     "time": "10 min",
+     "idea": "A trap only works if the pipe it drains into is sound, sloped the right way and vented.",
+     "fig": [
+      "seal",
+      "anatomy"
+     ],
+     "need": [
+      "light"
+     ],
+     "b": "<ol><li>Look at the pipe coming out of the wall. Shine the light around it, behind the cover plate (escutcheon).</li><li>Wiggle it gently. It should be solid, not cracked or crumbling.</li><li>Check the old trap arm: it should slope slightly DOWN toward the wall, never uphill.</li><li>Does the trap end in a pipe going down into the floor (an S shape)? That's an S-trap. See the FAQ.</li><li>Has the sink been gurgling or smelling of sewer? Note it: that hints the trap water is being siphoned out.</li></ol>",
+     "stop": "Pipe cracked inside the wall, a metal wall pipe that crumbles when touched, or a joint at the wall that won't come apart without twisting the pipe in the wall? Stop. That's a repair inside the wall: call a plumber.",
+     "faq": [
+      [
+       "What's an S-trap and why is it a problem?",
+       "A trap that turns straight down into the floor instead of into a vented wall pipe. Draining water siphons the seal out, letting sewer gas in. Most codes no longer allow them for new work. Fixing it means adding a vent or a vented wall drain, which is plumber work, usually with a permit."
+      ],
+      [
+       "The sink gurgles and smells, but nothing leaks.",
+       "Gurgling means air is being pulled through the trap, often because the vent is blocked or missing. A plumber can check the vent."
+      ]
+     ]
+    },
+    {
+     "id": "r4",
+     "t": "Remove the old metal trap arm",
+     "time": "20 min",
+     "when": "a.mat==='metal'",
+     "idea": "Old chrome or brass traps rot from the inside. Replace the whole trap and arm, carefully, without twisting the wall pipe.",
+     "need": [
+      "pliers",
+      "saw"
+     ],
+     "ppe": [
+      "Gloves",
+      "Glasses"
+     ],
+     "b": "<ol><li>Loosen the nut at the wall (on the trap adapter) by turning it toward you, off the wall threads.</li><li>Hold the wall adapter with one pair of pliers while you turn with the other, so the wall pipe doesn't twist.</li><li>Slide the trap arm out of the wall.</li><li>Look at the adapter in the wall. If its threads are corroded or broken, unscrew it (counterclockwise as you face the wall) and buy a new trap adapter to match the wall pipe.</li><li>If something won't budge, cut it with the hacksaw rather than force it.</li></ol>",
+     "stop": "If the wall pipe turns when you turn the nut, stop. Twisting it can break a joint inside the wall.",
+     "faq": [
+      [
+       "Can I connect plastic to the old metal tailpiece?",
+       "Yes. Slip-joint washers work on metal or plastic. Use new washers and nuts sized for the pipe."
+      ]
+     ]
+    },
+    {
+     "id": "r5",
+     "t": "Inspect the old parts",
+     "time": "10 min",
+     "when": "!(a.problem==='replace'||a.problem==='new'||a.mat==='metal')",
+     "idea": "Plastic traps last decades, but washers wear out. Decide what to reuse and what to replace.",
+     "fig": "washer",
+     "need": [
+      "washers"
+     ],
+     "b": "<ol><li>Rinse the J-bend and look for hairline cracks, especially near the threads. Cracked = replace the J-bend.</li><li>Look at each washer. Hard, flattened, split or squashed sideways = replace it.</li><li>Look at the pipe ends that go into the joints. Smooth and round = good. Chewed, oval or cracked = replace that piece.</li><li>Check the nut threads aren't stripped or split.</li><li>Note which way each washer was facing. A backward washer is a common cause of leaks.</li></ol>",
+     "faq": [
+      [
+       "The store doesn't have my exact washer.",
+       "Bring the old one and the nut. Washers are sold by pipe size (1-1/4\" or 1-1/2\"); the shape (tapered or flat) matters too."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Plan the new parts",
+   "steps": [
+    {
+     "id": "f1",
+     "t": "Pick the right parts (and avoid two traps)",
+     "time": "20 min",
+     "when": "(a.problem==='replace'||a.problem==='new'||a.mat==='metal')",
+     "idea": "Buy a smooth-wall P-trap kit the same size as your pipe. Skip flexible drain pipe and S-traps.",
+     "fig": [
+      "nope",
+      "size"
+     ],
+     "need": [
+      "trapkit",
+      "tape"
+     ],
+     "b": "<ol><li>Buy a {{a.size==='1.25'?'1-1/4\"':'1-1/2\"'}} P-trap kit. It includes the J-bend, a trap arm, nuts and washers.</li><li>Take your old parts to the store to compare sizes and shapes.</li><li>Need to reach farther? Buy an extension tube, not a flexible accordion pipe.</li><li>Don't use tape or pipe dope on slip nuts. The washer does the sealing.</li><li>A sink needs only ONE trap. Never put a second trap in line (it causes slow drains and clogs).</li></ol>",
+     "faq": [
+      [
+       "Plastic or metal?",
+       "Plastic (PVC or ABS) is cheaper, doesn't corrode and is easier to seal. Chrome is for looks on exposed traps, like a pedestal sink."
+      ],
+      [
+       "My kitchen pipe is 1-1/2\" but the bathroom kit is 1-1/4\".",
+       "Some kits include a reducing washer to fit 1-1/4\" tailpieces into a 1-1/2\" trap. Kitchen sinks should stay 1-1/2\"."
+      ]
+     ]
+    },
+    {
+     "id": "f2",
+     "t": "Bathroom sink: check the drain above",
+     "time": "10 min",
+     "when": "a.sink==='bath'",
+     "idea": "On a bathroom sink the trap connects under a pop-up drain. Make sure that part isn't the real problem.",
+     "fig": "popup",
+     "need": [
+      "light"
+     ],
+     "b": "<ol><li>Find the drain body: the threaded pipe under the sink with a big locknut and the pop-up rod sticking out the back.</li><li>Dry it and check for wetness at the locknut and the pivot-rod nut.</li><li>The tailpiece screws into the bottom of the drain body. The trap's slip nut goes on the tailpiece.</li><li>A wet pivot nut: tighten it a little by hand. A wet locknut or flange: the drain body needs resealing (see the Replace a Faucet guide, which covers the pop-up drain).</li><li>The overflow hole near the top of the bowl drains into the drain body. Clean it with a bottle brush if the sink smells.</li></ol>",
+     "faq": [
+      [
+       "Hair is wrapped around the pop-up stopper.",
+       "Unscrew the pivot nut, pull the rod out, lift the stopper out from above and clean it. Put the rod back through the stopper's loop."
+      ]
+     ]
+    },
+    {
+     "id": "f3",
+     "t": "Double bowl: choose end or center outlet",
+     "time": "15 min",
+     "when": "a.sink==='kitchen2'&&(a.problem==='replace'||a.problem==='new')",
+     "idea": "A continuous waste kit joins both bowls into one trap, either under one bowl or in the middle.",
+     "fig": "double",
+     "need": [
+      "cw",
+      "tape"
+     ],
+     "b": "<ol><li>Measure from each bowl's strainer to the wall drain.</li><li>Wall drain right under one bowl? Use an end-outlet kit: a horizontal pipe from the far bowl to a tee under the near bowl.</li><li>Wall drain in the middle? Use a center-outlet kit.</li><li>The horizontal pipe from the far bowl must slope down toward the tee.</li><li>{{a.disp==='yes'?'With a disposal, run the disposal to the trap by the shortest path and have the other bowl join it. If the tee is right under the disposal, use a baffle tee so disposal waste doesn\\'t shoot into the other bowl.':'Keep the tee as high as the parts allow so the trap has room below.'}}</li></ol>",
+     "faq": [
+      [
+       "Water comes up in the other bowl.",
+       "Usually a clog after the tee, or disposal water pushing across. A baffle tee helps; a clog needs clearing."
+      ]
+     ]
+    },
+    {
+     "id": "f4",
+     "t": "Disposal: check the discharge connection",
+     "time": "15 min",
+     "when": "(a.sink!=='bath'&&a.disp==='yes')",
+     "idea": "The disposal's side outlet feeds the trap. Its height decides where the trap sits.",
+     "fig": "disposal",
+     "need": [
+      "disckit"
+     ],
+     "b": "<ol><li>Make sure the disposal is unplugged or its breaker is off.</li><li>Find the discharge tube on the side of the disposal. It's held by a flange and two bolts with a rubber gasket.</li><li>If it leaks there, tighten the bolts or replace the gasket.</li><li>The other end of the tube goes into the J-bend with a slip nut and washer, like a tailpiece.</li><li>{{a.dw==='yes'?'If the dishwasher hose goes to the disposal inlet, check the knockout plug inside it is gone (new disposals ship with it in).':'No dishwasher: leave the dishwasher inlet plug in place.'}}</li></ol>",
+     "stop": "If the disposal's outlet is lower than the wall drain, water can't flow uphill to the trap. Don't force it: a disposal with a lower outlet, or a lower wall drain, is the fix. Ask a plumber if unsure.",
+     "faq": [
+      [
+       "How do I remove the knockout plug?",
+       "Unplug the disposal. Put a screwdriver against the plug inside the dishwasher inlet and tap it with a hammer until it pops inside. Reach in through the sink opening and take the plastic disk out."
+      ]
+     ]
+    },
+    {
+     "id": "f5",
+     "t": "Dishwasher: branch tailpiece and high loop",
+     "time": "20 min",
+     "when": "(a.sink!=='bath'&&a.dw==='yes')",
+     "idea": "The dishwasher hose needs its own inlet and must loop up high so sink water can't run back into the dishwasher.",
+     "fig": "dw",
+     "need": [
+      "clamp",
+      "strap",
+      "airgap",
+      "dwtail"
+     ],
+     "b": "<ol><li>{{a.disp==='yes'?'The hose goes on the disposal\\'s dishwasher inlet.':'Use a dishwasher branch tailpiece (it has a side spout) in place of the plain tailpiece.'}}</li><li>Route the hose up as high as possible under the counter, then down to the inlet.</li><li>Screw a strap or clip to the cabinet or underside of the counter to hold the top of the loop.</li><li>Slide the hose fully onto the inlet and tighten a hose clamp over it.</li><li>Check your local code: some areas require an air gap on the sink deck instead of (or as well as) a high loop.</li></ol>",
+     "faq": [
+      [
+       "What does an air gap do?",
+       "It's a small fitting on the sink with an open air break. If the drain backs up, water spills into the sink instead of being pulled into the dishwasher."
+      ]
+     ]
+    },
+    {
+     "id": "f6",
+     "t": "Cut the tailpiece to length",
+     "time": "20 min",
+     "when": "(a.problem==='replace'||a.problem==='new'||a.mat==='metal')",
+     "idea": "The tailpiece must reach about 1\" into the J-bend. Too long and the trap won't line up with the wall.",
+     "fig": "tailcut",
+     "need": [
+      "saw",
+      "knife",
+      "tape"
+     ],
+     "help": [
+      "cutHelp"
+     ],
+     "b": "<ol><li>Hold the J-bend up so its outlet lines up with the trap arm or wall pipe.</li><li>Mark the tailpiece where it should end: about 1\" inside the J-bend, past where the washer will sit.</li><li>Take the tailpiece off (unscrew its nut at the strainer) or cut it in place.</li><li>Cut square with a hacksaw. Go slow and keep the blade straight.</li><li>Scrape the burr off the inside and outside edges so the washer can seal.</li><li>Cut the trap arm the same way if it's too long to fit into the wall.</li></ol>",
+     "faq": [
+      [
+       "I cut it too short.",
+       "Buy a new tailpiece or an extension tube with its own slip nut. Don't stretch a short pipe into a joint."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Put it together",
+   "steps": [
+    {
+     "id": "i1",
+     "t": "Put nuts and washers on the right way",
+     "time": "10 min",
+     "idea": "Each slip joint is a nut, a tapered washer and a fitting. The washer must face the right way.",
+     "fig": "washer",
+     "need": [
+      "trapkit",
+      "washers"
+     ],
+     "help": [
+      "nutHelp"
+     ],
+     "b": "<ol><li>Slide the nut onto the pipe first, threads toward the joint.</li><li>Slide on the washer with its TAPERED side pointing into the fitting the nut screws onto. The flat side faces the nut.</li><li>Push the pipe into the fitting.</li><li>Use new washers. Old ones go hard and flat and won't seal.</li><li>Do this for each joint: tailpiece to J-bend, J-bend to trap arm, and trap arm to wall.</li></ol>",
+     "faq": [
+      [
+       "My kit's J-bend has a flat washer.",
+       "Some joints use a flat washer that sits against the end of the pipe (common at the J-bend to trap-arm joint). Follow the picture in your kit."
+      ],
+      [
+       "Should I add plumber's tape or grease?",
+       "No tape, no pipe dope. A smear of silicone grease on the washer is fine if it's tight to slide."
+      ]
+     ]
+    },
+    {
+     "id": "i2",
+     "t": "Line up the trap without forcing it",
+     "time": "15 min",
+     "idea": "Everything should meet straight with no pushing. Then the nuts seal on their own.",
+     "fig": "align",
+     "need": [
+      "tape"
+     ],
+     "b": "<ol><li>Slide the trap arm into the wall adapter. Its nut stays loose for now.</li><li>Swing the J-bend up so its inlet goes over the tailpiece and its outlet meets the trap arm.</li><li>Slide the trap arm in or out of the wall until the J-bend hangs straight under the tailpiece.</li><li>Check the trap arm slopes down toward the wall: about {{frac(Math.max(1,+a.arm)/12*0.25)}} of drop over your {{a.arm}}\" arm (1/4\" per foot).</li><li>Start every nut with your fingers. If a nut won't start, the parts are crooked: realign, don't push.</li></ol>",
+     "stop": "If the J-bend outlet sits below the wall pipe (the trap would have to drain uphill), the parts won't work. Shorten the tailpiece, or if it's already as short as it goes, the wall drain is too high: ask a plumber.",
+     "faq": [
+      [
+       "The trap arm doesn't reach the wall.",
+       "Use a longer trap arm or an extension tube. Don't pull the J-bend sideways to make it reach."
+      ],
+      [
+       "How long can the trap arm be?",
+       "Codes limit the distance from the trap to the vent, about 5 ft for 1-1/4\" and 6 ft for 1-1/2\" under the IPC, and shorter (about 2-1/2 ft and 3-1/2 ft) in UPC areas. Normal sinks are well under that. Check your local code if yours is long."
+      ]
+     ]
+    },
+    {
+     "id": "i3",
+     "t": "Tighten every nut",
+     "time": "10 min",
+     "idea": "Hand-tight, then a quarter turn with pliers. Overtightening cracks plastic and distorts washers.",
+     "fig": "tighten",
+     "need": [
+      "pliers"
+     ],
+     "help": [
+      "nutHelp"
+     ],
+     "b": "<ol><li>Spin each nut on by hand until it's snug.</li><li>Check the J-bend still hangs straight.</li><li>Give each nut one more quarter turn with your hand (or pliers on a stiff nut).</li><li>{{a.sink!=='bath'&&a.dw==='yes'?'Push the dishwasher hose onto its inlet, slide the clamp over the barb and tighten it.':'Wiggle each joint. Nothing should move.'}}</li></ol>",
+     "faq": [
+      [
+       "Metal trap: same rule?",
+       "Metal nuts can take a bit more, but still: snug plus a quarter to half turn with pliers. Crushing a brass nut ruins it."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Test and finish",
+   "steps": [
+    {
+     "id": "t1",
+     "t": "Fill, release and look for drips",
+     "time": "15 min",
+     "idea": "A full sink draining at once is the real test. A trickle won't show a slow leak.",
+     "fig": "test",
+     "need": [
+      "towels"
+     ],
+     "help": [
+      "towelHelp"
+     ],
+     "timers": [
+      [
+       "Recheck the trap",
+       30
+      ]
+     ],
+     "b": "<ol><li>Run the tap for a minute. Look and feel under every joint with a dry paper towel.</li><li>Put in the stopper and fill the sink{{a.sink==='kitchen2'?' (both bowls)':''}} nearly to the top.</li><li>Pull the plug{{a.sink==='kitchen2'?'s':''}}. Watch the joints while it drains.</li><li>Hold a dry paper towel under each joint. Any wet spot shows the leak.</li><li>A drip? Loosen that nut, check the washer faces the right way and sits straight, then retighten. Don't just crank it tighter.</li><li>Start the timer and check again in 30 minutes.</li></ol>",
+     "faq": [
+      [
+       "It still drips after I fixed the washer.",
+       "Check the pipe end inside the joint for burrs, cracks, or a crooked cut. Also check the pipe goes in far enough, past the washer."
+      ]
+     ]
+    },
+    {
+     "id": "t2",
+     "t": "Run the disposal and dishwasher",
+     "time": "20 min",
+     "when": "a.sink!=='bath'&&(a.disp==='yes'||a.dw==='yes')",
+     "idea": "Appliances push water harder than the sink does. Test them while you can still see the joints.",
+     "fig": [
+      "dw",
+      "disposal"
+     ],
+     "need": [
+      "towels"
+     ],
+     "b": "<ol><li>{{a.disp==='yes'?'Turn the disposal back on (plug in or breaker on). Run cold water and the disposal for 30 seconds. Check the discharge tube and trap.':'Skip the disposal check.'}}</li><li>{{a.dw==='yes'?'Run a short dishwasher cycle. Check the hose clamp and inlet when it pumps out (you\\'ll hear it).':'No dishwasher to check.'}}</li><li>Feel every joint with a dry paper towel.</li><li>Make sure the dishwasher hose is still strapped up high.</li></ol>"
+    },
+    {
+     "id": "t3",
+     "t": "Clean up and watch for a day",
+     "time": "10 min",
+     "idea": "Slow leaks show up over a day. Keep the cabinet empty until you're sure.",
+     "need": [
+      "towels"
+     ],
+     "b": "<ol><li>Leave a dry paper towel flat on the cabinet floor under the trap overnight.</li><li>Check it the next day. Dry towel = done.</li><li>Put the cabinet contents back, keeping things away from the trap so they don't knock it.</li><li>Pour any dirty bucket water down a toilet, then rinse the bucket.</li></ol>",
+     "stop": "Still leaking at the wall connection after a new washer and adapter? Or the drain still clogs again within weeks? The problem is inside the wall or down the line. Time for a plumber."
+    }
+   ]
+  }
+ ],
+ "help": {
+  "nutHelp": {
+   "t": "Seal a slip joint",
+   "fig": "washer",
+   "b": "<ol><li>Nut on the pipe first, then the washer.</li><li>Tapered side of the washer points into the fitting the nut screws onto.</li><li>Pipe goes in past the washer, straight.</li><li>Hand-tight, then a quarter turn. No tape, no dope.</li></ol>"
+  },
+  "plierHelp": {
+   "t": "Use channel-lock pliers",
+   "fig": "remove",
+   "b": "<ol><li>Set the jaw width by moving the pivot to the slot that lets the jaws just fit the nut.</li><li>Wrap a rag around chrome or soft plastic.</li><li>Hold the pipe with your other hand so it doesn't twist.</li><li>Pull the handles in the direction you want the nut to turn. Short moves, re-grip often.</li></ol>"
+  },
+  "towelHelp": {
+   "t": "Find a leak with a paper towel",
+   "fig": "test",
+   "b": "<ol><li>Dry every joint first.</li><li>Fill the sink and pull the plug.</li><li>Hold a dry paper towel under each joint, top to bottom.</li><li>The first wet spot from the top is your leak.</li></ol>"
+  },
+  "cutHelp": {
+   "t": "Cut plastic drain pipe",
+   "fig": "tailcut",
+   "b": "<ol><li>Mark all the way around with a marker (wrap a strip of paper as a guide).</li><li>Hold the pipe firmly, saw with light, full strokes.</li><li>Keep the blade on the line; a crooked cut won't seal.</li><li>Scrape the burrs off inside and out with a utility knife.</li></ol>"
+  }
+ },
+ "figs": {
+  "anatomy": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">What is under the sink</text><rect x=\"10\" y=\"24\" width=\"262\" height=\"8\" class=\"tl\"/><path d=\"M90 32 V58 Q90 70 102 70 H198 Q210 70 210 58 V32 Z\" class=\"tb\"/><rect x=\"136\" y=\"70\" width=\"28\" height=\"8\" rx=\"2\" class=\"bk\"/><rect x=\"144\" y=\"78\" width=\"12\" height=\"64\" class=\"bk\"/><path d=\"M144 142 V168 A28 28 0 0 0 200 168 V142 H188 V168 A16 16 0 0 1 156 168 V142 Z\" class=\"bk\"/><path d=\"M188 142 V116 H272 V128 H200 V142 Z\" class=\"bk\"/><rect x=\"272\" y=\"30\" width=\"10\" height=\"180\" class=\"b\"/><path d=\"M282 116 H298 V30 H310 V210 H298 V128 H282 Z\" class=\"bk\"/><clipPath id=\"sdtAnatW\"><rect x=\"0\" y=\"125\" width=\"320\" height=\"100\"/></clipPath><g clip-path=\"url(#sdtAnatW)\"><rect x=\"144\" y=\"125\" width=\"12\" height=\"20\" class=\"wt\"/><path d=\"M144 142 V168 A28 28 0 0 0 200 168 V142 H188 V168 A16 16 0 0 1 156 168 V142 Z\" class=\"wt\"/><rect x=\"188\" y=\"125\" width=\"12\" height=\"20\" class=\"wt\"/></g><rect x=\"139\" y=\"134\" width=\"22\" height=\"12\" rx=\"2\" class=\"y\"/><rect x=\"183\" y=\"134\" width=\"22\" height=\"12\" rx=\"2\" class=\"y\"/><rect x=\"260\" y=\"111\" width=\"12\" height=\"22\" rx=\"2\" class=\"y\"/><rect x=\"268\" y=\"104\" width=\"4\" height=\"36\" class=\"bk\"/><text x=\"10\" y=\"62\">sink strainer</text><line x1=\"76\" y1=\"64\" x2=\"134\" y2=\"74\" class=\"o\"/><text x=\"10\" y=\"104\" class=\"k\">tailpiece</text><line x1=\"60\" y1=\"102\" x2=\"142\" y2=\"104\" class=\"o\"/><text x=\"10\" y=\"138\" class=\"k\">slip nut</text><text x=\"10\" y=\"149\">+ washer</text><line x1=\"56\" y1=\"136\" x2=\"137\" y2=\"140\" class=\"o\"/><text x=\"10\" y=\"196\" class=\"k\">J-bend (the trap)</text><line x1=\"102\" y1=\"193\" x2=\"150\" y2=\"190\" class=\"o\"/><text x=\"212\" y=\"166\" class=\"ac\">water seal</text><text x=\"212\" y=\"177\">blocks</text><text x=\"212\" y=\"188\">sewer gas</text><text x=\"204\" y=\"104\" class=\"k\">trap arm</text><text x=\"222\" y=\"50\" class=\"ac\" text-anchor=\"end\">vent</text><line x1=\"304\" y1=\"60\" x2=\"304\" y2=\"38\" class=\"a\"/><polygon points=\"304.0,38.0 306.6,43.4 301.4,43.4\" class=\"af\"/><line x1=\"226\" y1=\"47\" x2=\"296\" y2=\"47\" class=\"o d\"/><text x=\"240\" y=\"206\" text-anchor=\"end\">drain</text><line x1=\"304\" y1=\"180\" x2=\"304\" y2=\"206\" class=\"a\"/><polygon points=\"304.0,206.0 301.4,200.6 306.6,200.6\" class=\"af\"/><text x=\"10\" y=\"226\">Kitchen traps are usually 1-1/2\", bathroom 1-1/4\".</text>",
+   "h": 232,
+   "cap": "The trap always holds a little water. That plug of water is what stops sewer gas from coming up the drain into your home."
+  },
+  "size": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Which size is your tailpiece?</text><circle cx=\"80\" cy=\"78\" r=\"25\" class=\"bk\"/><circle cx=\"80\" cy=\"78\" r=\"22\" class=\"tl\"/><line x1=\"80\" y1=\"112\" x2=\"55\" y2=\"112\" class=\"o\"/><polygon points=\"55.0,112.0 60.4,109.4 60.4,114.6\" class=\"inkf\"/><line x1=\"80\" y1=\"112\" x2=\"105\" y2=\"112\" class=\"o\"/><polygon points=\"105.0,112.0 99.6,114.6 99.6,109.4\" class=\"inkf\"/><text x=\"80\" y=\"130\" class=\"k\" text-anchor=\"middle\">1-1/4\"</text><text x=\"80\" y=\"142\" text-anchor=\"middle\">bathroom</text><circle cx=\"230\" cy=\"78\" r=\"30\" class=\"bk\"/><circle cx=\"230\" cy=\"78\" r=\"27\" class=\"tl\"/><line x1=\"230\" y1=\"118\" x2=\"200\" y2=\"118\" class=\"o\"/><polygon points=\"200.0,118.0 205.4,115.4 205.4,120.6\" class=\"inkf\"/><line x1=\"230\" y1=\"118\" x2=\"260\" y2=\"118\" class=\"o\"/><polygon points=\"260.0,118.0 254.6,120.6 254.6,115.4\" class=\"inkf\"/><text x=\"230\" y=\"136\" class=\"k\" text-anchor=\"middle\">1-1/2\"</text><text x=\"230\" y=\"148\" text-anchor=\"middle\">kitchen</text><text x=\"10\" y=\"170\">Measure across the OUTSIDE of the pipe.</text><text x=\"10\" y=\"182\">Or read the size printed on the slip nut.</text>",
+   "h": 190,
+   "cap": "Tubular drain parts are sized by their outside width. A 1-1/2\" nut will not seal on a 1-1/4\" pipe without a reducing washer."
+  },
+  "remove": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Take the trap off</text><rect x=\"44\" y=\"26\" width=\"12\" height=\"60\" class=\"bk\"/><path d=\"M44 86 V108 A28 28 0 0 0 100 108 V86 H88 V108 A16 16 0 0 1 56 108 V86 Z\" class=\"bk\"/><path d=\"M88 86 V60 H200 V72 H100 V86 Z\" class=\"bk\"/><rect x=\"39\" y=\"78\" width=\"22\" height=\"12\" rx=\"2\" class=\"y\"/><rect x=\"83\" y=\"78\" width=\"22\" height=\"12\" rx=\"2\" class=\"y\"/><path d=\"M30 150 L40 196 H106 L116 150 Z\" class=\"bk\"/><text x=\"73\" y=\"180\" class=\"k\" text-anchor=\"middle\">bucket</text><rect x=\"40\" y=\"152\" width=\"66\" height=\"10\" class=\"wt\"/><path d=\"M58 74 a14 6 0 1 0 6 -2\" class=\"a\" fill=\"none\" style=\"stroke-width:1.5\"/><polygon points=\"66.0,72.0 61.2,68.3 65.9,66.0\" class=\"af\"/><circle cx=\"140\" cy=\"96\" r=\"8\" class=\"af\"/><text x=\"140\" y=\"99\" class=\"nm\" text-anchor=\"middle\">1</text><text x=\"152\" y=\"99\" class=\"k\">Loosen both nuts by hand</text><text x=\"152\" y=\"111\">(turn them away from the</text><text x=\"152\" y=\"123\">threads they sit on)</text><circle cx=\"140\" cy=\"146\" r=\"8\" class=\"af\"/><text x=\"140\" y=\"149\" class=\"nm\" text-anchor=\"middle\">2</text><text x=\"152\" y=\"149\">Stuck? Channel-lock</text><text x=\"152\" y=\"161\">pliers, a rag on chrome</text><circle cx=\"140\" cy=\"184\" r=\"8\" class=\"af\"/><text x=\"140\" y=\"187\" class=\"nm\" text-anchor=\"middle\">3</text><text x=\"152\" y=\"187\" class=\"k\">Lower it straight down</text><text x=\"152\" y=\"199\">over the bucket</text>",
+   "h": 206,
+   "cap": "The trap is full of dirty water. Keep the bucket right under it and tip it out slowly."
+  },
+  "washer": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Which way the washer goes</text><rect x=\"36\" y=\"58\" width=\"26\" height=\"36\" rx=\"3\" class=\"y\"/><rect x=\"10\" y=\"70\" width=\"146\" height=\"12\" class=\"bk\"/><path d=\"M84 60 L102 66 V70 H84 Z\" class=\"af\"/><path d=\"M84 92 L102 86 V82 H84 Z\" class=\"af\"/><line x1=\"150\" y1=\"76\" x2=\"170\" y2=\"76\" class=\"a\"/><polygon points=\"170.0,76.0 164.6,78.6 164.6,73.4\" class=\"af\"/><path d=\"M180 52 H290 V100 H180 L180 84 L190 80 V72 L180 68 Z\" class=\"bk\"/><line x1=\"184\" y1=\"48\" x2=\"184\" y2=\"52\" class=\"o\"/><line x1=\"184\" y1=\"100\" x2=\"184\" y2=\"104\" class=\"o\"/><line x1=\"190\" y1=\"48\" x2=\"190\" y2=\"52\" class=\"o\"/><line x1=\"190\" y1=\"100\" x2=\"190\" y2=\"104\" class=\"o\"/><line x1=\"196\" y1=\"48\" x2=\"196\" y2=\"52\" class=\"o\"/><line x1=\"196\" y1=\"100\" x2=\"196\" y2=\"104\" class=\"o\"/><line x1=\"202\" y1=\"48\" x2=\"202\" y2=\"52\" class=\"o\"/><line x1=\"202\" y1=\"100\" x2=\"202\" y2=\"104\" class=\"o\"/><line x1=\"208\" y1=\"48\" x2=\"208\" y2=\"52\" class=\"o\"/><line x1=\"208\" y1=\"100\" x2=\"208\" y2=\"104\" class=\"o\"/><text x=\"49\" y=\"48\" class=\"k\" text-anchor=\"middle\">nut</text><text x=\"93\" y=\"116\" class=\"k\" text-anchor=\"middle\">washer</text><text x=\"180\" y=\"42\" class=\"k\">threaded fitting</text><text x=\"10\" y=\"140\" class=\"gd\">The TAPERED side of the washer points</text><text x=\"10\" y=\"152\" class=\"gd\">into the fitting the nut screws onto.</text><text x=\"10\" y=\"170\">The flat side faces the nut.</text><text x=\"10\" y=\"186\" class=\"wa\">Backwards = a slow drip that never stops.</text>",
+   "h": 194,
+   "cap": "Order on the pipe: nut first, then the washer, taper pointing at the fitting. The nut squeezes the taper into the fitting's mouth to seal."
+  },
+  "tighten": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Hand-tight, then a quarter turn</text><rect x=\"60\" y=\"30\" width=\"14\" height=\"60\" class=\"bk\"/><rect x=\"55\" y=\"84\" width=\"24\" height=\"16\" rx=\"2\" class=\"y\"/><path d=\"M53 100 V120 A24 24 0 0 0 101 120 V100 H87 V120 A10 10 0 0 1 67 120 V100 Z\" class=\"bk\"/><text x=\"16\" y=\"152\">side view</text><circle cx=\"220\" cy=\"86\" r=\"42\" class=\"y\"/><circle cx=\"220\" cy=\"86\" r=\"22\" class=\"bk\"/><line x1=\"258.0\" y1=\"86.0\" x2=\"262.0\" y2=\"86.0\" class=\"o\"/><line x1=\"252.9089653438087\" y1=\"105.0\" x2=\"256.3730669589464\" y2=\"107.0\" class=\"o\"/><line x1=\"239.0\" y1=\"118.90896534380866\" x2=\"241.0\" y2=\"122.37306695894642\" class=\"o\"/><line x1=\"220.0\" y1=\"124.0\" x2=\"220.0\" y2=\"128.0\" class=\"o\"/><line x1=\"201.0\" y1=\"118.90896534380867\" x2=\"199.0\" y2=\"122.37306695894642\" class=\"o\"/><line x1=\"187.0910346561913\" y1=\"105.0\" x2=\"183.62693304105358\" y2=\"107.0\" class=\"o\"/><line x1=\"182.0\" y1=\"86.0\" x2=\"178.0\" y2=\"86.0\" class=\"o\"/><line x1=\"187.0910346561913\" y1=\"67.00000000000001\" x2=\"183.62693304105358\" y2=\"65.00000000000001\" class=\"o\"/><line x1=\"200.99999999999997\" y1=\"53.09103465619134\" x2=\"198.99999999999997\" y2=\"49.62693304105359\" class=\"o\"/><line x1=\"220.0\" y1=\"48.0\" x2=\"220.0\" y2=\"44.0\" class=\"o\"/><line x1=\"239.0\" y1=\"53.09103465619133\" x2=\"241.0\" y2=\"49.626933041053576\" class=\"o\"/><line x1=\"252.90896534380866\" y1=\"66.99999999999999\" x2=\"256.3730669589464\" y2=\"64.99999999999999\" class=\"o\"/><line x1=\"262\" y1=\"86\" x2=\"274\" y2=\"86\" class=\"o d\"/><g><line x1=\"220\" y1=\"44\" x2=\"220\" y2=\"56\" class=\"a\" style=\"stroke-width:3\"/><animateTransform attributeName=\"transform\" type=\"rotate\" values=\"0 220 86;0 220 86;90 220 86;90 220 86\" keyTimes=\"0;0.35;0.7;1\" dur=\"3s\" repeatCount=\"indefinite\"/></g><path d=\"M232 34 A54 54 0 0 1 274 76\" class=\"a\" fill=\"none\" style=\"stroke-width:2\"/><polygon points=\"274.0,76.0 269.1,72.6 273.6,70.0\" class=\"af\"/><text x=\"174\" y=\"150\">seen from above:</text><text x=\"174\" y=\"162\" class=\"k\">start mark, then 1/4 turn</text><text x=\"16\" y=\"178\">Snug by hand first. Pliers only for the last 1/4.</text>",
+   "h": 186,
+   "title": "Snug, then a quarter turn",
+   "cap": "Plastic nuts crack if you crank them. If it still drips after a quarter turn, take it apart and check the washer instead of tightening more."
+  },
+  "align": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Line it up. Don't force it.</text><rect x=\"270\" y=\"26\" width=\"10\" height=\"160\" class=\"b\"/><rect x=\"60\" y=\"26\" width=\"12\" height=\"74\" class=\"bk\"/><path d=\"M54 100 V122 A28 28 0 0 0 110 122 V100 H98 V122 A16 16 0 0 1 66 122 V100 Z\" class=\"bk\"/><path d=\"M98 100 V82 H270 V94 H110 V100 Z\" class=\"bk\"/><rect x=\"55\" y=\"94\" width=\"22\" height=\"10\" rx=\"2\" class=\"y\"/><rect x=\"93\" y=\"94\" width=\"22\" height=\"10\" rx=\"2\" class=\"y\"/><rect x=\"258\" y=\"78\" width=\"12\" height=\"20\" rx=\"2\" class=\"y\"/><line x1=\"200\" y1=\"70\" x2=\"240\" y2=\"70\" class=\"a\"/><polygon points=\"240.0,70.0 234.6,72.6 234.6,67.4\" class=\"af\"/><polygon points=\"200.0,70.0 205.4,67.4 205.4,72.6\" class=\"af\"/><text x=\"174\" y=\"62\" class=\"ac\">arm slides in/out</text><path d=\"M120 132 A30 30 0 0 1 120 160\" class=\"a\" fill=\"none\" style=\"stroke-width:2\"/><polygon points=\"120.0,160.0 120.5,154.0 125.0,156.7\" class=\"af\"/><text x=\"130\" y=\"150\" class=\"ac\">J-bend swivels</text><text x=\"10\" y=\"176\">Wall pipe too high or too low? Change parts,</text><text x=\"10\" y=\"188\" class=\"wa\">not pressure. A strained joint leaks later.</text><text x=\"130\" y=\"116\">slopes 1/4\" per ft</text><text x=\"130\" y=\"128\">down to the wall</text>",
+   "h": 196,
+   "cap": "Slip joints let the trap arm slide and the J-bend swivel so everything meets straight. Every nut should start threading with your fingers, no pushing."
+  },
+  "seal": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Why a P-trap needs a vent</text><rect x=\"44\" y=\"28\" width=\"12\" height=\"90\" class=\"bk\"/><path d=\"M38 104 V128 A22 22 0 0 0 82 128 V104 H70 V128 A10 10 0 0 1 50 128 V104 Z\" class=\"bk\"/><path d=\"M70 104 V92 H140 V104 H82 V104 Z\" class=\"bk\"/><rect x=\"140\" y=\"30\" width=\"10\" height=\"110\" class=\"bk\"/><clipPath id=\"sdtSealP\"><rect x=\"0\" y=\"100\" width=\"160\" height=\"90\"/></clipPath><g clip-path=\"url(#sdtSealP)\"><rect x=\"44\" y=\"100\" width=\"12\" height=\"20\" class=\"wt\"/><path d=\"M38 104 V128 A22 22 0 0 0 82 128 V104 H70 V128 A10 10 0 0 1 50 128 V104 Z\" class=\"wt\"/><rect x=\"70\" y=\"100\" width=\"12\" height=\"8\" class=\"wt\"/></g><line x1=\"145\" y1=\"58\" x2=\"145\" y2=\"36\" class=\"a\"/><polygon points=\"145.0,36.0 147.6,41.4 142.4,41.4\" class=\"af\"/><text x=\"130\" y=\"40\" class=\"ac\" text-anchor=\"end\">vent</text><text x=\"14\" y=\"170\" class=\"gd\">P-trap + vent</text><text x=\"14\" y=\"182\">seal stays full</text><rect x=\"194\" y=\"28\" width=\"12\" height=\"92\" class=\"bk\"/><path d=\"M188 120 V128 A22 22 0 0 0 232 128 V104 H220 V128 A10 10 0 0 1 200 128 V120 Z\" class=\"bk\"/><path d=\"M220 104 V104 A22 22 0 0 1 264 104 V176 H252 V104 A10 10 0 0 0 232 104 V104 Z\" class=\"bk\"/><clipPath id=\"sdtSealS\"><rect x=\"160\" y=\"140\" width=\"160\" height=\"60\"><animate attributeName=\"y\" values=\"104;104;140;140\" keyTimes=\"0;0.3;0.7;1\" dur=\"4s\" repeatCount=\"indefinite\"/></rect></clipPath><g clip-path=\"url(#sdtSealS)\"><path d=\"M188 120 V128 A22 22 0 0 0 232 128 V104 H220 V128 A10 10 0 0 1 200 128 V120 Z\" class=\"wt\"/></g><text x=\"266\" y=\"140\" class=\"wa\">S-trap</text><text x=\"266\" y=\"152\">(not</text><text x=\"266\" y=\"164\">allowed)</text><text x=\"172\" y=\"190\" class=\"wa\">water gets sucked out,</text><text x=\"172\" y=\"202\">sewer gas comes in</text>",
+   "h": 208,
+   "cap": "Water rushing down an S-trap pulls the seal out behind it. A P-trap into a vented wall pipe lets air in, so the water stays."
+  },
+  "nope": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Two shortcuts that fail</text><path d=\"M20 60 q5 -8 10 0 q5 -8 10 0 q5 -8 10 0 q5 -8 10 0 q5 -8 10 0 q5 -8 10 0 q5 -8 10 0 q5 -8 10 0 q5 -8 10 0 q5 -8 10 0\" class=\"o\" fill=\"none\" style=\"stroke-width:6\"/><line x1=\"20\" y1=\"40\" x2=\"120\" y2=\"84\" class=\"bad\" style=\"stroke-width:3\"/><line x1=\"120\" y1=\"40\" x2=\"20\" y2=\"84\" class=\"bad\" style=\"stroke-width:3\"/><text x=\"14\" y=\"110\" class=\"wa\">Accordion flex drain</text><text x=\"14\" y=\"122\">traps gunk, sags, and</text><text x=\"14\" y=\"134\">most codes ban it</text><rect x=\"200\" y=\"46\" width=\"40\" height=\"28\" class=\"bk\"/><rect x=\"240\" y=\"52\" width=\"30\" height=\"16\" rx=\"2\" class=\"y\"/><circle cx=\"222\" cy=\"60\" r=\"9\" class=\"tl\"/><line x1=\"190\" y1=\"40\" x2=\"280\" y2=\"84\" class=\"bad\" style=\"stroke-width:3\"/><line x1=\"280\" y1=\"40\" x2=\"190\" y2=\"84\" class=\"bad\" style=\"stroke-width:3\"/><text x=\"176\" y=\"110\" class=\"wa\">Tape or pipe dope</text><text x=\"176\" y=\"122\">on slip-nut threads</text><text x=\"176\" y=\"134\">the WASHER seals, not</text><text x=\"176\" y=\"146\">the threads</text>",
+   "h": 154,
+   "cap": "Use smooth-wall tubular parts and a P-trap. If the pieces don't reach, buy an extension tube or offset, not a flex pipe."
+  },
+  "tailcut": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Cut the tailpiece to fit</text><rect x=\"50\" y=\"28\" width=\"14\" height=\"110\" class=\"bk\"/><line x1=\"40\" y1=\"96\" x2=\"74\" y2=\"96\" class=\"a\" style=\"stroke-width:2\"/><text x=\"80\" y=\"99\" class=\"ac\">mark</text><path d=\"M57 112 V140 A15 15 0 0 0 87 140 V112 H73 V140 A1 1 0 0 1 71 140 V112 Z\" class=\"bk\" style=\"opacity:.55\"/><line x1=\"30\" y1=\"112\" x2=\"30\" y2=\"96\" class=\"o\"/><polygon points=\"30.0,96.0 32.6,101.4 27.4,101.4\" class=\"inkf\"/><line x1=\"30\" y1=\"96\" x2=\"30\" y2=\"112\" class=\"o\"/><polygon points=\"30.0,112.0 27.4,106.6 32.6,106.6\" class=\"inkf\"/><text x=\"12\" y=\"160\">Leave about 1\" to go</text><text x=\"12\" y=\"172\">into the J-bend</text><rect x=\"200\" y=\"40\" width=\"16\" height=\"100\" class=\"bk\"/><path d=\"M150 86 H280 V96 H150 Z\" class=\"w\"/><line x1=\"154\" y1=\"96\" x2=\"157\" y2=\"100\" class=\"o\"/><line x1=\"162\" y1=\"96\" x2=\"165\" y2=\"100\" class=\"o\"/><line x1=\"170\" y1=\"96\" x2=\"173\" y2=\"100\" class=\"o\"/><line x1=\"178\" y1=\"96\" x2=\"181\" y2=\"100\" class=\"o\"/><line x1=\"186\" y1=\"96\" x2=\"189\" y2=\"100\" class=\"o\"/><line x1=\"194\" y1=\"96\" x2=\"197\" y2=\"100\" class=\"o\"/><line x1=\"202\" y1=\"96\" x2=\"205\" y2=\"100\" class=\"o\"/><line x1=\"210\" y1=\"96\" x2=\"213\" y2=\"100\" class=\"o\"/><line x1=\"218\" y1=\"96\" x2=\"221\" y2=\"100\" class=\"o\"/><line x1=\"226\" y1=\"96\" x2=\"229\" y2=\"100\" class=\"o\"/><line x1=\"234\" y1=\"96\" x2=\"237\" y2=\"100\" class=\"o\"/><line x1=\"242\" y1=\"96\" x2=\"245\" y2=\"100\" class=\"o\"/><line x1=\"250\" y1=\"96\" x2=\"253\" y2=\"100\" class=\"o\"/><line x1=\"258\" y1=\"96\" x2=\"261\" y2=\"100\" class=\"o\"/><line x1=\"266\" y1=\"96\" x2=\"269\" y2=\"100\" class=\"o\"/><line x1=\"274\" y1=\"96\" x2=\"277\" y2=\"100\" class=\"o\"/><text x=\"226\" y=\"58\" class=\"k\">hacksaw:</text><text x=\"226\" y=\"70\">cut square</text><text x=\"170\" y=\"160\">then scrape the burr off</text><text x=\"170\" y=\"172\">inside + out (knife/file)</text>",
+   "h": 180,
+   "cap": "Hold the J-bend in place against the trap arm, mark the tailpiece where it should end, and cut. Too long is easy to fix, too short means a new tailpiece."
+  },
+  "double": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Two ways to drain two bowls</text><rect x=\"10\" y=\"28\" width=\"140\" height=\"6\" class=\"tl\"/><path d=\"M18 34 V48 H74 V34 Z\" class=\"tb\"/><path d=\"M86 34 V48 H142 V34 Z\" class=\"tb\"/><path d=\"M36 48 V70 H120\" class=\"o\" fill=\"none\" style=\"stroke-width:6\"/><path d=\"M120 48 V104\" class=\"o\" fill=\"none\" style=\"stroke-width:6\"/><path d=\"M117 104 V118 A15 15 0 0 0 147 118 V96 H141 V118 A9 9 0 0 1 123 118 V104 Z\" class=\"o\"/><line x1=\"138\" y1=\"96\" x2=\"150\" y2=\"96\" class=\"o\" style=\"stroke-width:6\"/><circle cx=\"120\" cy=\"70\" r=\"4\" class=\"af\"/><text x=\"10\" y=\"150\" class=\"k\">End outlet</text><text x=\"10\" y=\"162\">trap under one bowl</text><rect x=\"170\" y=\"28\" width=\"140\" height=\"6\" class=\"tl\"/><path d=\"M178 34 V48 H234 V34 Z\" class=\"tb\"/><path d=\"M246 34 V48 H302 V34 Z\" class=\"tb\"/><path d=\"M196 48 V66 H270 V48\" class=\"o\" fill=\"none\" style=\"stroke-width:6\"/><path d=\"M233 66 V100\" class=\"o\" fill=\"none\" style=\"stroke-width:6\"/><path d=\"M230 100 V112 A15 15 0 0 0 260 112 V92 H254 V112 A9 9 0 0 1 236 112 V100 Z\" class=\"o\"/><line x1=\"251\" y1=\"92\" x2=\"300\" y2=\"92\" class=\"o\" style=\"stroke-width:6\"/><circle cx=\"233\" cy=\"66\" r=\"4\" class=\"af\"/><text x=\"170\" y=\"150\" class=\"k\">Center outlet</text><text x=\"170\" y=\"162\">trap in the middle</text><text x=\"10\" y=\"184\">The dot is the tee. One trap serves both bowls.</text>",
+   "h": 192,
+   "cap": "A continuous waste kit joins both bowls into a single trap. Pick the layout that leaves the most cabinet room and lines up with your wall pipe."
+  },
+  "dw": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Dishwasher drain hose</text><rect x=\"10\" y=\"26\" width=\"300\" height=\"8\" class=\"tl\"/><rect x=\"170\" y=\"34\" width=\"30\" height=\"10\" class=\"bk\"/><rect x=\"178\" y=\"44\" width=\"14\" height=\"110\" class=\"bk\"/><rect x=\"170\" y=\"96\" width=\"22\" height=\"14\" rx=\"2\" class=\"bk\"/><path d=\"M170 103 H160\" class=\"o\" style=\"stroke-width:8\"/><path d=\"M18 196 C18 120 30 40 70 40 C110 40 110 70 156 103\" class=\"a\" fill=\"none\" style=\"stroke-width:4\"/><rect x=\"62\" y=\"34\" width=\"16\" height=\"8\" rx=\"2\" class=\"y\"/><rect x=\"152\" y=\"98\" width=\"10\" height=\"10\" rx=\"2\" class=\"y\"/><text x=\"30\" y=\"124\" class=\"k\">high loop: strap it</text><text x=\"30\" y=\"136\">up under the counter</text><text x=\"212\" y=\"104\" class=\"k\">branch tailpiece</text><text x=\"212\" y=\"116\">(or disposal inlet)</text><text x=\"60\" y=\"156\">hose clamp</text><line x1=\"116\" y1=\"152\" x2=\"152\" y2=\"108\" class=\"o\"/><text x=\"26\" y=\"188\">from dishwasher</text><text x=\"200\" y=\"156\" class=\"wa\">Some areas need an</text><text x=\"200\" y=\"168\" class=\"wa\">air gap on the sink</text><text x=\"200\" y=\"180\" class=\"wa\">deck instead.</text>",
+   "h": 204,
+   "cap": "The loop must rise above the drain connection so dirty sink water can't flow back into the dishwasher. Check your local code for whether an air gap is required."
+  },
+  "disposal": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Garbage disposal connections</text><rect x=\"10\" y=\"26\" width=\"300\" height=\"8\" class=\"tl\"/><rect x=\"130\" y=\"34\" width=\"68\" height=\"10\" rx=\"2\" class=\"bk\"/><rect x=\"124\" y=\"44\" width=\"80\" height=\"104\" rx=\"10\" class=\"bk\"/><circle cx=\"136\" cy=\"70\" r=\"7\" class=\"y\"/><line x1=\"110\" y1=\"70\" x2=\"129\" y2=\"70\" class=\"o\" style=\"stroke-width:5\"/><rect x=\"204\" y=\"98\" width=\"20\" height=\"12\" class=\"bk\"/><rect x=\"200\" y=\"94\" width=\"8\" height=\"20\" rx=\"1\" class=\"y\"/><path d=\"M224 98 H250 V128 H238 V110 H224 Z\" class=\"bk\"/><path d=\"M238 128 V150 A22 22 0 0 0 282 150 V128 H270 V150 A10 10 0 0 1 250 150 V128 Z\" class=\"bk\"/><rect x=\"233\" y=\"124\" width=\"22\" height=\"10\" rx=\"2\" class=\"y\"/><text x=\"10\" y=\"66\" class=\"k\">dishwasher inlet</text><text x=\"10\" y=\"90\">knock the plug out</text><text x=\"10\" y=\"102\">first: screwdriver</text><text x=\"10\" y=\"114\">+ hammer, then</text><text x=\"10\" y=\"126\">fish it out</text><text x=\"210\" y=\"58\" class=\"k\">discharge tube</text><line x1=\"236\" y1=\"61\" x2=\"238\" y2=\"96\" class=\"o\"/><text x=\"10\" y=\"162\">outlet: gasket + flange bolts</text><text x=\"10\" y=\"184\" class=\"wa\">Unplug it or turn off its breaker first.</text>",
+   "h": 192,
+   "cap": "If the dishwasher hose goes to the disposal and the plug inside the inlet is still there, the dishwasher can't drain. Remove the plug before you connect the hose."
+  },
+  "popup": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Bathroom drain parts</text><path d=\"M20 30 H300 V40 H220 Q206 70 170 72 H150 Q114 70 100 40 H20 Z\" class=\"tb\"/><rect x=\"146\" y=\"66\" width=\"28\" height=\"6\" rx=\"2\" class=\"bk\"/><rect x=\"152\" y=\"72\" width=\"16\" height=\"70\" class=\"bk\"/><rect x=\"144\" y=\"92\" width=\"32\" height=\"8\" rx=\"2\" class=\"y\"/><text x=\"180\" y=\"98\">locknut</text><rect x=\"168\" y=\"112\" width=\"12\" height=\"12\" rx=\"2\" class=\"y\"/><line x1=\"180\" y1=\"118\" x2=\"260\" y2=\"104\" class=\"o\" style=\"stroke-width:3\"/><rect x=\"254\" y=\"70\" width=\"6\" height=\"90\" class=\"bk\"/><circle cx=\"257\" cy=\"104\" r=\"3\" class=\"inkf\"/><rect x=\"150\" y=\"142\" width=\"20\" height=\"10\" rx=\"2\" class=\"y\"/><rect x=\"154\" y=\"152\" width=\"12\" height=\"40\" class=\"bk\"/><path d=\"M110 40 Q96 60 112 82 Q130 96 150 90\" class=\"o d\" fill=\"none\" style=\"stroke-width:2\"/><text x=\"10\" y=\"60\">overflow hole</text><text x=\"10\" y=\"72\">drains into the</text><text x=\"10\" y=\"84\">drain body</text><text x=\"10\" y=\"118\" class=\"k\">drain body</text><line x1=\"62\" y1=\"116\" x2=\"150\" y2=\"108\" class=\"o\"/><text x=\"196\" y=\"130\" class=\"k\">pivot rod</text><text x=\"264\" y=\"66\">clevis</text><text x=\"184\" y=\"176\" class=\"k\">tailpiece</text><text x=\"184\" y=\"148\">slip nut</text>",
+   "h": 198,
+   "cap": "The trap connects to the tailpiece below the pop-up. A leak at the locknut, the pivot nut or the drain flange is a drain-body problem, not a trap problem."
+  },
+  "test": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Test: fill, release, wipe</text><path d=\"M40 30 V64 Q40 80 56 80 H140 Q156 80 156 64 V30 Z\" class=\"tb\"/><rect x=\"44\" y=\"44\" width=\"108\" height=\"32\" class=\"wt\"/><rect x=\"91\" y=\"80\" width=\"14\" height=\"40\" class=\"bk\"/><rect x=\"86\" y=\"112\" width=\"24\" height=\"12\" rx=\"2\" class=\"y\"/><path d=\"M85 124 V146 A25 25 0 0 0 135 146 V124 H123 V146 A13 13 0 0 1 97 146 V124 Z\" class=\"bk\"/><rect x=\"78\" y=\"122\" width=\"36\" height=\"14\" rx=\"2\" class=\"tl\"/><line x1=\"98\" y1=\"86\" x2=\"98\" y2=\"104\" class=\"a\"/><polygon points=\"98.0,104.0 95.4,98.6 100.6,98.6\" class=\"af\"/><circle cx=\"190\" cy=\"40\" r=\"8\" class=\"af\"/><text x=\"190\" y=\"43\" class=\"nm\" text-anchor=\"middle\">1</text><text x=\"202\" y=\"43\" class=\"k\">Fill the sink</text><text x=\"202\" y=\"55\">(both bowls)</text><circle cx=\"190\" cy=\"80\" r=\"8\" class=\"af\"/><text x=\"190\" y=\"83\" class=\"nm\" text-anchor=\"middle\">2</text><text x=\"202\" y=\"83\" class=\"k\">Pull the plug</text><text x=\"202\" y=\"95\">full flow tests</text><text x=\"202\" y=\"107\">every joint</text><circle cx=\"190\" cy=\"128\" r=\"8\" class=\"af\"/><text x=\"190\" y=\"131\" class=\"nm\" text-anchor=\"middle\">3</text><text x=\"202\" y=\"131\" class=\"k\">Dry paper towel</text><text x=\"202\" y=\"143\">under each joint</text><text x=\"10\" y=\"190\">Any wet spot on the towel = that joint leaks.</text>",
+   "h": 198,
+   "cap": "A trickle of tap water won't show a slow leak. A full sink draining at once puts real pressure on the joints. Check again an hour later."
+  }
+ },
+ "glossary": [
+  [
+   "P-trap",
+   "The U-shaped pipe under a sink plus its arm to the wall. It holds water to block sewer gas."
+  ],
+  [
+   "J-bend",
+   "The removable U part of the trap."
+  ],
+  [
+   "Tailpiece",
+   "The straight pipe from the sink's strainer or drain body down to the trap."
+  ],
+  [
+   "Trap arm",
+   "The pipe from the trap into the wall."
+  ],
+  [
+   "Slip joint",
+   "A joint sealed by a nut squeezing a tapered washer around a pipe. No glue, comes apart by hand."
+  ],
+  [
+   "Trap seal",
+   "The water left in the trap (about 2\" to 4\" deep) that blocks sewer gas."
+  ],
+  [
+   "Vent",
+   "A pipe that lets air into the drain system so water flow doesn't suck the trap dry."
+  ],
+  [
+   "S-trap",
+   "A trap that drains straight down into the floor. Siphons dry; not allowed in most new work."
+  ],
+  [
+   "Escutcheon",
+   "The cover plate where the pipe enters the wall."
+  ],
+  [
+   "Continuous waste",
+   "The pipe kit that joins two sink bowls into one trap."
+  ],
+  [
+   "High loop",
+   "Routing a dishwasher drain hose up under the counter so dirty water can't flow back into the dishwasher."
+  ],
+  [
+   "Air gap",
+   "A sink-top fitting some codes require for dishwasher drains, with an open air break."
+  ]
+ ]
+}

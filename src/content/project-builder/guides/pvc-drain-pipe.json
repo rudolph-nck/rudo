@@ -1,0 +1,938 @@
+{
+ "slug": "pvc-drain-pipe",
+ "title": "Repair PVC Drain Pipe",
+ "eyebrow": "Plumbing · drain pipe",
+ "category": "Plumbing",
+ "difficulty": "Intermediate",
+ "time": "Half a day + cure time",
+ "summary": "Cut out a cracked or badly routed piece of PVC or ABS drain pipe, or add a cleanout, and put in new pipe with solvent-welded (glued) joints or a rubber coupling. You'll end up with a sloped, supported drain that doesn't leak.",
+ "safety": "Primer and cement are <b>highly flammable</b>: ventilate, and no pilot lights, flames or sparks nearby. Support the pipe before you cut it. Tell everyone not to use fixtures that drain into the open pipe. Wear gloves and glasses.",
+ "pro": "you'd be cutting a cast iron main stack or a vertical stack, working on a sewer line under the slab, adding new drains or vents (usually a permit and inspection), or you have a sewer smell or gurgling that suggests a vent problem.",
+ "questions": [
+  {
+   "id": "mat",
+   "label": "What pipe do you have?",
+   "type": "choice",
+   "default": "pvc",
+   "options": [
+    {
+     "v": "pvc",
+     "label": "White PVC"
+    },
+    {
+     "v": "abs",
+     "label": "Black ABS"
+    },
+    {
+     "v": "old",
+     "label": "Connecting to cast iron or old pipe"
+    }
+   ]
+  },
+  {
+   "id": "size",
+   "label": "Pipe size",
+   "type": "choice",
+   "default": "2",
+   "options": [
+    {
+     "v": "1.5",
+     "label": "1-1/2\"",
+     "hint": "sinks, tubs"
+    },
+    {
+     "v": "2",
+     "label": "2\"",
+     "hint": "showers, laundry"
+    },
+    {
+     "v": "3",
+     "label": "3\"",
+     "hint": "toilets"
+    },
+    {
+     "v": "4",
+     "label": "4\"",
+     "hint": "main lines"
+    }
+   ]
+  },
+  {
+   "id": "job",
+   "label": "What's the job?",
+   "type": "choice",
+   "default": "crack",
+   "options": [
+    {
+     "v": "crack",
+     "label": "Replace a cracked section"
+    },
+    {
+     "v": "reroute",
+     "label": "Reroute a short run"
+    },
+    {
+     "v": "cleanout",
+     "label": "Add a cleanout"
+    }
+   ]
+  },
+  {
+   "id": "temp",
+   "label": "Temperature where you're working",
+   "type": "choice",
+   "default": "warm",
+   "options": [
+    {
+     "v": "warm",
+     "label": "60°F or warmer"
+    },
+    {
+     "v": "cool",
+     "label": "40–60°F"
+    },
+    {
+     "v": "cold",
+     "label": "Below 40°F"
+    }
+   ]
+  },
+  {
+   "id": "length",
+   "label": "Length of new pipe",
+   "type": "number",
+   "unit": "ft",
+   "default": 2,
+   "step": 0.5
+  },
+  {
+   "id": "fittings",
+   "label": "Fittings (couplings, elbows, wyes)",
+   "type": "number",
+   "unit": "fittings",
+   "default": 2,
+   "step": 1
+  }
+ ],
+ "calcs": [
+  {
+   "id": "pipeFt",
+   "label": "Pipe to buy",
+   "expr": "Math.max(2,Math.ceil((+a.length)*1.2+1))",
+   "fmt": "{{c.pipeFt}} ft"
+  },
+  {
+   "id": "joints",
+   "label": "Glued joints",
+   "expr": "Math.max(1,Math.round(+a.fittings))*2",
+   "fmt": "about {{c.joints}}"
+  },
+  {
+   "id": "drop",
+   "label": "Total drop at 1/4\" per ft",
+   "expr": "frac(Math.max(0.5,+a.length)*0.25)",
+   "fmt": "{{c.drop}}"
+  },
+  {
+   "id": "hang",
+   "label": "Hangers",
+   "expr": "Math.max(2,Math.ceil((+a.length)/4)+1)",
+   "fmt": "{{c.hang}}"
+  },
+  {
+   "id": "sock",
+   "expr": "({'1.5':'11/16\"','2':'3/4\"','3':'1-1/2\"','4':'1-3/4\"'})[a.size]"
+  },
+  {
+   "id": "cure",
+   "label": "Wait before running water",
+   "expr": "(function(){var big=(+a.size)>=3;return a.temp==='warm'?(big?'6 hours':'2 hours'):a.temp==='cool'?(big?'12 hours':'6 hours'):(big?'48 hours':'24 hours');})()",
+   "fmt": "{{c.cure}} (check the can)"
+  }
+ ],
+ "calcNote": "Pipe includes about 20% extra and a spare foot. Socket depths are typical for DWV fittings; measure yours. Cure times are conservative rules of thumb; the chart on your cement can always wins.",
+ "overviewFig": "pipeid",
+ "tools": [
+  {
+   "id": "pipe",
+   "c": "Materials",
+   "n": "{{({'1.5':'1-1/2\"','2':'2\"','3':'3\"','4':'4\"'})[a.size]}} {{a.mat==='abs'?'ABS':'PVC'}} DWV pipe, Schedule 40",
+   "must": true,
+   "w": "Matches the existing pipe. Solid or cellular (foam) core are both sold for drains.",
+   "q": "{{({'1.5':'1-1/2\"','2':'2\"','3':'3\"','4':'4\"'})[a.size]}} {{a.mat==='abs'?'abs':'pvc'}} dwv pipe",
+   "qty": "{{c.pipeFt}} ft"
+  },
+  {
+   "id": "fit",
+   "c": "Materials",
+   "n": "{{({'1.5':'1-1/2\"','2':'2\"','3':'3\"','4':'4\"'})[a.size]}} {{a.mat==='abs'?'ABS':'PVC'}} DWV fittings (couplings, elbows)",
+   "must": true,
+   "w": "Drain fittings have smooth, sweeping turns. Don't use pressure fittings for drains.",
+   "q": "{{({'1.5':'1-1/2\"','2':'2\"','3':'3\"','4':'4\"'})[a.size]}} {{a.mat==='abs'?'abs':'pvc'}} dwv coupling",
+   "qty": "{{a.fittings}}"
+  },
+  {
+   "id": "slip",
+   "c": "Materials",
+   "n": "{{({'1.5':'1-1/2\"','2':'2\"','3':'3\"','4':'4\"'})[a.size]}} {{a.mat==='abs'?'ABS':'PVC'}} repair (slip) coupling",
+   "must": true,
+   "w": "No stop inside, so it slides to close the last gap in a repair.",
+   "q": "{{({'1.5':'1-1/2\"','2':'2\"','3':'3\"','4':'4\"'})[a.size]}} {{a.mat==='abs'?'abs':'pvc'}} repair coupling",
+   "qty": "1",
+   "when": "a.job==='crack'&&a.mat!=='old'"
+  },
+  {
+   "id": "rubber",
+   "c": "Materials",
+   "n": "{{({'1.5':'1-1/2\"','2':'2\"','3':'3\"','4':'4\"'})[a.size]}} shielded transition coupling ({{a.mat==='old'?'cast iron to PVC/ABS':'plastic to plastic'}})",
+   "must": true,
+   "when": "a.mat==='old'||a.job==='crack'",
+   "w": "Joins different pipes, or replaces a glued joint in a repair. Read the label for which two pipes it fits.",
+   "q": "{{({'1.5':'1-1/2\"','2':'2\"','3':'3\"','4':'4\"'})[a.size]}} shielded coupling {{a.mat==='old'?'cast iron to pvc':'pvc'}}",
+   "qty": "{{a.mat==='old'?2:1}}"
+  },
+  {
+   "id": "wye",
+   "c": "Materials",
+   "n": "{{({'1.5':'1-1/2\"','2':'2\"','3':'3\"','4':'4\"'})[a.size]}} wye + cleanout adapter + threaded plug",
+   "must": true,
+   "w": "Gives a snake a way into the line.",
+   "q": "{{({'1.5':'1-1/2\"','2':'2\"','3':'3\"','4':'4\"'})[a.size]}} pvc cleanout adapter with plug",
+   "qty": "1",
+   "when": "a.job==='cleanout'"
+  },
+  {
+   "id": "primer",
+   "c": "Materials",
+   "n": "PVC primer (purple, or clear where allowed)",
+   "must": true,
+   "w": "Softens PVC so the cement bites. Many codes require purple so the inspector can see it.",
+   "q": "pvc primer purple",
+   "qty": "1 small can",
+   "when": "a.mat!=='abs'"
+  },
+  {
+   "id": "cement",
+   "c": "Materials",
+   "n": "{{a.mat==='abs'?'ABS cement':'PVC cement'}} rated for {{(+a.size)>=3?'3\" to 4\" pipe (medium or heavy body)':'your pipe size'}}",
+   "must": true,
+   "w": "Match the material and size printed on the can. Use a cold-weather cement below about 40°F.",
+   "q": "{{a.mat==='abs'?'abs cement':'pvc cement medium body'}}",
+   "qty": "1 can"
+  },
+  {
+   "id": "straps",
+   "c": "Materials",
+   "n": "Pipe hangers or plastic strap + screws",
+   "must": true,
+   "w": "Holds the pipe at the right slope and supports both sides of a cut.",
+   "q": "plastic pipe strap hanger",
+   "qty": "{{c.hang}}"
+  },
+  {
+   "id": "cutter",
+   "c": "Tools",
+   "n": "{{(+a.size)<=2?'Ratcheting PVC cutter or PVC saw':'PVC saw (or hacksaw) and a miter box'}}",
+   "must": true,
+   "w": "Square, clean cuts.",
+   "q": "{{(+a.size)<=2?'ratcheting pvc cutter':'pvc saw miter box'}}"
+  },
+  {
+   "id": "snap",
+   "c": "Tools",
+   "n": "Cast iron snap cutter (rent) or reciprocating saw with a diamond or carbide blade",
+   "must": true,
+   "w": "Cast iron is too hard for a hand saw.",
+   "q": "cast iron pipe cutter rental",
+   "rent": true,
+   "when": "a.mat==='old'"
+  },
+  {
+   "id": "deb",
+   "c": "Tools",
+   "n": "Deburring tool, file or utility knife",
+   "must": true,
+   "w": "Removes burrs and bevels the pipe end.",
+   "q": "pvc deburring tool"
+  },
+  {
+   "id": "measure",
+   "c": "Tools",
+   "n": "Tape measure, marker and torpedo level",
+   "must": true,
+   "w": "Measure, mark alignment lines, check slope.",
+   "q": "torpedo level"
+  },
+  {
+   "id": "driver",
+   "c": "Tools",
+   "n": "5/16\" nut driver (or a coupling torque wrench)",
+   "must": true,
+   "w": "Tightens the coupling band clamps.",
+   "q": "5/16 nut driver",
+   "when": "a.mat==='old'||a.job==='crack'"
+  },
+  {
+   "id": "drill",
+   "c": "Tools",
+   "n": "Drill/driver",
+   "must": true,
+   "w": "Screws in hangers and straps.",
+   "q": "cordless drill"
+  },
+  {
+   "id": "bucket",
+   "c": "Prep",
+   "n": "Bucket, old towels and rags",
+   "must": true,
+   "w": "Water sits in drain pipes. Rags plug the open pipe against sewer gas.",
+   "q": "shop rags"
+  },
+  {
+   "id": "gloves",
+   "c": "Safety",
+   "n": "Nitrile gloves",
+   "must": true,
+   "w": "Drain pipe is dirty; cement and primer stain and irritate skin.",
+   "q": "nitrile gloves"
+  },
+  {
+   "id": "glasses",
+   "c": "Safety",
+   "n": "Safety glasses",
+   "must": true,
+   "w": "Sawdust, drips and splashes.",
+   "q": "safety glasses"
+  },
+  {
+   "id": "fan",
+   "c": "Safety",
+   "n": "Box fan for ventilation",
+   "must": false,
+   "w": "Cement fumes are strong and flammable. Move air out of the space.",
+   "q": "box fan"
+  }
+ ],
+ "phases": [
+  {
+   "name": "Plan",
+   "steps": [
+    {
+     "id": "p1",
+     "t": "Identify your pipe",
+     "time": "10 min",
+     "idea": "Know the material and size before you buy anything. Glue only works PVC to PVC or ABS to ABS.",
+     "fig": "pipeid",
+     "need": [
+      "measure"
+     ],
+     "b": "<ol><li>Look at the color. White or cream = PVC. Black = ABS. Heavy, dark, rough metal = cast iron.</li><li>Find the printing along the pipe. It names the material, size and \"DWV\".</li><li>No print? Measure across the outside: about 1-7/8\" = 1-1/2\" pipe, 2-3/8\" = 2\", 3-1/2\" = 3\", 4-1/2\" = 4\".</li><li>Write down the size. You'll buy every part in that size.</li><li>Take a photo of the area so you can show it at the store.</li></ol>",
+     "faq": [
+      [
+       "Can I use thin-wall (\"sewer and drain\") pipe?",
+       "Not inside the house in most areas. Use Schedule 40 DWV. Thin-wall is for some underground runs outside where code allows."
+      ],
+      [
+       "My old 4\" pipe measures differently from 4\" PVC.",
+       "It is. Cast iron and plastic of the same size have slightly different outside sizes, so you need a coupling made for that pair."
+      ]
+     ]
+    },
+    {
+     "id": "p2",
+     "t": "Plan the job and check if you need a permit",
+     "time": "20 min",
+     "idea": "Small repairs of an existing drain are usually DIY. New drains and vents usually need a permit.",
+     "fig": [
+      "repair",
+      "cleanout"
+     ],
+     "need": [
+      "measure"
+     ],
+     "b": "<ol><li>{{a.job==='crack'?'Find both ends of the damage. You will cut out at least a few inches past the crack on each side.':(a.job==='reroute'?'Sketch the new route with every fitting. Keep turns gentle (long-sweep elbows) and the whole run sloping downhill.':'Pick a spot where you can reach the pipe with a snake later, ideally where a horizontal run starts.')}}</li><li>Check there's straight pipe at least as long as the fitting socket on each side of where you'll cut.</li><li>Count your fittings and measure the pipe you'll need. Enter them at the top of this guide.</li><li>Call or check your building department's website: adding drains, vents or new fixtures usually needs a permit and an inspection.</li></ol>",
+     "stop": "Main stack (the big vertical pipe that goes to the roof), a sewer line under the floor slab, or anything that changes a vent? That's beyond this guide. Get a plumber or a permit first.",
+     "faq": [
+      [
+       "Why not just patch the crack with tape or epoxy?",
+       "Patches on drain pipe fail and hide the problem. Cutting in a new section takes an hour and lasts."
+      ]
+     ]
+    },
+    {
+     "id": "p3",
+     "t": "Buy matching parts and cement",
+     "time": "1 hour",
+     "idea": "Primer and cement must match the pipe material and size. Never mix PVC and ABS glue.",
+     "fig": "nomix",
+     "need": [
+      "pipe",
+      "fit",
+      "cement",
+      "primer",
+      "rubber"
+     ],
+     "b": "<ol><li>Buy {{c.pipeFt}} ft of {{({'1.5':'1-1/2\"','2':'2\"','3':'3\"','4':'4\"'})[a.size]}} {{a.mat==='abs'?'ABS':'PVC'}} DWV pipe (it's sold in 2, 5 and 10 ft lengths) and the fittings you counted.</li><li>{{a.mat==='abs'?'Buy ABS cement. ABS usually doesn\\'t use primer; check the can and your local code.':'Buy PVC primer (purple) and PVC cement. Check the can says it covers your pipe size.'}}</li><li>{{a.mat==='old'?'Buy a shielded transition coupling labeled for your old pipe to your new pipe, in your size.':'Joining PVC to ABS anywhere? Use a shielded coupling, or transition cement only if your code allows it.'}}</li><li>Buy one extra coupling and an extra foot of pipe. Mistakes happen and glued joints can't be undone.</li><li>Check cement isn't thick like jelly. Old, gummy cement makes weak joints.</li></ol>",
+     "faq": [
+      [
+       "Is \"all-purpose\" or \"one-step\" cement OK?",
+       "Some areas allow it for drains, many don't. Using matching cement (and purple primer for PVC) always passes."
+      ]
+     ]
+    },
+    {
+     "id": "p4",
+     "t": "Stop the flow and ventilate",
+     "time": "15 min",
+     "idea": "Drains aren't under pressure, but anything that drains into this pipe will pour out of it once you cut.",
+     "need": [
+      "bucket",
+      "fan"
+     ],
+     "b": "<ol><li>Find every fixture upstream: sinks, tubs, toilets, washer, dishwasher.</li><li>Tape a \"Don't use: plumbing open\" note on each one, and tell everyone at home.</li><li>Turn off the washing machine and dishwasher so they can't start a cycle.</li><li>Open windows or set a fan blowing out. Cement fumes are strong.</li><li>Put out any flames: water heater or furnace pilot in the same room should be shut off, and no smoking.</li></ol>",
+     "stop": "Primer and cement are highly flammable and their vapor is heavier than air. Never use them near a pilot light, a running furnace, sparks or a cigarette.",
+     "faq": [
+      [
+       "Should I shut the main water off?",
+       "Not required, but it's the surest way to stop someone flushing. Shut it if you can't trust the household to remember."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Cut out",
+   "steps": [
+    {
+     "id": "c1",
+     "t": "Support the pipe before cutting",
+     "time": "15 min",
+     "idea": "Once cut, each side can sag or drop. Support it first so you don't crack another joint.",
+     "fig": "support",
+     "need": [
+      "straps",
+      "drill"
+     ],
+     "b": "<ol><li>Find the hangers already holding the pipe.</li><li>Add a strap or hanger within about a foot of each place you'll cut.</li><li>On a vertical pipe, add a riser clamp or a wood block under a fitting so the pipe above can't slide down.</li><li>Push on the pipe gently. It shouldn't move.</li></ol>",
+     "stop": "Vertical cast iron is very heavy (about 10 lb per foot for 3\"-4\"). If you'd be cutting a cast iron stack, stop. It needs riser clamps on both sides and usually a pro."
+    },
+    {
+     "id": "c2",
+     "t": "Cut out the damaged section",
+     "time": "20 min",
+     "idea": "Cut square, catch the water, and plug the open ends against sewer gas.",
+     "fig": "cut",
+     "need": [
+      "cutter",
+      "bucket",
+      "gloves",
+      "glasses"
+     ],
+     "ppe": [
+      "Gloves",
+      "Glasses"
+     ],
+     "help": [
+      "cutHelp"
+     ],
+     "b": "<ol><li>Mark your cut lines with a marker, wrapping a strip of paper around the pipe as a straight guide.</li><li>Put the bucket under the cut. There may be water in the pipe.</li><li>Cut slowly, keeping the blade square to the pipe.</li><li>Pull the cut piece out. Wiggle, don't yank.</li><li>Stuff a rag (tied to a string so you can't lose it) into each open end to block sewer gas.</li></ol>",
+     "faq": [
+      [
+       "The pipe pinches the saw blade.",
+       "It's sagging. Add more support near the cut, then finish."
+      ],
+      [
+       "Can I use a reciprocating saw?",
+       "Yes, but it's hard to cut square. Clean up the end with a square cut by hand afterward, or rely on a rubber coupling that tolerates small errors."
+      ]
+     ]
+    },
+    {
+     "id": "c3",
+     "t": "Cut the cast iron end",
+     "time": "30 min",
+     "when": "a.mat==='old'",
+     "idea": "Old cast iron needs a special cutter. Give the coupling a clean, round, square end.",
+     "fig": "coupling",
+     "need": [
+      "snap",
+      "glasses",
+      "gloves"
+     ],
+     "ppe": [
+      "Gloves",
+      "Glasses",
+      "Hearing protection"
+     ],
+     "b": "<ol><li>Clamp the cast iron firmly on both sides of the cut with hangers or riser clamps.</li><li>Wrap the snap cutter chain around the mark, tighten it until the pipe snaps. Or cut with a reciprocating saw and a diamond/carbide blade, slowly.</li><li>Knock off sharp edges with a file.</li><li>Clean about 3\" back from the end with a wire brush so the rubber seals on bare metal.</li><li>Look at the end: it should be round and not cracked.</li></ol>",
+     "stop": "Cracks running along the old cast iron, crumbling walls, or rust holes near your cut mean the pipe is failing. Get a plumber to look at the run before you connect to it."
+    },
+    {
+     "id": "c4",
+     "t": "Deburr and bevel every cut end",
+     "time": "10 min",
+     "idea": "Clean, beveled ends slide in without scraping the cement off.",
+     "fig": "deburr",
+     "need": [
+      "deb"
+     ],
+     "help": [
+      "cutHelp"
+     ],
+     "b": "<ol><li>Scrape the inside edge with the deburring tool or knife until smooth.</li><li>Bevel the outside edge slightly, about 1/8\", with a file or the tool.</li><li>Wipe off dust, dirt and grease. Dry the ends completely.</li><li>Check each end is square by holding a fitting on it.</li></ol>"
+    }
+   ]
+  },
+  {
+   "name": "Fit",
+   "steps": [
+    {
+     "id": "f1",
+     "t": "Measure and cut the new pieces",
+     "time": "20 min",
+     "idea": "New pipe must reach all the way to the bottom of each socket. Add the socket depth to your gap measurements.",
+     "fig": "dryfit",
+     "need": [
+      "pipe",
+      "cutter",
+      "measure",
+      "deb"
+     ],
+     "help": [
+      "cutHelp"
+     ],
+     "b": "<ol><li>Push a fitting onto a scrap of pipe and measure how deep the pipe goes in. That's the socket depth: about {{c.sock}} for {{({'1.5':'1-1/2\"','2':'2\"','3':'3\"','4':'4\"'})[a.size]}}.</li><li>Between two fittings: measure face to face, then add one socket depth for each end.</li><li>{{a.job==='crack'?'For a repair coupling, measure the gap and cut the new piece about 1/4\" shorter so it slides in.':'Mark, cut, deburr and bevel each piece.'}}</li><li>Label each piece with where it goes.</li></ol>",
+     "faq": [
+      [
+       "I cut it too short.",
+       "You can't stretch it. Cut a new piece, or add a coupling and a short piece. Pipe is cheap."
+      ]
+     ]
+    },
+    {
+     "id": "f2",
+     "t": "Dry fit and mark everything",
+     "time": "20 min",
+     "idea": "Put the whole thing together without glue first, then mark it so you can rebuild it the same way fast.",
+     "fig": "dryfit",
+     "need": [
+      "measure",
+      "fit"
+     ],
+     "b": "<ol><li>Assemble all the pieces without cement. Push each pipe fully into each socket.</li><li>Check the slope with the level (next step) and that nothing is strained.</li><li>Draw a line across each joint, pipe to fitting, so you can line it back up.</li><li>Draw a depth mark on each pipe at the edge of its socket.</li><li>Take it apart in order and lay the pieces out in that order.</li></ol>",
+     "faq": [
+      [
+       "Dry-fit joints are too tight to come apart.",
+       "Twist and pull. A dry fit should go in about a third to two-thirds of the socket depth before it gets snug; that's normal for PVC."
+      ]
+     ]
+    },
+    {
+     "id": "f3",
+     "t": "Set the slope and plan the hangers",
+     "time": "15 min",
+     "idea": "Drains run on gravity. They need a steady downhill slope and support so they don't sag.",
+     "fig": [
+      "slope",
+      "hangers"
+     ],
+     "need": [
+      "measure",
+      "straps"
+     ],
+     "b": "<ol><li>Set the level on horizontal pipe. The bubble should sit slightly off center, toward the uphill end.</li><li>Aim for 1/4\" per foot: about {{c.drop}} over your {{a.length}} ft{{(+a.size)>=3?' (1/8\" per foot is often allowed for 3\" and larger; check local code)':''}}.</li><li>Many levels have a 1/4\"-per-foot mark. Use it.</li><li>Plan a hanger about every 4 ft and near each fitting. That's about {{c.hang}} hangers. Check your local code for spacing.</li><li>Never let the pipe run uphill or dip in the middle.</li></ol>",
+     "faq": [
+      [
+       "Can I slope it more than 1/4\" per foot to be safe?",
+       "A bit more is fine on short runs. Very steep runs can let water outrun the solids. Stick close to the standard."
+      ]
+     ]
+    },
+    {
+     "id": "f4",
+     "t": "Plan the cleanout",
+     "time": "15 min",
+     "when": "a.job==='cleanout'",
+     "idea": "A cleanout is a capped opening that lets a snake into the line. Put it where you can reach it.",
+     "fig": "cleanout",
+     "need": [
+      "wye"
+     ],
+     "b": "<ol><li>Pick a straight horizontal run, ideally where it starts or changes direction.</li><li>Use a wye with the branch pointing up and back, against the flow, so a snake goes downstream.</li><li>Glue the cleanout adapter on the branch and screw the plug in by hand, with thread tape on the plug threads.</li><li>Leave clear space in front for a snake, about 18\" or what your code requires.</li><li>Inside a finished wall? Plan an access panel. Never cover a cleanout.</li></ol>",
+     "faq": [
+      [
+       "Can I use a tee instead of a wye?",
+       "Cleanout tees exist, but a wye with a 45 is easier to snake. Ask what your inspector accepts."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Glue",
+   "steps": [
+    {
+     "id": "g1",
+     "t": "Set up to glue",
+     "time": "10 min",
+     "idea": "Have everything open and in reach. Each joint takes under a minute and can't be redone.",
+     "need": [
+      "primer",
+      "cement",
+      "gloves",
+      "glasses",
+      "fan"
+     ],
+     "ppe": [
+      "Gloves",
+      "Glasses"
+     ],
+     "help": [
+      "glueHelp"
+     ],
+     "b": "<ol><li>Fan on, windows open, no flames.</li><li>Gloves and glasses on.</li><li>Lay out the pieces in order with their marks facing you.</li><li>Open the primer and cement. Set them on a flat spot where they can't tip, cans closed between joints.</li><li>Plan the order: glue joints you can turn freely first, and the last joint where you have the most room.</li></ol>",
+     "faq": [
+      [
+       "How long can I leave the can open?",
+       "Close it between joints. Open cans thicken fast and the vapor is flammable."
+      ]
+     ]
+    },
+    {
+     "id": "g2",
+     "t": "Prime (PVC)",
+     "time": "5 min",
+     "when": "a.mat!=='abs'",
+     "idea": "Primer cleans and softens PVC so the cement fuses it. Do one joint at a time.",
+     "fig": "glue",
+     "need": [
+      "primer"
+     ],
+     "b": "<ol><li>With the primer dauber, wet the outside of the pipe end, as far as the depth mark.</li><li>Wet the inside of the fitting socket.</li><li>Do the pipe once more.</li><li>Go straight to cement while the primer is still wet.</li></ol>",
+     "faq": [
+      [
+       "Does purple primer have to show?",
+       "Many inspectors look for it. Clear primer exists where allowed. Wipe drips quickly if looks matter."
+      ]
+     ]
+    },
+    {
+     "id": "g3",
+     "t": "Cement and push together",
+     "time": "10 min",
+     "idea": "Cement both parts, push the pipe fully in with a quarter turn, and hold it.",
+     "fig": "glue",
+     "need": [
+      "cement"
+     ],
+     "help": [
+      "glueHelp"
+     ],
+     "timers": [
+      [
+       "Don't disturb the joints",
+       30
+      ]
+     ],
+     "b": "<ol><li>Spread an even coat of cement on the pipe end up to the depth mark.</li><li>A thinner coat inside the socket.</li><li>Another coat on the pipe.</li><li>Right away, push the pipe in with a quarter turn, ending with your marks lined up.</li><li>Hold it firmly for about 30 seconds. It wants to push back out.</li><li>Wipe off extra cement. You should see an even bead all around the joint.</li><li>Repeat for each joint, then start the timer and leave the joints alone.</li></ol>",
+     "stop": "No bead all around, or the pipe stopped short of the depth mark? Cut it out now and redo it with a new fitting. A starved joint leaks later.",
+     "faq": [
+      [
+       "I glued it crooked.",
+       "You have a few seconds to twist it straight. After that, cut the fitting out and use a new one."
+      ]
+     ]
+    },
+    {
+     "id": "g4",
+     "t": "Close the gap with a repair coupling",
+     "time": "15 min",
+     "when": "a.job==='crack'&&a.mat!=='old'",
+     "idea": "The old pipe can't move, so one coupling has to slide into place over the last gap.",
+     "fig": "repair",
+     "need": [
+      "slip",
+      "cement"
+     ],
+     "help": [
+      "glueHelp"
+     ],
+     "b": "<ol><li>Glue a regular coupling on one old pipe end and glue the new piece into it.</li><li>Mark the middle of the remaining gap. Mark the repair coupling's half-length on both pipes so you can center it.</li><li>Slide the dry repair coupling fully onto the new piece to check it moves freely.</li><li>Prime and cement the old pipe end, the new piece end and the inside of the repair coupling, fast.</li><li>Slide the coupling back over the gap until it sits centered on your marks.</li><li>Hold it 30 seconds. Wipe the bead.</li></ol>",
+     "faq": [
+      [
+       "Can I use a rubber coupling instead?",
+       "Yes. A shielded no-hub coupling can replace the repair coupling: no glue on that joint, just tighten the clamps."
+      ]
+     ]
+    },
+    {
+     "id": "g5",
+     "t": "Fit the rubber coupling",
+     "time": "15 min",
+     "when": "a.mat==='old'||a.job==='crack'",
+     "idea": "A shielded rubber coupling joins different pipes, or makes the last joint of a repair without glue.",
+     "fig": "coupling",
+     "need": [
+      "rubber",
+      "driver"
+     ],
+     "help": [
+      "clampHelp"
+     ],
+     "b": "<ol><li>Slide the coupling onto one pipe, all the way past its center stop if it has one; fold back the rubber if it helps.</li><li>Bring the other pipe in line and slide the coupling back so each pipe goes in to the center stop.</li><li>Center the stainless shield over the rubber.</li><li>Tighten the two clamps a little at a time, back and forth, to the torque printed on the band.</li><li>Check the pipes are straight and supported on both sides. Couplings are not meant to hold weight.</li></ol>",
+     "stop": "Codes often require shielded couplings (with the stainless band), not plain rubber sleeves, for joints like these, especially underground. Use what your local code calls for.",
+     "faq": [
+      [
+       "Can I use the cheap all-rubber kind?",
+       "Some areas allow plain rubber couplings above ground. Shielded ones hold alignment better and are required in many places. Use shielded if unsure."
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Cure and test",
+   "steps": [
+    {
+     "id": "t1",
+     "t": "Let it cure",
+     "time": "2 hours or more",
+     "idea": "Cement keeps hardening long after it feels firm. Don't run water until the can's cure time has passed.",
+     "need": [
+      "cement"
+     ],
+     "timers": [
+      [
+       "Cure before running water",
+       120
+      ]
+     ],
+     "b": "<ol><li>Read the cure chart on the cement can for your pipe size and temperature.</li><li>At about {{({'warm':'60°F or more','cool':'40–60°F','cold':'under 40°F'})[a.temp]}}, plan to wait at least {{c.cure}} before running water.</li><li>Don't bump, hang or lean anything on new joints meanwhile.</li><li>Pull the rag plugs out of every pipe end before you close up. Count them.</li></ol>",
+     "faq": [
+      [
+       "It's cold in my crawl space.",
+       "Cure takes much longer in the cold. Use a cold-weather cement and wait longer, or warm the space."
+      ]
+     ]
+    },
+    {
+     "id": "t2",
+     "t": "Run water and check every joint",
+     "time": "20 min",
+     "idea": "Fill and release fixtures upstream so the joints see real flow, then look and feel.",
+     "fig": "test",
+     "need": [
+      "bucket"
+     ],
+     "timers": [
+      [
+       "Recheck joints",
+       60
+      ]
+     ],
+     "b": "<ol><li>Remove the \"don't use\" notes. Make sure every rag plug is out.</li><li>Run a sink upstream for a minute. Check each joint with a dry paper towel.</li><li>Fill a tub or sink and pull the plug so a big slug of water goes through.</li><li>Flush any toilet that drains through this pipe several times.</li><li>Check again in an hour, and the next day.</li></ol>",
+     "faq": [
+      [
+       "A glued joint drips.",
+       "It can't be fixed with more glue. Cut the joint out and replace it with a new fitting and short pieces, or a rubber coupling."
+      ],
+      [
+       "Do I need to do a pressure test?",
+       "With a permit, the inspector may require a water or air test with test plugs before you close the wall. They'll tell you how; you don't need it for a simple repair."
+      ],
+      [
+       "I smell sewer gas now.",
+       "Check for a rag left in a pipe or a loose coupling. A smell that keeps coming back or gurgling drains point to a vent problem: call a plumber."
+      ]
+     ]
+    },
+    {
+     "id": "t3",
+     "t": "Finish and clean up",
+     "time": "15 min",
+     "idea": "Final support, safe disposal of rags, and keep the cleanouts reachable.",
+     "fig": "hangers",
+     "need": [
+      "straps",
+      "drill"
+     ],
+     "b": "<ol><li>Snug up every hanger. The pipe should sit at slope without dipping.</li><li>Remove any temporary blocks you used for support only if permanent hangers are in.</li><li>Let cement-soaked rags dry flat outdoors before throwing them away. Don't bunch them in a bin.</li><li>Close the cans tight and store them away from heat.</li><li>Before closing a wall or ceiling, take photos of the new pipe with a tape measure in the shot.</li></ol>"
+    }
+   ]
+  }
+ ],
+ "days": [
+  {
+   "t": "Plan, buy and cut out",
+   "ids": [
+    "p1",
+    "p2",
+    "p3",
+    "p4",
+    "c1",
+    "c2",
+    "c3",
+    "c4"
+   ]
+  },
+  {
+   "t": "Fit, glue and cure",
+   "ids": [
+    "f1",
+    "f2",
+    "f3",
+    "f4",
+    "g1",
+    "g2",
+    "g3",
+    "g4",
+    "g5",
+    "t1"
+   ],
+   "wait": "Cure time from the can before running water"
+  },
+  {
+   "t": "Test and finish",
+   "ids": [
+    "t2",
+    "t3"
+   ]
+  }
+ ],
+ "help": {
+  "cutHelp": {
+   "t": "Cut plastic pipe square",
+   "fig": "cut",
+   "b": "<ol><li>Wrap a strip of paper around the pipe, line up its edges, and draw along it.</li><li>Use a miter box for loose pipe, or a ratchet cutter up to 2\".</li><li>Saw with long, light strokes and let the blade do the work.</li><li>Check: a fitting pushed on shows no gap on one side.</li><li>Deburr inside and bevel outside.</li></ol>"
+  },
+  "glueHelp": {
+   "t": "Make a glued joint",
+   "fig": "glue",
+   "b": "<ol><li>Clean, dry, deburred, dry-fit and marked.</li><li>PVC: primer on pipe, socket, pipe.</li><li>Cement on pipe, socket, pipe.</li><li>Push in with a quarter turn to your line. Hold 30 seconds.</li><li>Wipe the bead. Don't touch for the set time.</li></ol>"
+  },
+  "clampHelp": {
+   "t": "Tighten a no-hub coupling",
+   "fig": "coupling",
+   "b": "<ol><li>Pipes in to the center stop, ends square and clean.</li><li>Shield centered.</li><li>Tighten clamps alternately, a few turns each.</li><li>Stop at the torque printed on the band (a coupling torque wrench clicks).</li></ol>"
+  }
+ },
+ "figs": {
+  "pipeid": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">PVC or ABS? Look and read</text><text x=\"10\" y=\"36\" class=\"k\">White (or cream) = PVC</text><rect x=\"10\" y=\"44\" width=\"300\" height=\"26\" class=\"bk\"/><text x=\"24\" y=\"61\">2\" PVC DWV SCH 40 ASTM D2665  NSF-DWV</text><text x=\"10\" y=\"92\" class=\"k\">Black = ABS</text><rect x=\"10\" y=\"100\" width=\"300\" height=\"26\" class=\"inkf\"/><text x=\"24\" y=\"117\" class=\"nm\">2\" ABS DWV SCH 40 ASTM D2661</text><text x=\"10\" y=\"150\">The print names the material, size and \"DWV\".</text><text x=\"10\" y=\"162\">Measure the OUTSIDE: 2\" pipe is about 2-3/8\".</text>",
+   "h": 170,
+   "cap": "\"DWV\" means drain, waste and vent. Pipe size is a trade name: the outside is bigger than the number, so measure and compare with the table in step 1."
+  },
+  "nomix": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Never glue PVC to ABS with one cement</text><rect x=\"10\" y=\"50\" width=\"60\" height=\"22\" class=\"bk\"/><rect x=\"70\" y=\"50\" width=\"60\" height=\"22\" class=\"inkf\"/><rect x=\"52\" y=\"84\" width=\"30\" height=\"34\" rx=\"3\" class=\"mp\"/><text x=\"67\" y=\"104\" text-anchor=\"middle\">PVC</text><line x1=\"10\" y1=\"40\" x2=\"140\" y2=\"128\" class=\"bad\" style=\"stroke-width:3\"/><line x1=\"140\" y1=\"40\" x2=\"10\" y2=\"128\" class=\"bad\" style=\"stroke-width:3\"/><text x=\"10\" y=\"144\" class=\"wa\">PVC cement on ABS:</text><text x=\"10\" y=\"156\">weak joint, may fail</text><rect x=\"170\" y=\"50\" width=\"46\" height=\"22\" class=\"bk\"/><rect x=\"264\" y=\"50\" width=\"46\" height=\"22\" class=\"inkf\"/><rect x=\"206\" y=\"44\" width=\"68\" height=\"34\" rx=\"4\" class=\"tl\"/><rect x=\"212\" y=\"40\" width=\"10\" height=\"42\" rx=\"2\" class=\"y\"/><rect x=\"258\" y=\"40\" width=\"10\" height=\"42\" rx=\"2\" class=\"y\"/><text x=\"170\" y=\"104\" class=\"gd\">mechanical coupling</text><text x=\"170\" y=\"116\">(shielded, rubber)</text><text x=\"170\" y=\"144\">or green transition</text><text x=\"170\" y=\"156\">cement, only if your</text><text x=\"170\" y=\"168\">local code allows it</text>",
+   "h": 176,
+   "cap": "PVC cement on PVC, ABS cement on ABS. Where the two meet, use a coupling made for the job, or the transition cement your inspector accepts."
+  },
+  "support": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Strap it before you cut it</text><rect x=\"20\" y=\"26\" width=\"50\" height=\"14\" class=\"w\"/><rect x=\"120\" y=\"26\" width=\"50\" height=\"14\" class=\"w\"/><rect x=\"220\" y=\"26\" width=\"50\" height=\"14\" class=\"w\"/><rect x=\"10\" y=\"84\" width=\"300\" height=\"16\" class=\"bk\"/><path d=\"M40 40 V84 M52 40 V84\" class=\"y\" style=\"stroke-width:3\"/><path d=\"M40 100 A6 6 0 0 0 52 100\" class=\"y\" fill=\"none\" style=\"stroke-width:3\"/><path d=\"M244 40 V84 M256 40 V84\" class=\"y\" style=\"stroke-width:3\"/><path d=\"M244 100 A6 6 0 0 0 256 100\" class=\"y\" fill=\"none\" style=\"stroke-width:3\"/><line x1=\"140\" y1=\"74\" x2=\"140\" y2=\"110\" class=\"bad d\" style=\"stroke-width:2\"/><line x1=\"184\" y1=\"74\" x2=\"184\" y2=\"110\" class=\"bad d\" style=\"stroke-width:2\"/><path d=\"M152 86 L158 92 L154 96 L162 99\" class=\"bad\" fill=\"none\" style=\"stroke-width:1.5\"/><text x=\"162\" y=\"132\" class=\"wa\" text-anchor=\"middle\">cut out the bad part</text><text x=\"14\" y=\"124\">new strap</text><text x=\"256\" y=\"124\">new strap</text><text x=\"10\" y=\"152\">Without support, the cut ends drop and pull</text><text x=\"10\" y=\"164\">on joints you can't see.</text>",
+   "h": 172,
+   "cap": "Add a strap or block within about a foot of each cut. On a vertical pipe, a riser clamp resting on the floor or a block holds the weight above."
+  },
+  "cut": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Cut square</text><path d=\"M20 60 V100 H130 V60 H118 V88 H32 V60 Z\" class=\"w\"/><rect x=\"32\" y=\"66\" width=\"86\" height=\"22\" class=\"bk\"/><rect x=\"70\" y=\"30\" width=\"6\" height=\"70\" class=\"o\"/><path d=\"M64 30 H82 V22 H64 Z\" class=\"inkf\"/><text x=\"20\" y=\"120\" class=\"k\">saw + miter box</text><text x=\"20\" y=\"132\">(any size)</text><rect x=\"160\" y=\"40\" width=\"46\" height=\"20\" class=\"bk\"/><line x1=\"206\" y1=\"40\" x2=\"206\" y2=\"60\" class=\"good\" style=\"stroke-width:3\"/><text x=\"214\" y=\"54\" class=\"gd\">square</text><rect x=\"160\" y=\"80\" width=\"46\" height=\"20\" class=\"bk\"/><path d=\"M206 80 L196 100\" class=\"bad\" style=\"stroke-width:3\"/><text x=\"214\" y=\"94\" class=\"wa\">crooked</text><text x=\"160\" y=\"122\">Ratchet cutter: up to 2\"</text><text x=\"160\" y=\"134\">Hacksaw: OK, go slow</text><text x=\"10\" y=\"158\">A crooked end can't bottom out in the socket.</text>",
+   "h": 166,
+   "cap": "Square ends seat fully in the fitting. Check by holding a fitting on the cut end: there should be no gap on one side."
+  },
+  "deburr": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Deburr inside, bevel outside</text><text x=\"10\" y=\"36\" class=\"k\">Before</text><rect x=\"10\" y=\"46\" width=\"110\" height=\"18\" class=\"bk\"/><rect x=\"10\" y=\"96\" width=\"110\" height=\"18\" class=\"bk\"/><path d=\"M120 64 L114 70 L110 64 Z\" class=\"badf\"/><path d=\"M120 96 L114 90 L110 96 Z\" class=\"badf\"/><path d=\"M120 46 L124 42 V48\" class=\"bad\" fill=\"none\" style=\"stroke-width:1.5\"/><text x=\"10\" y=\"134\" class=\"wa\">burrs scrape the</text><text x=\"10\" y=\"146\">cement off</text><text x=\"170\" y=\"36\" class=\"k\">After</text><path d=\"M170 46 H272 L280 54 V64 H170 Z\" class=\"bk\"/><path d=\"M170 96 H280 V106 L272 114 H170 Z\" class=\"bk\"/><text x=\"284\" y=\"52\">bevel</text><text x=\"170\" y=\"134\" class=\"gd\">small bevel, about 1/8\"</text><text x=\"170\" y=\"146\">smooth inside</text>",
+   "h": 154,
+   "cap": "A sharp outside edge pushes cement out of the socket as you insert the pipe. A file, knife or deburring tool takes 20 seconds per end."
+  },
+  "dryfit": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Dry fit and mark</text><path d=\"M150 60 H230 V40 H274 V140 H230 V106 H150 Z\" class=\"tl\"/><rect x=\"10\" y=\"70\" width=\"140\" height=\"26\" class=\"bk\"/><line x1=\"110\" y1=\"83\" x2=\"200\" y2=\"83\" class=\"a\" style=\"stroke-width:3\"/><line x1=\"146\" y1=\"66\" x2=\"146\" y2=\"100\" class=\"o\" style=\"stroke-width:3\"/><text x=\"10\" y=\"46\" class=\"ac\">alignment line across the joint</text><line x1=\"100\" y1=\"49\" x2=\"130\" y2=\"81\" class=\"a\"/><text x=\"10\" y=\"122\" class=\"k\">depth mark at the</text><text x=\"10\" y=\"134\" class=\"k\">edge of the socket</text><line x1=\"100\" y1=\"120\" x2=\"144\" y2=\"100\" class=\"o\"/><text x=\"10\" y=\"156\">Push the pipe in fully; it should bottom out.</text>",
+   "h": 164,
+   "cap": "Glue sets in seconds, so mark everything while it's dry: one line across each joint for direction, one depth mark so you know the pipe went all the way in."
+  },
+  "glue": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Prime, cement, push, twist, hold</text><path d=\"M170 56 H260 V122 H170 Z\" class=\"tl\"/><rect x=\"170\" y=\"64\" width=\"90\" height=\"50\" class=\"bk\"/><path d=\"M170 64 H200 V114 H170 Z\" class=\"mp\"/><g><rect x=\"60\" y=\"70\" width=\"140\" height=\"38\" class=\"bk\"/><path d=\"M188 70 H200 V108 H188 Z\" class=\"mp\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"-50 0;-50 0;0 0;0 0\" keyTimes=\"0;0.3;0.55;1\" dur=\"4s\" repeatCount=\"indefinite\"/></g><text x=\"70\" y=\"92\">pipe</text><text x=\"230\" y=\"50\" text-anchor=\"middle\">fitting</text><circle cx=\"20\" cy=\"140\" r=\"8\" class=\"af\"/><text x=\"20\" y=\"143\" class=\"nm\" text-anchor=\"middle\">1</text><text x=\"32\" y=\"143\" class=\"k\">Prime pipe + socket (PVC)</text><circle cx=\"20\" cy=\"162\" r=\"8\" class=\"af\"/><text x=\"20\" y=\"165\" class=\"nm\" text-anchor=\"middle\">2</text><text x=\"32\" y=\"165\">Cement pipe, then socket, then pipe</text><circle cx=\"20\" cy=\"184\" r=\"8\" class=\"af\"/><text x=\"20\" y=\"187\" class=\"nm\" text-anchor=\"middle\">3</text><text x=\"32\" y=\"187\" class=\"k\">Push in with a 1/4 turn</text><circle cx=\"20\" cy=\"206\" r=\"8\" class=\"af\"/><text x=\"20\" y=\"209\" class=\"nm\" text-anchor=\"middle\">4</text><text x=\"32\" y=\"209\">Hold 30 seconds. It wants to push back out.</text>",
+   "h": 216,
+   "title": "Make a solvent-weld joint",
+   "cap": "Cement melts the surface of both parts and they fuse. Work fast: you have only a few seconds after the cement goes on."
+  },
+  "slope": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Slope: downhill toward the main</text><path d=\"M10 50 L310 74 L310 90 L10 66 Z\" class=\"bk\"/><rect x=\"60\" y=\"40\" width=\"80\" height=\"10\" rx=\"2\" class=\"y\"/><circle cx=\"100\" cy=\"45\" r=\"3\" class=\"bk\"/><line x1=\"200\" y1=\"96\" x2=\"260\" y2=\"101\" class=\"a\"/><polygon points=\"260.0,101.0 254.4,103.2 254.8,98.0\" class=\"af\"/><text x=\"196\" y=\"114\" class=\"ac\">flow</text><line x1=\"10\" y1=\"110\" x2=\"10\" y2=\"140\" class=\"o\"/><line x1=\"10\" y1=\"124\" x2=\"110\" y2=\"124\" class=\"o d\"/><text x=\"14\" y=\"140\">1/4\" drop per foot of pipe</text><path d=\"M10 156 Q160 196 310 160\" class=\"bad\" fill=\"none\" style=\"stroke-width:3\"/><text x=\"110\" y=\"166\" class=\"wa\">sag: water and waste sit here</text>",
+   "h": 200,
+   "cap": "Most codes want 1/4\" per foot for pipe 3\" and smaller. Larger pipe is often allowed 1/8\". Check your local code. Too flat clogs; a sag holds waste."
+  },
+  "hangers": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Support it the whole way</text><rect x=\"10\" y=\"26\" width=\"300\" height=\"10\" class=\"w\"/><rect x=\"10\" y=\"90\" width=\"300\" height=\"14\" class=\"bk\"/><path d=\"M24 36 V90 M36 36 V90\" class=\"y\" style=\"stroke-width:3\"/><path d=\"M24 104 A6 6 0 0 0 36 104\" class=\"y\" fill=\"none\" style=\"stroke-width:3\"/><path d=\"M144 36 V90 M156 36 V90\" class=\"y\" style=\"stroke-width:3\"/><path d=\"M144 104 A6 6 0 0 0 156 104\" class=\"y\" fill=\"none\" style=\"stroke-width:3\"/><path d=\"M264 36 V90 M276 36 V90\" class=\"y\" style=\"stroke-width:3\"/><path d=\"M264 104 A6 6 0 0 0 276 104\" class=\"y\" fill=\"none\" style=\"stroke-width:3\"/><line x1=\"90\" y1=\"124\" x2=\"30\" y2=\"124\" class=\"o\"/><polygon points=\"30.0,124.0 35.4,121.4 35.4,126.6\" class=\"inkf\"/><line x1=\"90\" y1=\"124\" x2=\"150\" y2=\"124\" class=\"o\"/><polygon points=\"150.0,124.0 144.6,126.6 144.6,121.4\" class=\"inkf\"/><text x=\"90\" y=\"140\" class=\"k\" text-anchor=\"middle\">about 4 ft</text><line x1=\"210\" y1=\"124\" x2=\"150\" y2=\"124\" class=\"o\"/><polygon points=\"150.0,124.0 155.4,121.4 155.4,126.6\" class=\"inkf\"/><line x1=\"210\" y1=\"124\" x2=\"270\" y2=\"124\" class=\"o\"/><polygon points=\"270.0,124.0 264.6,126.6 264.6,121.4\" class=\"inkf\"/><text x=\"210\" y=\"140\" class=\"k\" text-anchor=\"middle\">about 4 ft</text><text x=\"10\" y=\"166\">Also within a couple of feet of each fitting.</text><text x=\"10\" y=\"178\">Snug, not tight: plastic pipe grows and shrinks.</text>",
+   "h": 186,
+   "cap": "About every 4 ft is common for horizontal PVC and ABS. Your local code sets the exact spacing. Use plastic or coated straps, never bare wire."
+  },
+  "coupling": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Shielded no-hub coupling</text><rect x=\"10\" y=\"60\" width=\"130\" height=\"48\" class=\"b\"/><text x=\"20\" y=\"52\" class=\"k\">cast iron (old)</text><rect x=\"180\" y=\"64\" width=\"130\" height=\"40\" class=\"bk\"/><text x=\"220\" y=\"52\" class=\"k\">PVC (new)</text><rect x=\"110\" y=\"56\" width=\"100\" height=\"56\" rx=\"3\" class=\"tl\"/><rect x=\"119\" y=\"50\" width=\"10\" height=\"68\" rx=\"2\" class=\"y\"/><rect x=\"120\" y=\"118\" width=\"8\" height=\"8\" class=\"inkf\"/><rect x=\"191\" y=\"50\" width=\"10\" height=\"68\" rx=\"2\" class=\"y\"/><rect x=\"192\" y=\"118\" width=\"8\" height=\"8\" class=\"inkf\"/><line x1=\"160\" y1=\"56\" x2=\"160\" y2=\"112\" class=\"o d\"/><text x=\"160\" y=\"140\" text-anchor=\"middle\">stainless shield + rubber sleeve</text><text x=\"10\" y=\"166\">Tighten the two clamps a bit at a time.</text><text x=\"10\" y=\"178\">Use the torque printed on the band.</text>",
+   "h": 186,
+   "cap": "Buy the coupling labeled for your two pipes, for example 4-inch cast iron to 4-inch PVC. Cast iron and plastic of the same size differ slightly on the outside, and the coupling's rubber steps between them."
+  },
+  "repair": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Replace a section with a repair coupling</text><rect x=\"10\" y=\"80\" width=\"100\" height=\"20\" class=\"bk\"/><rect x=\"210\" y=\"80\" width=\"100\" height=\"20\" class=\"bk\"/><rect x=\"116\" y=\"80\" width=\"88\" height=\"20\" class=\"mos\"/><rect x=\"196\" y=\"74\" width=\"24\" height=\"32\" rx=\"2\" class=\"tl\"/><g><rect x=\"98\" y=\"74\" width=\"28\" height=\"32\" rx=\"2\" class=\"y\"/><animateTransform attributeName=\"transform\" type=\"translate\" values=\"40 0;40 0;0 0;0 0\" keyTimes=\"0;0.3;0.7;1\" dur=\"4s\" repeatCount=\"indefinite\"/></g><text x=\"10\" y=\"64\">old pipe</text><text x=\"260\" y=\"64\">old pipe</text><text x=\"160\" y=\"124\" class=\"ac\" text-anchor=\"middle\">new piece</text><text x=\"208\" y=\"140\">regular coupling</text><text x=\"10\" y=\"140\" class=\"k\">repair coupling</text><text x=\"10\" y=\"152\">(no stop inside)</text><text x=\"10\" y=\"176\">Slide it onto the new piece, cement both,</text><text x=\"10\" y=\"188\">then slide it back over the gap.</text>",
+   "h": 196,
+   "title": "Slip a repair coupling",
+   "cap": "A regular coupling has a stop in the middle, so it can't slide. A repair (slip) coupling has none, so it can slide over to close the last gap where the old pipe can't move."
+  },
+  "cleanout": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Add a cleanout</text><rect x=\"10\" y=\"110\" width=\"300\" height=\"18\" class=\"bk\"/><path d=\"M120 110 L160 70 L174 84 L140 118 Z\" class=\"bk\"/><rect x=\"156\" y=\"58\" width=\"26\" height=\"22\" rx=\"3\" class=\"y\"/><line x1=\"110\" y1=\"90\" x2=\"140\" y2=\"90\" class=\"a\"/><polygon points=\"140.0,90.0 134.6,92.6 134.6,87.4\" class=\"af\"/><text x=\"10\" y=\"74\" class=\"k\">wye pointing</text><text x=\"10\" y=\"86\">up and back</text><text x=\"190\" y=\"62\" class=\"k\">cleanout adapter</text><text x=\"190\" y=\"74\">+ threaded plug</text><line x1=\"240\" y1=\"144\" x2=\"300\" y2=\"144\" class=\"a\"/><polygon points=\"300.0,144.0 294.6,146.6 294.6,141.4\" class=\"af\"/><text x=\"190\" y=\"148\">flow</text><text x=\"10\" y=\"168\">Keep room in front to feed a snake in.</text><text x=\"10\" y=\"180\">Inside a wall? Leave an access panel.</text>",
+   "h": 188,
+   "cap": "Point the cleanout so a snake goes in the direction the water flows. Never bury or drywall over it."
+  },
+  "test": {
+   "svg": "<text x=\"10\" y=\"16\" class=\"k\">Test it</text><rect x=\"10\" y=\"70\" width=\"300\" height=\"18\" class=\"bk\"/><rect x=\"66\" y=\"64\" width=\"28\" height=\"30\" rx=\"3\" class=\"tl\"/><rect x=\"68\" y=\"96\" width=\"24\" height=\"14\" rx=\"2\" class=\"y\"/><rect x=\"206\" y=\"64\" width=\"28\" height=\"30\" rx=\"3\" class=\"tl\"/><rect x=\"208\" y=\"96\" width=\"24\" height=\"14\" rx=\"2\" class=\"y\"/><line x1=\"20\" y1=\"58\" x2=\"60\" y2=\"58\" class=\"a\"/><polygon points=\"60.0,58.0 54.6,60.6 54.6,55.4\" class=\"af\"/><text x=\"20\" y=\"50\" class=\"ac\">run water from above</text><text x=\"160\" y=\"124\" text-anchor=\"middle\">dry paper towel under each joint</text><text x=\"10\" y=\"150\">Fill the tub or sink upstream and let it all</text><text x=\"10\" y=\"162\">go at once. Flush the toilet a few times.</text>",
+   "h": 170,
+   "cap": "A wet spot on the paper towel means a bad joint. A glued joint can't be fixed: cut it out and replace it with a new fitting."
+  }
+ },
+ "glossary": [
+  [
+   "DWV",
+   "Drain, waste and vent: pipe and fittings made for drains (no pressure)."
+  ],
+  [
+   "PVC",
+   "Polyvinyl chloride. White or cream plastic pipe."
+  ],
+  [
+   "ABS",
+   "Black plastic drain pipe. Uses its own cement."
+  ],
+  [
+   "Solvent weld",
+   "A glued plastic joint: the cement melts the surfaces so they fuse."
+  ],
+  [
+   "Primer",
+   "Purple (or clear) liquid that cleans and softens PVC before cement."
+  ],
+  [
+   "Socket",
+   "The open end of a fitting that pipe slides into."
+  ],
+  [
+   "Repair coupling",
+   "A coupling with no stop inside, so it can slide along the pipe to close a gap. Also called a slip coupling."
+  ],
+  [
+   "No-hub coupling",
+   "A rubber sleeve with clamps (and a stainless shield on the shielded kind) that joins pipe ends without glue."
+  ],
+  [
+   "Cleanout",
+   "A capped opening that lets you snake a drain line."
+  ],
+  [
+   "Slope",
+   "How much the pipe drops per foot, so water flows. Often 1/4\" per foot."
+  ],
+  [
+   "Stack",
+   "The main vertical drain/vent pipe through the house."
+  ],
+  [
+   "Vent",
+   "Pipe that lets air into the drains so traps don't siphon dry."
+  ]
+ ]
+}
