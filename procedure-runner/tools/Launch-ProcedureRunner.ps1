@@ -17,8 +17,8 @@ $logDir = Join-Path $env:LOCALAPPDATA 'ProcedureRunner'   # logs stay on this PC
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 
 function Say($msg) { Add-Type -AssemblyName PresentationFramework; [void][System.Windows.MessageBox]::Show($msg, 'Procedure Runner') }
-function Get-Running { try { $r = (Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 -Uri "$($url)api/ping").Content | ConvertFrom-Json; if ($r.server -eq 'procedure-runner') { $r } else { $null } } catch { $null } }
-function Test-Server { [bool](Get-Running) }
+# Direct to 127.0.0.1 with no proxy (corporate proxy settings must not get in the way of a local check)
+function Get-Running { try { $wc = New-Object System.Net.WebClient; $wc.Proxy = $null; $r = $wc.DownloadString("http://127.0.0.1:$port/api/ping") | ConvertFrom-Json; if ($r.server -eq 'procedure-runner') { $r } else { $null } } catch { $null } }
 function Same-Path($a, $b) { if (-not $a -or -not $b) { return $false }; try { return [IO.Path]::GetFullPath($a).TrimEnd('\').ToLower() -eq [IO.Path]::GetFullPath($b).TrimEnd('\').ToLower() } catch { return $false } }
 $myVersion = if ((Get-Content (Join-Path $root 'server.py') -Raw) -match 'VERSION = "([^"]+)"') { $matches[1] } else { '' }
 
@@ -30,21 +30,10 @@ if ($Stop) {
   exit 0
 }
 
-# A copy that is already running is only reused if it is this version, from this folder, on this data folder.
-# Otherwise (typically the hidden background server of an older version) it is stopped, so the new version really loads.
-$running = Get-Running
-if ($running -and -not ($running.version -eq $myVersion -and (Same-Path $running.appDir $root) -and (Same-Path $running.dataDir $data))) {
-  $oldPid = if ($running.pid) { [int]$running.pid } else { Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -First 1 } # older versions don't report their pid
-  $old = if ($oldPid) { Get-Process -Id $oldPid -ErrorAction SilentlyContinue } else { $null }
-  if ($old -and $old.ProcessName -match '^(py|pyw|python|pythonw)\d*$') {
-    Stop-Process -Id $old.Id -Force
-    for ($i = 0; $i -lt 20 -and (Test-Server); $i++) { Start-Sleep -Milliseconds 250 }
-  } else {
-    Say "An older Procedure Runner ($($running.version), $($running.appDir)) is using port $port and couldn't be stopped automatically.`n`nRun Stop_ProcedureRunner.bat from that folder, then open Procedure Runner again."
-    exit 1
-  }
-}
-if (-not (Test-Server)) {
+# Reuse a running copy only if it is THIS version, from this folder, on this data folder. Otherwise start server.py:
+# it finds and stops older copies on the port itself (they keep running hidden after their window is closed).
+$isMine = { param($r) [bool]($r -and $r.version -eq $myVersion -and (Same-Path $r.appDir $root) -and (Same-Path $r.dataDir $data)) }
+if (-not (& $isMine (Get-Running))) {
   # Prefer the windowless Python (pyw / pythonw) so no console window ever appears
   $py = $null; $pre = @()
   foreach ($c in @(@('pyw', '-3'), @('pythonw', $null), @('py', '-3'), @('python', $null))) {
@@ -53,14 +42,17 @@ if (-not (Test-Server)) {
   }
   if (-not $py) { Say "Python 3 isn't installed on this PC.`n`nInstall it from the Software Center (or python.org), then open Procedure Runner again."; exit 1 }
   New-Item -ItemType Directory -Force -Path $data | Out-Null
+  # A new log file per start: an older server that is still running keeps its own log file open
+  $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+  $log = Join-Path $logDir "server-$stamp.log"; $errLog = Join-Path $logDir "server-$stamp-errors.log"
+  Get-ChildItem $logDir -Filter 'server-*.log' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -Skip 20 | Remove-Item -ErrorAction SilentlyContinue
   $argList = $pre + @("`"$(Join-Path $root 'server.py')`"", '--port', "$port", '--host', $cfg.HOST, '--data', "`"$data`"")
-  Start-Process -FilePath $py.Source -ArgumentList $argList -WorkingDirectory $root -WindowStyle Hidden `
-    -RedirectStandardOutput (Join-Path $logDir 'server.log') -RedirectStandardError (Join-Path $logDir 'server-errors.log')
+  Start-Process -FilePath $py.Source -ArgumentList $argList -WorkingDirectory $root -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError $errLog
   $ok = $false
-  for ($i = 0; $i -lt 60 -and -not $ok; $i++) { Start-Sleep -Milliseconds 250; $ok = Test-Server }
+  for ($i = 0; $i -lt 120 -and -not $ok; $i++) { Start-Sleep -Milliseconds 250; $ok = & $isMine (Get-Running) }
   if (-not $ok) {
-    $err = (Get-Content (Join-Path $logDir 'server.log'), (Join-Path $logDir 'server-errors.log') -Tail 6 -ErrorAction SilentlyContinue) -join "`n"
-    Say "Procedure Runner didn't start on port $port.`n`n$err`n`nLogs: $logDir"
+    $err = (Get-Content $log, $errLog -Tail 8 -ErrorAction SilentlyContinue) -join "`n"
+    Say "Procedure Runner $myVersion didn't start on port $port.`n`n$err`n`nRun Diagnose_ProcedureRunner.bat for details. Logs: $logDir"
     exit 1
   }
 }

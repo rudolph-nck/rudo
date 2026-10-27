@@ -2,3 +2,4 @@ data/
 __pycache__/
 ProcedureRunner.cfg
 seed/*.json
+diagnose.txt

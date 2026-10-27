@@ -328,6 +328,7 @@ PR.app = (() => {
   function checkVersion() {
     const info = S().info;
     const brand = $(".brand"); if (brand) brand.title = `Procedure Runner ${window.PR_BUILD || ""}${info ? " · server " + info.version : " · local mode"}`;
+    const vb = $("#verBadge"); if (vb) vb.textContent = `v${window.PR_BUILD || "?"}`;
     if (!info) return;
     const warn = (v) => {
       if (!v || v === window.PR_BUILD || $(".update-bar")) return;

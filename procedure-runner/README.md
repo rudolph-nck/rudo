@@ -18,7 +18,9 @@ No install and no build step. It's plain HTML/JS plus a small Python server from
 - Windows left open on the old version show **Reload now**.
 - The bottom of the Library shows the version, app folder and data folder in use.
 
-**Desktop app settings**: copy `ProcedureRunner.cfg.example` to `ProcedureRunner.cfg` to change the port, the data folder or who can connect.
+**Still seeing an old version?** Run **`Diagnose_ProcedureRunner.bat`**. It shows which copy is answering on the port (version, folder, data folder), every program listening on it, and what's in the data folder, and saves it as `diagnose.txt`. The top bar shows the version, e.g. *Procedure Runner v3.12*.
+
+**Settings**: copy `ProcedureRunner.cfg.example` to `ProcedureRunner.cfg` to change the port, the data folder or who can connect. Both the desktop app and `Start_ProcedureRunner.bat` use it.
 - `DATA=I:\Core\ProcedureRunner\data` keeps everyone on the same runs.
 - `HOST=0.0.0.0` lets teammates connect to your PC.
 - Logs are kept in `%LOCALAPPDATA%\ProcedureRunner`.

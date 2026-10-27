@@ -32,10 +32,14 @@ import time
 import uuid
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, unquote
-from urllib.request import urlopen
+from urllib.request import ProxyHandler, build_opener
+
+# Talk to localhost directly: on Windows urllib otherwise picks up the system (corporate) proxy from the registry.
+_direct = build_opener(ProxyHandler({}))
+NO_WINDOW = {"creationflags": 0x08000000} if os.name == "nt" else {}  # CREATE_NO_WINDOW: no console flash under pythonw
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-VERSION = "3.11"  # keep in sync with BUILD in index.html
+VERSION = "3.12"  # keep in sync with BUILD in index.html
 MAX_BODY = 60 * 1024 * 1024
 ID_RE = re.compile(r"^[A-Za-z0-9_.\-]{1,120}$")
 
@@ -461,22 +465,23 @@ def same_title(title, skip_id):
 def running_instance(port):
     """What is answering on this port on this PC, if it's a Procedure Runner."""
     try:
-        with urlopen("http://127.0.0.1:%d/api/ping" % port, timeout=2) as r:
+        with _direct.open("http://127.0.0.1:%d/api/ping" % port, timeout=2) as r:
             info = json.loads(r.read().decode("utf-8"))
         return info if info.get("server") == "procedure-runner" else {}
     except Exception:
         return None
 
 
-def port_owner(port):
-    """PID listening on a TCP port (older versions don't report their own pid)."""
+def port_owners(port):
+    """PIDs listening on a TCP port. On Windows several programs can end up sharing one port (SO_REUSEADDR)."""
+    pids = []
     try:
         if os.name == "nt":
-            out = subprocess.run(["netstat", "-ano", "-p", "TCP"], capture_output=True, text=True, timeout=10).stdout
+            out = subprocess.run(["netstat", "-ano", "-p", "TCP"], capture_output=True, text=True, timeout=10, **NO_WINDOW).stdout
             for line in out.splitlines():
                 cols = line.split()
                 if len(cols) >= 5 and cols[3].upper() == "LISTENING" and cols[1].rsplit(":", 1)[-1] == str(port):
-                    return int(cols[4])
+                    pids.append(int(cols[4]))
         elif os.path.exists("/proc/net/tcp"):
             inodes = set()
             for tbl in ("/proc/net/tcp", "/proc/net/tcp6"):
@@ -489,12 +494,27 @@ def port_owner(port):
                 if d.isdigit():
                     try:
                         if any(os.readlink("/proc/%s/fd/%s" % (d, fd)) in inodes for fd in os.listdir("/proc/%s/fd" % d)):
-                            return int(d)
+                            pids.append(int(d))
                     except OSError:
                         pass
     except Exception:
         pass
-    return None
+    return sorted(set(pids))
+
+
+def process_name(pid):
+    try:
+        if os.name == "nt":
+            out = subprocess.run(["tasklist", "/FI", "PID eq %d" % pid, "/FO", "CSV", "/NH"], capture_output=True, text=True, timeout=10, **NO_WINDOW).stdout
+            m = re.match(r'"([^"]+)"', out.strip())
+            return m.group(1) if m else ""
+        return open("/proc/%d/cmdline" % pid, "rb").read().replace(b"\0", b" ").decode("utf-8", "replace").strip()
+    except Exception:
+        return ""
+
+
+def is_python(pid):
+    return bool(re.search(r"(^|[\\/ ])(py|pyw|python[0-9.]*w?)(\.exe)?\b", process_name(pid), re.I))
 
 
 def same_path(a, b):
@@ -537,44 +557,189 @@ def seed_procedures():
             write_json(marker, done)
 
 
+class AppServer(ThreadingHTTPServer):
+    daemon_threads = True
+    # Python's HTTPServer sets SO_REUSEADDR. On Windows that lets a second program bind a port that is already
+    # listening, so a new version would silently share port 8000 with an old one that keeps answering.
+    allow_reuse_address = os.name != "nt"
+
+    def server_bind(self):
+        if os.name == "nt" and hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
+
+
+def is_this_copy(info):
+    return bool(info) and info.get("version") == VERSION and same_path(info.get("appDir"), APP_DIR) and same_path(info.get("dataDir"), DATA)
+
+
+def claim_port(port):
+    """Checked BEFORE binding (Windows may not refuse the bind): a Procedure Runner already answering on this port
+    is either this exact copy (then just say so) or another version / folder / data folder, which is stopped."""
+    for _ in range(8):  # there may be several stale copies sharing the port
+        other = running_instance(port)
+        if not other:
+            return
+        if is_this_copy(other):
+            print("Procedure Runner %s is already running from this folder: http://localhost:%d/" % (VERSION, port))
+            sys.exit(0)
+        pids = set(port_owners(port))
+        if other.get("pid"):
+            pids.add(int(other["pid"]))
+        pids = [x for x in pids if x != os.getpid() and is_python(x)]
+        if not pids:
+            print("Port %d is used by Procedure Runner %s from %s, but it couldn't be identified to stop it."
+                  % (port, other.get("version", "?"), other.get("appDir", "another folder")))
+            print("Run Stop_ProcedureRunner.bat (or restart the PC), then start this one again.")
+            sys.exit(1)
+        print("Stopping Procedure Runner %s from %s (data: %s) so this copy (%s) can use port %d."
+              % (other.get("version", "?"), other.get("appDir", "another folder"), other.get("dataDir", "?"), VERSION, port))
+        for pid in pids:
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except Exception as e:
+                print("  Couldn't stop process %d (%s)." % (pid, e))
+        for _ in range(40):
+            if not running_instance(port):
+                break
+            time.sleep(0.25)
+    if running_instance(port):
+        print("Another Procedure Runner keeps answering on port %d. Run Stop_ProcedureRunner.bat or restart the PC." % port)
+        sys.exit(1)
+
+
+def read_cfg():
+    """ProcedureRunner.cfg (used by the desktop launcher): PORT / HOST / DATA."""
+    cfg = {}
+    try:
+        for line in open(os.path.join(APP_DIR, "ProcedureRunner.cfg"), encoding="utf-8-sig"):
+            m = re.match(r"\s*([A-Za-z]+)\s*=\s*(.*?)\s*$", line)
+            if m and not line.lstrip().startswith(("#", ";")):
+                cfg[m.group(1).upper()] = m.group(2)
+    except OSError:
+        pass
+    return cfg
+
+
+def diagnose(port):
+    """Plain-language report of what is running and why the browser might show an old copy."""
+    out = []
+    say = out.append
+    problems = []
+    say("Procedure Runner diagnostics — %s" % time.strftime("%Y-%m-%d %H:%M:%S"))
+    say("")
+    say("THIS COPY")
+    say("  Version      : %s" % VERSION)
+    say("  App folder   : %s" % APP_DIR)
+    say("  Python       : %s (%s)" % (sys.version.split()[0], sys.executable))
+    cfg = read_cfg()
+    say("  Settings     : %s" % (", ".join("%s=%s" % kv for kv in cfg.items()) if cfg else "none (ProcedureRunner.cfg not used)"))
+    say("  Data folder  : %s" % DATA)
+    sd = os.path.join(APP_DIR, "seed")
+    seeds = sorted(n for n in os.listdir(sd) if n.endswith(".procedure.json")) if os.path.isdir(sd) else []
+    say("  Included     : %s" % (", ".join(seeds) or "nothing in seed/"))
+    procs = []
+    d = p("procedures")
+    if os.path.isdir(d):
+        for name in sorted(os.listdir(d)):
+            if name.endswith(".json"):
+                doc = read_json(os.path.join(d, name)) or {}
+                dr = doc.get("draft") or {}
+                procs.append("%s [%s v%s%s]" % (dr.get("title", name), doc.get("status", "?"), doc.get("publishedVersion", 0),
+                                                ", quick start" if (dr.get("runOptions") or {}).get("quickStart") else ""))
+    say("  Procedures   : %d in this data folder" % len(procs))
+    for x in procs:
+        say("                 - %s" % x)
+    seeded = read_json(p("seeded.json"), {}) or {}
+    say("  Seeded so far: %s" % (", ".join(seeded) or "none yet (added the first time the server starts with this data folder)"))
+    say("")
+    say("PORT %d" % port)
+    other = running_instance(port)
+    owners = port_owners(port)
+    if other is None:
+        say("  Nothing is answering at http://localhost:%d/" % port)
+    elif not other:
+        say("  ANOTHER PROGRAM (not Procedure Runner) is using this port.")
+        problems.append("Port %d is taken by another program. Set PORT=8080 in ProcedureRunner.cfg (copy ProcedureRunner.cfg.example)." % port)
+    else:
+        say("  Answering    : Procedure Runner %s" % other.get("version", "?"))
+        say("  Its folder   : %s" % other.get("appDir", "(not reported - version 3.10 or older)"))
+        say("  Its data     : %s" % other.get("dataDir", "?"))
+        if is_this_copy(other):
+            say("  -> This is THIS copy. Good.")
+        else:
+            problems.append("The browser is talking to Procedure Runner %s from %s, not this copy (%s). "
+                            "Start this copy with ProcedureRunner.bat or Start_ProcedureRunner.bat - it stops the other one."
+                            % (other.get("version", "?"), other.get("appDir", "another folder"), VERSION))
+    for pid in owners:
+        say("  Listening    : process %d  %s" % (pid, process_name(pid)[:90]))
+    if len(owners) > 1:
+        problems.append("%d programs are listening on port %d at once (older versions could share the port on Windows). "
+                        "Starting this copy stops the stale ones." % (len(owners), port))
+    if seeds and not procs:
+        problems.append("The data folder is empty - the included procedures are added when the server starts.")
+    if os.path.isdir(os.path.join(APP_DIR, "data")) and not same_path(DATA, os.path.join(APP_DIR, "data")):
+        say("")
+        say("  Note: this folder also has a 'data' folder that is NOT being used (DATA is set to %s)." % DATA)
+    say("")
+    say("RESULT")
+    if problems:
+        for x in problems:
+            say("  ! " + x)
+    else:
+        say("  No problems found.")
+    return "\n".join(out)
+
+
+def open_browser_when_ready(port):
+    def go():
+        for _ in range(40):
+            if is_this_copy(running_instance(port)):
+                break
+            time.sleep(0.25)
+        try:
+            import webbrowser
+            webbrowser.open("http://localhost:%d/" % port)
+        except Exception:
+            pass
+    threading.Thread(target=go, daemon=True).start()
+
+
 def main():
     global DATA
+    # Defaults: command line > environment > ProcedureRunner.cfg > built-in, so every way of starting agrees
+    cfg = read_cfg()
+    cfg_data = cfg.get("DATA")
+    if cfg_data and not os.path.isabs(cfg_data):
+        cfg_data = os.path.join(APP_DIR, cfg_data)
     ap = argparse.ArgumentParser(description="Procedure Runner team server")
-    ap.add_argument("--port", type=int, default=int(os.environ.get("PR_PORT", 8000)))
-    ap.add_argument("--host", default=os.environ.get("PR_HOST", "0.0.0.0"), help="0.0.0.0 = reachable by teammates, 127.0.0.1 = this PC only")
-    ap.add_argument("--data", default=os.environ.get("PR_DATA", os.path.join(APP_DIR, "data")), help="folder for procedures, runs and evidence")
+    ap.add_argument("--port", type=int, default=int(os.environ.get("PR_PORT") or cfg.get("PORT") or 8000))
+    ap.add_argument("--host", default=os.environ.get("PR_HOST") or cfg.get("HOST") or "0.0.0.0", help="0.0.0.0 = reachable by teammates, 127.0.0.1 = this PC only")
+    ap.add_argument("--data", default=os.environ.get("PR_DATA") or cfg_data or os.path.join(APP_DIR, "data"), help="folder for procedures, runs and evidence")
+    ap.add_argument("--open", action="store_true", help="open the browser once this copy is ready")
+    ap.add_argument("--diagnose", action="store_true", help="print what is running on the port and exit")
     args = ap.parse_args()
     DATA = os.path.abspath(args.data)
+    if args.diagnose:
+        print(diagnose(args.port))
+        return
     for sub in ("procedures", "runs", "attachments"):
         os.makedirs(p(sub), exist_ok=True)
     seed_procedures()
+    claim_port(args.port)
     httpd = None
     for attempt in range(40):
         try:
-            httpd = ThreadingHTTPServer((args.host, args.port), Handler)
+            httpd = AppServer((args.host, args.port), Handler)
             break
         except OSError:
-            if attempt:
-                time.sleep(0.25)
-                continue
-            other = running_instance(args.port)
-            if other and other.get("version") == VERSION and same_path(other.get("appDir"), APP_DIR) and same_path(other.get("dataDir"), DATA):
-                print("Procedure Runner %s is already running from this folder: http://localhost:%d/" % (VERSION, args.port))
-                sys.exit(0)
-            pid = other.get("pid") or port_owner(args.port) if other else None
-            if other and pid and pid != os.getpid():
-                # An older copy (often the desktop app's hidden background server) would keep serving the old version.
-                print("Stopping Procedure Runner %s from %s (data: %s) so this copy can use port %d."
-                      % (other.get("version", "?"), other.get("appDir", "another folder"), other.get("dataDir", "?"), args.port))
-                try:
-                    os.kill(int(pid), signal.SIGTERM)
-                except Exception as e:
-                    print("  Couldn't stop it (%s). Close it or run Stop_ProcedureRunner.bat, then try again." % e)
-                    sys.exit(1)
-                continue
-            print("Port %d is already in use by another program." % args.port)
-            print("Start Procedure Runner on a different port, e.g.  py server.py --port 8080  (or PORT=8080 in ProcedureRunner.cfg).")
-            sys.exit(1)
+            if running_instance(args.port):
+                claim_port(args.port)  # a Procedure Runner grabbed it meanwhile
+            elif attempt == 0:
+                print("Port %d is already in use by another program." % args.port)
+                print("Start Procedure Runner on a different port, e.g.  py server.py --port 8080  (or PORT=8080 in ProcedureRunner.cfg).")
+                sys.exit(1)
+            time.sleep(0.25)
     if httpd is None:
         print("Port %d is still busy - close the other Procedure Runner and try again." % args.port)
         sys.exit(1)
@@ -586,6 +751,8 @@ def main():
     if args.host != "127.0.0.1":
         print("  Teammates   : http://%s:%d/" % (host, args.port))
     print("Press Ctrl+C to stop.")
+    if args.open:
+        open_browser_when_ready(args.port)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
