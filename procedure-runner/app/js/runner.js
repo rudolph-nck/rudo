@@ -32,7 +32,7 @@ PR.runner = (() => {
       }
       practice = true; data = doc.draft; version = "draft";
     }
-    data = M().normalize(clone(data));
+    data = PR.guide.strip(M().normalize(clone(data))); // screenshots stay in the procedure, not in every run file
     const ro = M().runOptions(data);
     const quick = ro.quickStart ? await quickStartModal(data) : null;
     if (ro.quickStart && !quick) return;
@@ -108,6 +108,7 @@ PR.runner = (() => {
     if (!run) { el.appendChild(h("div.empty", h("div.empty-title", "Run not found"), h("a.btn", { href: "#/" }, "Back"))); return; }
     proc = M().normalize(run.snapshot);
     run.snapshot = proc;
+    PR.guide.hydrate(run, proc).then((changed) => { if (changed && run && run.snapshot === proc) safeRender(); });
     const ob = outbox(runId);
     if (ob.queue.length) { PR.store.applyOps(run, ob.queue); flush(ob); } // unsent changes from an earlier visit / closed tab
     ob.lastRev = Math.max(ob.lastRev, run.rev || 0);
@@ -121,6 +122,7 @@ PR.runner = (() => {
     document.addEventListener("focusout", onFocusOut);
     document.addEventListener("focusin", onFocusIn);
     document.addEventListener("pr:countdown-done", onCountdownDone);
+    document.addEventListener("pr:guide-pref", onGuidePref);
     chairView = hasTracks() ? PR.app.LS.get(`chair_${run.id}`, "") || "" : "";
     if (hasTracks() && chairView && !myStepsInOrder().some((x) => x.step.id === focusId)) focusId = firstOpen();
     render();
@@ -138,6 +140,7 @@ PR.runner = (() => {
     document.removeEventListener("focusout", onFocusOut);
     document.removeEventListener("focusin", onFocusIn);
     document.removeEventListener("pr:countdown-done", onCountdownDone);
+    document.removeEventListener("pr:guide-pref", onGuidePref);
     clearInterval(pollT); clearInterval(dueT);
     // The outbox keeps retrying in the background; nothing to wait for here.
   }
@@ -881,7 +884,7 @@ PR.runner = (() => {
     const open = status === "pending" || status === "active";
     // Only details that tell the operator something: the usual owner, the estimate and the start stamp are left out.
     const cat = step.category && step.category.trim().toLowerCase() !== String(sec.title || "").trim().toLowerCase() ? PR.ui.catChip(step.category) : null;
-    const sub = [cat, step.critical ? h("span.crit-tag", "★ critical") : null, step.parallel ? h("span.par-tag", "⇉ parallel with previous") : null, impactFlag(step)].filter(Boolean);
+    const sub = [PR.guide.button(step), cat, step.critical ? h("span.crit-tag", "★ critical") : null, step.parallel ? h("span.par-tag", "⇉ parallel with previous") : null, impactFlag(step)].filter(Boolean);
     const meta = [step.owner && step.owner !== usualOwner() ? h("span", "👥 ", step.owner) : null, step.contact ? h("span", "☎ Escalation: ", step.contact) : null, step.window ? h("span", "🕘 ", step.window) : null,
       s.finishedAt && status === "done" ? h("span", `✓ ${fmtTime(s.finishedAt)} ${s.finishedBy || ""}${chairOf(s.finishedBy) ? " (" + chairOf(s.finishedBy).split("—")[0].trim() + ")" : ""}`) : null,
       status === "skipped" || status === "na" ? h("span", `Reason: ${s.skipReason || (applicable(step) ? "" : "does not apply to this direction")}`) : null].filter(Boolean);
@@ -906,6 +909,7 @@ PR.runner = (() => {
       s.timing === "unavailable" && status === "done" ? h("div.banner.b-warn.sm", "Timing unreliable — no start time was captured. ", h("button.mini-btn", { type: "button", onclick: () => editTimes(step.id) }, "Add start time")) : null,
       priorFor(step.id).map((p) => priorLessonBanner(p)),
       reqList().filter((r) => r.stepId === step.id && r.kind === "adhoc" && r.status !== "cancelled").map((r) => approvalPanel(step, null, r)),
+      PR.guide.inlinePref() && open ? PR.guide.inlineView(step) : null,
       step.blocks.length ? h("div.fc-blocks", step.blocks.map((b) => { const d = PR.blocks.def(b.type); return d ? h("div.fc-blk", { dataset: { bid: b.id } }, d.run(b, r(b))) : null; })) : null,
       issues.length || notes.length ? h("div.fc-extra",
         issues.map((i) => h(`div.mini-issue.${i.status === "resolved" ? "res" : "open"}`, { onclick: () => issueModal(i) }, i.status === "resolved" ? "✓ " : "⚠ ", h("b", i.title || "Issue"), ` · ${fmtTime(i.at)} · ${i.by}`)),
@@ -934,6 +938,7 @@ PR.runner = (() => {
         nextF.step.parallel ? h("span.par-tag", "⇉ can run in parallel") : null,
         status === "active" && live && nextF.step.parallel ? h("button.btn.btn-sm", { type: "button", title: "Start the next step now while this one keeps running", onclick: () => startStep(nextF.step.id, { quiet: true }) }, "▶ Start in parallel") : null) : null);
   }
+  function onGuidePref() { safeRender(); }
   function openNote(id) { noteFor = id; if (focusId !== id) focusId = id; render(); requestAnimationFrame(() => { const n = $("#noteInp"); n && n.focus(); }); }
   let ownerCache = null;
   function usualOwner() { // the most common owner — shown on a step only when it's someone else
@@ -1428,6 +1433,7 @@ PR.runner = (() => {
       case "l": case "L": e.preventDefault(); mode = mode === "lanes" ? "list" : "lanes"; PR.app.LS.set("runMode", mode); render(); break;
       case "?": e.preventDefault(); keysHelp(); break;
       case "f": case "F": e.preventDefault(); toggleFocus(); break;
+      case "h": case "H": e.preventDefault(); { const f = focusId && M().findStep(proc, focusId); if (f && PR.guide.pagesOf(f.step).length) PR.guide.open(f.step); else toast("This step has no guide", "info", 1500); } break;
       case "g": case "G": e.preventDefault(); promptBox("Go to step", { label: "Step number", ok: "Go" }).then((n) => { if (!n) return; const f = myStepsInOrder().find((x) => x.step.num === n.trim()) || stepsInOrder().find((x) => x.step.num === n.trim() && applicable(x.step)); if (f) { filter = "all"; siteFilter = "all"; mode = "list"; setFocus(f.step.id); } else toast("No step " + n, "warn"); }); break;
       default:
     }
@@ -1442,7 +1448,7 @@ PR.runner = (() => {
       row(["Tab"], "Next control inside the step"), row(["Esc"], "Leave a field and go back to step keys"),
       row(["↑", "↓"], "Previous / next step (also K / J)"), row(["S"], "Skip the step (asks for a reason)"),
       row(["T"], "Start the step's countdown, or finish it early"), row(["I"], "Log an issue (paste screenshots)"),
-      row(["A"], "Require approval for the step (asks the approvers)"), row(["N"], "Improvement note"), row(["C"], "Communications"), row(["G"], "Go to a step number"), row(["L"], "List / lanes view"), row(["F"], "Focus mode — hide or show the side panels"), row(["?"], "This list"))),
+      row(["A"], "Require approval for the step (asks the approvers)"), row(["N"], "Improvement note"), row(["C"], "Communications"), row(["G"], "Go to a step number"), row(["L"], "List / lanes view"), row(["F"], "Focus mode — hide or show the side panels"), row(["H"], "Open the step's guide (step-by-step with screenshots); ← → to page through"), row(["?"], "This list"))),
       actions: [{ spacer: true }, { label: "Close", kind: "primary", value: true }] });
   }
   function onCountdownDone(e) {

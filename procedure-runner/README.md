@@ -91,6 +91,22 @@ For routine checklists, like the daily core run sheet, there's no run setup. ⚙
 - **One-click finish**: a summary of the values captured (counts, totals), anything left, an optional note for the next person, then `Enter`. It opens by itself after the last step.
 - **Starting point**: New procedure ▾ → *Daily run sheet (quick start)*.
 
+## Step guides (📖 detailed how-to)
+
+Any step can have an optional walkthrough: pages of screenshot + a line of text. The step itself stays short, and the detail is one click away.
+
+- **Build**: select a step → **📖 Guide** in the inspector.
+  - Paste screenshots (Ctrl+V), drop them, or click to pick files. Each one becomes a page; write a line for each.
+  - **✏ Highlight** (or click the thumbnail) draws red boxes on a screenshot to show where to click.
+  - ↑ ↓ reorders pages; text-only pages are fine too.
+- **Run**: the step shows **📖 Guide · N**. Click it or press `H` for the page-by-page viewer.
+  - `←` `→` page through, `Enter` goes to the next page and closes on the last one, and clicking a screenshot zooms it.
+  - **Always show guides open on steps** (in the viewer) shows the walkthrough inside each step, which is handy while someone is learning. It's saved for that person on that PC.
+- **Documents**: PDF and Word exports include the guide pages with their screenshots.
+  - Word import has *Put screenshots in each step's guide* (on by default), so screenshot-heavy documents land as guides instead of crowding the steps.
+- **Storage**: screenshots live in the procedure, not in each run. A run keeps the text and loads the screenshots from its published version when shown, so run files stay small.
+  - The same now applies to Screenshot components.
+
 ## Concurrent chairs
 
 Split any procedure between chairs that work at the same time, for example a 1st chair on the core failover and a 2nd chair on vendors and other parties.

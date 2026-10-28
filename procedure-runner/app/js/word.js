@@ -262,7 +262,9 @@ PR.word = (() => {
       sec.steps.push(step); return step;
     };
     const addImages = (n) => (n.images || []).forEach((pth) => {
-      if (parsed.images[pth]) lastImg = push(M().newBlock("image", { src: parsed.images[pth], caption: "" }));
+      if (parsed.images[pth] && o.guideImages && step) { // screenshots go into the step's guide (opened on demand)
+        step.guide = step.guide || []; const g = { id: uid("gp"), img: parsed.images[pth], text: "" }; step.guide.push(g); lastImg = { set caption(v) { g.text = v; }, get caption() { return g.text; } };
+      } else if (parsed.images[pth]) lastImg = push(M().newBlock("image", { src: parsed.images[pth], caption: "" }));
       else push(M().newBlock("callout", { tone: "info", title: "Image not imported", text: `The Word document has an image here in a format browsers can't show (${(pth.split(".").pop() || "").toUpperCase()}). Paste a screenshot into this step to replace it.` }));
     });
     const shorten = (plain) => {
@@ -395,14 +397,14 @@ PR.word = (() => {
   }
 
   function mapping(parsed) {
-    const st = { title: parsed.title, mode: "list", shorten: true, restore: parsed.payload && !parsed.payload.edited ? "exact" : "rebuild" };
+    const st = { title: parsed.title, mode: "list", shorten: true, guideImages: true, restore: parsed.payload && !parsed.payload.edited ? "exact" : "rebuild" };
     let result = null;
     const body = h("div.imp");
     const draw = () => {
       result = st.restore === "exact" && parsed.payload ? M().normalize(JSON.parse(JSON.stringify(parsed.payload.procedure))) : build(parsed, st);
       if (st.restore !== "exact") result.title = st.title;
       const steps = M().allSteps(result);
-      const imgs = steps.reduce((a, { step }) => a + step.blocks.filter((b) => b.type === "image").length, 0);
+      const imgs = steps.reduce((a, { step }) => a + step.blocks.filter((b) => b.type === "image").length + (step.guide || []).filter((g) => g.img).length, 0);
       const pl = parsed.payload;
       body.innerHTML = "";
       body.append(
@@ -417,12 +419,13 @@ PR.word = (() => {
             h("div.field", h("label.lbl", "Steps come from"), h("select.inp", { onchange: (e) => { st.mode = e.target.value; draw(); } },
               [["list", "Top-level numbered / bulleted items (sub-items become bullets)"], ["all", "Every numbered / bulleted item"], ["heading", "Each heading (one step per heading)"]].map(([v, l]) => h("option", { value: v, selected: st.mode === v }, l))))),
           h("label.ck", h("input", { type: "checkbox", checked: st.shorten, onchange: (e) => { st.shorten = e.target.checked; draw(); } }), " Long items: use the first sentence as the step title and keep the full text as details"),
+          h("label.ck", h("input", { type: "checkbox", checked: st.guideImages, onchange: (e) => { st.guideImages = e.target.checked; draw(); } }), " Put screenshots in each step's 📖 guide (opened on demand) instead of the step itself"),
           h("div.help", "Headings become sections. NOTE! / IMPORTANT! / TIP! / KNOWN ISSUE paragraphs become callouts, Consolas or command text becomes a console block, and tables and screenshots come along. Nothing is lost — anything that isn't a step is kept as text on the nearest step.")],
         h("div.ins-sec", `Preview — ${result.sections.length} sections · ${steps.length} steps${imgs ? ` · ${imgs} screenshots` : ""}`),
         parsed.skipped ? h("div.help", `⚠ ${parsed.skipped} image(s) in a format browsers can't show (EMF/WMF/TIFF) were skipped — paste them in as screenshots if you need them.`) : null,
         h("div.imp-prev.word-outline", result.sections.map((s) => h("div.wo-sec", h("div.wo-sec-h", s.title, h("span.muted", ` · ${s.steps.length}`)),
           s.description ? h("div.small.muted.wo-desc", s.description.slice(0, 160)) : null,
-          s.steps.slice(0, 60).map((x) => h("div.wo-step", h("span.wo-n", x.num), h("span", x.title),
+          s.steps.slice(0, 60).map((x) => h("div.wo-step", h("span.wo-n", x.num), h("span", x.title), (x.guide || []).length ? h("span.chip.c-blue-o", `📖 ${x.guide.length}`) : null,
             x.blocks.length ? h("span.wo-blocks", x.blocks.map((b) => (PR.blocks.def(b.type) || {}).icon || "•").join(" ")) : null)),
           s.steps.length > 60 ? h("div.small.muted", `… ${s.steps.length - 60} more`) : null))));
     };
@@ -653,6 +656,15 @@ PR.word = (() => {
         parts.push(para(run(`${step.num || "•"}.\t`, { color: BRAND.navy }) + inlineRuns(wr, step.title) + run("\t☐", { b: false, color: BRAND.muted }), { style: "ProcStep", keepNext: !!(meta.length || step.blocks.length) }));
         if (meta.length) parts.push(para(run(meta.join(" · ")), { style: "ProcMeta", keepNext: !!step.blocks.length }));
         for (const b of step.blocks || []) parts.push(await blockXml(wr, b));
+        const gpages = PR.guide.pagesOf(step);
+        if (gpages.length) {
+          parts.push(para(run("📖 How to", { b: true, color: BRAND.navy, sz: 18 }), { style: "ProcBody", keepNext: true }));
+          for (const [k, g] of gpages.entries()) {
+            parts.push(para(run(`${k + 1}.  `, { b: true }) + inlineRuns(wr, (g.text || "").split("\n")[0] || ""), { style: "ProcBody", ind: IND + 280, hanging: 280, keepNext: !!g.img }));
+            (g.text || "").split("\n").slice(1).filter((l) => l.trim()).forEach((l) => parts.push(para(inlineRuns(wr, l), { style: "ProcBody", ind: IND + 280 })));
+            if (g.img && g.img.startsWith("data:")) { const im = await imageXml(wr, g.img, "", 5.6, 5.0); parts.push(typeof im === "string" ? im : para(im.xml, { style: "ProcBody", ind: IND + 280 })); }
+          }
+        }
       }
     }
 

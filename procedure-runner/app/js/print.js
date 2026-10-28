@@ -110,7 +110,9 @@
             return h("div.pd-step",
               h("div.pd-step-h", h("span.pd-num", step.num || "•"), h("span.pd-title", step.title), PR.ui.catChip(step.category), h("span.pd-box", "☐")),
               meta.length ? h("div.pd-meta-line", meta.join(" · ")) : null,
-              (step.blocks || []).length ? h("div.pd-blocks", step.blocks.map((b) => { const d = PR.blocks.def(b.type); return d ? h("div.pd-blk", d.preview(b, ctx)) : null; })) : null);
+              (step.blocks || []).length ? h("div.pd-blocks", step.blocks.map((b) => { const d = PR.blocks.def(b.type); return d ? h("div.pd-blk", d.preview(b, ctx)) : null; })) : null,
+              PR.guide.pagesOf(step).length ? h("div.pd-guide", h("div.small.muted", "📖 How to"), PR.guide.pagesOf(step).map((g, k) => h("div.pd-guide-page", h("b", `${k + 1}.`),
+                h("div", (g.text || "").trim() ? h("div", { html: PR.u.md(g.text) }) : null, g.img && g.img.startsWith("data:") ? h("img", { src: g.img, alt: "" }) : null)))) : null);
           }))),
         h("footer.pd-foot", `${p.title} · ${verLabel} · last modified by ${modBy || "unknown"} ${fmtDate(modAt)} · exported ${fmtDateTime(now())}`)));
     },

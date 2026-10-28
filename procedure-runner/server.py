@@ -39,7 +39,7 @@ _direct = build_opener(ProxyHandler({}))
 NO_WINDOW = {"creationflags": 0x08000000} if os.name == "nt" else {}  # CREATE_NO_WINDOW: no console flash under pythonw
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-VERSION = "3.13"  # keep in sync with BUILD in index.html
+VERSION = "3.14"  # keep in sync with BUILD in index.html
 MAX_BODY = 60 * 1024 * 1024
 ID_RE = re.compile(r"^[A-Za-z0-9_.\-]{1,120}$")
 
@@ -178,6 +178,17 @@ def run_summary(r):
                        "requestedBy": a.get("requestedBy"), "requestedAt": a.get("requestedAt"), "pingAt": a.get("pingAt")}
                       for a in (r.get("approvals") or {}).values() if isinstance(a, dict) and a.get("status") == "pending"],
     }
+
+
+def light(obj):
+    """Copy without embedded images (screenshots can be hundreds of KB each) — for the procedure list."""
+    if isinstance(obj, dict):
+        return {k: light(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [light(v) for v in obj]
+    if isinstance(obj, str) and obj.startswith("data:") and len(obj) > 500:
+        return "data:,"
+    return obj
 
 
 def cached_summary(path, fn):
@@ -321,7 +332,7 @@ class Handler(SimpleHTTPRequestHandler):
                 if os.path.isdir(d):
                     for name in os.listdir(d):
                         if name.endswith(".json"):
-                            s = cached_summary(os.path.join(d, name), lambda doc: doc)
+                            s = cached_summary(os.path.join(d, name), light)
                             if s:
                                 items.append(s)
                 return self.send_json(200, {"items": items})

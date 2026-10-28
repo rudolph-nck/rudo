@@ -845,3 +845,34 @@ tr.row-added td { background: color-mix(in srgb, var(--green-soft) 60%, transpar
 .run-main.focus .run-center { width: 100%; max-width: 940px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
 .focus-btn.on { color: var(--vivid); }
 .fc-blk.kb-cur { outline: none; background: color-mix(in srgb, var(--vivid) 6%, transparent); border-radius: 8px; box-shadow: 0 0 0 6px color-mix(in srgb, var(--vivid) 6%, transparent); }
+
+/* ---------- step guide (📖) ---------- */
+.gd-btn { font: inherit; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--vivid) 45%, var(--line)); background: color-mix(in srgb, var(--vivid) 10%, var(--panel)); color: var(--text); cursor: pointer; }
+.gd-btn:hover { background: color-mix(in srgb, var(--vivid) 18%, var(--panel)); }
+.gd-n { font-size: 11px; background: var(--vivid); color: #fff; border-radius: 999px; padding: 0 6px; }
+.gd-view { display: grid; gap: 12px; }
+.gd-page-view { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(220px, 1fr); gap: 18px; align-items: start; }
+.gd-page-view.text-only { grid-template-columns: 1fr; }
+.gd-img { width: 100%; max-height: 62vh; object-fit: contain; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); cursor: zoom-in; }
+.gd-loading { display: grid; place-items: center; min-height: 180px; color: var(--muted); cursor: default; }
+.gd-side { display: grid; gap: 8px; align-content: start; font-size: 15px; line-height: 1.5; }
+.gd-count { font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.gd-dots { display: flex; gap: 6px; justify-content: center; }
+.gd-dot { width: 9px; height: 9px; border-radius: 50%; border: 0; padding: 0; background: var(--line-2); cursor: pointer; }
+.gd-dot.on { background: var(--vivid); width: 22px; border-radius: 6px; }
+.gd-pref { justify-self: center; font-size: 12.5px; color: var(--muted); }
+.gd-inline { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px 12px; margin: 8px 0 4px; background: var(--panel-2); }
+.gd-inline-h { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+.gd-page-view.compact { grid-template-columns: minmax(0, 1.6fr) minmax(180px, 1fr); }
+.gd-page-view.compact .gd-img { max-height: 300px; }
+.gd-editor { display: grid; gap: 8px; }
+.gd-ed-page { border: 1px solid var(--line); border-radius: 8px; padding: 8px; display: grid; gap: 6px; background: var(--panel); }
+.gd-ed-top { display: flex; align-items: center; gap: 4px; font-size: 12.5px; }
+.gd-thumb { width: 100%; max-height: 160px; object-fit: contain; border-radius: 6px; border: 1px solid var(--line); background: var(--panel-2); cursor: crosshair; }
+.gd-drop { font-size: 12.5px; }
+.gd-canvas-wrap { max-height: 70vh; overflow: auto; text-align: center; }
+.gd-canvas { max-width: 100%; height: auto; cursor: crosshair; border: 1px solid var(--line); border-radius: 6px; }
+@media (max-width: 760px) { .gd-page-view, .gd-page-view.compact { grid-template-columns: 1fr; } }
+.pd-guide { margin: 6px 0 4px 34px; display: grid; gap: 8px; }
+.pd-guide-page { display: grid; grid-template-columns: 24px 1fr; gap: 8px; break-inside: avoid; }
+.pd-guide-page img { max-width: 100%; max-height: 360px; border: 1px solid #ccc; border-radius: 4px; }

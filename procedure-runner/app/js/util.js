@@ -279,7 +279,7 @@ PR.u = (() => {
     if (e.key === "Enter" && !e.shiftKey && modalStack.length) {
       const backs = $$(".modal-back"); const top = backs[backs.length - 1];
       const t = e.target;
-      if (top && top._enter && !(t && (t.tagName === "TEXTAREA" || t.tagName === "BUTTON" || t.tagName === "SELECT"))) { const b = top.querySelector(".modal-foot .btn-primary"); if (b) { e.preventDefault(); b.click(); } }
+      if (top && top._enter && !(t && (t.tagName === "TEXTAREA" || t.tagName === "BUTTON" || t.tagName === "SELECT"))) { const b = top.querySelector(".modal-foot .btn-primary"); if (b) { e.preventDefault(); e.stopImmediatePropagation(); b.click(); } } // the page behind must not act on the same Enter
     }
     if (e.key === "Escape" && modalStack.length) {
       const backs = $$(".modal-back");

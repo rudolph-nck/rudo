@@ -449,6 +449,7 @@ PR.views.builder = (() => {
         st.parallel ? h("span.st-flag.par", { title: "Runs in parallel with the previous step" }, "⇉ parallel") : null,
         st.hold ? h("span.st-flag.hold", { title: "Hold point: cannot start until earlier required steps are done" }, "✋ hold") : null,
         impactFlag(st), trackChip(st, sec),
+        PR.guide.pagesOf(st).length ? h("span.st-flag", { title: "Has a step-by-step guide" }, `📖 ${PR.guide.pagesOf(st).length}`) : null,
         st.waitFor ? h("span.st-flag", { title: "Waits for a step in another chair" }, `⏳ after #${(M().findStep(proc, st.waitFor) || { step: {} }).step.num || "?"}`) : null,
         st.condition ? h("span.st-flag", { title: "Only runs in one direction" }, "⇄ " + (M().siteById(proc, st.condition.slice(4)) || {}).name + " primary only") : null,
         h("button.icon-btn.sm", { type: "button", title: "Step menu", onclick: (e) => { select("step", st.id); menu(e.currentTarget, [
@@ -631,6 +632,7 @@ PR.views.builder = (() => {
         h("option", { value: "" }, "— no dependency —"),
         M().allSteps(proc).filter((x) => x.step.id !== st.id).map(({ step: o, section: os }) => { const t = M().trackById(proc, M().trackOf(o, os)); return h("option", { value: o.id, selected: st.waitFor === o.id }, `${o.num} ${o.title}`.slice(0, 60) + (t ? ` · ${t.name}` : "")); })),
         "This step shows “waiting on …” until that step is done (operators can override; it's recorded).") : null,
+      PR.guide.editor(st, { mutate: (fn) => mutate(fn, "all"), bind: (obj, key) => bind(obj, key, refresh) }),
       h("div.ins-sec", "Behaviour"),
       h("div.checks",
         h("label.ck", h("input", { type: "checkbox", checked: st.required, ...bind(st, "required", refresh, { type: "checkbox" }) }), " Required"),
