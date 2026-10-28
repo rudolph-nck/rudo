@@ -1,6 +1,6 @@
-# Core Team Procedure Runner
+# Procedure Runner
 
-Build runbooks like web pages (drag-and-drop steps and components), then run them step by step. Every run records who did what, timing, issues, communications, decisions, validations, and lessons learned. It's built for long Symitar procedures (100–200 steps), including **direction-aware datacenter failovers**.
+Build runbooks like web pages (drag-and-drop steps and components), then run them step by step. It started with the Core Team and is shared by every department: each team owns its procedures, and joint procedures give each team its own lane. Every run records who did what, timing, issues, communications, decisions, validations, and lessons learned. It's built for long Symitar procedures (100–200 steps), including **direction-aware datacenter failovers**.
 
 No install and no build step. It's plain HTML/JS plus a small Python server from the standard library.
 
@@ -78,6 +78,33 @@ Sections or steps marked *after cutover* switch the role labels to New Primary /
 - **Records**: early finishes and skips, with the time left and the reason, go into the run log and the run report.
 - **When it hits zero**: it beeps, sends a desktop notification and prompts you to press Enter to continue.
 
+## Departments & teams (🏢)
+
+Procedure Runner is shared across departments. The defaults are Core, Dev, Network and Service Desk under IT; add any others on the **Teams** page (name, icon, colour, group such as *IT* or *Operations*, leads and members).
+
+- **First visit**: everyone is asked *Which team are you on?* and added to that department.
+- **Workspace**: the 🏢 button in the top bar picks the department you're working in. The library then shows its own procedures plus joint procedures it has a lane in. *All departments* shows everything.
+- **Owner**: every procedure belongs to a department (chip in the builder bar, or card ⋯ → *Department…*). New procedures belong to your workspace. Procedures with no department show for everyone, with a one-click *Assign all to …*.
+- **Edit rights (guard-rail, not security)**: if the owning department (or a department with a lane) lists its people, anyone else opens the builder **read-only**. *Edit anyway* unlocks it and is recorded in the procedure's history. Departments with nobody listed are open to everyone.
+- **Team templates**: card ⋯ → *Save as a team template* puts a procedure under New procedure ▾ → *Team templates*, so another team can start from your structure.
+- Departments live in the shared team settings, so the whole team sees the same list.
+
+## Joint procedures, lanes & the workflow (⇶)
+
+A joint procedure (e.g. a failover involving Core, Network and Dev) gives each team a **lane**. Lanes work at the same time; a **hand-off** makes a step wait for another team only where it really has to.
+
+- **Create**: New procedure ▾ → *Joint procedure (several teams)…* (pick the teams and the owner), or start from *Joint failover (Core · Network · Dev · Service Desk)*. Any procedure can get lanes in ⚙ Settings → 👥 Lanes & teams (one click per department, or a plain lane / chair).
+- **Order**: steps in a lane follow each other; lanes run side by side; a **shared** step (no lane — kickoff, go / no-go, close-out) brings everyone together. *Runs in parallel with the previous step* starts alongside it.
+- **Hand-offs**: a step can wait for **several** steps in any lane (step inspector → *Waits for*). Loops are refused.
+- **Workflow designer**: the builder's **⇶ Workflow** view draws the lanes as swimlanes.
+  - Drag a step's ● onto another step to make that step wait for it; click an arrow to remove it.
+  - Drag a step into another lane to hand it to that team; **＋ Add step** adds one at the end of a lane.
+  - Click a step to edit it in the inspector; double-click opens it on the page. Zoom and *Fit* are top right.
+- **In the run**: each person picks their lane (their department's lane is pre-selected) and sees their steps plus shared ones.
+  - A waiting step lists every hand-off it is waiting on; starting early needs an override, which is recorded.
+  - **⇶ Workflow** (or `W`) shows the live diagram: done, in progress, 🔒 waiting on another team, and amber arrows for hand-offs still pending. Click a step to jump to it.
+- **Everywhere else**: the 📺 live view shows the live workflow under the dashboard, and the PDF has a *Lanes & teams* table, the departments involved and the workflow diagram.
+
 ## Run sheets & quick start (⚡)
 
 For routine checklists, like the daily core run sheet, there's no run setup. ⚙ Settings → ⚡ Quick start:
@@ -89,7 +116,10 @@ For routine checklists, like the daily core run sheet, there's no run setup. ⚙
 - **Tagging sections and steps**: select a section or step → *Run sheet* to set which sheets it belongs to, *Only when* (a question), or *Optional* (with the months to pre-tick). Each sheet numbers its steps from 1.
 - **Optional steps** (not *Required*) have a **Not needed** button that skips them without asking for a reason.
 - **One-click finish**: a summary of the values captured (counts, totals), anything left, an optional note for the next person, then `Enter`. It opens by itself after the last step.
-- **Starting point**: New procedure ▾ → *Daily run sheet (quick start)*.
+- **Schedules**: each sheet has a schedule picker: days of the week (every week or every 2nd / 3rd / 4th week), first / last business day, days of the month, on a holiday, the day after a holiday, and *only in* certain months (e.g. quarter-end = last business day of Mar, Jun, Sep, Dec). Business days skip weekends and the holiday list.
+- **Starting point**: New procedure ▾ → **Recurring checklist / run sheet…**. Pick the sheets from presets (Daily, Weekly, Every other week, Month-start, Month-end, Quarter-end, Year-end, Weekend & holiday, After a holiday) or make your own, add the yes / no questions, and it opens in the builder with one section per sheet.
+- **From Excel**: when a workbook has several worksheets, *Every worksheet is a run sheet* makes one checklist from them. Steps that appear on several worksheets are kept once and tagged with each sheet, and the schedule is guessed from the tab name. For separate files, the builder's **＋ Add a sheet from Excel** adds one file (or worksheet) at a time.
+- **In the builder**: the top of the page lists the sheets and their schedules, and every step and section shows a 📋 chip with the sheets it's on. Click a chip to change it.
 
 ## Step guides (📖 detailed how-to)
 
@@ -110,10 +140,10 @@ Any step can have an optional walkthrough: pages of screenshot + a line of text.
 
 ## Concurrent chairs
 
-Split any procedure between chairs that work at the same time, for example a 1st chair on the core failover and a 2nd chair on vendors and other parties.
+Chairs are lanes without a department (see *Joint procedures* above). Split any procedure between chairs that work at the same time, for example a 1st chair on the core failover and a 2nd chair on vendors and other parties.
 
-- **Turn it on and assign work**: ⚙ Settings → 👥 Chairs turns it on and names the chairs. Assign a whole section to a chair (section inspector), or individual steps (step inspector → Chair, or Ctrl+click several steps). Steps with no chair are shared.
-- **Handoffs**: set **Waits for** on a step and pick another chair's step. It shows "Waiting on …" until that step is done; starting early needs an override, which is recorded.
+- **Turn it on and assign work**: ⚙ Settings → 👥 Lanes & teams turns it on and names the chairs. Assign a whole section to a chair (section inspector), or individual steps (step inspector → Chair, or Ctrl+click several steps). Steps with no chair are shared.
+- **Handoffs**: set **Waits for** on a step and pick one or more steps from other chairs. It shows "Waiting on …" until that step is done; starting early needs an override, which is recorded.
 - **In the run**: each operator picks their chair when they open it and only sees their own steps plus shared ones. The run bar toggles All / 1st / 2nd, and the left panel shows every chair's progress.
 - **Sign-off**: each chair signs off its own track. The master run can only be completed once every chair has signed off. An emergency override exists; its reason goes in the report.
 

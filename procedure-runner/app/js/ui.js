@@ -71,5 +71,32 @@ PR.ui = (() => {
         im.plannedUp ? h("div.imp-sub", "Restored when ", when(im.plannedUp, im.plannedUpOn)) : null), rbNode);
   }
 
-  return { envBadge, catChip, STEP_STATUS, TIMING, timingChip, impactPanel };
+  /* Schedule editor for a run sheet (variant): when it is suggested as today's sheet. Edits v in place; onChange redraws the caller's summary. */
+  function scheduleEditor(v, onChange = () => {}) {
+    const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const flip = (arr, x, on) => { const a = new Set(arr || []); on ? a.add(x) : a.delete(x); return [...a].sort((p, q) => p - q); };
+    const box = h("div.sched");
+    const draw = () => {
+      box.innerHTML = "";
+      const chip = (on, label, toggle, title) => h(`button.sch-chip${on ? ".on" : ""}`, { type: "button", title: title || "", onclick: () => { toggle(!on); draw(); onChange(); } }, label);
+      box.append(
+        h("div.sch-row", h("span.sch-k", "Days"), DAYS.map((d, i) => chip((v.days || []).includes(i), d, (on) => (v.days = flip(v.days, i, on)))),
+          (v.days || []).length ? h("label.sch-every", "every ", h("select.inp.sm", { onchange: (e) => { const n = Number(e.target.value); v.everyWeeks = n > 1 ? { n, from: (v.everyWeeks && v.everyWeeks.from) || PR.model.ymd(new Date()) } : null; draw(); onChange(); } },
+            [1, 2, 3, 4].map((n) => h("option", { value: n, selected: ((v.everyWeeks && v.everyWeeks.n) || 1) === n }, n === 1 ? "week" : `${n} weeks`))),
+            v.everyWeeks && v.everyWeeks.n > 1 ? [" starting the week of ", h("input.inp.sm", { type: "date", value: v.everyWeeks.from || "", onchange: (e) => { v.everyWeeks.from = e.target.value; onChange(); } })] : null) : null),
+        h("div.sch-row", h("span.sch-k", "Month"),
+          chip((v.biz || []).includes("first"), "First business day", (on) => (v.biz = on ? [...new Set([...(v.biz || []), "first"])] : (v.biz || []).filter((x) => x !== "first"))),
+          chip((v.biz || []).includes("last"), "Last business day", (on) => (v.biz = on ? [...new Set([...(v.biz || []), "last"])] : (v.biz || []).filter((x) => x !== "last"))),
+          h("label.sch-every", "day(s) ", h("input.inp.sm.w-num", { value: (v.dom || []).join(", "), placeholder: "e.g. 1, 15", oninput: (e) => { v.dom = e.target.value.split(",").map((x) => Number(x.trim())).filter((x) => x >= 1 && x <= 31); onChange(); } }))),
+        h("div.sch-row", h("span.sch-k", "Holidays"),
+          chip(!!v.holidays, "On a holiday", (on) => (v.holidays = on)),
+          chip(!!v.afterHoliday, "Day after a holiday", (on) => (v.afterHoliday = on), "The first business day after a holiday")),
+        h("div.sch-row", h("span.sch-k", "Only in"), MON.map((m, i) => chip((v.months || []).includes(i + 1), m, (on) => (v.months = flip(v.months, i + 1, on)))), h("span.muted.small", (v.months || []).length ? "" : " (every month)")),
+        h("div.sch-sum", "🗓 ", PR.model.scheduleLabel(v)));
+    };
+    draw();
+    return box;
+  }
+
+  return { envBadge, catChip, STEP_STATUS, TIMING, timingChip, impactPanel, scheduleEditor };
 })();

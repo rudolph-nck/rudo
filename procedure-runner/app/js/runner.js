@@ -744,7 +744,7 @@ PR.runner = (() => {
   }
   function tracksPanel() {
     if (!hasTracks()) return null;
-    return h("div.tracks-panel", h("div.ns-top", h("span.ns-t", "Chairs"), h("button.link-btn.small", { type: "button", onclick: () => chooseChair(true) }, "switch")),
+    return h("div.tracks-panel", h("div.ns-top", h("span.ns-t", "Lanes"), h("button.link-btn.small", { type: "button", onclick: () => chooseChair(true) }, "switch")),
       M().tracks(proc).map((t) => {
         const pg = M().trackProgress(run, t.id);
         return h(`div.track-card${chairView === t.id ? ".on" : ""}`, { style: { "--c": t.color }, onclick: (e) => { if (!e.target.closest("button")) setChair(chairView === t.id ? "" : t.id); } },

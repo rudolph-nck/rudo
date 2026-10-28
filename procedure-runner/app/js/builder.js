@@ -435,7 +435,12 @@ PR.views.builder = (() => {
       proc.environments.enabled ? h("div.cv-env", "Environments: ", M().sites(proc).map((s) => PR.ui.envBadge({ kind: "site", title: s.name, code: s.code, partition: s.partition, color: s.color }, { size: "sm" })),
         proc.environments.directional ? h("span.muted.small", " · steps target roles; the run picks the direction") : null,
         h("button.link-btn", { type: "button", onclick: () => openSettings("env") }, "Edit")) :
-        h("div.cv-env.muted", "No environments defined. ", h("button.link-btn", { type: "button", onclick: () => openSettings("env") }, "Add datacenters / failover direction")));
+        M().runOptions(proc).quickStart ? null : h("div.cv-env.muted", "No environments defined. ", h("button.link-btn", { type: "button", onclick: () => openSettings("env") }, "Add datacenters / failover direction")));
+    const ro = M().runOptions(proc);
+    if (ro.quickStart) head.append(h("div.cv-sheets", h("b", "Run sheets:"),
+      ro.variants.length ? ro.variants.map((v) => h("span.cv-sheet", { title: M().scheduleLabel(v) }, v.icon || "📋", " ", v.name || "(unnamed)", h("span.muted.small", ` · ${M().scheduleLabel(v)}`))) : h("span.muted", "none yet — one list for every run"),
+      h("button.link-btn", { type: "button", onclick: () => openSettings("quick") }, "Edit sheets & schedules"),
+      h("button.link-btn", { type: "button", title: "Import a worksheet or another Excel file as one more run sheet — steps that are already here are matched by title", onclick: () => PR.importer.open({ addSheetTo: (built, name) => addSheet(built, name) }) }, "＋ Add a sheet from Excel")));
     c.append(head);
     const secs = h("div.cv-secs");
     proc.sections.forEach((sec) => secs.append(sectionNode(sec)));
@@ -459,6 +464,7 @@ PR.views.builder = (() => {
         h("input.sec-title", { value: sec.title, placeholder: "Section title", onfocus: (e) => { beginEdit(); select("section", sec.id); }, oninput: (e) => { sec.title = e.target.value; editing(); renderOutline(); } }),
         sec.phase === "post" ? h("span.chip.c-amber-o", { title: "Role labels show the post-cutover names (New Primary / New Secondary)" }, "after cutover") : null,
         (() => { const t = M().trackById(proc, sec.track); return t ? h("span.track-chip", { style: { "--c": t.color } }, t.name) : null; })(),
+        sheetChip(sec, null),
         h("span.muted.small", `${sec.steps.length} steps${est ? " · ~" + fmtMin(est) : ""}`),
         h("button.icon-btn.sm", { type: "button", title: "Section menu", onclick: (e) => { select("section", sec.id); menu(e.currentTarget, [
           { icon: "＋", label: "Add step", onClick: () => addStepFromTemplate("blank", { secId: sec.id, index: sec.steps.length }) },
@@ -505,7 +511,7 @@ PR.views.builder = (() => {
         st.estMin ? h("span.st-flag", { title: "Estimated minutes" }, `⏱ ${st.estMin}m`) : null,
         st.parallel ? h("span.st-flag.par", { title: "Runs in parallel with the previous step" }, "⇉ parallel") : null,
         st.hold ? h("span.st-flag.hold", { title: "Hold point: cannot start until earlier required steps are done" }, "✋ hold") : null,
-        impactFlag(st), trackChip(st, sec),
+        impactFlag(st), trackChip(st, sec), sheetChip(sec, st),
         PR.guide.pagesOf(st).length ? h("span.st-flag", { title: "Has a step-by-step guide" }, `📖 ${PR.guide.pagesOf(st).length}`) : null,
         M().deps(st).length ? h("span.st-flag", { title: "Waits for these steps (hand-off from another lane)" }, `⏳ after ${M().deps(st).map((id) => "#" + ((M().findStep(proc, id) || { step: {} }).step.num || "?")).join(", ")}`) : null,
         st.condition ? h("span.st-flag", { title: "Only runs in one direction" }, "⇄ " + (M().siteById(proc, st.condition.slice(4)) || {}).name + " primary only") : null,
@@ -544,6 +550,13 @@ PR.views.builder = (() => {
         h("option", { value: "" }, cur.length ? "＋ Also wait for…" : "＋ Wait for another step…"),
         M().allSteps(proc).filter((x) => x.step.id !== st.id && !cur.includes(x.step.id)).map(({ step: o, section: os }) => h("option", { value: o.id }, label(o, os)))));
   }
+  /* "📋 Daily / Month-end · only if Rate change" on step and section cards of a run-sheet procedure */
+  function sheetChip(sec, st) {
+    if (!M().runOptions(proc).quickStart) return null;
+    const own = st ? (st.variants || []).length || st.flag : (sec.variants || []).length || sec.flag || sec.optional;
+    if (!own) return st || sec.steps.some((x) => (x.variants || []).length || x.flag) ? null : h("span.sheet-chip", { title: "On every run sheet — click to choose", onclick: (e) => { e.stopPropagation(); select("section", sec.id); } }, "📋 every sheet");
+    return h("span.sheet-chip", { title: "Which run sheets this is on — click to change", onclick: (e) => { e.stopPropagation(); st ? select("step", st.id) : select("section", sec.id); } }, "📋 ", M().sheetLabel(proc, sec, st));
+  }
   function trackChip(st, sec) {
     const t = M().trackById(proc, M().trackOf(st, sec));
     return t ? h("span.track-chip", { style: { "--c": t.color }, title: `${t.name}${t.desc ? " — " + t.desc : ""}` }, t.name) : null;
@@ -576,6 +589,12 @@ PR.views.builder = (() => {
   function rerenderStep(id) {
     const f = M().findStep(proc, id); const old = viewMode === "flow" ? null : $(`#bldCanvas [data-step-id="${id}"]`);
     if (f && old) { old.replaceWith(stepNode(f.step, f.section)); applySelection(); } else renderCanvas();
+  }
+
+  function addSheet(built, name) {
+    let res;
+    mutate(() => { res = PR.importer.mergeSheet(proc, built, name); });
+    toast(`Added “${res.sheet.name}”: ${res.matched} step${res.matched === 1 ? "" : "s"} already here, ${res.added} new — check its schedule in Settings → Quick start`, "ok", 6000);
   }
 
   /* ======================= workflow designer ======================= */
@@ -920,8 +939,6 @@ PR.views.builder = (() => {
     },
     quick: (d, draw) => {
       const o = d.runOptions = M().runOptions(d);
-      const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      const flip = (arr, v, on) => { const a = new Set(arr || []); on ? a.add(v) : a.delete(v); return [...a].sort((x, y) => x - y); };
       return h("div",
         h("div.help", "For routine checklists like daily run sheets: skip run setup and go straight into the steps."),
         h("label.ck.big", h("input", { type: "checkbox", checked: o.quickStart, onchange: (e) => { o.quickStart = e.target.checked; draw(); } }), " ", h("b", "Quick start — no run setup")),
@@ -932,12 +949,10 @@ PR.views.builder = (() => {
           o.variants.map((v, i) => h("div.site-row",
             h("div.site-fields",
               row(field("Icon", tf(v, "icon", "📋", { class: "inp w-num" })), field("Name", tf(v, "name", "Daily (Mon–Sat)")), field("Description", tf(v, "desc", "Morning checks"))),
-              h("div.frow",
-                field("Suggest on", h("div.chk-wrap", DAYS.map((dn, di) => h("label.ck", h("input", { type: "checkbox", checked: (v.days || []).includes(di), onchange: (e) => (v.days = flip(v.days, di, e.target.checked)) }), " ", dn)),
-                  h("label.ck", h("input", { type: "checkbox", checked: !!v.holidays, onchange: (e) => (v.holidays = e.target.checked) }), " Holidays"))),
-                field("…or day of month", h("input.inp.w-num", { value: (v.dom || []).join(", "), placeholder: "1", oninput: (e) => (v.dom = e.target.value.split(",").map((x) => Number(x.trim())).filter((x) => x >= 1 && x <= 31)) })))),
+              field("Suggested as today's sheet on", PR.ui.scheduleEditor(v))),
             h("button.icon-btn.danger", { type: "button", title: "Remove", onclick: () => { o.variants.splice(i, 1); draw(); } }, "🗑"))),
-          h("button.btn", { type: "button", onclick: () => { o.variants.push({ id: uid("var"), name: "", desc: "", icon: "📋", days: [], dom: [], holidays: false }); draw(); } }, "＋ Add run sheet"),
+          h("div.frow", h("button.btn", { type: "button", onclick: (e) => menu(e.currentTarget, [{ header: "Start from" }, ...M().SHEET_PRESETS.map((pr) => ({ icon: pr.icon, label: pr.name, hint: pr.desc, onClick: () => { o.variants.push(M().newSheet(pr)); draw(); } })),
+            { sep: true }, { icon: "＋", label: "Blank sheet", onClick: () => { o.variants.push(M().newSheet(null, { name: "" })); draw(); } }]) }, "＋ Add run sheet ▾")),
           h("div.ins-sec", "Quick questions (yes / no)"),
           h("div.help", "Steps set to “Only when …” are left off unless the answer is Yes — e.g. “Rate change today?”"),
           o.flags.map((x, i) => h("div.frow", field("Question", tf(x, "label", "Rate change today?")), field("Help", tf(x, "help", "")),
@@ -945,7 +960,7 @@ PR.views.builder = (() => {
             h("button.icon-btn.danger", { type: "button", onclick: () => { o.flags.splice(i, 1); draw(); } }, "🗑"))),
           h("button.btn", { type: "button", onclick: () => { o.flags.push({ id: uid("flag"), label: "", help: "", default: false }); draw(); } }, "＋ Add question"),
           field("Holidays (one date per line, YYYY-MM-DD)", h("textarea.inp", { rows: 5, oninput: (e) => (o.holidays = e.target.value.split(/\s+/).map((x) => x.trim()).filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x))) }, o.holidays.join("\n")),
-            "Used to pre-select the holiday run sheet.")] : null);
+            "Business days skip weekends and these dates. Used for holiday, after-holiday and first / last business day sheets.")] : null);
     },
     approvals: (d, draw) => {
       const a = d.approvals = M().approvalsCfg(d);

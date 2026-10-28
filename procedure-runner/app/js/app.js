@@ -207,6 +207,7 @@ PR.app = (() => {
     teamTpl.sort((a, b) => (b.template === ws) - (a.template === ws) || a.title.localeCompare(b.title));
     menu(anchor, [
       { icon: "＋", label: "Blank procedure", hint: dept(ws) ? `owned by ${dept(ws).name}` : "", onClick: async () => { const t = await promptBox("New procedure", { label: "Name", placeholder: "e.g. Symitar Release 2027.00", ok: "Create", required: true }); if (t) saveNewProcedure(PR.model.newProcedure({ title: t })); } },
+      { icon: "🔁", label: "Recurring checklist / run sheet…", hint: "daily, weekly, month-end…", onClick: () => runSheetWizard() },
       { icon: "⇶", label: "Joint procedure (several teams)…", hint: "a lane per department + workflow", onClick: () => jointWizard() },
       teamTpl.length ? { sep: true } : null, teamTpl.length ? { header: "Team templates" } : null,
       ...teamTpl.map((p) => ({ icon: (dept(p.template) || {}).icon || "★", label: p.title, hint: (dept(p.template) || {}).name || "", onClick: () => fromTeamTemplate(p.id) })),
@@ -226,6 +227,51 @@ PR.app = (() => {
     const c = clone(d.draft); c.id = uid("proc"); c.title = t; c.owner = workspace() || PR.model.ownerOf(d);
     saveNewProcedure(c);
   }
+  /* A recurring checklist (run sheet): pick the sheets (daily, month-end…) with their schedules and the yes / no questions asked at start.
+     It skips run setup; today's sheet is pre-selected. Steps are added in the builder or imported from Excel (one worksheet per sheet). */
+  async function runSheetWizard() {
+    const M = PR.model;
+    const st = { title: "", sheets: [M.newSheet(M.SHEET_PRESETS[0])], questions: [], open: null, finish: true };
+    const body = h("div.rsw");
+    const draw = () => {
+      body.innerHTML = "";
+      const used = new Set(st.sheets.map((v) => v.name));
+      body.append(
+        h("div.field", h("label.lbl", "Name"), h("input.inp", { value: st.title, placeholder: "e.g. Network daily checks", oninput: (e) => (st.title = e.target.value) })),
+        h("div.ins-sec", "1 · Which sheets? (“Which run sheet?” is the first question when someone starts it)"),
+        h("div.rsw-sheets", st.sheets.map((v, i) => h("div.rsw-sheet",
+          h("div.rsw-top", h("input.inp.w-num", { value: v.icon, title: "Icon", oninput: (e) => (v.icon = e.target.value) }), h("input.inp", { value: v.name, placeholder: "Sheet name", oninput: (e) => (v.name = e.target.value) }),
+            h("span.muted.small.rsw-when", M.scheduleLabel(v)),
+            h("button.btn.btn-sm.btn-ghost", { type: "button", onclick: () => { st.open = st.open === v.id ? null : v.id; draw(); } }, st.open === v.id ? "Done" : "Schedule…"),
+            st.sheets.length > 1 ? h("button.icon-btn.danger", { type: "button", title: "Remove", onclick: () => { st.sheets.splice(i, 1); draw(); } }, "🗑") : null),
+          st.open === v.id ? PR.ui.scheduleEditor(v, () => { const w = body.querySelectorAll(".rsw-when")[i]; if (w) w.textContent = M.scheduleLabel(v); }) : null))),
+        h("div.lane-dept", M.SHEET_PRESETS.filter((p) => !used.has(p.name)).map((p) => h("button.btn.btn-sm", { type: "button", title: p.desc, onclick: () => { st.sheets.push(M.newSheet(p)); draw(); } }, `＋ ${p.icon} ${p.name}`)),
+          h("button.btn.btn-sm.btn-ghost", { type: "button", onclick: () => { const v = M.newSheet(null, { name: "" }); st.sheets.push(v); st.open = v.id; draw(); } }, "＋ Custom")),
+        h("div.ins-sec", "2 · Yes / no questions at start (optional)"),
+        h("div.help", "Steps can be set to appear only when the answer is Yes — e.g. “Rate change today?”, “Patch night?”, “Firmware window tonight?”."),
+        st.questions.map((q, i) => h("div.rsw-top.rsw-q", h("input.inp", { value: q.label, placeholder: "e.g. Patch night?", oninput: (e) => (q.label = e.target.value) }),
+          h("button.icon-btn.danger", { type: "button", onclick: () => { st.questions.splice(i, 1); draw(); } }, "🗑"))),
+        h("button.btn.btn-sm", { type: "button", onclick: () => { st.questions.push({ id: uid("flag"), label: "", help: "", default: false }); draw(); setTimeout(() => { const l = body.querySelectorAll(".rsw-q input"); l.length && l[l.length - 1].focus(); }, 0); } }, "＋ Add a question"),
+        h("div.ins-sec", "3 · Finish"),
+        h("label.ck", h("input", { type: "checkbox", checked: st.finish, onchange: (e) => (st.finish = e.target.checked) }), " One-click finish (no close-out wizard)"),
+        h("div.help", "Next you add the steps — in the builder, or with “＋ Add a sheet from Excel” (one worksheet or file per sheet; steps that appear on several sheets are kept once and tagged)."));
+    };
+    draw();
+    const ok = await modal({ title: "New recurring checklist", subtitle: "Daily run sheets, weekly checks, month-end and quarter-end tasks — one procedure, the right sheet picked for today.", size: "lg", body,
+      actions: [{ label: "Cancel", value: false }, { spacer: true }, { label: "Create", kind: "primary", value: true }] });
+    if (!ok) return;
+    const sheets = st.sheets.filter((v) => v.name.trim());
+    if (!sheets.length) return toast("Add at least one sheet", "warn");
+    const p = M.newProcedure({ title: st.title.trim() || `${(dept(workspace()) || {}).name || "Team"} run sheet`, description: `${sheets.map((v) => v.name).join(" · ")} — pick the sheet when you start; today's is pre-selected.`, tags: ["Run sheet"],
+      setup: { requireChangeId: false, requireVerification: false, chairs: ["Operator"], readiness: [], milestones: [] } });
+    p.runOptions = { quickStart: true, quickFinish: st.finish, holidays: [], variants: sheets, flags: st.questions.filter((q) => q.label.trim()) };
+    let n = 0;
+    p.sections = sheets.map((v) => M.newSection({ title: v.name, variants: [v.id], steps: [M.newStep({ num: String(++n), title: `First ${v.name.toLowerCase()} check`, estMin: 1 })] }));
+    LS.set("bldView", "page");
+    await saveNewProcedure(p);
+    toast("Add your steps — tag a section or step with the sheets it belongs to, or import each sheet from Excel", "ok", 6000);
+  }
+
   /* A joint procedure: one lane per department, shared kickoff and close-out, opened in the workflow designer. */
   async function jointWizard() {
     const pick = new Set(workspace() ? [workspace()] : []);
@@ -559,12 +605,17 @@ PR.app = (() => {
 <li><b>Settings → Environments</b> defines your two datacenters (physical site, fixed HMC partition label, colour). Steps target a <i>logical role</i> (Current Primary / Current Secondary) and the runner shows the real datacenter once the direction is chosen.</li>
 <li>Use <code>{{primary.name}}</code>, <code>{{secondary.partition}}</code>, <code>{{var.nextAccountNumber}}</code> in any text. Capture values with a <b>Record a value</b> component.</li>
 <li>Shortcuts: <kbd>Ctrl+Z</kbd>/<kbd>Ctrl+Y</kbd> undo/redo, <kbd>Ctrl+D</kbd> duplicate, <kbd>Del</kbd> delete, <kbd>Ctrl+S</kbd> save.</li></ul>
+<h3>Teams & joint procedures</h3>
+<ul><li>The 🏢 button (top bar) picks your department; the library shows its procedures and joint ones it takes part in. Manage departments and people on <b>Teams</b>.</li>
+<li><b>New procedure ▾ → Joint procedure</b> gives each team a lane. The builder's <b>⇶ Workflow</b> view shows the lanes: drag a step's ● onto another step to make it wait, drag a step into another lane to hand it over.</li>
+<li><b>New procedure ▾ → Recurring checklist</b> builds a run sheet: daily, weekly, month-end, quarter-end… with today's sheet picked automatically.</li></ul>
 <h3>Run</h3>
 <ul><li>Setup records date, change ID, participants, failover direction and who verified the environment mapping.</li>
 <li><kbd>Enter</kbd> starts / completes the focused step; the next step is focused automatically with a preview. <kbd>↑</kbd><kbd>↓</kbd> move focus.</li>
 <li>Several steps can run at once — each has its own timer in <b>Active now</b>. Use <b>Lanes</b> to track each datacenter separately.</li>
 <li><b>📣 Updates</b> (right panel) shows which communications are due — compose a branded email and copy it into Outlook, open it as an Outlook draft, or copy it for Teams. Templates and audiences live on the <b>Comms</b> page.</li>
 <li><b>📺 Follow</b> opens a read-only live view to share with the team, leadership or a war-room screen.</li>
+<li><b>⇶ Workflow</b> (<kbd>W</kbd>) shows every lane side by side and who is waiting on whom.</li>
 <li><kbd>I</kbd> logs an issue (paste screenshots with Ctrl+V). <kbd>N</kbd> adds an improvement note without leaving the step. <kbd>G</kbd> jumps to a step number.</li>
 <li>Forgot to press Start? Complete it anyway — the finish time is recorded and the timing is flagged <i>unreliable</i>. You can enter the real start later (<i>manual</i>).</li></ul>` }),
       actions: [{ label: "Got it", kind: "primary" }],
@@ -572,7 +623,7 @@ PR.app = (() => {
   }
 
   return {
-    boot, go, route, thumb, depts: () => depts, dept, workspace, setWorkspace, loadDepts, saveDepts, deptChip, deptChips, editRights, pickDept, jointWizard, pickMyTeam, groupsOf, lightbox, statusChip, askName, rememberPeople, refreshPeople, saveNewProcedure, exportProcedure, importJSON, help, LS,
+    boot, go, route, thumb, depts: () => depts, dept, workspace, setWorkspace, loadDepts, saveDepts, deptChip, deptChips, editRights, pickDept, jointWizard, runSheetWizard, pickMyTeam, groupsOf, lightbox, statusChip, askName, rememberPeople, refreshPeople, saveNewProcedure, exportProcedure, importJSON, help, LS,
     get me() { return me || "Operator"; }, dirty: null,
   };
 })();

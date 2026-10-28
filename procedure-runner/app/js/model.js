@@ -140,11 +140,81 @@ PR.model = (() => {
   }
   const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   /* Which sheets are due on a date: holidays first, then the day of the week, then day-of-month sheets (e.g. month-end on the 1st). */
+  /* When a sheet is due. A sheet (variant) can use any mix of:
+       days [0-6] (+ everyWeeks {n, from:"YYYY-MM-DD"} for every 2nd / 3rd… week) · dom [1-31] · biz ["first","last"] business day of the month
+       holidays (on a holiday) · afterHoliday (first business day after one) · months [1-12] (only in these months) */
+  const isHol = (o, d) => o.holidays.includes(ymd(d));
+  const isBiz = (o, d) => d.getDay() !== 0 && d.getDay() !== 6 && !isHol(o, d);
+  const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  function bizDay(o, date, which) {
+    if (!isBiz(o, date)) return false;
+    for (let d = addDays(date, which === "first" ? -1 : 1); d.getMonth() === date.getMonth(); d = addDays(d, which === "first" ? -1 : 1)) if (isBiz(o, d)) return false;
+    return true;
+  }
+  function afterHoliday(o, date) {
+    if (!isBiz(o, date)) return false;
+    let d = addDays(date, -1);
+    while (d.getDay() === 0 || d.getDay() === 6) d = addDays(d, -1);
+    return isHol(o, d);
+  }
+  function weekOk(v, date) {
+    const ev = v.everyWeeks; if (!ev || !(ev.n > 1) || !ev.from) return true;
+    const a = new Date(ev.from + "T00:00:00"); if (isNaN(a)) return true;
+    const monday = (d) => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
+    const weeks = Math.round((monday(date) - monday(a)) / (7 * 864e5));
+    return ((weeks % ev.n) + ev.n) % ev.n === 0;
+  }
+  function sheetDue(o, v, date) {
+    if ((v.months || []).length && !v.months.includes(date.getMonth() + 1)) return false;
+    const holiday = isHol(o, date);
+    return (holiday && !!v.holidays) || (!holiday && (v.days || []).includes(date.getDay()) && weekOk(v, date)) || (v.dom || []).includes(date.getDate())
+      || (v.biz || []).some((w) => bizDay(o, date, w)) || (!!v.afterHoliday && afterHoliday(o, date));
+  }
   function variantsDue(p, date = new Date()) {
-    const o = runOptions(p); const holiday = o.holidays.includes(ymd(date));
-    const due = (v) => (holiday && v.holidays) || (!holiday && (v.days || []).includes(date.getDay())) || (v.dom || []).includes(date.getDate());
-    const rank = (v) => (holiday && v.holidays ? 0 : !holiday && (v.days || []).includes(date.getDay()) ? 1 : 2);
-    return { holiday, due: o.variants.filter(due).sort((a, b) => rank(a) - rank(b)) };
+    const o = runOptions(p); const holiday = isHol(o, date);
+    // holiday sheet first, then today's weekday sheet, then dated sheets ("also due today"), the narrowest (quarter-end) before month-end
+    const rank = (v) => (holiday && v.holidays ? 0 : !holiday && (v.days || []).includes(date.getDay()) && weekOk(v, date) ? 1 : (v.months || []).length ? 2 : 3);
+    return { holiday, due: o.variants.filter((v) => sheetDue(o, v, date)).sort((a, b) => rank(a) - rank(b)) };
+  }
+  /* "Mon–Fri", "Last business day · Mar, Jun, Sep, Dec", "Every 2nd Monday" */
+  function scheduleLabel(v) {
+    const DN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const parts = [];
+    const days = (v.days || []).slice().sort((a, b) => a - b);
+    if (days.length) {
+      const run = days.length > 2 && days.every((d, i) => i === 0 || d === days[i - 1] + 1);
+      const txt = days.length === 7 ? "Every day" : days.join() === "0,6" ? "Sat & Sun" : run ? `${DN[days[0]]}–${DN[days[days.length - 1]]}` : days.map((d) => DN[d]).join(", ");
+      parts.push(v.everyWeeks && v.everyWeeks.n > 1 ? `Every ${["", "", "2nd", "3rd", "4th"][v.everyWeeks.n] || v.everyWeeks.n + "th"} week · ${txt}` : txt);
+    }
+    if ((v.dom || []).length) parts.push(`Day ${v.dom.join(", ")} of the month`);
+    (v.biz || []).forEach((w) => parts.push(`${w === "first" ? "First" : "Last"} business day`));
+    if (v.holidays) parts.push("Holidays");
+    if (v.afterHoliday) parts.push("Day after a holiday");
+    const label = parts.join(" + ") || "Pick it by hand";
+    return (v.months || []).length ? `${label} · ${v.months.length === 12 ? "every month" : v.months.map((m) => MON[m - 1]).join(", ")}` : label;
+  }
+  /* Ready-made schedules for the run-sheet wizard and Excel import */
+  const SHEET_PRESETS = [
+    { key: "daily", icon: "🌅", name: "Daily", desc: "Every business day", days: [1, 2, 3, 4, 5] },
+    { key: "daily6", icon: "🌅", name: "Daily (Mon–Sat)", desc: "Monday to Saturday", days: [1, 2, 3, 4, 5, 6] },
+    { key: "weekly", icon: "📅", name: "Weekly", desc: "Every Monday", days: [1] },
+    { key: "biweekly", icon: "🗓", name: "Every other week", desc: "Every 2nd Monday", days: [1], everyWeeks: { n: 2, from: "" } },
+    { key: "monthstart", icon: "🌱", name: "Month-start", desc: "First business day of the month", biz: ["first"] },
+    { key: "monthend", icon: "🗓", name: "Month-end", desc: "Last business day of the month", biz: ["last"] },
+    { key: "quarter", icon: "📊", name: "Quarter-end", desc: "Last business day of Mar, Jun, Sep, Dec", biz: ["last"], months: [3, 6, 9, 12] },
+    { key: "year", icon: "🎆", name: "Year-end", desc: "Last business day of December", biz: ["last"], months: [12] },
+    { key: "oncall", icon: "📟", name: "Weekend & holiday", desc: "Saturday, Sunday and holidays", days: [0, 6], holidays: true },
+    { key: "afterhol", icon: "↩", name: "After a holiday", desc: "First business day after a holiday", afterHoliday: true },
+  ];
+  function presetFor(name) {
+    const n = String(name || "").toLowerCase();
+    const k = /quarter|qtr|\bqe\b/.test(n) ? "quarter" : /year|annual|\bye\b/.test(n) ? "year" : /month.?end|\bme\b|eom|month/.test(n) ? "monthend"
+      : /sun|holiday|weekend|on.?call/.test(n) ? "oncall" : /week|wkly/.test(n) && !/day/.test(n) ? "weekly" : /sat/.test(n) ? "daily6" : "daily";
+    return SHEET_PRESETS.find((x) => x.key === k);
+  }
+  function newSheet(preset, o = {}) {
+    const { key, ...rest } = preset || {};
+    return { id: uid("var"), icon: "📋", desc: "", days: [], dom: [], biz: [], months: [], holidays: false, afterHoliday: false, ...PR.u.clone(rest), ...o };
   }
   /* "Daily (Mon–Sat) · only if Rate change today? · optional (Jan, Apr…)" for documents */
   function sheetLabel(p, section, step) {
@@ -523,7 +593,7 @@ PR.model = (() => {
     return { id: data.id, status: "draft", owner: data.owner || "", draft: data, publishedVersion: 0, versions: [], createdAt: now(), updatedAt: now(), updatedBy: by || "", dirtySincePublish: true };
   }
 
-  return { runOptions, sheetLabel, excludedSteps, variantsDue, sectionDue, ymd, approvalsCfg, approversFor, needsApproval, canApprove, pendingApprovals, sameName, APPROVAL_TYPES,
+  return { runOptions, sheetLabel, scheduleLabel, SHEET_PRESETS, presetFor, newSheet, sheetDue, excludedSteps, variantsDue, sectionDue, ymd, approvalsCfg, approversFor, needsApproval, canApprove, pendingApprovals, sameName, APPROVAL_TYPES,
     CATEGORIES, catMeta, DEFAULT_CHAIRS, BUILTIN_VARS, defaultEnvironments, newProcedure, newSection, newStep, newBlock, normalize, fromLegacy,
     allSteps, findStep, findBlock, estimateMinutes, renumber, sites, siteById, otherSite, primarySite, directionLabel, phaseOf,
     resolveTarget, isApplicable, countRunnable, varContext, interpolate, variablesDeclared, lint, newDoc, impactName, hasImpact, impactEvents, impactState, tracks, trackOf, trackById, trackProgress, TRACK_COLORS,

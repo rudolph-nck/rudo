@@ -180,13 +180,16 @@ PR.importer = (() => {
     }
     let cur = null, lastCat = null, phase = "pre";
     const get = (row, k) => (map[k] != null && row[map[k]] ? row[map[k]].v : "").trim();
+    // In a numbered sheet, a row with only a title and no number is a section heading
+    const body = grid.slice(headerRow + 1).filter((row) => row && get(row, "title"));
+    const numbered = map.num != null && body.filter((row) => get(row, "num")).length > body.length / 2;
     for (let r = headerRow + 1; r < grid.length; r++) {
       const row = grid[r] || [];
       const filled = row.filter((c) => c && c.v.trim());
       if (!filled.length) continue;
       const titleV = get(row, "title"), num = get(row, "num");
       // Marker rows (a single filled cell, no title) start a new section
-      if (!titleV && filled.length === 1) {
+      if (filled.length === 1 && (!titleV || (numbered && !num))) {
         cur = M().newSection({ title: filled[0].v.trim(), phase });
         if (phaseFromRow && /fail\s*over|cutover|begin/i.test(cur.title)) cur.phase = "pre";
         p.sections.push(cur); lastCat = null; continue;
@@ -223,7 +226,7 @@ PR.importer = (() => {
   }
 
   /* ---------------- UI ---------------- */
-  async function open() {
+  async function open(opts = {}) {
     const f = await pickFile(".xlsx,.xlsm,.csv,.tsv,.txt");
     if (!f) return;
     let sheets;
@@ -231,7 +234,7 @@ PR.importer = (() => {
       sheets = /\.(csv|tsv|txt)$/i.test(f.name) ? parseDelimited(await f.text()) : await readXlsx(await f.arrayBuffer());
     } catch (e) { console.error(e); return toast(e.message || "Couldn't read that file", "err", 5000); }
     if (!sheets.length) return toast("No sheets found", "err");
-    mapping(sheets, f.name.replace(/\.[^.]+$/, ""));
+    mapping(sheets, f.name.replace(/\.[^.]+$/, ""), opts);
   }
   async function openPaste() {
     let ta;
@@ -242,8 +245,9 @@ PR.importer = (() => {
     mapping(parseDelimited(ta.value), "Pasted procedure");
   }
 
-  function mapping(sheets, name) {
+  function mapping(sheets, name, opts = {}) {
     let sheetI = Math.max(0, sheets.findIndex((s) => s.grid.length > 3));
+    let eachSheet = !!opts.addSheetTo ? false : sheets.filter((x) => x.grid.length > 3).length > 1 && sheets.some((x) => /daily|month|week|sunday|holiday|run\s*sheet|\bme\b/i.test(x.name));
     let st = null;
     const init = () => {
       const grid = sheets[sheetI].grid;
@@ -280,6 +284,9 @@ PR.importer = (() => {
           h("div.field.grow", h("label.lbl", "Procedure name"), h("input.inp", { value: st.title, oninput: (e) => (st.title = e.target.value) })),
           sheets.length > 1 ? h("div.field", h("label.lbl", "Sheet"), h("select.inp", { onchange: (e) => { sheetI = Number(e.target.value); init(); draw(); } }, sheets.map((s, i) => h("option", { value: i, selected: i === sheetI }, s.name)))) : null,
           h("div.field", h("label.lbl", "Header row"), h("input.inp.w-num", { type: "number", min: 1, value: st.headerRow + 1, onchange: (e) => { st.headerRow = Math.max(0, Number(e.target.value) - 1); st.header = (g[st.headerRow] || []).map((c) => c.v); st.map = autoMap(st.header); draw(); } }))),
+        sheets.filter((x) => x.grid.length > 3).length > 1 ? h("label.ck.big", h("input", { type: "checkbox", checked: eachSheet, onchange: (e) => { eachSheet = e.target.checked; draw(); } }), " ",
+          h("b", opts.addSheetTo ? "Add every worksheet as a run sheet" : "Every worksheet is a run sheet"), h("span.muted.small", ` — ${sheets.filter((x) => x.grid.length > 3).map((x) => x.name).join(" · ")}. One quick-start checklist: you pick the sheet when you start, and steps that appear on several sheets are kept once.`)) : null,
+        opts.addSheetTo ? h("div.help", "The steps are added as one more run sheet. Steps with the same title as a step that's already there are matched, not duplicated.") : null,
         h("div.ins-sec", "Columns"),
         h("div.map-grid", FIELDS.map(([k, label]) => h("div.field", h("label.lbl", label), colOpts(k)))),
         h("div.frow",
@@ -305,14 +312,67 @@ PR.importer = (() => {
     draw();
     modal({
       title: "Import playbook", size: "xl", body,
-      actions: [{ spacer: true }, { label: "Cancel", value: null }, { label: "Create procedure", kind: "primary", onClick: async () => {
+      actions: [{ spacer: true }, { label: "Cancel", value: null }, { label: opts.addSheetTo ? "Add as run sheet" : "Create procedure", kind: "primary", onClick: async () => {
         if (st.map.title == null) { toast("Choose the column that holds the step title", "warn"); return false; }
-        const p = build({ ...st, sites: st.sites.filter((s) => s.name), phaseFromRow: true });
+        const builtOf = (i) => { if (i !== sheetI) { const keep = { st, sheetI }; sheetI = i; init(); const b = build({ ...st, sites: [], directional: false, phaseFromRow: true }); st = keep.st; sheetI = keep.sheetI; return b; } return build({ ...st, sites: st.sites.filter((s) => s.name), phaseFromRow: true }); };
+        const order = eachSheet ? sheets.map((x, i) => i).filter((i) => sheets[i].grid.length > 3) : [sheetI];
+        if (opts.addSheetTo) { order.forEach((i) => opts.addSheetTo(builtOf(i), sheets[i].name || name)); return; }
+        let p = builtOf(order[0]);
+        if (eachSheet) {
+          p.title = st.title;
+          order.slice(1).forEach((i) => mergeSheet(p, builtOf(i), sheets[i].name, { firstName: sheets[order[0]].name }));
+          if (order.length === 1) mergeSheet(p, { sections: [] }, null, { firstName: sheets[order[0]].name });
+          p = M().normalize(p);
+        }
         await PR.app.saveNewProcedure(p);
-        toast(`Imported ${M().allSteps(p).length} steps — review them in the builder`, "ok", 4000);
+        toast(eachSheet ? `Imported ${order.length} run sheets, ${M().allSteps(p).length} steps — check each sheet's schedule in Settings → Quick start` : `Imported ${M().allSteps(p).length} steps — review them in the builder`, "ok", 6000);
       } }],
     });
   }
 
-  return { open, openPaste, unzip, readXlsx, parseDelimited, build, commandBlocks, locKey };
+  /* Merge an imported procedure into target as one more run sheet. Steps with the same title (and preferably the same section)
+     are matched and tagged with the new sheet; the rest are inserted next to the steps they followed in the sheet.
+     Returns { sheet, matched, added }. name = null only converts target into a single-sheet run sheet. */
+  const norm = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  function mergeSheet(target, built, name, { firstName } = {}) {
+    const ro = target.runOptions = M().runOptions(target);
+    if (!ro.quickStart) { ro.quickStart = true; ro.quickFinish = true; }
+    // everything explicit at step level, so "on these sheets" is exact after the merge
+    if (!ro.variants.length) {
+      const nm = firstName || target.title.replace(/run\s*sheet/i, "").trim() || "Sheet 1";
+      ro.variants.push(M().newSheet(M().presetFor(nm), { name: nm }));
+    }
+    const ids = ro.variants.map((v) => v.id);
+    target.sections.forEach((sec) => {
+      const sv = (sec.variants || []).length ? sec.variants : ids;
+      sec.steps.forEach((st) => { const own = (st.variants || []).length ? st.variants : ids; st.variants = own.filter((x) => sv.includes(x)); });
+      sec.variants = [];
+    });
+    if (!name) return { sheet: ro.variants[0], matched: 0, added: 0 };
+    const preset = M().presetFor(name);
+    const sheet = M().newSheet(preset, { name: String(name).trim(), desc: preset.desc });
+    ro.variants.push(sheet);
+    let matched = 0, added = 0, lastSec = null;
+    (built.sections || []).forEach((bs) => {
+      let tsec = target.sections.find((x) => norm(x.title) === norm(bs.title)) || null;
+      let pos = tsec ? -1 : null;
+      bs.steps.forEach((bst) => {
+        const inSec = tsec && tsec.steps.find((x) => norm(x.title) === norm(bst.title) && !x.variants.includes(sheet.id));
+        const any = inSec ? null : M().allSteps(target).find(({ step }) => norm(step.title) === norm(bst.title) && !step.variants.includes(sheet.id));
+        const hit = inSec ? { step: inSec, section: tsec } : any;
+        if (hit) { hit.step.variants.push(sheet.id); matched++; if (hit.section === tsec) pos = tsec.steps.indexOf(hit.step); lastSec = hit.section; return; }
+        if (!tsec) {
+          tsec = M().newSection({ title: bs.title, steps: [] });
+          const at = lastSec ? target.sections.indexOf(lastSec) + 1 : target.sections.length;
+          target.sections.splice(at, 0, tsec); pos = -1;
+        }
+        const ns = { ...bst, variants: [sheet.id] };
+        if (pos == null) pos = tsec.steps.length - 1;
+        tsec.steps.splice(pos + 1, 0, ns); pos += 1; added++; lastSec = tsec;
+      });
+    });
+    return { sheet, matched, added };
+  }
+
+  return { open, openPaste, mergeSheet, unzip, readXlsx, parseDelimited, build, commandBlocks, locKey };
 })();
