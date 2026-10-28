@@ -9,6 +9,11 @@ PR.runner = (() => {
   const me = () => PR.app.me;
 
   let chairView = ""; // "" = all chairs (coordinator), else a track id
+  let noteFor = null;
+  // Focus mode hides the side panels; on by default for quick-start run sheets, off for failovers (which use the panels)
+  const focusKey = () => `runFocus_${proc.id}`;
+  const isFocus = () => PR.app.LS.get(focusKey(), M().runOptions(proc).quickStart);
+  function toggleFocus() { PR.app.LS.set(focusKey(), !isFocus()); render(); scrollToFocus(); }
   let run, proc, host, focusId, filter, siteFilter, mode, pollT, deferRender, forceArm, histStats, priorLessons, rightTab, editingSetup, commsCfg, lastDue, dueT;
 
   /* ======================= start a new run ======================= */
@@ -124,6 +129,7 @@ PR.runner = (() => {
       else setTimeout(() => chooseChair(), 50);
     }
     if (PR.store.kind === "server") pollT = setInterval(poll, 2500);
+    if (run.status === "active" && !PR.app.LS.get("tipKeys", false)) { PR.app.LS.set("tipKeys", true); setTimeout(() => toast("Tip: Enter starts and completes steps · ? shows every shortcut · F toggles focus mode", "info", 7000), 600); }
     loadHistory();
     if (run.status === "active" && "Notification" in window && Notification.permission === "default") try { Notification.requestPermission(); } catch { /* ignore */ }
   }
@@ -633,7 +639,9 @@ PR.runner = (() => {
     render.lastMode = mode;
     root.innerHTML = "";
     if (commsCfg) { const d = commsDue(); if (lastDue != null && d > lastDue && PR.comms.isCommunicator(commsCfg)) dueToast(d); lastDue = d; }
-    root.append(bar(), banner(), approvalInbox(), impactStrip(), h("div.run-main", leftNav(), h("div.run-center#runCenter", mode === "lanes" ? lanes() : list()), rightPanel()), datalists());
+    const focus = isFocus();
+    root.append(bar(), banner(), approvalInbox(), impactStrip(),
+      h(`div.run-main${focus ? ".focus" : ""}`, focus ? null : leftNav(), h("div.run-center#runCenter", mode === "lanes" ? lanes() : list()), focus ? null : rightPanel()), datalists());
     if (top != null) $("#runCenter").scrollTop = top;
   }
   function commsDue() { return commsCfg ? PR.comms.dueCount(run, commsCfg) : 0; }
@@ -659,17 +667,19 @@ PR.runner = (() => {
   }
   function datalists() { return h("datalist#runPeople", people().map((p) => h("option", { value: p }))); }
 
+  const hasComms = () => !!(commsCfg && PR.comms.planFor(proc, commsCfg).length) || Object.keys(run.comms || {}).length > 0;
   function bar() {
     const pg = progressOf(); const pct = pg.total ? Math.round((pg.done / pg.total) * 100) : 0;
     const remainMin = stepsInOrder().filter(({ step }) => ["pending", "active"].includes(statusOf(step))).reduce((a, { step }) => a + ((histStats[step.id] && histStats[step.id].median / 60000) || Number(step.estMin) || 0), 0);
     const dir = M().directionLabel(proc, run.setup);
     const live = ["active", "paused"].includes(run.status);
+    const quick = M().runOptions(proc).quickStart;
     return h("div.run-bar",
       h("a.icon-btn", { href: "#/", title: "Library" }, "←"),
       h("div.rb-title", h("div.rb-name", run.name), h("div.rb-sub", run.procTitle, " · ", run.procVersion === "draft" ? "draft" : `v${run.procVersion}`, run.setup.changeId ? ` · ${run.setup.changeId}` : "")),
       dir ? h("span.dir-pill", { title: "Failover direction (current primary → new primary)" }, "⇄ ", dir) : null,
       run.practice ? h("span.chip.c-gray", "Practice") : null,
-      PR.app.statusChip(run.status),
+      run.status !== "active" ? PR.app.statusChip(run.status) : null,
       hasTracks() ? h("div.seg.seg-sm.chair-seg", { title: "Which chair's steps you see" }, [["", "All"], ...M().tracks(proc).map((t) => [t.id, t.name])].map(([k, l]) =>
         h(`button.seg-btn${chairView === k ? ".on" : ""}`, { type: "button", onclick: () => setChair(k) }, l))) : null,
       h("div.spacer"),
@@ -678,10 +688,14 @@ PR.runner = (() => {
       live && remainMin ? h("div.rb-eta.small", { title: "Remaining estimate (history median or author estimate)" }, "ETA ", h("b", fmtTime(now() + remainMin * 60000, false)), h("span.muted", ` (~${fmtMin(remainMin)})`)) : null,
       h("span#runSync.sync-dot.ok", { title: "All changes saved" }),
       h("button.btn.btn-sm.btn-warn-o", { type: "button", title: "Log an issue (I)", onclick: () => issueModal({ stepId: focusId }) }, "⚠ Issue"),
-      h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Communication log (C)", onclick: commsModal }, "☎ Comms"),
-      h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Read-only live view to share with the team or put on a screen", onclick: () => { PR.u.copyText(PR.comms.liveURL(run)); window.open(`#/live/${run.id}`, "_blank"); } }, "📺 Follow"),
-      h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Run report", onclick: () => PR.app.go(`#/report/${run.id}`) }, "📄 Report"),
+      hasComms() ? h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Communication log (C)", onclick: commsModal }, "☎ Comms") : null,
+      quick ? null : h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Read-only live view to share with the team or put on a screen", onclick: () => { PR.u.copyText(PR.comms.liveURL(run)); window.open(`#/live/${run.id}`, "_blank"); } }, "📺 Follow"),
+      quick ? null : h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Run report", onclick: () => PR.app.go(`#/report/${run.id}`) }, "📄 Report"),
+      h(`button.btn-text.focus-btn${isFocus() ? ".on" : ""}`, { type: "button", title: isFocus() ? "Show the side panels (F)" : "Focus mode — hide the side panels (F)", onclick: toggleFocus }, isFocus() ? "Show panels" : "Focus"),
       h("button.icon-btn", { type: "button", title: "More", onclick: (e) => menu(e.currentTarget, [
+        quick ? { icon: "📺", label: "Follow along (live view)", onClick: () => { PR.u.copyText(PR.comms.liveURL(run)); window.open(`#/live/${run.id}`, "_blank"); } } : null,
+        quick ? { icon: "📄", label: "Run report", onClick: () => PR.app.go(`#/report/${run.id}`) } : null,
+        !hasComms() ? { icon: "☎", label: "Communication log", hint: "C", onClick: commsModal } : null,
         { icon: "⚙", label: "Edit run setup (participants, direction…)", onClick: () => { editingSetup = true; setupWizard.page = "info"; render(); } },
         { icon: "✍", label: `Approvers… (${approverNames().join(", ") || "none assigned"})`, onClick: () => assignApprovers() },
         run.status === "paused" ? { icon: "▶", label: "Resume run", onClick: resumeRun } : { icon: "⏸", label: "Halt run", onClick: haltRun },
@@ -864,52 +878,69 @@ PR.runner = (() => {
     const primaryBtn = status === "pending" ? h("button.btn.btn-primary.btn-xl.act-primary", { type: "button", disabled: !live, onclick: () => startStep(step.id) }, "▶ Start", h("kbd", "Enter"))
       : status === "active" ? h("button.btn.btn-success.btn-xl.act-primary", { type: "button", disabled: !live, onclick: () => completeStep(step.id) }, "✓ Complete", h("kbd", "Enter"))
         : h("button.btn.btn-xl", { type: "button", disabled: !live || !applicable(step), onclick: () => reopenStep(step.id) }, "↺ Reopen");
-    return h(`div.fcard.${PR.ui.STEP_STATUS[status].cls}${step.critical ? ".critical" : ""}`, { dataset: { fc: step.id }, style: { "--c": t.color || "var(--line)" } },
+    const open = status === "pending" || status === "active";
+    // Only details that tell the operator something: the usual owner, the estimate and the start stamp are left out.
+    const cat = step.category && step.category.trim().toLowerCase() !== String(sec.title || "").trim().toLowerCase() ? PR.ui.catChip(step.category) : null;
+    const sub = [cat, step.critical ? h("span.crit-tag", "★ critical") : null, step.parallel ? h("span.par-tag", "⇉ parallel with previous") : null, impactFlag(step)].filter(Boolean);
+    const meta = [step.owner && step.owner !== usualOwner() ? h("span", "👥 ", step.owner) : null, step.contact ? h("span", "☎ Escalation: ", step.contact) : null, step.window ? h("span", "🕘 ", step.window) : null,
+      s.finishedAt && status === "done" ? h("span", `✓ ${fmtTime(s.finishedAt)} ${s.finishedBy || ""}${chairOf(s.finishedBy) ? " (" + chairOf(s.finishedBy).split("—")[0].trim() + ")" : ""}`) : null,
+      status === "skipped" || status === "na" ? h("span", `Reason: ${s.skipReason || (applicable(step) ? "" : "does not apply to this direction")}`) : null].filter(Boolean);
+    // "Up next" only when the next step isn't simply the row underneath, or when it can run in parallel
+    const vis = myStepsInOrder().filter(({ step: x, section: y }) => visible(x, y));
+    const below = vis[vis.findIndex((x) => x.step.id === step.id) + 1];
+    const showNext = nextF && (mode !== "list" || !below || below.step.id !== nextF.step.id || (nextF.step.parallel && status === "active"));
+    const noteOpen = noteFor === step.id;
+    return h(`div.fcard.${PR.ui.STEP_STATUS[status].cls}${step.critical ? ".critical" : ""}`, { dataset: { fc: step.id, status }, style: { "--c": t.color || "var(--line)" } },
       h("div.fc-top",
         h("span.fc-num", step.num || "•"),
-        h("div.fc-tt", h("div.fc-title", step.title), h("div.fc-sub", sec.title, step.category ? " · " : "", PR.ui.catChip(step.category), step.critical ? h("span.crit-tag", "★ critical") : null, step.parallel ? h("span.par-tag", "⇉ parallel with previous") : null, impactFlag(step))),
+        h("div.fc-tt", h("div.fc-title", step.title), sub.length ? h("div.fc-sub", sub) : null),
         h("div.fc-stat",
-          status === "active" ? h("div.fc-timer", h("span.muted.small", "Elapsed"), h("b", { dataset: { since: String(s.startedAt) } }, fmtDur(now() - s.startedAt))) : null,
-          status === "done" ? h("div.fc-timer", h("span.muted.small", "Duration"), h("b", s.timing === "unavailable" ? "—" : fmtDur(duration(s))), PR.ui.timingChip(s.timing)) : null,
-          h(`span.chip.${PR.ui.STEP_STATUS[status].cls}`, PR.ui.STEP_STATUS[status].label))),
+          status === "active" ? h("div.fc-timer", { title: `Started ${fmtTime(s.startedAt)} by ${s.startedBy || ""}${hs ? ` · usually ${fmtDur(hs.median, { short: true })}` : ""}` }, h("b", { dataset: { since: String(s.startedAt) } }, fmtDur(now() - s.startedAt))) : null,
+          status === "done" ? h("div.fc-timer", h("b", s.timing === "unavailable" ? "—" : fmtDur(duration(s))), PR.ui.timingChip(s.timing)) : null,
+          ["done", "skipped", "na"].includes(status) ? h(`span.chip.${PR.ui.STEP_STATUS[status].cls}`, PR.ui.STEP_STATUS[status].label) : null)),
       PR.ui.envBadge(t, { size: "lg" }),
-      h("div.fc-meta",
-        step.owner ? h("span", "👥 ", step.owner) : null, step.contact ? h("span", "☎ Escalation: ", step.contact) : null, step.window ? h("span", "🕘 ", step.window) : null,
-        step.estMin ? h("span", `⏱ est ${step.estMin}m`) : null, hs ? h("span", { title: `Median of ${hs.n} previous run(s)` }, `📈 usually ${fmtDur(hs.median, { short: true })}`) : null,
-        s.startedAt ? h("span", `▶ ${fmtTime(s.startedAt)} ${s.startedBy || ""}`) : null, s.finishedAt ? h("span", `✓ ${fmtTime(s.finishedAt)} ${s.finishedBy || ""}${chairOf(s.finishedBy) ? " (" + chairOf(s.finishedBy).split("—")[0].trim() + ")" : ""}`) : null,
-        status === "skipped" || status === "na" ? h("span", `Reason: ${s.skipReason || (applicable(step) ? "" : "does not apply to this direction")}`) : null),
+      meta.length ? h("div.fc-meta", meta) : null,
       s.incomplete ? h("div.banner.b-warn.sm", `Completed with missing items: ${s.incomplete.join(", ")}`) : null,
       (() => { const w = status === "pending" && waitingOn(step); if (!w) return null; const t = M().trackById(proc, M().trackOf(w.step, w.section)); const ws = st(w.step.id);
         return h("div.banner.b-info.sm.waiting", "⏳ Waiting on ", h("b", t ? t.name : "another step"), ` · step ${w.step.num} ${w.step.title}`, ws.status === "active" ? h("span", " — in progress, ", h("span", { dataset: { since: String(ws.startedAt) } }, fmtDur(now() - ws.startedAt))) : " — not started yet"); })(),
       s.timing === "unavailable" && status === "done" ? h("div.banner.b-warn.sm", "Timing unreliable — no start time was captured. ", h("button.mini-btn", { type: "button", onclick: () => editTimes(step.id) }, "Add start time")) : null,
       priorFor(step.id).map((p) => priorLessonBanner(p)),
       reqList().filter((r) => r.stepId === step.id && r.kind === "adhoc" && r.status !== "cancelled").map((r) => approvalPanel(step, null, r)),
-      h("div.fc-blocks", step.blocks.map((b) => { const d = PR.blocks.def(b.type); return d ? h("div.fc-blk", { dataset: { bid: b.id } }, d.run(b, r(b))) : null; })),
+      step.blocks.length ? h("div.fc-blocks", step.blocks.map((b) => { const d = PR.blocks.def(b.type); return d ? h("div.fc-blk", { dataset: { bid: b.id } }, d.run(b, r(b))) : null; })) : null,
       issues.length || notes.length ? h("div.fc-extra",
         issues.map((i) => h(`div.mini-issue.${i.status === "resolved" ? "res" : "open"}`, { onclick: () => issueModal(i) }, i.status === "resolved" ? "✓ " : "⚠ ", h("b", i.title || "Issue"), ` · ${fmtTime(i.at)} · ${i.by}`)),
         notes.map((n) => h("div.mini-note", "💡 ", n.text, h("span.muted", ` — ${n.by} ${fmtTime(n.at)}`)))) : null,
+      // One clear action; everything else is quieter
       h("div.fc-actions",
         primaryBtn,
-        status === "pending" ? h("button.btn", { type: "button", disabled: !live, title: "Already did it but forgot to press Start — records the finish time and flags timing as unreliable", onclick: () => completeStep(step.id) }, "✓ Already done") : null,
-        status === "pending" || status === "active" ? h("button.btn.btn-ghost", { type: "button", disabled: !live, title: step.required === false ? "Optional step — skip it without a reason" : "Skip (asks for a reason)", onclick: () => skipStep(step.id) }, step.required === false ? "⤼ Not needed" : "⤼ Skip") : null,
-        h("button.btn.btn-warn-o", { type: "button", onclick: () => issueModal({ stepId: step.id }) }, "⚠ Issue", h("kbd", "I")),
+        status === "pending" ? h("button.btn-text", { type: "button", disabled: !live, title: "Already did it but forgot to press Start — records the finish time and flags timing as unreliable", onclick: () => completeStep(step.id) }, "Already done") : null,
+        open ? h("button.btn-text", { type: "button", disabled: !live, title: step.required === false ? "Optional step — skip it without a reason (S)" : "Skip — asks for a reason (S)", onclick: () => skipStep(step.id) }, step.required === false ? "Not needed" : "Skip") : null,
         h("div.spacer"),
+        h("button.btn-text.warn", { type: "button", title: "Log an issue on this step (I) — paste screenshots", onclick: () => issueModal({ stepId: step.id }) }, "⚠ Issue"),
+        h("button.btn-text", { type: "button", title: "Improvement note for next time (N)", onclick: () => openNote(step.id) }, "💡 Note"),
         h("button.icon-btn", { type: "button", title: "More", onclick: (e) => menu(e.currentTarget, [
+          status === "active" && nextF && live ? { icon: "⇉", label: `Start step ${nextF.step.num} in parallel`, onClick: () => startStep(nextF.step.id, { quiet: true }) } : null,
           { icon: "🕘", label: "Edit times / executed by", onClick: () => editTimes(step.id) },
-          { icon: "✍", label: "Require approval for this step…", hint: "A", disabled: !live || ["done", "skipped", "na"].includes(status), onClick: () => addAdhocApproval(step.id) },
+          { icon: "✍", label: "Require approval for this step…", hint: "A", disabled: !live || !open, onClick: () => addAdhocApproval(step.id) },
           { icon: "∅", label: "Mark not applicable", disabled: !live, onClick: () => skipStep(step.id, "na") },
-          { icon: "↺", label: "Reopen", disabled: !live || status === "pending" || status === "active", onClick: () => reopenStep(step.id) }], { align: "right" }) }, "⋯")),
-      live && (status === "pending" || status === "active") ? h("div.kb-hint",
-        status === "pending" ? [h("kbd", "Enter"), " start"] : [h("kbd", "Enter"), " next item / complete"], " · ", h("kbd", "Shift"), "+", h("kbd", "Enter"), " complete now · ",
-        h("kbd", "↑"), h("kbd", "↓"), " steps · ", h("kbd", "S"), " skip · ", h("kbd", "I"), " issue · ", h("kbd", "N"), " note · ", h("button.linkish", { type: "button", onclick: () => keysHelp() }, h("kbd", "?"), " all keys")) : null,
-      h("div.fc-note", h("span", "💡"), noteInp = h("input.inp#noteInp", { placeholder: "Improvement note for next time — press Enter to save (N)", onkeydown: (e) => {
-        if (e.key === "Enter" && noteInp.value.trim()) { const id = uid("nt"); commit([{ op: "set", path: ["notes", id], value: { id, stepId: step.id, at: now(), by: me(), kind: "improve", text: noteInp.value.trim() } }], { render: false }); toast("Note saved — it will appear in lessons learned", "ok", 1600); noteInp.value = ""; render(); }
-        if (e.key === "Escape") noteInp.blur();
-      } })),
-      nextF ? h("div.upnext", { onclick: (e) => { if (!e.target.closest("button")) setFocus(nextF.step.id); } },
+          { icon: "↺", label: "Reopen", disabled: !live || open, onClick: () => reopenStep(step.id) },
+          { sep: true }, { icon: "⌨", label: "Keyboard shortcuts", hint: "?", onClick: () => keysHelp() }], { align: "right" }) }, "⋯")),
+      noteOpen ? h("div.fc-note", h("span", "💡"), noteInp = h("input.inp#noteInp", { placeholder: "Improvement note for next time — Enter to save, Esc to close", autofocus: true, onkeydown: (e) => {
+        if (e.key === "Enter" && noteInp.value.trim()) { const id = uid("nt"); commit([{ op: "set", path: ["notes", id], value: { id, stepId: step.id, at: now(), by: me(), kind: "improve", text: noteInp.value.trim() } }], { render: false }); toast("Note saved — it will appear in lessons learned", "ok", 1600); noteFor = null; render(); }
+        if (e.key === "Escape") { e.stopPropagation(); noteFor = null; render(); }
+      } })) : null,
+      showNext ? h("div.upnext", { onclick: (e) => { if (!e.target.closest("button")) setFocus(nextF.step.id); } },
         h("span.un-k", "Up next"), h("span.sr-num", nextF.step.num), PR.ui.envBadge(targetOf(nextF.step, nextF.section), { size: "sm" }), h("span.un-t", nextF.step.title),
         nextF.step.parallel ? h("span.par-tag", "⇉ can run in parallel") : null,
-        status === "active" && live ? h("button.btn.btn-sm", { type: "button", title: "Start the next step now while this one keeps running", onclick: () => startStep(nextF.step.id, { quiet: true }) }, "▶ Start in parallel") : null) : null);
+        status === "active" && live && nextF.step.parallel ? h("button.btn.btn-sm", { type: "button", title: "Start the next step now while this one keeps running", onclick: () => startStep(nextF.step.id, { quiet: true }) }, "▶ Start in parallel") : null) : null);
+  }
+  function openNote(id) { noteFor = id; if (focusId !== id) focusId = id; render(); requestAnimationFrame(() => { const n = $("#noteInp"); n && n.focus(); }); }
+  let ownerCache = null;
+  function usualOwner() { // the most common owner — shown on a step only when it's someone else
+    if (ownerCache && ownerCache.p === proc) return ownerCache.v;
+    const n = {}; stepsInOrder().forEach(({ step }) => { if (step.owner) n[step.owner] = (n[step.owner] || 0) + 1; });
+    ownerCache = { p: proc, v: Object.keys(n).sort((a, b) => n[b] - n[a])[0] || "" };
+    return ownerCache.v;
   }
   function priorLessonBanner(p) {
     const key = `${p.runId}:${p.lesson.id}`;
@@ -1389,13 +1420,14 @@ PR.runner = (() => {
       case "ArrowDown": case "j": e.preventDefault(); if (all[i + 1]) setFocus(all[i + 1].step.id); break;
       case "ArrowUp": case "k": e.preventDefault(); if (i > 0) setFocus(all[i - 1].step.id); break;
       case "i": case "I": e.preventDefault(); issueModal({ stepId: focusId }); break;
-      case "n": case "N": e.preventDefault(); { const n = $("#noteInp"); n && n.focus(); } break;
+      case "n": case "N": e.preventDefault(); if (focusId) openNote(focusId); break;
       case "s": case "S": e.preventDefault(); if (focusId && ["pending", "active"].includes(statusOf(M().findStep(proc, focusId).step))) skipStep(focusId); break;
       case "t": case "T": e.preventDefault(); { const b = $(`.fcard[data-fc="${focusId}"] .tm-start`); if (b) b.click(); else { const f = M().findStep(proc, focusId); f && f.step.blocks.some((x) => x.type === "timer") && timerGate(f.step, f.step.blocks.find((x) => x.type === "timer")); } } break;
       case "c": case "C": e.preventDefault(); commsModal(); break;
       case "a": case "A": e.preventDefault(); if (focusId && ["pending", "active"].includes(statusOf(M().findStep(proc, focusId).step))) addAdhocApproval(focusId); break;
       case "l": case "L": e.preventDefault(); mode = mode === "lanes" ? "list" : "lanes"; PR.app.LS.set("runMode", mode); render(); break;
       case "?": e.preventDefault(); keysHelp(); break;
+      case "f": case "F": e.preventDefault(); toggleFocus(); break;
       case "g": case "G": e.preventDefault(); promptBox("Go to step", { label: "Step number", ok: "Go" }).then((n) => { if (!n) return; const f = myStepsInOrder().find((x) => x.step.num === n.trim()) || stepsInOrder().find((x) => x.step.num === n.trim() && applicable(x.step)); if (f) { filter = "all"; siteFilter = "all"; mode = "list"; setFocus(f.step.id); } else toast("No step " + n, "warn"); }); break;
       default:
     }
@@ -1410,7 +1442,7 @@ PR.runner = (() => {
       row(["Tab"], "Next control inside the step"), row(["Esc"], "Leave a field and go back to step keys"),
       row(["↑", "↓"], "Previous / next step (also K / J)"), row(["S"], "Skip the step (asks for a reason)"),
       row(["T"], "Start the step's countdown, or finish it early"), row(["I"], "Log an issue (paste screenshots)"),
-      row(["A"], "Require approval for the step (asks the approvers)"), row(["N"], "Improvement note"), row(["C"], "Communications"), row(["G"], "Go to a step number"), row(["L"], "List / lanes view"), row(["?"], "This list"))),
+      row(["A"], "Require approval for the step (asks the approvers)"), row(["N"], "Improvement note"), row(["C"], "Communications"), row(["G"], "Go to a step number"), row(["L"], "List / lanes view"), row(["F"], "Focus mode — hide or show the side panels"), row(["?"], "This list"))),
       actions: [{ spacer: true }, { label: "Close", kind: "primary", value: true }] });
   }
   function onCountdownDone(e) {

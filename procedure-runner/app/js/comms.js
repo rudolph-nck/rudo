@@ -131,6 +131,7 @@ PR.comms = (() => {
   function planFor(proc, cfg) {
     const items = proc.comms && Array.isArray(proc.comms.items) ? proc.comms.items : null;
     if (items) return items.filter((i) => i.enabled !== false && cfg.templates.some((t) => t.id === i.templateId)).map((i) => ({ ...i, tpl: cfg.templates.find((t) => t.id === i.templateId) }));
+    if (proc.runOptions && proc.runOptions.quickStart) return []; // routine run sheets: no announcements unless a plan was set up
     return cfg.templates.map((t) => ({ id: "pl_" + t.id, templateId: t.id, trigger: t.trigger, minutes: t.minutes, stepId: "", tpl: t, enabled: true }));
   }
 

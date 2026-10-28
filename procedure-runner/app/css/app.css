@@ -819,3 +819,29 @@ tr.row-added td { background: color-mix(in srgb, var(--green-soft) 60%, transpar
 .pd-sheet { font-size: 12px; color: var(--muted); font-style: italic; margin: -4px 0 6px; }
 .about-line { margin: 28px 0 8px; font-size: 11.5px; color: var(--muted); text-align: center; word-break: break-all; }
 .ver-badge { font-size: 10.5px; font-weight: 700; opacity: .75; margin-left: 4px; letter-spacing: .02em; }
+
+/* ---------- calmer runner (v3.13): one primary action, quiet secondary actions, lighter list ---------- */
+.btn-text { font: inherit; font-size: 13.5px; font-weight: 600; color: var(--muted); background: none; border: 0; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+.btn-text:hover:not(:disabled) { color: var(--text); background: var(--panel-2); }
+.btn-text:disabled { opacity: .45; cursor: default; }
+.btn-text.warn { color: var(--amber); }
+.fc-actions { gap: 4px; border-top: 0; padding-top: 6px; }
+.fc-actions .act-primary { margin-right: 8px; }
+.fcard { padding: 16px 20px 14px; box-shadow: 0 6px 24px rgba(0, 0, 0, .08); }
+.fc-top { margin-bottom: 6px; }
+.fc-timer { text-align: right; } .fc-timer b { font-size: 22px; font-variant-numeric: tabular-nums; }
+.fc-blocks { margin: 10px 0 12px; display: grid; gap: 10px; }
+.fc-meta { margin: 0 0 6px; }
+.fc-blk.kb-cur { outline: 2px solid color-mix(in srgb, var(--vivid) 55%, transparent); outline-offset: 4px; }
+.upnext { font-size: 12.5px; padding: 7px 20px; margin: 12px -20px -14px; }
+/* Steps that aren't in focus read as a quiet list, not a stack of boxes */
+.srow { background: transparent; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; min-height: 38px; }
+.srow:hover { background: var(--panel-2); border-color: var(--line); }
+.srow.s-done, .srow.s-skipped, .srow.s-na { background: transparent; opacity: .62; }
+.srow.s-active { border: 1px solid var(--blue); border-radius: 8px; }
+.srow.critical { border-left: 3px solid var(--amber); }
+/* Focus mode: just the steps, centred */
+.run-main.focus { grid-template-columns: 1fr; }
+.run-main.focus .run-center { width: 100%; max-width: 940px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+.focus-btn.on { color: var(--vivid); }
+.fc-blk.kb-cur { outline: none; background: color-mix(in srgb, var(--vivid) 6%, transparent); border-radius: 8px; box-shadow: 0 0 0 6px color-mix(in srgb, var(--vivid) 6%, transparent); }
