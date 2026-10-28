@@ -432,6 +432,18 @@ PR.views.builder = (() => {
     return node;
   }
 
+  /* The step's guide is built right under its card: open = full editor, otherwise a strip of page thumbnails. */
+  const guideOpen = new Set();
+  function openGuide(id) { guideOpen.add(id); select("step", id); rerenderStep(id); requestAnimationFrame(() => { const g = $(`[data-step-id="${id}"] .st-guide`); g && g.scrollIntoView({ block: "nearest" }); }); }
+  function guideArea(st) {
+    const pages = st.guide || [];
+    if (guideOpen.has(st.id)) return h("div.st-guide", PR.guide.editor(st, { layout: "canvas", mutate: (fn) => mutate(fn, { step: st.id }), bind: (o, k) => bind(o, k, null), onDone: () => { guideOpen.delete(st.id); rerenderStep(st.id); } }));
+    if (!pages.length) return null;
+    return h("div.st-guide.collapsed", { title: "Edit the guide", onclick: () => openGuide(st.id) },
+      h("b", `📖 Guide · ${pages.length} page${pages.length > 1 ? "s" : ""}`),
+      h("div.gd-strip", pages.slice(0, 8).map((g, i) => g.img ? h("img", { src: g.img, alt: "" }) : h("span.gd-strip-t", String(i + 1)))),
+      h("span.muted.small", "Edit"));
+  }
   function stepNode(st, sec) {
     const t = M().resolveTarget(proc, st, sec, {});
     const ctx = M().varContext({ snapshot: proc, setup: {} });
@@ -460,7 +472,9 @@ PR.views.builder = (() => {
           { icon: "🗑", label: "Delete", hint: "Del", danger: true, onClick: deleteSel }], { align: "right" }); } }, "⋯")),
       (st.owner || st.contact || st.window) && !compact ? h("div.st-meta", st.owner ? h("span", "👥 ", st.owner) : null, st.contact ? h("span", "☎ ", st.contact) : null, st.window ? h("span", "🕘 ", st.window) : null) : null,
       compact ? null : blocks,
-      compact ? null : h("div.st-add", h("button.add-btn.sm", { type: "button", onclick: (e) => { select("step", st.id); quickAdd(e.currentTarget, st.id); } }, "＋ Component")));
+      compact ? null : h("div.st-add", h("button.add-btn.sm", { type: "button", onclick: (e) => { select("step", st.id); quickAdd(e.currentTarget, st.id); } }, "＋ Component"),
+        !(st.guide || []).length && !guideOpen.has(st.id) ? h("button.add-btn.sm", { type: "button", title: "Step-by-step walkthrough with screenshots, opened by operators on demand", onclick: () => openGuide(st.id) }, "📖 Add guide") : null),
+      compact ? null : guideArea(st));
     if (!compact) {
       st.blocks.forEach((b) => blocks.append(blockNode(b, st, ctx)));
       if (!st.blocks.length) blocks.append(h("div.blk-empty", "Drop components here"));
@@ -632,7 +646,8 @@ PR.views.builder = (() => {
         h("option", { value: "" }, "— no dependency —"),
         M().allSteps(proc).filter((x) => x.step.id !== st.id).map(({ step: o, section: os }) => { const t = M().trackById(proc, M().trackOf(o, os)); return h("option", { value: o.id, selected: st.waitFor === o.id }, `${o.num} ${o.title}`.slice(0, 60) + (t ? ` · ${t.name}` : "")); })),
         "This step shows “waiting on …” until that step is done (operators can override; it's recorded).") : null,
-      PR.guide.editor(st, { mutate: (fn) => mutate(fn, "all"), bind: (obj, key) => bind(obj, key, refresh) }),
+      h("div.ins-sec", "📖 Guide"),
+      h("button.btn.btn-sm", { type: "button", onclick: () => openGuide(st.id) }, (st.guide || []).length ? `Edit the guide (${st.guide.length} page${st.guide.length > 1 ? "s" : ""}) under the step` : "＋ Add a guide under the step"),
       h("div.ins-sec", "Behaviour"),
       h("div.checks",
         h("label.ck", h("input", { type: "checkbox", checked: st.required, ...bind(st, "required", refresh, { type: "checkbox" }) }), " Required"),

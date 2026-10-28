@@ -939,7 +939,8 @@ PR.runner = (() => {
         status === "active" && live && nextF.step.parallel ? h("button.btn.btn-sm", { type: "button", title: "Start the next step now while this one keeps running", onclick: () => startStep(nextF.step.id, { quiet: true }) }, "▶ Start in parallel") : null) : null);
   }
   function onGuidePref() { safeRender(); }
-  function openNote(id) { noteFor = id; if (focusId !== id) focusId = id; render(); requestAnimationFrame(() => { const n = $("#noteInp"); n && n.focus(); }); }
+  // render() is synchronous, so the note box can take focus straight away — typing right after N must land in it
+  function openNote(id) { noteFor = id; if (focusId !== id) focusId = id; render(); const n = $("#noteInp"); if (n) n.focus(); }
   let ownerCache = null;
   function usualOwner() { // the most common owner — shown on a step only when it's someone else
     if (ownerCache && ownerCache.p === proc) return ownerCache.v;

@@ -95,10 +95,11 @@ For routine checklists, like the daily core run sheet, there's no run setup. ⚙
 
 Any step can have an optional walkthrough: pages of screenshot + a line of text. The step itself stays short, and the detail is one click away.
 
-- **Build**: select a step → **📖 Guide** in the inspector.
-  - Paste screenshots (Ctrl+V), drop them, or click to pick files. Each one becomes a page; write a line for each.
+- **Build**: in the builder, click **📖 Add guide** under the step. The guide is built right under the step card; **Done** folds it into a thumbnail strip, and clicking the strip opens it again.
+  - Click a paste area and press Ctrl+V, drop screenshots on it, or use **Browse…**. Each screenshot becomes a page; write a line for each.
+  - Pasting a screenshot into a page's text box attaches it to that page.
   - **✏ Highlight** (or click the thumbnail) draws red boxes on a screenshot to show where to click.
-  - ↑ ↓ reorders pages; text-only pages are fine too.
+  - ← → reorders pages; text-only pages are fine too.
 - **Run**: the step shows **📖 Guide · N**. Click it or press `H` for the page-by-page viewer.
   - `←` `→` page through, `Enter` goes to the next page and closes on the last one, and clicking a screenshot zooms it.
   - **Always show guides open on steps** (in the viewer) shows the walkthrough inside each step, which is handy while someone is learning. It's saved for that person on that PC.

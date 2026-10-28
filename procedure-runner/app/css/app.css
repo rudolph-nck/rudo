@@ -876,3 +876,25 @@ tr.row-added td { background: color-mix(in srgb, var(--green-soft) 60%, transpar
 .pd-guide { margin: 6px 0 4px 34px; display: grid; gap: 8px; }
 .pd-guide-page { display: grid; grid-template-columns: 24px 1fr; gap: 8px; break-inside: avoid; }
 .pd-guide-page img { max-width: 100%; max-height: 360px; border: 1px solid #ccc; border-radius: 4px; }
+
+/* ---------- guide built under the step card (builder canvas) ---------- */
+.st-guide { margin: 8px 0 2px; border-top: 1px dashed var(--line-2); padding-top: 10px; cursor: default; }
+.st-guide.collapsed { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; border-radius: 8px; padding: 8px 10px; border: 1px dashed var(--line-2); background: color-mix(in srgb, var(--vivid) 5%, var(--panel)); }
+.st-guide.collapsed:hover { background: color-mix(in srgb, var(--vivid) 10%, var(--panel)); }
+.gd-strip { display: flex; gap: 4px; flex: 1; min-width: 0; overflow: hidden; }
+.gd-strip img, .gd-strip-t { height: 34px; width: 54px; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); background: var(--panel-2); display: grid; place-items: center; font-size: 11px; color: var(--muted); flex: none; }
+.gd-editor.canvas { gap: 10px; }
+.gd-canvas-h { display: flex; align-items: baseline; gap: 4px; }
+.gd-pages { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; align-items: start; }
+.gd-editor.canvas .gd-ed-page { background: var(--panel-2); }
+.gd-editor.canvas .gd-thumb { max-height: 150px; height: 150px; background: var(--panel); }
+.gd-ed-n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--vivid); color: #fff; font-size: 12px; }
+.gd-editor.canvas .gd-drop { min-height: 150px; display: grid; place-content: center; justify-items: center; gap: 6px; text-align: center; }
+.gd-pages > .gd-drop { min-height: 236px; border-style: dashed; }
+.gd-drop .gd-drop-ready { display: none; font-weight: 700; color: var(--vivid); }
+.gd-drop:focus { outline: 2px solid var(--vivid); outline-offset: 2px; }
+.gd-drop:focus .gd-drop-ready { display: inline; } .gd-drop:focus .gd-drop-l { display: none; }
+.gd-drop.over { background: color-mix(in srgb, var(--vivid) 10%, var(--panel)); }
+.gd-canvas-foot { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.gd-ed-top .mini-btn { white-space: nowrap; }
+.gd-ed-top { flex-wrap: nowrap; }

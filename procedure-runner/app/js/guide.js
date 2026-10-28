@@ -109,33 +109,55 @@ PR.guide = (() => {
 
   /* ---------- builder: editor + highlight tool ---------- */
   async function toImage(file) { return PR.u.compressImage(file, 1600, 0.82); }
-  function editor(st, { mutate, bind }) {
+  function editor(st, { mutate, bind, layout = "panel", onDone } = {}) {
     st.guide = Array.isArray(st.guide) ? st.guide : [];
-    const add = async (files) => {
+    const imagesFrom = (list) => [...(list || [])].filter((f) => f && f.type && f.type.startsWith("image/"));
+    const add = async (files, at = st.guide.length) => {
       const imgs = [];
-      for (const f of files) if (f && f.type && f.type.startsWith("image/")) imgs.push(await toImage(f));
+      for (const f of imagesFrom(files)) imgs.push(await toImage(f));
       if (!imgs.length) return toast("Paste or drop a screenshot (image)", "warn");
-      mutate(() => imgs.forEach((img) => st.guide.push({ id: uid("gp"), img, text: "" })));
+      mutate(() => st.guide.splice(at, 0, ...imgs.map((img) => ({ id: uid("gp"), img, text: "" }))));
       toast(`${imgs.length} page${imgs.length > 1 ? "s" : ""} added — write a line for each`, "ok", 2200);
     };
-    const zone = (onFiles, label) => h("div.drop-zone.gd-drop", { tabindex: 0,
-      onpaste: (e) => { const fs = [...(e.clipboardData.files || [])]; if (fs.length) { e.preventDefault(); onFiles(fs); } },
-      ondragover: (e) => e.preventDefault(), ondrop: (e) => { e.preventDefault(); onFiles([...e.dataTransfer.files]); },
-      onclick: async () => { const f = await PR.u.pickFile("image/*"); if (f) onFiles([f]); } }, label);
+    // Click to get it ready for Ctrl+V (Browse… opens a file picker); dropping works too.
+    const zone = (onFiles, label) => {
+      const z = h("div.drop-zone.gd-drop", { tabindex: 0, title: "Click, then Ctrl+V to paste a screenshot",
+        onpaste: (e) => { const fs = imagesFrom(e.clipboardData.files); if (fs.length) { e.preventDefault(); onFiles(fs); } },
+        ondragover: (e) => { e.preventDefault(); z.classList.add("over"); }, ondragleave: () => z.classList.remove("over"),
+        ondrop: (e) => { e.preventDefault(); z.classList.remove("over"); onFiles([...e.dataTransfer.files]); },
+        onclick: (e) => { if (!e.target.closest("button")) z.focus(); } },
+        h("span.gd-drop-l", label), h("span.gd-drop-ready", "Ready — press Ctrl+V"),
+        h("button.mini-btn", { type: "button", onclick: async () => { const f = await PR.u.pickFile("image/*"); if (f) onFiles([f]); } }, "Browse…"));
+      return z;
+    };
     const move = (i, d) => mutate(() => { const [x] = st.guide.splice(i, 1); st.guide.splice(i + d, 0, x); });
+    const highlight = async (g) => { const out = await annotate(g.img); if (out) mutate(() => (g.img = out)); };
+    const page = (g, i) => h("div.gd-ed-page",
+      h("div.gd-ed-top", h("b.gd-ed-n", String(i + 1)), h("div.spacer"),
+        g.img ? h("button.mini-btn", { type: "button", title: "Draw boxes on the screenshot to show where to click", onclick: () => highlight(g) }, "✏ Highlight") : null,
+        h("button.mini-btn", { type: "button", disabled: i === 0, title: "Move earlier", onclick: () => move(i, -1) }, layout === "canvas" ? "←" : "↑"),
+        h("button.mini-btn", { type: "button", disabled: i === st.guide.length - 1, title: "Move later", onclick: () => move(i, 1) }, layout === "canvas" ? "→" : "↓"),
+        h("button.mini-btn.danger", { type: "button", title: "Remove page", onclick: () => mutate(() => st.guide.splice(i, 1)) }, "✕")),
+      g.img ? h("img.gd-thumb", { src: g.img, title: "Click to highlight", onclick: () => highlight(g) })
+        : zone(async (fs) => { const f = imagesFrom(fs)[0]; if (f) { const img = await toImage(f); mutate(() => (g.img = img)); } }, "Add a screenshot"),
+      h("textarea.inp", { rows: 2, placeholder: "What to do on this screen, e.g. Click **Batch Control** › select TEST.GN.DAILY",
+        // pasting a screenshot into the text box attaches it to this page (or adds a page after it)
+        onpaste: async (e) => { const fs = imagesFrom(e.clipboardData && e.clipboardData.files); if (!fs.length) return; e.preventDefault();
+          if (!g.img) { const img = await toImage(fs[0]); mutate(() => (g.img = img)); } else add(fs, i + 1); },
+        ...bind(g, "text") }, g.text || ""));
+    const n = st.guide.length;
+    if (layout === "canvas") return h("div.gd-editor.canvas",
+      h("div.gd-canvas-h", h("b", "📖 Guide"), h("span.muted.small", n ? ` · ${n} page${n > 1 ? "s" : ""} — what operators see when they press 📖 Guide (H)` : " · step-by-step with screenshots, opened by operators with 📖 Guide (H)"),
+        h("div.spacer"), onDone ? h("button.btn.btn-sm", { type: "button", onclick: onDone }, "Done") : null),
+      h("div.gd-pages", st.guide.map(page),
+        zone(add, n ? "＋ Paste more screenshots" : "＋ Paste screenshots — each becomes a page")),
+      h("div.gd-canvas-foot", h("button.btn-text", { type: "button", onclick: () => mutate(() => st.guide.push({ id: uid("gp"), img: "", text: "" })) }, "＋ Text-only page"),
+        h("span.muted.small", "Tip: copy a screenshot (Win+Shift+S), click a paste area, Ctrl+V. Click a screenshot to draw a highlight box.")));
     return h("div.gd-editor",
-      h("div.ins-sec", `📖 Guide — detailed how-to${st.guide.length ? ` (${st.guide.length})` : ""}`),
+      h("div.ins-sec", `📖 Guide — detailed how-to${n ? ` (${n})` : ""}`),
       h("div.help", "Optional. A page-by-page walkthrough with screenshots for anyone who needs it — operators open it with 📖 Guide (H). The step card stays clean."),
-      st.guide.map((g, i) => h("div.gd-ed-page",
-        h("div.gd-ed-top", h("b", `Page ${i + 1}`), h("div.spacer"),
-          g.img ? h("button.mini-btn", { type: "button", title: "Draw boxes on the screenshot to show where to click", onclick: async () => { const out = await annotate(g.img); if (out) mutate(() => (g.img = out)); } }, "✏ Highlight") : null,
-          h("button.mini-btn", { type: "button", disabled: i === 0, title: "Move up", onclick: () => move(i, -1) }, "↑"),
-          h("button.mini-btn", { type: "button", disabled: i === st.guide.length - 1, title: "Move down", onclick: () => move(i, 1) }, "↓"),
-          h("button.mini-btn.danger", { type: "button", title: "Remove page", onclick: () => mutate(() => st.guide.splice(i, 1)) }, "✕")),
-        g.img ? h("img.gd-thumb", { src: g.img, title: "Click to highlight", onclick: async () => { const out = await annotate(g.img); if (out) mutate(() => (g.img = out)); } })
-          : zone(async (fs) => { const f = fs.find((x) => x.type && x.type.startsWith("image/")); if (f) { const img = await toImage(f); mutate(() => (g.img = img)); } }, "Paste (Ctrl+V), drop or click to add a screenshot"),
-        h("textarea.inp", { rows: 2, placeholder: "What to do on this screen, e.g. Click **Batch Control** › select TEST.GN.DAILY", ...bind(g, "text") }, g.text || ""))),
-      zone(add, st.guide.length ? "＋ Paste more screenshots (Ctrl+V) — each becomes a page" : "＋ Paste screenshots here (Ctrl+V), drop or click — each becomes a page"),
+      st.guide.map(page),
+      zone(add, n ? "＋ Paste more screenshots — each becomes a page" : "＋ Paste screenshots here — each becomes a page"),
       h("button.btn.btn-sm", { type: "button", onclick: () => mutate(() => st.guide.push({ id: uid("gp"), img: "", text: "" })) }, "＋ Text-only page"));
   }
 
