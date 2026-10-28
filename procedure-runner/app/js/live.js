@@ -46,6 +46,9 @@ PR.views.live = (() => {
     const lastComm = Object.values(run.comms || {}).filter((c) => c.plan).sort((a, b) => b.at - a.at)[0];
     const sites = p.environments.enabled ? M().sites(p) : [];
     const card = (title, ...kids) => h("section.lv-card", h("div.lv-h", title), kids);
+    const oldFlow = $(".lv-flow .flow-scroll", el); const fk = oldFlow ? [oldFlow.scrollLeft, oldFlow.scrollTop] : null;
+    const showFlow = M().tracks(p).length > 0 || M().allSteps(p).some(({ step }) => M().deps(step).length);
+    const isDone = (id) => ["done", "skipped", "na"].includes(st(id).status) || !M().isApplicable((M().findStep(p, id) || {}).step || {}, su);
     el.innerHTML = "";
     el.append(
       h("div.lv-hero",
@@ -68,9 +71,9 @@ PR.views.live = (() => {
       run.status === "completed" ? h("div.banner.b-ok", h("b", "✓ Complete. "), (run.completion || {}).outcome || "") : null,
       h("div.lv-grid",
         roadblocks(run),
-        M().tracks(p).length ? card("Chairs", M().tracks(p).map((t) => {
-          const pg = M().trackProgress(run, t.id);
-          return h("div.lv-track", { style: { "--c": t.color } }, h("div.lv-site-top", h("b", t.name), h("span.muted.small", t.desc || "")),
+        M().tracks(p).length ? card("Lanes", M().tracks(p).map((t) => {
+          const pg = M().trackProgress(run, t.id); const d = t.dept && PR.app.dept(t.dept);
+          return h("div.lv-track", { style: { "--c": t.color } }, h("div.lv-site-top", h("b", d ? `${d.icon} ${t.name}` : t.name), h("span.muted.small", t.desc || "")),
             h("div.bar", h("div.bar-fill", { style: { width: pg.pct + "%", background: t.color } })),
             h("div.small", pg.signoff ? h("span.c-green-t", `✓ Signed off by ${pg.signoff.by} at ${fmtTime(pg.signoff.at, false)}`) : `${pg.done}/${pg.total} steps`,
               !pg.signoff && pg.active.length ? ` · now: ${pg.active.map((x) => x.num + " " + x.title).join(", ")}` : !pg.signoff && pg.next ? ` · next: ${pg.next.num} ${pg.next.title}` : ""));
@@ -96,7 +99,13 @@ PR.views.live = (() => {
         })),
         lastComm ? card("Latest update", h("div.lv-update", h("b", lastComm.request), h("div.muted.small", `${lastComm.who} · ${fmtTime(lastComm.at, false)} · ${lastComm.by}`))) : null,
         card(`Open issues (${issues.length})`, issues.length ? issues.map((i) => h("div.lv-issue", "⚠ ", i.title, h("span.muted.small", ` · ${fmtTime(i.at, false)}`))) : h("div.muted", "None")),
-        card("Recent activity", h("div.log", (run.events || []).slice(-12).reverse().map((e) => h("div.log-row", h("span.log-t", fmtTime(e.at, false)), h("span.log-w", e.by || ""), h("span.log-x", e.text || e.type)))))));
+        card("Recent activity", h("div.log", (run.events || []).slice(-12).reverse().map((e) => h("div.log-row", h("span.log-t", fmtTime(e.at, false)), h("span.log-w", e.by || ""), h("span.log-x", e.text || e.type)))))),
+      showFlow ? h("section.lv-card.lv-flow", h("div.lv-h", "Workflow"), PR.flow.render({ proc: p, zoomKey: "liveFlowZoom",
+        keep: (step) => M().isApplicable(step, su) && !(su.excluded || []).includes(step.id),
+        status: (step) => (M().isApplicable(step, su) ? st(step.id).status || "pending" : "na"),
+        blocked: (step) => M().deps(step).some((id) => !isDone(id)),
+        laneInfo: (l) => { if (l.shared) return { icon: "👥", sub: "shared — everyone" }; const pg = M().trackProgress(run, l.id); const d = l.dept && PR.app.dept(l.dept); return { icon: d ? d.icon : "", sub: `${pg.done}/${pg.total} done${pg.signoff ? " · signed off" : ""}` }; } })) : null);
+    const nf = $(".lv-flow .flow-scroll", el); if (nf && fk) { nf.scrollLeft = fk[0]; nf.scrollTop = fk[1]; }
   }
   function roadblocks(run) {
     const im = M().impactState(run);

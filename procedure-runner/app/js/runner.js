@@ -263,6 +263,7 @@ PR.runner = (() => {
   const targetOf = (step, section) => M().resolveTarget(proc, step, section, run.setup);
   const ctx = () => M().varContext(run);
   const hasTracks = () => M().tracks(proc).length > 0;
+  const hasFlow = () => hasTracks() || M().allSteps(proc).some(({ step }) => M().deps(step).length);
   /* In a chair's view: their own steps plus shared ones. */
   function inMyChair(step, section) {
     if (run.setup.excluded && run.setup.excluded.includes(step.id)) return false; // not on the run sheet chosen at start
@@ -291,11 +292,11 @@ PR.runner = (() => {
     const { quiet } = opts;
     const f = M().findStep(proc, id); if (!f) return;
     if (run.status === "paused") { toast("Run is halted — resume it first", "warn"); return; }
-    const w = waitingOn(f.step);
-    if (w) {
-      const t = M().trackById(proc, M().trackOf(w.step, w.section));
-      if (!(await confirmBox("Waiting on a handoff", `Step ${f.step.num} waits for ${t ? t.name + " · " : ""}step ${w.step.num} ${w.step.title}, which isn't done yet. Start anyway? (Recorded.)`, { ok: "Start anyway", kind: "danger" }))) return;
-      commit([], { render: false, event: { type: "override", stepId: id, text: `Started ${f.step.num} before handoff from step ${w.step.num}` } });
+    const ws = waitingAll(f.step);
+    if (ws.length) {
+      const list = ws.map((w) => `${laneName(w) ? laneName(w) + " · " : ""}step ${w.step.num} ${w.step.title}`).join("\n• ");
+      if (!(await confirmBox("Waiting on a hand-off", `Step ${f.step.num} waits for:\n• ${list}\n\n${ws.length > 1 ? "These aren't" : "That isn't"} done yet. Start anyway? (Recorded.)`, { ok: "Start anyway", kind: "danger" }))) return;
+      commit([], { render: false, event: { type: "override", stepId: id, text: `Started ${f.step.num} before hand-off from step ${ws.map((w) => w.step.num).join(", ")}` } });
     }
     if (f.step.hold) {
       const blockers = stepsInOrder().slice(0, stepsInOrder().findIndex((x) => x.step.id === id)).filter(({ step }) => step.required && applicable(step) && !["done", "skipped", "na"].includes(statusOf(step)));
@@ -692,6 +693,7 @@ PR.runner = (() => {
       h("span#runSync.sync-dot.ok", { title: "All changes saved" }),
       h("button.btn.btn-sm.btn-warn-o", { type: "button", title: "Log an issue (I)", onclick: () => issueModal({ stepId: focusId }) }, "⚠ Issue"),
       hasComms() ? h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Communication log (C)", onclick: commsModal }, "☎ Comms") : null,
+      hasFlow() ? h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Workflow — every lane side by side with hand-offs (W)", onclick: flowModal }, "⇶ Workflow") : null,
       quick ? null : h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Read-only live view to share with the team or put on a screen", onclick: () => { PR.u.copyText(PR.comms.liveURL(run)); window.open(`#/live/${run.id}`, "_blank"); } }, "📺 Follow"),
       quick ? null : h("button.btn.btn-sm.btn-ghost", { type: "button", title: "Run report", onclick: () => PR.app.go(`#/report/${run.id}`) }, "📄 Report"),
       h(`button.btn-text.focus-btn${isFocus() ? ".on" : ""}`, { type: "button", title: isFocus() ? "Show the side panels (F)" : "Focus mode — hide the side panels (F)", onclick: toggleFocus }, isFocus() ? "Show panels" : "Focus"),
@@ -723,13 +725,14 @@ PR.runner = (() => {
     if (!hasTracks() || run.status === "setup") return;
     const saved = PR.app.LS.get(chairKey(), null);
     if (saved !== null && !force) { chairView = saved; return; }
-    const mine = (run.setup.participants || []).find((p) => p.name === me() && p.track);
+    const mine = (run.setup.participants || []).find((p) => p.name === me() && p.track)
+      || (() => { const t = M().tracks(proc).find((x) => x.dept && PR.model.inDept(PR.app.dept(x.dept), me())); return t ? { track: t.id } : null; })();
     const v = await modal({
-      title: "Which chair are you working?", size: "md", subtitle: "You'll only see your chair's steps (plus shared ones). Switch any time from the run bar.",
+      title: "Which lane are you working?", size: "md", subtitle: "You'll only see your lane's steps (plus shared ones). Switch any time from the run bar; ⇶ Workflow shows every lane.",
       body: (close) => h("div.chair-pick",
-        M().tracks(proc).map((t) => { const pg = M().trackProgress(run, t.id); return h(`button.chair-card${mine && mine.track === t.id ? ".on" : ""}`, { type: "button", style: { "--c": t.color }, onclick: () => close(t.id) },
-          h("b", t.name), h("span", t.desc || ""), h("span.muted.small", `${pg.done}/${pg.total} steps`)); }),
-        h("button.chair-card.all", { type: "button", onclick: () => close("") }, h("b", "All chairs"), h("span", "Coordinator / lead — see everything"))),
+        M().tracks(proc).map((t) => { const pg = M().trackProgress(run, t.id); const d = t.dept && PR.app.dept(t.dept); return h(`button.chair-card${mine && mine.track === t.id ? ".on" : ""}`, { type: "button", style: { "--c": t.color }, onclick: () => close(t.id) },
+          h("b", d ? `${d.icon} ${t.name}` : t.name), mine && mine.track === t.id ? h("span.small.c-green-t", "● your team") : null, h("span", t.desc || ""), h("span.muted.small", `${pg.done}/${pg.total} steps`)); }),
+        h("button.chair-card.all", { type: "button", onclick: () => close("") }, h("b", "All lanes"), h("span", "Coordinator / lead — see everything"))),
     });
     setChair(v == null ? (mine ? mine.track : "") : v);
   }
@@ -752,10 +755,22 @@ PR.runner = (() => {
           !pg.signoff && run.status === "active" && (pg.complete || chairView === t.id) ? h(`button.btn.btn-sm${pg.complete ? ".btn-cta" : ""}`, { type: "button", onclick: () => signOffTrack(t) }, `✍ Sign off ${t.name}`) : null);
       }));
   }
-  function waitingOn(step) {
-    if (!step.waitFor) return null;
-    const f = M().findStep(proc, step.waitFor); if (!f) return null;
-    return ["done", "skipped", "na"].includes(statusOf(f.step)) ? null : f;
+  /* Hand-offs this step still waits for (every step in step.waitsFor that isn't finished). waitingOn = the first of them. */
+  function waitingAll(step) {
+    return M().deps(step).map((id) => M().findStep(proc, id)).filter((f) => f && !["done", "skipped", "na"].includes(statusOf(f.step)));
+  }
+  function waitingOn(step) { return waitingAll(step)[0] || null; }
+  const laneName = (f) => { const t = M().trackById(proc, M().trackOf(f.step, f.section)); return t ? t.name : ""; };
+  function flowModal() {
+    const draw = () => PR.flow.render({ proc, keep: (step) => applicable(step) && !(run.setup.excluded || []).includes(step.id), status: (step) => statusOf(step), blocked: (step) => waitingAll(step).length > 0,
+      selected: focusId, zoomKey: "runFlowZoom", mine: (l) => !!chairView && l.id === chairView,
+      laneInfo: (l) => { if (l.shared) return { icon: "👥", sub: "shared — everyone" }; const pg = M().trackProgress(run, l.id); const d = l.dept && PR.app.dept(l.dept); return { icon: d ? d.icon : "", sub: `${pg.done}/${pg.total} done${pg.signoff ? " · signed off" : ""}` }; },
+      onSelect: (id) => { close && close(); const f = M().findStep(proc, id); if (f && !inMyChair(f.step, f.section)) setChair(""); filter = "all"; setFocus(id); } });
+    let close = null;
+    const box = h("div.flow-modal", draw());
+    const timer = setInterval(() => { if (!document.body.contains(box)) return clearInterval(timer); const sc = $(".flow-scroll", box); const k = sc ? [sc.scrollLeft, sc.scrollTop] : null; box.innerHTML = ""; box.append(draw()); const n = $(".flow-scroll", box); if (n && k) { n.scrollLeft = k[0]; n.scrollTop = k[1]; } }, 4000);
+    modal({ title: "Workflow — who's doing what", size: "xl", subtitle: "Each lane is a team or chair. Bold arrows are hand-offs: amber means still waiting. Click a step to go to it.", body: (c) => { close = c; return box; }, actions: [{ label: "Close", kind: "primary" }] }).then(() => clearInterval(timer));
+    setTimeout(() => { const r = box.firstChild; r && r.scrollToNode && r.scrollToNode(focusId); }, 60);
   }
   function impactStrip() {
     const im = M().impactState(run);
@@ -847,7 +862,7 @@ PR.runner = (() => {
       PR.ui.envBadge(t, { size: "sm" }),
       h("span.sr-title", step.title), impactFlag(step),
       !chairView && hasTracks() ? (() => { const t = M().trackById(proc, M().trackOf(step, sec)); return t ? h("span.track-chip.sm", { style: { "--c": t.color } }, t.name) : null; })() : null,
-      statusOf(step) === "pending" && waitingOn(step) ? h("span.sr-wait", { title: "Waiting on a handoff from another chair" }, `⏳ #${waitingOn(step).step.num}`) : null,
+      statusOf(step) === "pending" && waitingOn(step) ? h("span.sr-wait", { title: "Waiting on a hand-off from another lane" }, `⏳ ${waitingAll(step).map((w) => "#" + w.step.num).join(" ")}`) : null,
       step.window && status === "pending" ? h("span.sr-win", step.window) : null,
       issues.length ? h("span.sr-iss", { title: `${issues.length} issue(s)` }, `⚠ ${issues.length}`) : null,
       h("span.sr-right",
@@ -904,8 +919,10 @@ PR.runner = (() => {
       PR.ui.envBadge(t, { size: "lg" }),
       meta.length ? h("div.fc-meta", meta) : null,
       s.incomplete ? h("div.banner.b-warn.sm", `Completed with missing items: ${s.incomplete.join(", ")}`) : null,
-      (() => { const w = status === "pending" && waitingOn(step); if (!w) return null; const t = M().trackById(proc, M().trackOf(w.step, w.section)); const ws = st(w.step.id);
-        return h("div.banner.b-info.sm.waiting", "⏳ Waiting on ", h("b", t ? t.name : "another step"), ` · step ${w.step.num} ${w.step.title}`, ws.status === "active" ? h("span", " — in progress, ", h("span", { dataset: { since: String(ws.startedAt) } }, fmtDur(now() - ws.startedAt))) : " — not started yet"); })(),
+      (() => { const all = status === "pending" ? waitingAll(step) : []; if (!all.length) return null;
+        return h("div.banner.b-info.sm.waiting", all.map((w, i) => { const ws = st(w.step.id);
+          return h("div", i ? "and " : "⏳ Waiting on ", h("b", laneName(w) || "another step"), ` · step ${w.step.num} ${w.step.title}`, ws.status === "active" ? h("span", " — in progress, ", h("span", { dataset: { since: String(ws.startedAt) } }, fmtDur(now() - ws.startedAt))) : " — not started yet"); }),
+          hasTracks() || M().deps(step).length ? h("button.link-btn.small", { type: "button", onclick: flowModal }, "See the workflow") : null); })(),
       s.timing === "unavailable" && status === "done" ? h("div.banner.b-warn.sm", "Timing unreliable — no start time was captured. ", h("button.mini-btn", { type: "button", onclick: () => editTimes(step.id) }, "Add start time")) : null,
       priorFor(step.id).map((p) => priorLessonBanner(p)),
       reqList().filter((r) => r.stepId === step.id && r.kind === "adhoc" && r.status !== "cancelled").map((r) => approvalPanel(step, null, r)),
@@ -1434,6 +1451,7 @@ PR.runner = (() => {
       case "l": case "L": e.preventDefault(); mode = mode === "lanes" ? "list" : "lanes"; PR.app.LS.set("runMode", mode); render(); break;
       case "?": e.preventDefault(); keysHelp(); break;
       case "f": case "F": e.preventDefault(); toggleFocus(); break;
+      case "w": case "W": e.preventDefault(); if (hasFlow()) flowModal(); break;
       case "h": case "H": e.preventDefault(); { const f = focusId && M().findStep(proc, focusId); if (f && PR.guide.pagesOf(f.step).length) PR.guide.open(f.step); else toast("This step has no guide", "info", 1500); } break;
       case "g": case "G": e.preventDefault(); promptBox("Go to step", { label: "Step number", ok: "Go" }).then((n) => { if (!n) return; const f = myStepsInOrder().find((x) => x.step.num === n.trim()) || stepsInOrder().find((x) => x.step.num === n.trim() && applicable(x.step)); if (f) { filter = "all"; siteFilter = "all"; mode = "list"; setFocus(f.step.id); } else toast("No step " + n, "warn"); }); break;
       default:
@@ -1449,7 +1467,7 @@ PR.runner = (() => {
       row(["Tab"], "Next control inside the step"), row(["Esc"], "Leave a field and go back to step keys"),
       row(["↑", "↓"], "Previous / next step (also K / J)"), row(["S"], "Skip the step (asks for a reason)"),
       row(["T"], "Start the step's countdown, or finish it early"), row(["I"], "Log an issue (paste screenshots)"),
-      row(["A"], "Require approval for the step (asks the approvers)"), row(["N"], "Improvement note"), row(["C"], "Communications"), row(["G"], "Go to a step number"), row(["L"], "List / lanes view"), row(["F"], "Focus mode — hide or show the side panels"), row(["H"], "Open the step's guide (step-by-step with screenshots); ← → to page through"), row(["?"], "This list"))),
+      row(["A"], "Require approval for the step (asks the approvers)"), row(["N"], "Improvement note"), row(["C"], "Communications"), row(["G"], "Go to a step number"), row(["L"], "List / lanes view"), row(["F"], "Focus mode — hide or show the side panels"), row(["W"], "Workflow — every lane side by side with hand-offs"), row(["H"], "Open the step's guide (step-by-step with screenshots); ← → to page through"), row(["?"], "This list"))),
       actions: [{ spacer: true }, { label: "Close", kind: "primary", value: true }] });
   }
   function onCountdownDone(e) {

@@ -114,8 +114,8 @@ PR.templates = (() => {
     const find = (re) => allSt.find((x) => re.test(x.title));
     const dns = find(/Network to change primary DNS/i), dnsCheck = find(/Validate DNS response/i), vendors = find(/Inform vendors the host is available/i);
     if (dns) dns.track = "chair2";
-    if (dnsCheck && dns) dnsCheck.waitFor = dns.id;
-    if (vendors) { vendors.track = "chair2"; if (upStep) vendors.waitFor = upStep.id; }
+    if (dnsCheck && dns) dnsCheck.waitsFor = [dns.id];
+    if (vendors) { vendors.track = "chair2"; if (upStep) vendors.waitsFor = [upStep.id]; }
     p.comms = { items: [["tpl_advance_org", "advance"], ["tpl_advance_it", "advance"], ["tpl_reminder", "reminder"], ["tpl_start", "start"], ["tpl_impact_down", "impact-down"], ["tpl_decision", "decision"], ["tpl_progress", "interval", { minutes: 30 }],
       ["tpl_issue", "issue"], ["tpl_halt", "halt"], ["tpl_available", "impact-up"], ["tpl_complete", "complete"], ["tpl_aborted", "aborted"], ["tpl_summary", "after"]]
       .map(([templateId, trigger, o]) => ({ id: "pl_" + templateId, templateId, trigger, enabled: true, stepId: "", ...(o || {}) })) };
@@ -182,6 +182,62 @@ PR.templates = (() => {
     return M().normalize(p);
   }
 
+  /* Joint failover: one lane per team. Prep runs in parallel, a shared go / no-go brings everyone together,
+     then hand-offs (bold arrows in the workflow) make Network wait for Core, Dev wait for Core and Network, and so on. */
+  function jointFailover() {
+    const L = { core: "lane_core", net: "lane_network", dev: "lane_dev", sd: "lane_servicedesk" };
+    const p = M().newProcedure({
+      title: "Joint failover — Core · Network · Dev (template)",
+      description: "Cross-team failover. Each team works its own lane at the same time; hand-offs make a team wait only where it really depends on another team. Open ⇶ Workflow to see who waits for whom.",
+      tags: ["Failover", "DR", "Joint"],
+      setup: { requireChangeId: true, requireVerification: false, chairs: ["Bridge lead", "Core", "Network", "Dev", "Service Desk", "Approver", "Observer"],
+        readiness: [{ id: "r_cab", label: "Change approved (CAB)" }, { id: "r_bk", label: "Backups completed and verified" }, { id: "r_bridge", label: "Bridge / Teams meeting set up and shared" }, { id: "r_comms", label: "Member notice drafted" }],
+        milestones: [{ id: "m_up", label: "Members can transact at the DR site" }, { id: "m_ok", label: "Every team signed off" }] },
+    });
+    p.owner = "core";
+    p.tracks = [
+      { id: L.core, name: "Core", desc: "Core banking platform", dept: "core", color: "#00538b" },
+      { id: L.net, name: "Network", desc: "DNS, firewalls, circuits", dept: "network", color: "#0891b2" },
+      { id: L.dev, name: "Dev", desc: "Integrations & apps", dept: "dev", color: "#7c3aed" },
+      { id: L.sd, name: "Service Desk", desc: "Branches, call centre, member comms", dept: "servicedesk", color: "#d97706" },
+    ];
+    p.approvals = { enforced: true, approvers: [], chairs: ["Approver"], selfApprove: false };
+    const st = (num, title, o = {}, blocks = []) => M().newStep({ num, title, target: "none", ...o, blocks });
+    const sec = (title, track, steps, o = {}) => M().newSection({ title, track, steps, ...o });
+    const kick = st("1", "Open the bridge — every team confirms they're ready", { category: "Communication", estMin: 10 }, [chk(["Core on the bridge", "Network on the bridge", "Dev on the bridge", "Service Desk on the bridge"], "Roll call")]);
+    const c1 = st("2.1", "Confirm replication is healthy and in sync", { owner: "Core", estMin: 10, category: "Validation" }, [val("Primary vs DR replication timestamp", "In sync — no lag")]);
+    const c2 = st("2.2", "Hold batch jobs and notify third-party vendors", { owner: "Core", estMin: 15, category: "Communication" }, [contact("Vendors", "Email", "", "Failover starting — expect a short outage")]);
+    const n1 = st("3.1", "Verify DR circuits and firewall rules", { owner: "Network", estMin: 15, category: "Prep-Work" }, [chk(["DR circuits up", "Firewall rules for DR in place", "VPN tunnels to vendors up"])]);
+    const n2 = st("3.2", "Lower DNS TTLs and stage the DNS / VIP changes", { owner: "Network", estMin: 10, category: "Prep-Work" }, [txt("Stage the change but don't apply it until Core has promoted DR.")]);
+    const d1 = st("4.1", "Pause integration jobs and drain the message queues", { owner: "Dev", estMin: 15, category: "Prep-Work" }, [inp("Messages left in the queue", "queueDepth", "number")]);
+    const d2 = st("4.2", "Confirm app configs point at the DR endpoints", { owner: "Dev", estMin: 10, category: "Validation" }, [chk(["Online banking", "Mobile app", "Integrations / APIs"])]);
+    const s1 = st("5.1", "Post the member notice and IVR message", { owner: "Service Desk", estMin: 10, category: "Communication" }, [evi("Screenshot of the notice")]);
+    const go = st("6", "Go / No-Go", { category: "Decisioning", critical: true, estMin: 5 }, [dec("Is every team ready to fail over?", "Replication in sync · DR network ready · integrations paused · member notice posted", "Bridge lead")]);
+    const c3 = st("7.1", "Stop services at the primary site", { owner: "Core", estMin: 15, category: "Processing", critical: true, impact: { mark: "down", on: "start" } }, [conf("Type the confirmation phrase", "STOP PRIMARY")]);
+    const c4 = st("7.2", "Promote the DR site to primary", { owner: "Core", estMin: 20, category: "Processing", critical: true }, [txt("Switch replication direction and bring the database up at DR.")]);
+    const n3 = st("8.1", "Apply the DNS / VIP change to DR", { owner: "Network", estMin: 10, category: "Processing", critical: true }, [txt("Waits for Core to promote DR.")]);
+    const n4 = st("8.2", "Validate routing from branches and partners", { owner: "Network", estMin: 15, category: "Validation" }, [val("Ping / trace from a branch to the core host name", "Resolves to DR and answers")]);
+    const c5 = st("7.3", "Start the core at DR and validate", { owner: "Core", estMin: 20, category: "Validation" }, [val("Teller sign-on test", "Succeeds"), inp("Next account number", "nextAccountNumber", "number", { required: false })]);
+    const d3 = st("9.1", "Re-point integrations and restart jobs", { owner: "Dev", estMin: 20, category: "Processing" }, [txt("Needs the core up at DR **and** the network routing validated.")]);
+    const d4 = st("9.2", "Smoke test online banking and mobile", { owner: "Dev", estMin: 15, category: "Validation", impact: { mark: "up", on: "complete" } }, [chk(["Log in", "View balances", "Transfer between own accounts"])]);
+    const s2 = st("10.1", "Confirm branches and the call centre can work", { owner: "Service Desk", estMin: 15, category: "Validation" }, [chk(["Branch teller test", "Call centre lookup test"])]);
+    const s3 = st("10.2", "Update the member notice — service restored", { owner: "Service Desk", estMin: 5, category: "Communication" }, []);
+    const close = st("11", "Every team signs off — close the bridge", { category: "Milestone", estMin: 5 }, [appr("Failover complete", "Approver")]);
+    n3.waitsFor = [c4.id];
+    c5.waitsFor = [n3.id];
+    d3.waitsFor = [c5.id, n4.id];
+    s2.waitsFor = [c5.id, n4.id];
+    s3.waitsFor = [d4.id, s2.id];
+    p.sections = [
+      sec("Kickoff", "", [kick]),
+      sec("Core — prep", L.core, [c1, c2]), sec("Network — prep", L.net, [n1, n2]), sec("Dev — prep", L.dev, [d1, d2]), sec("Service Desk — prep", L.sd, [s1]),
+      sec("Go / No-Go", "", [go]),
+      sec("Core — failover", L.core, [c3, c4, c5]), sec("Network — cutover", L.net, [n3, n4]), sec("Dev — bring apps back", L.dev, [d3, d4]), sec("Service Desk — members", L.sd, [s2, s3]),
+      sec("Close-out", "", [close]),
+    ];
+    return M().normalize(p);
+  }
+
   function checklist() {
     n = 0;
     const p = M().newProcedure({ title: "Simple checklist", description: "" });
@@ -191,6 +247,7 @@ PR.templates = (() => {
 
   const list_ = [
     { id: "failover", icon: "🔁", title: "Symitar failover (two datacenters)", hint: "direction-aware", build: failover },
+    { id: "joint", icon: "⇶", title: "Joint failover (Core · Network · Dev · Service Desk)", hint: "lanes + hand-offs", build: jointFailover },
     { id: "release", icon: "🚀", title: "Release / upgrade", build: release },
     { id: "checklist", icon: "☑", title: "Simple checklist", build: checklist },
     { id: "runsheet", icon: "⚡", title: "Daily run sheet (quick start)", hint: "no setup", build: runsheet },

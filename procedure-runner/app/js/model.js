@@ -86,8 +86,9 @@ PR.model = (() => {
     p.runOptions = runOptions(p);
     p.sections = (p.sections || []).map((s) => ({
       ...newSection(), ...s, id: s.id || uid("sec"),
-      steps: (s.steps || []).map((st) => ({ ...newStep(), ...st, id: st.id || uid("st"), blocks: (st.blocks || []).map((b) => ({ id: b.id || uid("b"), ...b })) })),
+      steps: (s.steps || []).map((st) => normDeps({ ...newStep(), ...st, id: st.id || uid("st"), blocks: (st.blocks || []).map((b) => ({ id: b.id || uid("b"), ...b })) })),
     }));
+    p.owner = p.owner || "";
     return p;
   }
 
@@ -351,7 +352,12 @@ PR.model = (() => {
         const texts = [b.text, b.code, b.expected, b.request, b.detail, b.label, b.url].filter(Boolean).join(" ");
         for (const m of texts.matchAll(/\{\{\s*var\.([\w]+)\s*\}\}/g)) if (!declared.has(m[1])) issues.push({ level: "warn", msg: `Step ${step.num}: {{var.${m[1]}}} is never captured by an input block.`, ...ref });
       }
+      for (const id of deps(step)) {
+        const f = findStep(p, id);
+        if (!f) issues.push({ level: "warn", msg: `Step ${step.num || step.title} waits for a step that no longer exists.`, ...ref });
+      }
     }
+    if (flowGraph(p).loop) issues.push({ level: "error", msg: "The workflow has a loop: some steps wait for each other. Open the Workflow view to fix the arrows." });
     return issues;
   }
 
@@ -363,6 +369,89 @@ PR.model = (() => {
   function trackOf(step, section) { return (step && step.track) || (section && section.track) || ""; }
   function trackById(p, id) { return tracks(p).find((t) => t.id === id) || null; }
   const DONE = ["done", "skipped", "na"];
+
+  /* ---------- dependencies ----------
+     step.waitsFor = [stepId…]: this step waits until all of those are done (any lane). Older procedures had a single step.waitFor. */
+  function deps(step) { return !step ? [] : Array.isArray(step.waitsFor) ? step.waitsFor : step.waitFor ? [step.waitFor] : []; }
+  function normDeps(step) {
+    if (!Array.isArray(step.waitsFor)) step.waitsFor = step.waitFor ? [step.waitFor] : [];
+    delete step.waitFor;
+    return step;
+  }
+  /* The flow of a procedure as a graph. Lanes are the chairs/teams (plus "shared" for steps everyone does).
+     Order on the page gives the implicit flow: a lane's steps follow each other, a shared step follows every lane before it
+     (a sync point such as a go / no-go), and lane steps follow the last shared step. "Runs in parallel with the previous step"
+     starts alongside it. step.waitsFor adds hard handoffs between lanes. */
+  function flowGraph(p, keep) {
+    const lanesById = new Map(tracks(p).map((t) => [t.id, t]));
+    const all = allSteps(p).filter((x) => !keep || keep(x.step, x.section));
+    const laneOf = (x) => { const t = trackOf(x.step, x.section); return lanesById.has(t) ? t : "shared"; };
+    const nodes = all.map((x, i) => ({ id: x.step.id, step: x.step, section: x.section, lane: laneOf(x), i, order: [], deps: [] }));
+    const byId = new Map(nodes.map((n) => [n.id, n]));
+    const lastIn = new Map(); let lastShared = null; const lastByLane = new Map();
+    nodes.forEach((n) => {
+      const prevSame = lastIn.get(n.lane) || null;
+      let preds;
+      if (n.lane === "shared") {
+        preds = [];
+        if (lastShared) preds.push(lastShared);
+        lastByLane.forEach((m) => { if (!lastShared || m.i > lastShared.i) preds.push(m); });
+      } else {
+        preds = [];
+        if (prevSame) preds.push(prevSame);
+        if (lastShared && (!prevSame || lastShared.i > prevSame.i)) preds.push(lastShared);
+      }
+      if (n.step.parallel && prevSame && (n.lane !== "shared" || preds.length <= 1)) preds = prevSame.order.slice(); // starts alongside the previous step
+      n.order = [...new Set(preds)];
+      lastIn.set(n.lane, n);
+      if (n.lane === "shared") { lastShared = n; lastByLane.clear(); } else lastByLane.set(n.lane, n);
+    });
+    nodes.forEach((n) => { n.deps = deps(n.step).map((id) => byId.get(id)).filter((m) => m && m !== n); });
+    // longest path = column; a loop (bad data) stops after N passes and is reported
+    nodes.forEach((n) => (n.level = 0));
+    let loop = false;
+    for (let pass = 0; pass <= nodes.length; pass++) {
+      let changedAny = false;
+      nodes.forEach((n) => { const l = Math.max(0, ...n.order.map((m) => m.level + 1), ...n.deps.map((m) => m.level + 1)); if (l !== n.level && l <= nodes.length) { n.level = l; changedAny = true; } });
+      if (!changedAny) break;
+      if (pass === nodes.length) loop = true;
+    }
+    const lanes = [...(nodes.some((n) => n.lane === "shared") || !lanesById.size ? [{ id: "shared", name: lanesById.size ? "Everyone" : "Steps", shared: true, color: "#64748b" }] : []), ...tracks(p)];
+    return { nodes, byId, lanes, loop };
+  }
+  /* Would "step waits for dep" create a loop (dep already comes after step in the flow)? */
+  function wouldLoop(p, stepId, depId) {
+    if (stepId === depId) return true;
+    const g = flowGraph(p);
+    const after = new Map(); // node -> nodes that follow it
+    g.nodes.forEach((n) => [...n.order, ...n.deps].forEach((m) => { if (!after.has(m.id)) after.set(m.id, []); after.get(m.id).push(n.id); }));
+    const seen = new Set(); const stack = [stepId];
+    while (stack.length) { const id = stack.pop(); if (id === depId) return true; if (seen.has(id)) continue; seen.add(id); (after.get(id) || []).forEach((x) => stack.push(x)); }
+    return false;
+  }
+
+  /* ---------- departments ----------
+     Shared in team settings (settings.departments) so every department can own procedures, have its own people,
+     and join cross-team procedures as a lane. */
+  const DEFAULT_DEPARTMENTS = [
+    { id: "core", name: "Core", full: "Core Team", group: "IT", color: "#00538b", icon: "🧩", about: "Core banking platform, Symitar, daily processing" },
+    { id: "dev", name: "Dev", full: "Development", group: "IT", color: "#7c3aed", icon: "💻", about: "Applications, integrations and releases" },
+    { id: "network", name: "Network", full: "Network", group: "IT", color: "#0891b2", icon: "🌐", about: "Network, firewalls, DNS and connectivity" },
+    { id: "servicedesk", name: "Service Desk", full: "Service Desk", group: "IT", color: "#d97706", icon: "🎧", about: "First line support and member-facing comms" },
+  ];
+  const DEPT_COLORS = ["#00538b", "#7c3aed", "#0891b2", "#d97706", "#16a34a", "#be185d", "#dc2626", "#0d9488", "#4f46e5", "#ca8a04"];
+  function departments(settings) {
+    const list = settings && Array.isArray(settings.departments) ? settings.departments : DEFAULT_DEPARTMENTS;
+    return list.map((d, i) => ({ id: d.id || uid("dept"), name: d.name || "Department", full: d.full || d.name || "", group: d.group || "", color: d.color || DEPT_COLORS[i % DEPT_COLORS.length], icon: d.icon || "🏢", about: d.about || "",
+      leads: Array.isArray(d.leads) ? d.leads : [], members: Array.isArray(d.members) ? d.members : [] }));
+  }
+  function deptById(list, id) { return (list || []).find((d) => d.id === id) || null; }
+  function inDept(d, name) { return !!d && [...d.leads, ...d.members].some((n) => sameName(n, name)); }
+  function myDepts(list, name) { return (list || []).filter((d) => inDept(d, name)); }
+  /* Departments a procedure involves: its owner and every lane linked to a department */
+  function ownerOf(doc) { return !doc ? "" : "owner" in doc ? doc.owner || "" : (doc.draft && doc.draft.owner) || ""; }
+  function deptsOf(p) { return [...new Set([p && p.owner, ...((p && p.tracks) || []).map((t) => t.dept)].filter(Boolean))]; }
+
   function trackProgress(run, trackId) {
     const p = run.snapshot; const st = (id) => (run.steps || {})[id] || {};
     const mine = allSteps(p).filter(({ step, section }) => trackOf(step, section) === trackId && isApplicable(step, run.setup));
@@ -431,12 +520,13 @@ PR.model = (() => {
 
   /* Wrap procedure data in a stored document */
   function newDoc(data, by) {
-    return { id: data.id, status: "draft", draft: data, publishedVersion: 0, versions: [], createdAt: now(), updatedAt: now(), updatedBy: by || "", dirtySincePublish: true };
+    return { id: data.id, status: "draft", owner: data.owner || "", draft: data, publishedVersion: 0, versions: [], createdAt: now(), updatedAt: now(), updatedBy: by || "", dirtySincePublish: true };
   }
 
   return { runOptions, sheetLabel, excludedSteps, variantsDue, sectionDue, ymd, approvalsCfg, approversFor, needsApproval, canApprove, pendingApprovals, sameName, APPROVAL_TYPES,
     CATEGORIES, catMeta, DEFAULT_CHAIRS, BUILTIN_VARS, defaultEnvironments, newProcedure, newSection, newStep, newBlock, normalize, fromLegacy,
     allSteps, findStep, findBlock, estimateMinutes, renumber, sites, siteById, otherSite, primarySite, directionLabel, phaseOf,
     resolveTarget, isApplicable, countRunnable, varContext, interpolate, variablesDeclared, lint, newDoc, impactName, hasImpact, impactEvents, impactState, tracks, trackOf, trackById, trackProgress, TRACK_COLORS,
+    deps, normDeps, flowGraph, wouldLoop, DEFAULT_DEPARTMENTS, DEPT_COLORS, departments, deptById, inDept, myDepts, deptsOf, ownerOf,
   };
 })();

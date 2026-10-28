@@ -5,7 +5,7 @@ PR.views.builder = (() => {
   const { h, $, $$, esc, toast, modal, confirmBox, promptBox, menu, uid, clone, now, fmtMin, debounce } = PR.u;
   const S = () => PR.store.b;
 
-  let doc, proc, sel, multi, undoStack, redoStack, dirty, leftTab, compact, outlineQ, collapsedOutline;
+  let doc, proc, sel, multi, undoStack, redoStack, dirty, leftTab, compact, outlineQ, collapsedOutline, viewMode, locked;
   let editSnap = null; // snapshot taken on focus of an inline editor, pushed on first change
   let editGen = 0;     // bumps on every change, so a save only clears "dirty" if nothing changed meanwhile
 
@@ -16,11 +16,28 @@ PR.views.builder = (() => {
     proc = M().normalize(clone(doc.draft));
     sel = null; multi = new Set(); undoStack = []; redoStack = []; dirty = false;
     leftTab = PR.app.LS.get("bldLeft", "add"); compact = PR.app.LS.get("bldCompact", false); outlineQ = ""; collapsedOutline = new Set();
-    el.appendChild(h("div.bld",
+    viewMode = PR.app.LS.get("bldView", "page") === "flow" ? "flow" : "page";
+    const rights = PR.app.editRights(doc);
+    locked = !rights.ok && !PR.app.LS.get(`editOk_${doc.id}`, false);
+    el.appendChild(h(`div.bld${locked ? ".locked" : ""}`,
       h("div.bld-bar#bldBar"),
+      locked ? h("div.ro-banner#roBanner", "🔒 ", h("span", "This procedure belongs to ", h("b", rights.owner ? rights.owner.name : rights.who.map((d) => d.name).join(" / ")),
+        `. You're not listed in ${rights.who.map((d) => d.name).join(" or ")}, so it opens read-only.`), h("div.spacer"),
+        h("button.btn.btn-sm", { type: "button", onclick: () => unlock() }, "Edit anyway")) : null,
       h("div.bld-main", h("aside.bld-left#bldLeft"), h("div.bld-canvas.builder-canvas#bldCanvas"), h("aside.bld-insp#bldInsp"))));
     renderAll();
     document.addEventListener("keydown", onKey);
+    const main = $(".bld-main", el);
+    // Read-only guard: block edits until "Edit anyway" (scrolling, selecting and the workflow view still work)
+    ["pointerdown", "keydown", "dragstart", "paste", "beforeinput"].forEach((t) => main.addEventListener(t, (e) => {
+      if (!locked) return;
+      const tgt = e.target;
+      if (t === "pointerdown" && !(tgt.closest("input,textarea,select,button,[draggable=true],[contenteditable],.fn-handle,.fe-hit,.fl-add") && !tgt.closest(".view-toggle,.flow-tools,.tabs"))) return;
+      if (t === "keydown" && !PR.u.isTyping(e)) return;
+      e.preventDefault(); e.stopPropagation();
+      const b = $("#roBanner"); if (b) { b.classList.remove("pulse"); void b.offsetWidth; b.classList.add("pulse"); }
+      toast("Read-only — choose “Edit anyway” in the yellow bar to make changes", "warn", 2500);
+    }, true));
     PR.app.dirty = () => dirty;
     dropLine();
   }
@@ -31,6 +48,16 @@ PR.views.builder = (() => {
     const dl = $("#dropLine"); if (dl) dl.remove();
   }
   function M() { return PR.model; }
+  async function unlock() {
+    const r = PR.app.editRights(doc);
+    if (!(await confirmBox("Edit anyway?", `${r.owner ? r.owner.name : "Its department"} owns this procedure. Your changes are saved under your name and recorded in its history so the owners can see who changed it.`, { ok: "Edit anyway" }))) return;
+    locked = false; PR.app.LS.set(`editOk_${doc.id}`, true);
+    doc.editLog = [...(doc.editLog || []), { by: PR.app.me, at: now(), note: "Edited from outside the owning department" }].slice(-50);
+    try { doc = await S().saveProcedure(doc, doc.rev); } catch { /* recorded on next save */ }
+    const b = $("#roBanner"); if (b) b.remove();
+    $(".bld") && $(".bld").classList.remove("locked");
+    renderAll();
+  }
 
   /* ======================= state changes ======================= */
   function snap() { undoStack.push(JSON.stringify(proc)); if (undoStack.length > 100) undoStack.shift(); redoStack = []; }
@@ -282,7 +309,7 @@ PR.views.builder = (() => {
     const uniq = (arr) => [...new Set(arr.filter(Boolean))].sort();
     const dl = (id, vals) => h(`datalist#${id}`, vals.map((v) => h("option", { value: v })));
     host.innerHTML = "";
-    host.append(dl("catList", uniq([...Object.keys(M().CATEGORIES), ...all.map((s) => s.category)])), dl("ownerList", uniq(["Core", "Network", ...all.map((s) => s.owner)])),
+    host.append(dl("catList", uniq([...Object.keys(M().CATEGORIES), ...all.map((s) => s.category)])), dl("ownerList", uniq([...PR.app.depts().map((d) => d.name), ...all.map((s) => s.owner)])),
       dl("windowList", uniq(["As soon as date selected", "Morning of", "1 hour before start", "During window", "After window", ...all.map((s) => s.window)])),
       dl("contactList", uniq(proc.contacts.map((c) => c.name))));
   }
@@ -296,19 +323,35 @@ PR.views.builder = (() => {
       h("a.icon-btn", { href: "#/", title: "Back to library" }, "←"),
       h("input.bld-title", { value: proc.title, title: "Procedure name", onfocus: beginEdit, oninput: (e) => { proc.title = e.target.value; editing(); } }),
       PR.app.statusChip(doc.status), doc.publishedVersion ? h("span.chip.c-gray", `v${doc.publishedVersion}${doc.dirtySincePublish ? " + edits" : ""}`) : null,
+      ownerChip(),
       h("span#saveState.save-state", dirty ? "Unsaved…" : "Saved"),
       h("div.spacer"),
-      h("span.muted.small", `${M().allSteps(proc).length} steps · ~${fmtMin(M().estimateMinutes(proc)) || "0m"}`),
+      h("div.seg.seg-sm.view-toggle", [["page", "☰ Page"], ["flow", "⇶ Workflow"]].map(([k, l]) => h(`button.seg-btn${viewMode === k ? ".on" : ""}`, { type: "button", title: k === "flow" ? "Swimlanes per team with hand-offs between them" : "Edit steps and their contents", onclick: () => setView(k) }, l))),
+      h("span.muted.small.bld-count", `${M().allSteps(proc).length} steps · ~${fmtMin(M().estimateMinutes(proc)) || "0m"}`),
       h("button.icon-btn", { type: "button", title: "Undo (Ctrl+Z)", disabled: !undoStack.length, onclick: undo }, "↶"),
       h("button.icon-btn", { type: "button", title: "Redo (Ctrl+Y)", disabled: !redoStack.length, onclick: redo }, "↷"),
-      h(`button.btn.btn-ghost${compact ? ".on" : ""}`, { type: "button", title: "Collapse step contents to reorder quickly", onclick: () => { compact = !compact; PR.app.LS.set("bldCompact", compact); renderBar(); renderCanvas(); } }, compact ? "☰ Compact" : "☰ Detailed"),
-      h("button.btn.btn-ghost", { type: "button", onclick: () => openSettings() }, "⚙ Settings"),
+      h(`button.btn.btn-ghost${compact ? ".on" : ""}`, { type: "button", title: "Collapse step contents to reorder quickly", onclick: () => { compact = !compact; PR.app.LS.set("bldCompact", compact); renderBar(); renderCanvas(); } }, compact ? "▤ Compact" : "▤ Detailed"),
+      h("button.btn.btn-ghost", { type: "button", onclick: () => (locked ? toast("Read-only — choose “Edit anyway” first", "warn") : openSettings()) }, "⚙ Settings"),
       h(`button.btn.btn-ghost${lint.length ? ".lint" : ""}`, { type: "button", title: "Checks before publishing", onclick: () => showLint() }, lint.length ? `${errs ? "⛔" : "⚠"} ${lint.length}` : "✓ Checks"),
-      h("button.btn.btn-ghost", { type: "button", title: "Export the procedure as a PDF document (name, version, date, last modified by)", onclick: async () => { await save.flush(); PR.app.go(`#/print/${encodeURIComponent(proc.id)}/${doc.publishedVersion && !doc.dirtySincePublish ? doc.publishedVersion : "draft"}`); } }, "📄 PDF"),
-      h("button.btn.btn-ghost", { type: "button", title: "Download as a Word document (same name, version, date and last modified by as the PDF)", onclick: async () => { await save.flush(); PR.word.exportProcedure(proc.id, doc.publishedVersion && !doc.dirtySincePublish ? String(doc.publishedVersion) : "draft"); } }, "W Word"),
+      h("button.btn.btn-ghost", { type: "button", title: "Export as PDF or Word (name, version, date, last modified by)", onclick: (e) => menu(e.currentTarget, [
+        { icon: "📄", label: "PDF (for SharePoint)", onClick: async () => { await save.flush(); PR.app.go(`#/print/${encodeURIComponent(proc.id)}/${doc.publishedVersion && !doc.dirtySincePublish ? doc.publishedVersion : "draft"}`); } },
+        { icon: "W", label: "Word (.docx)", onClick: async () => { await save.flush(); PR.word.exportProcedure(proc.id, doc.publishedVersion && !doc.dirtySincePublish ? String(doc.publishedVersion) : "draft"); } },
+      ], { align: "right" }) }, "⇩ Export ▾"),
       h("button.btn", { type: "button", title: "Try the draft in the runner (not counted in history)", onclick: async () => { await save.flush(); PR.runner.startNew(proc.id, { practice: true }); } }, "🧪 Practice"),
-      h("button.btn.btn-primary", { type: "button", onclick: publish }, "Publish"));
+      h("button.btn.btn-primary", { type: "button", onclick: () => (locked ? toast("Read-only — choose “Edit anyway” first", "warn") : publish()) }, "Publish"));
   }
+  function ownerChip() {
+    const o = PR.app.dept(M().ownerOf(doc));
+    return h("button.chip-btn", { type: "button", title: "Owning department — click to change", onclick: async () => {
+      if (locked) return toast("Read-only — choose “Edit anyway” first", "warn");
+      const v = await PR.app.pickDept(`Which department owns "${proc.title}"?`, M().ownerOf(doc));
+      if (v == null) return;
+      await save.flush(); doc.owner = v; proc.owner = v;
+      try { doc = await S().saveProcedure({ ...doc, draft: clone(proc) }, doc.rev); } catch (e) { if (e.conflict) await resolveConflict(e.current); }
+      renderBar();
+    } }, o ? PR.app.deptChip(o, "owner") : h("span.chip.c-gray", "🏢 No department"));
+  }
+  function setView(k) { viewMode = k; PR.app.LS.set("bldView", k); renderBar(); renderCanvas(); if (k === "page" && sel) select(sel.kind, sel.id, { scroll: true }); }
 
   function renderLeft() {
     const el = $("#bldLeft"); if (!el) return;
@@ -383,6 +426,8 @@ PR.views.builder = (() => {
 
   function renderCanvas() {
     const c = $("#bldCanvas"); if (!c) return;
+    c.classList.toggle("flow-mode", viewMode === "flow");
+    if (viewMode === "flow") return renderFlow(c);
     const st = c.scrollTop;
     c.innerHTML = "";
     const head = h("div.cv-head",
@@ -462,7 +507,7 @@ PR.views.builder = (() => {
         st.hold ? h("span.st-flag.hold", { title: "Hold point: cannot start until earlier required steps are done" }, "✋ hold") : null,
         impactFlag(st), trackChip(st, sec),
         PR.guide.pagesOf(st).length ? h("span.st-flag", { title: "Has a step-by-step guide" }, `📖 ${PR.guide.pagesOf(st).length}`) : null,
-        st.waitFor ? h("span.st-flag", { title: "Waits for a step in another chair" }, `⏳ after #${(M().findStep(proc, st.waitFor) || { step: {} }).step.num || "?"}`) : null,
+        M().deps(st).length ? h("span.st-flag", { title: "Waits for these steps (hand-off from another lane)" }, `⏳ after ${M().deps(st).map((id) => "#" + ((M().findStep(proc, id) || { step: {} }).step.num || "?")).join(", ")}`) : null,
         st.condition ? h("span.st-flag", { title: "Only runs in one direction" }, "⇄ " + (M().siteById(proc, st.condition.slice(4)) || {}).name + " primary only") : null,
         h("button.icon-btn.sm", { type: "button", title: "Step menu", onclick: (e) => { select("step", st.id); menu(e.currentTarget, [
           { icon: "⧉", label: "Duplicate", hint: "Ctrl+D", onClick: duplicateSel },
@@ -488,6 +533,17 @@ PR.views.builder = (() => {
     }
     return node;
   }
+  function depEditor(st, refresh) {
+    const label = (o, os) => { const t = M().trackById(proc, M().trackOf(o, os)); return `${o.num ? o.num + " " : ""}${o.title}`.slice(0, 56) + (t ? ` · ${t.name}` : ""); };
+    const set = (ids) => { snap(); st.waitsFor = ids; delete st.waitFor; changed(viewMode === "flow" ? "canvas" : { step: st.id }); };
+    const cur = M().deps(st);
+    return h("div",
+      cur.length ? h("div.dep-list", cur.map((id) => { const f = M().findStep(proc, id);
+        return h("div.dep-row", h("span", f ? label(f.step, f.section) : "(deleted step)"), h("button.icon-btn.sm", { type: "button", title: "Remove", onclick: () => set(cur.filter((x) => x !== id)) }, "✕")); })) : null,
+      h("select.inp", { onchange: (e) => { const v = e.target.value; if (!v) return; if (M().wouldLoop(proc, st.id, v)) { toast("That step already comes after this one — they'd wait for each other", "warn", 4000); e.target.value = ""; return; } set([...cur, v]); } },
+        h("option", { value: "" }, cur.length ? "＋ Also wait for…" : "＋ Wait for another step…"),
+        M().allSteps(proc).filter((x) => x.step.id !== st.id && !cur.includes(x.step.id)).map(({ step: o, section: os }) => h("option", { value: o.id }, label(o, os)))));
+  }
   function trackChip(st, sec) {
     const t = M().trackById(proc, M().trackOf(st, sec));
     return t ? h("span.track-chip", { style: { "--c": t.color }, title: `${t.name}${t.desc ? " — " + t.desc : ""}` }, t.name) : null;
@@ -495,7 +551,7 @@ PR.views.builder = (() => {
   function trackSelect(value, onPick, inheritLabel) {
     return h("select.inp", { onfocus: beginEdit, onchange: (e) => onPick(e.target.value) },
       inheritLabel ? h("option", { value: "", selected: !value }, inheritLabel) : null,
-      h("option", { value: "shared", selected: value === "shared" }, "Shared — every chair sees it"),
+      h("option", { value: "shared", selected: value === "shared" }, "Shared — every lane sees it"),
       M().tracks(proc).map((t) => h("option", { value: t.id, selected: value === t.id }, `${t.name}${t.desc ? " — " + t.desc : ""}`)));
   }
   function impactFlag(st) {
@@ -518,8 +574,53 @@ PR.views.builder = (() => {
       h("div.blk-body", def ? def.preview(b, ctx) : h("div.muted", `Unknown component "${b.type}"`)));
   }
   function rerenderStep(id) {
-    const f = M().findStep(proc, id); const old = $(`#bldCanvas [data-step-id="${id}"]`);
+    const f = M().findStep(proc, id); const old = viewMode === "flow" ? null : $(`#bldCanvas [data-step-id="${id}"]`);
     if (f && old) { old.replaceWith(stepNode(f.step, f.section)); applySelection(); } else renderCanvas();
+  }
+
+  /* ======================= workflow designer ======================= */
+  function renderFlow(c) {
+    const old = $(".flow-scroll", c); const keep = old ? { l: old.scrollLeft, t: old.scrollTop } : null;
+    c.innerHTML = "";
+    const lanes = M().tracks(proc);
+    const laneInfo = (l) => { const d = l.dept ? PR.app.dept(l.dept) : null; return l.shared ? { icon: "👥", sub: lanes.length ? "shared — everyone" : "" } : { icon: d ? d.icon : "", sub: l.desc || (d ? d.full : "") }; };
+    c.append(h("div.flow-head", h("h2", "Workflow"),
+      h("span.muted.small", lanes.length ? `${lanes.length} lane${lanes.length > 1 ? "s" : ""} · steps in a lane run in order, lanes run side by side, shared steps (go / no-go, kickoff) bring everyone together.` : "Add lanes to split the work between teams or chairs that work at the same time."),
+      h("div.spacer"),
+      h("button.btn.btn-sm", { type: "button", onclick: () => (locked ? toast("Read-only — choose “Edit anyway” first", "warn") : openSettings("chairs")) }, lanes.length ? "👥 Lanes & teams…" : "＋ Add team lanes")),
+      PR.flow.render({ proc, editable: !locked, selected: sel && sel.kind === "step" ? sel.id : null, laneInfo, zoomKey: "bldFlowZoom",
+        onSelect: (id) => select("step", id),
+        onOpen: (id) => { select("step", id); setView("page"); },
+        onLink: (from, to) => {
+          const t = M().findStep(proc, to); const f = M().findStep(proc, from); if (!t || !f) return;
+          if (M().deps(t.step).includes(from)) return toast(`${t.step.num} already waits for ${f.step.num}`, "info");
+          if (M().wouldLoop(proc, to, from)) return toast(`Can't: step ${f.step.num} already comes after step ${t.step.num} — that would make them wait for each other`, "warn", 4500);
+          mutate(() => { t.step.waitsFor = [...M().deps(t.step), from]; delete t.step.waitFor; }, "canvas");
+          toast(`Step ${t.step.num || t.step.title} now waits for ${f.step.num || f.step.title}`, "ok", 1800);
+        },
+        onUnlink: (from, to, e) => menu(e.target, [{ icon: "✂", label: "Remove this hand-off", danger: true, onClick: () => { const t = M().findStep(proc, to); if (t) mutate(() => { t.step.waitsFor = M().deps(t.step).filter((x) => x !== from); delete t.step.waitFor; }, "canvas"); } }]),
+        onMoveLane: (id, lane) => {
+          const f = M().findStep(proc, id); if (!f) return;
+          const secT = f.section.track || "";
+          mutate(() => { f.step.track = lane === "shared" ? (secT ? "shared" : "") : lane === secT ? "" : lane; }, "canvas");
+          const l = lane === "shared" ? null : M().trackById(proc, lane);
+          toast(`Step ${f.step.num || ""} moved to ${l ? l.name : "shared"}`, "ok", 1500);
+        },
+        onAdd: (lane) => {
+          const g = M().flowGraph(proc); const inLane = g.nodes.filter((n) => n.lane === lane);
+          const last = inLane[inLane.length - 1];
+          const sec = last ? last.section : (lane !== "shared" && proc.sections.find((x) => x.track === lane)) || proc.sections[proc.sections.length - 1];
+          snap();
+          const ns = M().newStep({ title: "New step" });
+          if (sec && (sec.track || "") !== (lane === "shared" ? "" : lane)) ns.track = lane === "shared" ? "shared" : lane;
+          const l = M().trackById(proc, lane); const d = l && l.dept ? PR.app.dept(l.dept) : null; if (d) ns.owner = d.name;
+          const st = insertStep(ns, { secId: sec && sec.id, index: last ? sec.steps.indexOf(last.step) + 1 : undefined });
+          sel = { kind: "step", id: st.id }; multi = new Set([st.id]);
+          changed();
+          setTimeout(() => { const i = $("#bldInsp input.inp"); const t = [...$$("#bldInsp input.inp")].find((x) => x.value === "New step"); (t || i) && (t || i).select(); }, 30);
+        },
+      }));
+    const sc = $(".flow-scroll", c); if (sc && keep) { sc.scrollLeft = keep.l; sc.scrollTop = keep.t; }
   }
 
   /* ======================= inspector ======================= */
@@ -584,7 +685,7 @@ PR.views.builder = (() => {
       field("Title", h("input.inp", { value: sec.title, ...bind(sec, "title", () => { const t = $(`[data-sec-id="${sec.id}"] .sec-title`); if (t) t.value = sec.title; renderOutline(); }) })),
       field("Description", h("textarea.inp", { rows: 3, ...bind(sec, "description") }, sec.description)),
       runSheetFields(sec, true),
-      M().tracks(proc).length ? field("Chair for this section", trackSelect(sec.track || "", (v) => { sec.track = v === "shared" ? "" : v; editing(); renderCanvas(); }, null), "Steps inherit this unless they set their own chair.") : null,
+      M().tracks(proc).length ? field("Lane for this section", trackSelect(sec.track || "", (v) => { sec.track = v === "shared" ? "" : v; editing(); renderCanvas(); }, null), "Steps inherit this unless they set their own lane.") : null,
       proc.environments.enabled && proc.environments.directional ? field("Role labels in this section",
         h("select.inp", { ...bind(sec, "phase", () => renderCanvas(), { type: "select" }) },
           h("option", { value: "pre", selected: sec.phase !== "post" }, `Before cutover (${proc.environments.roles.primary.pre} / ${proc.environments.roles.secondary.pre})`),
@@ -641,11 +742,8 @@ PR.views.builder = (() => {
       row(field("Owner team", h("input.inp", { value: st.owner, placeholder: "Core", list: "ownerList", ...bind(st, "owner", refresh) })), field("Escalation contact", h("input.inp", { value: st.contact, placeholder: "Name", list: "peopleList", ...bind(st, "contact", refresh) }))),
       row(field("Timing window", h("input.inp", { value: st.window, placeholder: "e.g. Morning of failover", list: "windowList", ...bind(st, "window", refresh) })), field("Est. minutes", h("input.inp.w-num", { type: "number", min: 0, value: st.estMin || "", ...bind(st, "estMin", refresh, { parse: (v) => Number(v) || 0 }) }))),
       field("Category", h("input.inp", { value: st.category, list: "catList", placeholder: "Processing, Validation…", ...bind(st, "category", refresh) })),
-      M().tracks(proc).length ? field("Chair", trackSelect(st.track || "", (v) => { st.track = v; editing(); refresh(); }, `Inherit from section${sec.track ? " (" + ((M().trackById(proc, sec.track) || {}).name || "shared") + ")" : " (shared)"}`)) : null,
-      M().tracks(proc).length ? field("Waits for (handoff from another chair)", h("select.inp", { onfocus: beginEdit, onchange: (e) => { st.waitFor = e.target.value; editing(); refresh(); } },
-        h("option", { value: "" }, "— no dependency —"),
-        M().allSteps(proc).filter((x) => x.step.id !== st.id).map(({ step: o, section: os }) => { const t = M().trackById(proc, M().trackOf(o, os)); return h("option", { value: o.id, selected: st.waitFor === o.id }, `${o.num} ${o.title}`.slice(0, 60) + (t ? ` · ${t.name}` : "")); })),
-        "This step shows “waiting on …” until that step is done (operators can override; it's recorded).") : null,
+      M().tracks(proc).length ? field("Lane (chair / team)", trackSelect(st.track || "", (v) => { st.track = v; editing(); refresh(); }, `Inherit from section${sec.track ? " (" + ((M().trackById(proc, sec.track) || {}).name || "shared") + ")" : " (shared)"}`)) : null,
+      field("Waits for (hand-offs)", depEditor(st, refresh), "The step shows “waiting on …” until every one of these is done (operators can override; it's recorded). Draw them in the ⇶ Workflow view too."),
       h("div.ins-sec", "📖 Guide"),
       h("button.btn.btn-sm", { type: "button", onclick: () => openGuide(st.id) }, (st.guide || []).length ? `Edit the guide (${st.guide.length} page${st.guide.length > 1 ? "s" : ""}) under the step` : "＋ Add a guide under the step"),
       h("div.ins-sec", "Behaviour"),
@@ -746,7 +844,7 @@ PR.views.builder = (() => {
     const draft = clone(proc);
     let cur = tab;
     const body = h("div.settings");
-    const tabs = [["general", "General"], ["env", "Environments"], ["setup", "Run setup"], ["chairs", "👥 Chairs"], ["approvals", "✍ Approvals"], ["quick", "⚡ Quick start"], ["comms", "📣 Comms plan"], ["contacts", "Contacts"], ["versions", "Versions"]];
+    const tabs = [["general", "General"], ["env", "Environments"], ["setup", "Run setup"], ["chairs", "👥 Lanes & teams"], ["approvals", "✍ Approvals"], ["quick", "⚡ Quick start"], ["comms", "📣 Comms plan"], ["contacts", "Contacts"], ["versions", "Versions"]];
     const draw = () => {
       body.innerHTML = "";
       body.append(h("div.tabs", tabs.map(([k, l]) => h(`button.tab${cur === k ? ".on" : ""}`, { type: "button", onclick: () => { cur = k; draw(); } }, l))), h("div.settings-body", SETTINGS[cur](draft, draw)));
@@ -804,14 +902,21 @@ PR.views.builder = (() => {
       field("Completion milestones (one per line)", h("textarea.inp", { rows: 5, oninput: (e) => (d.setup.milestones = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean).map((label, i) => ({ id: (d.setup.milestones[i] && d.setup.milestones[i].id) || uid("ms"), label }))) }, d.setup.milestones.map((r) => r.label).join("\n")), "Confirmed when the run is closed out.")),
     chairs: (d, draw) => {
       d.tracks = d.tracks || [];
+      const depts = PR.app.depts();
+      const used = new Set(d.tracks.map((t) => t.dept).filter(Boolean));
+      const addDept = (x) => { d.tracks.push({ id: "lane_" + x.id, name: x.name, desc: x.full !== x.name ? x.full : "", dept: x.id, color: x.color }); draw(); };
       return h("div",
-        h("div.help", "Split the procedure between chairs that work at the same time — e.g. the 1st chair runs the core failover while the 2nd chair handles vendors and other parties. Each operator picks their chair when they open the run and only sees their own steps; the master run can only be completed once every chair has signed off."),
-        h("label.ck", h("input", { type: "checkbox", checked: d.tracks.length > 0, onchange: (e) => { d.tracks = e.target.checked ? [{ id: "chair1", name: "1st chair", desc: "Core failover" }, { id: "chair2", name: "2nd chair", desc: "Vendors & other parties" }] : []; draw(); } }), " Run this procedure with concurrent chairs"),
-        d.tracks.map((t, i) => h("div.site-row", h("span.track-dot", { style: { background: M().TRACK_COLORS[i % 4] } }),
-          h("div.site-fields", row(field("Chair name", tf(t, "name", "1st chair")), field("Responsible for", tf(t, "desc", "Core failover")))),
-          d.tracks.length > 1 ? h("button.icon-btn.danger", { type: "button", title: "Remove", onclick: () => { d.tracks.splice(i, 1); draw(); } }, "🗑") : null)),
-        d.tracks.length ? h("button.btn", { type: "button", onclick: () => { d.tracks.push({ id: uid("chair"), name: `${d.tracks.length + 1}${["st", "nd", "rd"][d.tracks.length] || "th"} chair`, desc: "" }); draw(); } }, "＋ Add chair") : null,
-        d.tracks.length ? h("div.help", "Assign a whole section to a chair (select the section) or individual steps (step inspector → Chair). Steps with no chair are shared and appear for everyone.") : null);
+        h("div.help", "Lanes split the work between chairs or teams that work at the same time — e.g. Core, Network and Dev in a joint failover, or a 1st chair on the core failover and a 2nd chair on vendors. Each person picks their lane when they open the run and sees their own steps plus shared ones. The ⇶ Workflow view shows the lanes side by side with the hand-offs between them; the master run can only be completed once every lane has signed off."),
+        h("div.ins-sec", "Add a lane for a department"),
+        h("div.lane-dept", depts.filter((x) => !used.has(x.id)).map((x) => h("button.btn.btn-sm", { type: "button", onclick: () => addDept(x) }, `＋ ${x.icon} ${x.name}`)),
+          h("button.btn.btn-sm.btn-ghost", { type: "button", onclick: () => { d.tracks.push({ id: uid("chair"), name: d.tracks.length ? `${d.tracks.length + 1}${["st", "nd", "rd"][d.tracks.length] || "th"} chair` : "1st chair", desc: "" }); draw(); } }, "＋ Other lane / chair")),
+        d.tracks.length ? h("div.ins-sec", "Lanes") : h("div.muted.small", "No lanes — everyone works the same list of steps."),
+        d.tracks.map((t, i) => h("div.site-row", h("input.color", { type: "color", value: t.color || M().TRACK_COLORS[i % 4], title: "Lane colour", oninput: (e) => (t.color = e.target.value) }),
+          h("div.site-fields", row(field("Lane name", tf(t, "name", "1st chair")), field("Responsible for", tf(t, "desc", "Core failover")),
+            field("Department", h("select.inp", { onchange: (e) => { t.dept = e.target.value; const x = PR.app.dept(t.dept); if (x) { if (!t.name || /chair$/i.test(t.name)) t.name = x.name; t.color = x.color; } draw(); } },
+              h("option", { value: "" }, "— none —"), depts.map((x) => h("option", { value: x.id, selected: t.dept === x.id }, `${x.icon} ${x.name}`)))))),
+          h("button.icon-btn.danger", { type: "button", title: "Remove lane (its steps become shared)", onclick: () => { d.tracks.splice(i, 1); draw(); } }, "🗑"))),
+        d.tracks.length ? h("div.help", "Assign a whole section to a lane (select the section) or single steps (step inspector → Lane, or drag the step into another lane in the Workflow view). Steps with no lane are shared and appear for everyone.") : null);
     },
     quick: (d, draw) => {
       const o = d.runOptions = M().runOptions(d);
@@ -924,6 +1029,7 @@ PR.views.builder = (() => {
     const mod = e.ctrlKey || e.metaKey;
     if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); save.flush(); return; }
     if (PR.u.isTyping(e)) return; // native text undo inside inputs
+    if (locked && (mod || e.key === "Delete" || e.key === "Backspace")) return;
     if (mod && e.key.toLowerCase() === "z" && !e.shiftKey) { e.preventDefault(); undo(); return; }
     if (mod && (e.key.toLowerCase() === "y" || (e.key.toLowerCase() === "z" && e.shiftKey))) { e.preventDefault(); redo(); return; }
     if (mod && e.key.toLowerCase() === "d") { e.preventDefault(); duplicateSel(); return; }

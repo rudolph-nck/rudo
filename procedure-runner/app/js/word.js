@@ -648,10 +648,10 @@ PR.word = (() => {
       if (section.description) parts.push(mdParas(wr, section.description, 0));
       for (const step of section.steps) {
         const t = M().trackById(p, M().trackOf(step, section));
-        const meta = [role(step, section) && `Target: ${role(step, section)}`, t && `Chair: ${t.name}`, step.owner && `Owner: ${step.owner}`, step.contact && `Escalation: ${step.contact}`, step.window && `When: ${step.window}`, step.estMin && `Est. ${step.estMin} min`,
+        const meta = [role(step, section) && `Target: ${role(step, section)}`, t && `Lane: ${t.name}`, step.owner && `Owner: ${step.owner}`, step.contact && `Escalation: ${step.contact}`, step.window && `When: ${step.window}`, step.estMin && `Est. ${step.estMin} min`,
           step.parallel && "Runs in parallel with previous", step.hold && "Hold point", step.critical && "★ Critical", step.category && `Category: ${step.category}`,
           step.condition && `Only when ${(M().siteById(p, step.condition.slice(4)) || {}).name} is primary`,
-          step.waitFor && `Waits for step ${(M().findStep(p, step.waitFor) || { step: {} }).step.num}`,
+          M().deps(step).length && `Waits for step ${M().deps(step).map((id) => (M().findStep(p, id) || { step: {} }).step.num || "?").join(", ")}`,
           step.impact && step.impact.mark && (step.impact.mark === "down" ? "🔴 Starts member impact" : "🟢 Ends member impact")].filter(Boolean);
         parts.push(para(run(`${step.num || "•"}.\t`, { color: BRAND.navy }) + inlineRuns(wr, step.title) + run("\t☐", { b: false, color: BRAND.muted }), { style: "ProcStep", keepNext: !!(meta.length || step.blocks.length) }));
         if (meta.length) parts.push(para(run(meta.join(" · ")), { style: "ProcMeta", keepNext: !!step.blocks.length }));

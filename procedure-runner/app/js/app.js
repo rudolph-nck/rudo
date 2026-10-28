@@ -34,7 +34,7 @@ PR.app = (() => {
     PR.u.closeMenus();
     const parts = (location.hash.replace(/^#\/?/, "") || "").split("/").map(decodeURIComponent);
     const [name, ...args] = parts;
-    const view = { "": "library", edit: "builder", run: "runner", report: "report", history: "history", runs: "runs", lessons: "lessons", comms: "comms", live: "live", print: "print", compare: "compare" }[name || ""] || "library";
+    const view = { "": "library", edit: "builder", run: "runner", report: "report", history: "history", runs: "runs", lessons: "lessons", comms: "comms", live: "live", print: "print", compare: "compare", teams: "teams" }[name || ""] || "library";
     if (current && current.unmount) { try { const ok = await current.unmount(); if (ok === false) return; } catch (e) { console.error(e); } }
     const host = $("#view");
     host.innerHTML = ""; host.className = `view view-${view}`;
@@ -90,8 +90,83 @@ PR.app = (() => {
     } catch { /* ignore */ }
   }
 
+  /* ---------------- departments & workspace ----------------
+     Departments live in the shared team settings. The workspace (top bar) is the department you're working in:
+     the library shows its procedures (plus joint ones it takes part in) and new procedures belong to it. */
+  let depts = PR.model.departments({});
+  async function loadDepts() {
+    try { depts = PR.model.departments(await S().getSettings()); } catch { /* keep defaults */ }
+    renderWorkspace();
+    return depts;
+  }
+  async function saveDepts(list) {
+    const set = await S().getSettings(); // re-read so we never overwrite someone else's settings change
+    const next = { ...set, departments: list };
+    await S().saveSettings(next);
+    depts = PR.model.departments(next);
+    renderWorkspace();
+    return depts;
+  }
+  const dept = (id) => PR.model.deptById(depts, id);
+  function workspace() { const id = LS.get("dept", ""); return dept(id) ? id : ""; }
+  function setWorkspace(id) {
+    LS.set("dept", id || ""); renderWorkspace();
+    if (current === PR.views.library || current === PR.views.teams) current.render();
+  }
+  function renderWorkspace() {
+    const slot = $("#wsSlot"); if (!slot) return;
+    const d = dept(workspace());
+    slot.innerHTML = "";
+    slot.append(h("button.ws-btn", { type: "button", title: "Which department you're working in — the library shows its procedures", style: d ? { "--c": d.color } : {}, onclick: (e) => menu(e.currentTarget, [
+      { header: "Work in" },
+      { icon: "🏢", label: "All departments", hint: workspace() ? "" : "✓", onClick: () => setWorkspace("") },
+      ...groupsOf(depts).flatMap(([g, list]) => [g ? { header: g } : null, ...list.map((x) => ({ icon: x.icon, label: x.full || x.name, hint: (workspace() === x.id ? "✓ " : "") + (PR.model.inDept(x, me) ? "you're in it" : ""), onClick: () => setWorkspace(x.id) }))].filter(Boolean)),
+      { sep: true },
+      { icon: "⚙", label: "Manage departments…", onClick: () => go("#/teams") },
+    ]) }, d ? [h("i"), `${d.icon} ${d.name}`] : "🏢 All departments", " ▾"));
+    const org = $("#brandOrg"); if (org && d) org.dataset.dept = d.full || d.name;
+  }
+  function groupsOf(list) {
+    const m = new Map();
+    list.forEach((d) => { const g = d.group || ""; if (!m.has(g)) m.set(g, []); m.get(g).push(d); });
+    return [...m.entries()];
+  }
+  function deptChip(d, cls = "") { return d ? h(`span.dept-chip${cls ? "." + cls : ""}`, { style: { "--c": d.color }, title: `${d.full || d.name}${cls === "owner" ? " — owns this procedure" : cls === "joint" ? " — takes part" : ""}` }, d.icon, " ", d.name) : null; }
+  /* Owner first (filled), then the other departments with a lane (outlined) */
+  function deptChips(owner, ids) {
+    const others = (ids || []).filter((x) => x !== owner).map(dept).filter(Boolean);
+    return [owner ? deptChip(dept(owner), "owner") : null, ...others.map((d) => deptChip(d, "joint"))];
+  }
+  /* Soft edit rights: if the owning department (or a department with a lane) lists its people, only they edit without a prompt. */
+  function editRights(doc) {
+    const owner = PR.model.ownerOf(doc);
+    const ids = [...new Set([owner, ...((doc.draft && doc.draft.tracks) || []).map((t) => t.dept)].filter(Boolean))];
+    const ds = ids.map(dept).filter(Boolean);
+    const listed = ds.filter((d) => d.leads.length || d.members.length);
+    if (!listed.length) return { ok: true, owner: dept(owner) };
+    return { ok: listed.some((d) => PR.model.inDept(d, me)), owner: dept(owner), who: listed };
+  }
+  /* First visit: which team are you on? Adds you to it and makes it your workspace. */
+  async function pickMyTeam({ force } = {}) {
+    if (!force && (LS.get("deptAsked", false) || PR.model.myDepts(depts, me).length)) { if (!force && !LS.get("dept", "") && PR.model.myDepts(depts, me)[0]) setWorkspace(PR.model.myDepts(depts, me)[0].id); return; }
+    LS.set("deptAsked", true);
+    const v = await modal({
+      title: "Which team are you on?", size: "md", subtitle: "Procedure Runner is shared across departments. Your team's procedures show first; you can switch any time from the top bar.",
+      body: (close) => h("div", groupsOf(depts).map(([g, list]) => [g ? h("div.team-group-t", g) : null,
+        h("div.team-pick", list.map((d) => h("button", { type: "button", style: { "--c": d.color }, onclick: () => close(d.id) }, h("b", `${d.icon} ${d.name}`), h("span.muted.small", d.about || d.full))))])),
+      actions: [{ label: "Skip for now", value: "" }, { spacer: true }, { label: "Manage departments…", value: "#manage" }],
+    });
+    if (v === "#manage") return go("#/teams");
+    if (!v) return;
+    const list = depts.map((d) => (d.id === v ? { ...d, members: [...d.members, me] } : d));
+    try { await saveDepts(list); } catch { /* offline */ }
+    setWorkspace(v);
+    toast(`You're in ${dept(v).name} — its procedures show first`, "ok");
+  }
+
   /* ---------------- procedure doc helpers ---------------- */
   async function saveNewProcedure(data, { open = true } = {}) {
+    if (!data.owner) data.owner = workspace() || ((PR.model.myDepts(depts, me)[0] || {}).id) || "";
     const doc = PR.model.newDoc(PR.model.normalize(data), me);
     const saved = await S().saveProcedure(doc, null);
     if (open) go(`#/edit/${encodeURIComponent(saved.id)}`);
@@ -99,7 +174,7 @@ PR.app = (() => {
   }
   async function exportProcedure(id) {
     const doc = await S().getProcedure(id);
-    download(`${PR.u.slug(doc.draft.title)}.procedure.json`, JSON.stringify({ kind: "procedure-runner/procedure", version: 3, procedure: doc.draft }, null, 2));
+    download(`${PR.u.slug(doc.draft.title)}.procedure.json`, JSON.stringify({ kind: "procedure-runner/procedure", version: 3, procedure: { ...doc.draft, owner: PR.model.ownerOf(doc) } }, null, 2));
   }
   async function importJSON() {
     const f = await pickFile(".json,application/json");
@@ -126,8 +201,15 @@ PR.app = (() => {
   }
 
   async function newProcedureMenu(anchor) {
+    let teamTpl = [];
+    try { teamTpl = (await S().listProcedures()).filter((p) => p.template && p.status !== "archived"); } catch { /* ignore */ }
+    const ws = workspace();
+    teamTpl.sort((a, b) => (b.template === ws) - (a.template === ws) || a.title.localeCompare(b.title));
     menu(anchor, [
-      { icon: "＋", label: "Blank procedure", onClick: async () => { const t = await promptBox("New procedure", { label: "Name", placeholder: "e.g. Symitar Release 2027.00", ok: "Create", required: true }); if (t) saveNewProcedure(PR.model.newProcedure({ title: t })); } },
+      { icon: "＋", label: "Blank procedure", hint: dept(ws) ? `owned by ${dept(ws).name}` : "", onClick: async () => { const t = await promptBox("New procedure", { label: "Name", placeholder: "e.g. Symitar Release 2027.00", ok: "Create", required: true }); if (t) saveNewProcedure(PR.model.newProcedure({ title: t })); } },
+      { icon: "⇶", label: "Joint procedure (several teams)…", hint: "a lane per department + workflow", onClick: () => jointWizard() },
+      teamTpl.length ? { sep: true } : null, teamTpl.length ? { header: "Team templates" } : null,
+      ...teamTpl.map((p) => ({ icon: (dept(p.template) || {}).icon || "★", label: p.title, hint: (dept(p.template) || {}).name || "", onClick: () => fromTeamTemplate(p.id) })),
       { sep: true }, { header: "Start from a template" },
       ...PR.templates.list().map((t) => ({ icon: t.icon, label: t.title, hint: t.hint, onClick: () => saveNewProcedure(t.build()) })),
       { sep: true }, { header: "Import" },
@@ -135,7 +217,47 @@ PR.app = (() => {
       { icon: "W", label: "From Word…", hint: ".docx", onClick: () => PR.word.open() },
       { icon: "⎘", label: "Paste rows from Excel…", onClick: () => PR.importer.openPaste() },
       { icon: "{}", label: "Procedure or run JSON…", onClick: importJSON },
-    ]);
+    ].filter(Boolean));
+  }
+  async function fromTeamTemplate(id) {
+    const d = await S().getProcedure(id); if (!d) return;
+    const t = await promptBox("New procedure from template", { label: "Name", value: d.draft.title.replace(/\s*\(template\)\s*$/i, ""), ok: "Create", required: true });
+    if (!t) return;
+    const c = clone(d.draft); c.id = uid("proc"); c.title = t; c.owner = workspace() || PR.model.ownerOf(d);
+    saveNewProcedure(c);
+  }
+  /* A joint procedure: one lane per department, shared kickoff and close-out, opened in the workflow designer. */
+  async function jointWizard() {
+    const pick = new Set(workspace() ? [workspace()] : []);
+    let title = "", owner = workspace();
+    const grid = h("div");
+    const drawGrid = () => {
+      grid.innerHTML = "";
+      grid.append(groupsOf(depts).map(([g, list]) => [g ? h("div.team-group-t", g) : null, h("div.team-pick", list.map((d) => h(`button${pick.has(d.id) ? ".on" : ""}`, { type: "button", style: { "--c": d.color },
+        onclick: () => { pick.has(d.id) ? pick.delete(d.id) : pick.add(d.id); if (!pick.has(owner)) owner = [...pick][0] || ""; drawGrid(); } },
+        h("b", `${pick.has(d.id) ? "☑" : "☐"} ${d.icon} ${d.name}`), h("span.muted.small", d.about || d.full))))]),
+        h("div.field", h("label.lbl", "Owning department (edits & publishes it)"), h("select.inp", { onchange: (e) => (owner = e.target.value) }, [...pick].map((id) => h("option", { value: id, selected: owner === id }, dept(id).name)))));
+    };
+    drawGrid();
+    const ok = await modal({
+      title: "New joint procedure", size: "lg", subtitle: "Each team gets its own lane. Steps run in parallel across lanes; draw hand-offs where one team has to wait for another.",
+      body: h("div", h("div.field", h("label.lbl", "Name"), h("input.inp", { placeholder: "e.g. Joint failover — Core · Network · Dev", oninput: (e) => (title = e.target.value) })), h("div.field", h("label.lbl", "Teams taking part"), grid)),
+      actions: [{ label: "Cancel", value: false }, { spacer: true }, { label: "Create & open the workflow", kind: "primary", value: true }],
+    });
+    if (!ok) return;
+    if (pick.size < 1) return toast("Pick at least one team", "warn");
+    const ds = [...pick].map(dept);
+    const M = PR.model;
+    const p = M.newProcedure({ title: title.trim() || `Joint procedure — ${ds.map((d) => d.name).join(" · ")}` });
+    p.owner = owner || ds[0].id;
+    p.tracks = ds.map((d) => ({ id: "lane_" + d.id, name: d.name, desc: d.full, dept: d.id, color: d.color }));
+    p.sections = [
+      M.newSection({ title: "Kickoff", steps: [M.newStep({ num: "1", title: "Open the bridge — every team confirms they're ready", category: "Communication" })] }),
+      ...ds.map((d, i) => M.newSection({ title: `${d.name}`, track: "lane_" + d.id, steps: [M.newStep({ num: `${i + 2}.1`, title: `First ${d.name} task`, owner: d.name })] })),
+      M.newSection({ title: "Close-out", steps: [M.newStep({ num: String(ds.length + 2), title: "Every team confirms they're done — close the bridge", category: "Milestone" })] }),
+    ];
+    LS.set("bldView", "flow");
+    await saveNewProcedure(p);
   }
 
   /* ---------------- LIBRARY ---------------- */
@@ -156,13 +278,17 @@ PR.app = (() => {
       runs.filter((r) => !r.practice).forEach((r) => { if (!lastRun[r.procId] || (r.startedAt || r.createdAt) > (lastRun[r.procId].startedAt || lastRun[r.procId].createdAt)) lastRun[r.procId] = r; });
       const live = runs.filter((r) => ["setup", "active", "paused"].includes(r.status)).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
       const q = state.q.toLowerCase();
-      const shown = procs.filter((p) => (state.filter === "archived" ? p.status === "archived" : state.filter === "drafts" ? p.status === "draft" : state.filter === "published" ? p.status === "published" : p.status !== "archived"))
+      const ws = workspace();
+      const unowned = procs.filter((p) => !p.owner && p.status !== "archived");
+      const inWs = (p) => !ws || !p.owner || p.depts.includes(ws);
+      const shown = procs.filter(inWs).filter((p) => (state.filter === "archived" ? p.status === "archived" : state.filter === "drafts" ? p.status === "draft" : state.filter === "published" ? p.status === "published" : p.status !== "archived"))
         .filter((p) => !q || [p.title, p.description, (p.tags || []).join(" ")].join(" ").toLowerCase().includes(q))
         .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
       wrap.innerHTML = "";
       wrap.appendChild(h("div.lib-head",
-        h("div", h("h1", "Procedures"), h("div.muted", "Build runbooks like pages, then run them step by step with timing, issues and a full audit trail.")),
+        h("div", h("h1", dept(ws) ? `${dept(ws).icon} ${dept(ws).full || dept(ws).name} procedures` : "Procedures"),
+          h("div.muted", dept(ws) ? ["Owned by ", dept(ws).name, " and joint procedures it takes part in. ", h("button.link-btn", { type: "button", onclick: () => setWorkspace("") }, "Show every department")] : "Build runbooks like pages, then run them step by step with timing, issues and a full audit trail.")),
         h("div.lib-head-actions",
           h("div.search", h("span", "⌕"), h("input#libSearch.inp", { placeholder: "Search procedures…", value: state.q, oninput: PR.u.debounce((e) => { state.q = e.target.value; render().then(() => { const s = $("#libSearch"); s.focus(); s.setSelectionRange(s.value.length, s.value.length); }); }, 200) })),
           h("button.btn.btn-primary", { type: "button", onclick: (e) => newProcedureMenu(e.currentTarget) }, "＋ New procedure ▾"))));
@@ -181,6 +307,12 @@ PR.app = (() => {
         })));
       }
 
+      if (ws && unowned.length) wrap.appendChild(h("div.lib-dept-note", `${unowned.length} procedure${unowned.length > 1 ? "s don't" : " doesn't"} belong to a department yet, so ${unowned.length > 1 ? "they show" : "it shows"} for every team.`, h("div.spacer"),
+        h("button.btn.btn-sm", { type: "button", onclick: async () => {
+          if (!(await confirmBox(`Give them to ${dept(ws).name}?`, unowned.map((p) => p.title).join(" · "), { ok: `Assign ${unowned.length} to ${dept(ws).name}` }))) return;
+          for (const p of unowned) await setOwner(p.id, ws);
+          toast(`Assigned to ${dept(ws).name}`, "ok"); render();
+        } }, `Assign all to ${dept(ws).name}`)));
       wrap.appendChild(h("div.lib-toolbar",
         h("div.seg", [["active", "All"], ["published", "Published"], ["drafts", "Drafts"], ["archived", "Archived"]].map(([k, l]) =>
           h(`button.seg-btn${state.filter === k ? ".on" : ""}`, { type: "button", onclick: () => { state.filter = k; LS.set("libFilter", k); render(); } }, l))),
@@ -213,9 +345,10 @@ PR.app = (() => {
       const open = () => go(`#/edit/${encodeURIComponent(p.id)}`);
       return h("div.proc-card",
         h("div.pc-top", statusChip(p.status), p.publishedVersion ? h("span.chip.c-gray", `v${p.publishedVersion}`) : null, p.status === "published" && p.hasUnpublished ? h("span.chip.c-amber-o", "unpublished edits") : null,
-          p.directional ? h("span.chip.c-blue-o", "⇄ Failover") : null, p.quick ? h("span.chip.c-blue-o", { title: "Starts without run setup — just pick the run sheet" }, "⚡ Quick start") : null, h("div.spacer"),
+          p.directional ? h("span.chip.c-blue-o", "⇄ Failover") : null, p.template ? h("span.chip.c-gray", { title: "Shown under New procedure → Team templates" }, "★ Template") : null, p.quick ? h("span.chip.c-blue-o", { title: "Starts without run setup — just pick the run sheet" }, "⚡ Quick start") : null, h("div.spacer"),
           h("button.icon-btn", { type: "button", title: "More", onclick: (e) => { e.stopPropagation(); cardMenu(e.currentTarget, p); } }, "⋯")),
         h("div.pc-title", { onclick: open }, p.title),
+        p.depts.length ? h("div.pc-depts", deptChips(p.owner, p.depts), p.lanes && p.depts.length > 1 ? h("span.muted.small", " joint") : null) : null,
         h("div.pc-desc", p.description || h("span.muted", "No description")),
         (p.tags || []).length ? h("div.pc-tags", p.tags.map((t) => h("span.tag", t))) : null,
         h("div.pc-meta", h("span", `${p.steps} steps`), p.estMin ? h("span", `~${fmtMin(p.estMin)}`) : null, h("span", `edited ${ago(p.updatedAt)}`)),
@@ -234,11 +367,86 @@ PR.app = (() => {
         { icon: "W", label: "Export Word (.docx)", onClick: () => PR.word.exportProcedure(p.id) },
         { icon: "⇩", label: "Export JSON", onClick: () => exportProcedure(p.id) },
         { sep: true },
+        { icon: "🏢", label: "Department…", hint: p.owner ? (dept(p.owner) || {}).name || "" : "none", onClick: async () => { const v = await pickDept(`Which department owns "${p.title}"?`, p.owner); if (v != null) { await setOwner(p.id, v); render(); } } },
+        p.template ? { icon: "☆", label: "Remove from team templates", onClick: async () => { await setTemplate(p.id, ""); render(); } }
+          : { icon: "★", label: "Save as a team template", hint: "New procedure → Team templates", onClick: async () => { const v = await pickDept("Template for which department?", p.owner || workspace()); if (v) { await setTemplate(p.id, v); toast("Saved as a team template", "ok"); render(); } } },
+        { sep: true },
         p.status === "archived"
           ? { icon: "↺", label: "Restore", onClick: async () => { const d = await S().getProcedure(p.id); d.status = d.publishedVersion ? "published" : "draft"; await S().saveProcedure(d, d.rev); render(); } }
           : { icon: "🗄", label: "Archive", onClick: async () => { const d = await S().getProcedure(p.id); d.status = "archived"; await S().saveProcedure(d, d.rev); toast("Archived", "ok"); render(); } },
         { icon: "🗑", label: "Delete permanently", danger: true, onClick: async () => { if (await confirmBox("Delete procedure?", `"${p.title}" and its versions will be removed. Past run records are kept.`, { ok: "Delete", kind: "danger" })) { await S().deleteProcedure(p.id); render(); } } },
       ], { align: "right" });
+    }
+    return { mount, render };
+  })();
+  async function setOwner(id, owner) { const d = await S().getProcedure(id); if (!d) return; d.owner = owner || ""; await S().saveProcedure(d, d.rev); }
+  async function setTemplate(id, deptId) { const d = await S().getProcedure(id); if (!d) return; d.teamTemplate = deptId || ""; await S().saveProcedure(d, d.rev); }
+  async function pickDept(title, value) {
+    return await modal({
+      title, size: "md",
+      body: (close) => h("div", h("div.team-pick", depts.map((d) => h(`button${value === d.id ? ".on" : ""}`, { type: "button", style: { "--c": d.color }, onclick: () => close(d.id) }, h("b", `${d.icon} ${d.name}`), h("span.muted.small", d.group ? `${d.group} · ${d.full}` : d.full))))),
+      actions: [{ label: "Cancel", value: null }, { spacer: true }, { label: "No department", value: "" }],
+    });
+  }
+
+  /* ---------------- TEAMS (departments) ---------------- */
+  PR.views.teams = (() => {
+    let host;
+    async function mount(el) { host = el; await loadDepts(); await render(); }
+    async function render() {
+      if (!host) return;
+      let procs = [];
+      try { procs = (await S().listProcedures()).filter((p) => p.status !== "archived"); } catch { /* ignore */ }
+      const ws = workspace();
+      host.innerHTML = "";
+      host.append(h("div.teams-wrap",
+        h("div.lib-head", h("div", h("h1", "Teams & departments"), h("div.muted", "Each department owns its procedures, lists its people (who can edit without a prompt and who approves), and can join cross-team procedures as a lane.")),
+          h("div.lib-head-actions", h("button.btn", { type: "button", onclick: () => jointWizard() }, "⇶ New joint procedure"), h("button.btn.btn-primary", { type: "button", onclick: () => editDept(null) }, "＋ Add department"))),
+        groupsOf(depts).map(([g, list]) => h("div.team-group", h("div.team-group-t", g || "Other departments"),
+          h("div.team-grid", list.map((d) => {
+            const owned = procs.filter((p) => p.owner === d.id).length, joint = procs.filter((p) => p.owner !== d.id && p.depts.includes(d.id)).length;
+            const mine = PR.model.inDept(d, me);
+            return h(`div.team-card${ws === d.id ? ".on" : ""}`, { style: { "--c": d.color } },
+              h("div.tc-top", h("div.tc-ic", d.icon), h("div", h("div.tc-name", d.name), h("div.tc-full", d.full !== d.name ? d.full : d.group))),
+              d.about ? h("div.small", d.about) : null,
+              h("div.tc-stats", h("span", h("b", owned), " owned"), h("span", h("b", joint), " joint"), h("span", h("b", d.leads.length + d.members.length), " people")),
+              d.leads.length ? h("div.tc-people", "Leads: ", h("b", d.leads.join(", "))) : null,
+              d.members.length ? h("div.tc-people.muted", d.members.slice(0, 8).join(", ") + (d.members.length > 8 ? ` +${d.members.length - 8}` : "")) : h("div.tc-people.muted", "No members listed — anyone can edit its procedures."),
+              h("div.tc-actions",
+                h("button.btn.btn-sm.btn-primary", { type: "button", onclick: () => { setWorkspace(d.id); go("#/"); } }, "Open procedures"),
+                h("button.btn.btn-sm", { type: "button", onclick: () => editDept(d) }, "✎ Edit"),
+                mine ? h("span.chip.c-green", "✓ You're in it") : h("button.btn.btn-sm.btn-ghost", { type: "button", onclick: async () => { await saveDepts(depts.map((x) => (x.id === d.id ? { ...x, members: [...x.members, me] } : x))); toast(`Joined ${d.name}`, "ok"); render(); } }, "＋ Join")));
+          }))))),
+        h("div.help", "Departments are shared with everyone using this Procedure Runner. Edit rights are a guard-rail, not security: someone outside the department can still choose “Edit anyway”, and that is recorded in the procedure's history."));
+    }
+    async function editDept(d) {
+      const isNew = !d;
+      const x = d ? clone(d) : { id: uid("dept"), name: "", full: "", group: (dept(workspace()) || {}).group || "", color: PR.model.DEPT_COLORS[depts.length % PR.model.DEPT_COLORS.length], icon: "🏢", about: "", leads: [], members: [] };
+      const groups = [...new Set(depts.map((y) => y.group).filter(Boolean))];
+      const lines = (v) => v.split("\n").map((t) => t.trim()).filter(Boolean);
+      const v = await modal({
+        title: isNew ? "Add department" : `Edit ${d.name}`, size: "md",
+        body: h("div",
+          h("div.frow", h("div.field", h("label.lbl", "Short name"), h("input.inp", { value: x.name, placeholder: "e.g. Network", oninput: (e) => (x.name = e.target.value) })),
+            h("div.field", h("label.lbl", "Icon"), h("input.inp.w-num", { value: x.icon, maxlength: 4, oninput: (e) => (x.icon = e.target.value) })),
+            h("div.field", h("label.lbl", "Colour"), h("input.color", { type: "color", value: x.color, oninput: (e) => (x.color = e.target.value) }))),
+          h("div.frow", h("div.field", h("label.lbl", "Full name"), h("input.inp", { value: x.full, placeholder: "e.g. Network Engineering", oninput: (e) => (x.full = e.target.value) })),
+            h("div.field", h("label.lbl", "Group / umbrella"), h("input.inp", { value: x.group, placeholder: "e.g. IT", list: "deptGroups", oninput: (e) => (x.group = e.target.value) }), h("datalist#deptGroups", groups.map((g) => h("option", { value: g }))))),
+          h("div.field", h("label.lbl", "What it looks after"), h("input.inp", { value: x.about, oninput: (e) => (x.about = e.target.value) })),
+          h("div.frow", h("div.field", h("label.lbl", "Leads (one per line)"), h("textarea.inp", { rows: 4, oninput: (e) => (x.leads = lines(e.target.value)) }, x.leads.join("\n")), h("div.help", "Leads can approve the department's procedures when a run asks for its leads.")),
+            h("div.field", h("label.lbl", "Members (one per line)"), h("textarea.inp", { rows: 4, oninput: (e) => (x.members = lines(e.target.value)) }, x.members.join("\n")), h("div.help", "Names as people enter them in Procedure Runner.")))),
+        actions: [isNew ? null : { label: "Delete", kind: "danger", value: "delete" }, { spacer: true }, { label: "Cancel", value: false }, { label: isNew ? "Add" : "Save", kind: "primary", value: "save" }].filter(Boolean),
+      });
+      if (v === "delete") {
+        if (!(await confirmBox(`Delete ${d.name}?`, "Its procedures are kept and become unassigned. Lanes keep their name.", { ok: "Delete", kind: "danger" }))) return;
+        await saveDepts(depts.filter((y) => y.id !== d.id)); if (workspace() === d.id) setWorkspace("");
+      } else if (v === "save") {
+        if (!x.name.trim()) return toast("Give the department a name", "warn");
+        x.name = x.name.trim(); x.full = x.full.trim() || x.name;
+        await saveDepts(isNew ? [...depts, x] : depts.map((y) => (y.id === x.id ? x : y)));
+        toast(isNew ? `Added ${x.name}` : "Saved", "ok");
+      }
+      render();
     }
     return { mount, render };
   })();
@@ -314,12 +522,14 @@ PR.app = (() => {
     $("#userChip").onclick = () => askName(true);
     $("#btnHelp").onclick = () => PR.app.help();
     renderUser();
+    await loadDepts();
     PR.comms.load().then(PR.comms.applyBranding).catch(() => {});
     window.addEventListener("hashchange", route);
     window.addEventListener("beforeunload", (e) => { if (PR.app.dirty && PR.app.dirty()) { e.preventDefault(); e.returnValue = ""; } });
     await seedLocal().catch((e) => console.warn("seed", e));
     await route();
     if (!me) await askName();
+    await pickMyTeam();
     refreshPeople();
     checkApprovals(); setInterval(checkApprovals, 8000);
   }
@@ -362,7 +572,7 @@ PR.app = (() => {
   }
 
   return {
-    boot, go, route, thumb, lightbox, statusChip, askName, rememberPeople, refreshPeople, saveNewProcedure, exportProcedure, importJSON, help, LS,
+    boot, go, route, thumb, depts: () => depts, dept, workspace, setWorkspace, loadDepts, saveDepts, deptChip, deptChips, editRights, pickDept, jointWizard, pickMyTeam, groupsOf, lightbox, statusChip, askName, rememberPeople, refreshPeople, saveNewProcedure, exportProcedure, importJSON, help, LS,
     get me() { return me || "Operator"; }, dirty: null,
   };
 })();

@@ -76,6 +76,8 @@
             h("tr", h("th", "Version"), h("td", verLabel), h("th", "Status"), h("td", doc.status)),
             h("tr", h("th", "Last modified by"), h("td", modBy || "—"), h("th", "Last modified"), h("td", fmtDateTime(modAt))),
             h("tr", h("th", "Exported"), h("td", `${fmtDateTime(now())} by ${PR.app.me}`), h("th", "Steps"), h("td", `${steps.length}${M().estimateMinutes(p) ? " · est. " + fmtMin(M().estimateMinutes(p)) : ""}`)),
+            (() => { const ids = [...new Set([M().ownerOf(doc), ...tracks.map((t) => t.dept)].filter(Boolean))]; const name = (id) => (PR.app.dept(id) || {}).name || id;
+              return ids.length ? h("tr", h("th", "Department"), h("td", M().ownerOf(doc) ? name(M().ownerOf(doc)) : "—"), h("th", "Teams involved"), h("td", ids.map(name).join(", "))) : null; })(),
             (p.tags || []).length ? h("tr", h("th", "Tags"), h("td", { colspan: 3 }, p.tags.join(", "))) : null,
             (() => { const a = M().approvalsCfg(p); return a.enforced || a.approvers.length ? h("tr", h("th", "Approvals"), h("td", { colspan: 3 }, `${a.enforced ? "Required — cannot be bypassed" : "Optional"} · approvers: ${[...a.approvers, ...a.chairs.map((c) => c + " chair")].join(", ") || "—"}`)) : null; })()))),
 
@@ -85,7 +87,8 @@
             tbl(["Direction", ...M().sites(p).map((s) => s.name)], M().sites(p).map((ps) => h("tr", h("td", h("b", `${ps.name} → ${(M().otherSite(p, ps.id) || {}).name}`)),
               M().sites(p).map((s) => { const r = env.roles[s.id === ps.id ? "primary" : "secondary"]; return h("td", `${r.pre} → ${r.post}`); }))))] : null) : null,
 
-        tracks.length ? sec("C", "Chairs", tbl(["Chair", "Responsible for", "Steps"], tracks.map((t) => h("tr", h("td", h("b", t.name)), h("td", t.desc || ""), h("td", String(steps.filter(({ step, section }) => M().trackOf(step, section) === t.id).length)))))) : null,
+        tracks.length ? sec("L", "Lanes & teams", tbl(["Lane", "Department", "Responsible for", "Steps"], tracks.map((t) => h("tr", h("td", h("b", t.name)), h("td", t.dept && PR.app.dept(t.dept) ? PR.app.dept(t.dept).full || PR.app.dept(t.dept).name : "—"), h("td", t.desc || ""), h("td", String(steps.filter(({ step, section }) => M().trackOf(step, section) === t.id).length)))))) : null,
+        tracks.length || steps.some(({ step }) => M().deps(step).length) ? sec("W", "Workflow", h("div.help", "Lanes run side by side. Dashed lines follow the order on the page; bold arrows are hand-offs — the step waits until the step the arrow comes from is done."), h("div.pd-flow", PR.flow.render({ proc: p, zoomKey: "printFlowZoom" }))) : null,
 
         (p.setup.readiness.length || p.setup.milestones.length) ? sec("R", "Run setup",
           p.setup.readiness.length ? [h("h3", "Readiness checklist"), h("ul.pd-checks", p.setup.readiness.map((r) => h("li", "☐ ", r.label)))] : null,
@@ -102,10 +105,10 @@
           section.description ? h("p.muted", section.description) : null,
           section.steps.map((step) => {
             const t = M().trackById(p, M().trackOf(step, section));
-            const meta = [role(step, section) && `Target: ${role(step, section)}`, t && `Chair: ${t.name}`, step.owner && `Owner: ${step.owner}`, step.contact && `Escalation: ${step.contact}`, step.window && `When: ${step.window}`, step.estMin && `Est. ${step.estMin} min`,
+            const meta = [role(step, section) && `Target: ${role(step, section)}`, t && `Lane: ${t.name}`, step.owner && `Owner: ${step.owner}`, step.contact && `Escalation: ${step.contact}`, step.window && `When: ${step.window}`, step.estMin && `Est. ${step.estMin} min`,
               step.parallel && "Runs in parallel with previous", step.hold && "Hold point", step.critical && "★ Critical",
               step.condition && `Only when ${(M().siteById(p, step.condition.slice(4)) || {}).name} is primary`,
-              step.waitFor && `Waits for step ${(M().findStep(p, step.waitFor) || { step: {} }).step.num}`,
+              M().deps(step).length && `Waits for step ${M().deps(step).map((id) => (M().findStep(p, id) || { step: {} }).step.num || "?").join(", ")}`,
               step.impact && step.impact.mark && (step.impact.mark === "down" ? "🔴 Starts member impact" : "🟢 Ends member impact")].filter(Boolean);
             return h("div.pd-step",
               h("div.pd-step-h", h("span.pd-num", step.num || "•"), h("span.pd-title", step.title), PR.ui.catChip(step.category), h("span.pd-box", "☐")),
