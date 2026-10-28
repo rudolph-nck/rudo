@@ -100,6 +100,12 @@ A joint procedure (e.g. a failover involving Core, Network and Dev) gives each t
   - Drag a step's ● onto another step to make that step wait for it; click an arrow to remove it.
   - Drag a step into another lane to hand it to that team; **＋ Add step** adds one at the end of a lane.
   - Click a step to edit it in the inspector; double-click opens it on the page. Zoom and *Fit* are top right.
+- **Horizontal / vertical**: the ⇢ Horizontal / ⇣ Vertical switch lays the workflow out left → right (lanes as rows) or top → bottom (lanes as columns). Each person's choice is remembered, and the PDF uses the builder's choice.
+- **Only my team (Show: …)**: a joint procedure opens on **your own team's lane** in the builder (Page and Workflow views) and in the run's Workflow.
+  - Other teams' steps are hidden, except the ones that hand off to or from your lane, which show faded with the team's name.
+  - A lane with nothing linked folds into a thin bar ("4 steps hidden"); click it to show that team too.
+  - Click a team in **Show** for only that team, Ctrl+click to add or remove teams, and **All teams** for everything. On the page, hidden steps collapse to a "⋯ 3 steps for Dev hidden" line.
+  - The filter is a view only: nothing is removed, and each person's choice is remembered per procedure.
 - **In the run**: each person picks their lane (their department's lane is pre-selected) and sees their steps plus shared ones.
   - A waiting step lists every hand-off it is waiting on; starting early needs an override, which is recorded.
   - **⇶ Workflow** (or `W`) shows the live diagram: done, in progress, 🔒 waiting on another team, and amber arrows for hand-offs still pending. Click a step to jump to it.

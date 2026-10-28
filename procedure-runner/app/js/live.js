@@ -100,7 +100,7 @@ PR.views.live = (() => {
         lastComm ? card("Latest update", h("div.lv-update", h("b", lastComm.request), h("div.muted.small", `${lastComm.who} · ${fmtTime(lastComm.at, false)} · ${lastComm.by}`))) : null,
         card(`Open issues (${issues.length})`, issues.length ? issues.map((i) => h("div.lv-issue", "⚠ ", i.title, h("span.muted.small", ` · ${fmtTime(i.at, false)}`))) : h("div.muted", "None")),
         card("Recent activity", h("div.log", (run.events || []).slice(-12).reverse().map((e) => h("div.log-row", h("span.log-t", fmtTime(e.at, false)), h("span.log-w", e.by || ""), h("span.log-x", e.text || e.type)))))),
-      showFlow ? h("section.lv-card.lv-flow", h("div.lv-h", "Workflow"), PR.flow.render({ proc: p, zoomKey: "liveFlowZoom",
+      showFlow ? h("section.lv-card.lv-flow", h("div.lv-h", "Workflow"), PR.flow.render({ proc: p, zoomKey: "liveFlowZoom", dirKey: "liveFlowDir", focusKey: `liveFocus_${run.id}`, defaultFocus: [],
         keep: (step) => M().isApplicable(step, su) && !(su.excluded || []).includes(step.id),
         status: (step) => (M().isApplicable(step, su) ? st(step.id).status || "pending" : "na"),
         blocked: (step) => M().deps(step).some((id) => !isDone(id)),

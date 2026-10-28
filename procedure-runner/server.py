@@ -39,7 +39,7 @@ _direct = build_opener(ProxyHandler({}))
 NO_WINDOW = {"creationflags": 0x08000000} if os.name == "nt" else {}  # CREATE_NO_WINDOW: no console flash under pythonw
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-VERSION = "4.0"  # keep in sync with BUILD in index.html
+VERSION = "4.1"  # keep in sync with BUILD in index.html
 MAX_BODY = 60 * 1024 * 1024
 ID_RE = re.compile(r"^[A-Za-z0-9_.\-]{1,120}$")
 

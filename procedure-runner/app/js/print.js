@@ -88,7 +88,7 @@
               M().sites(p).map((s) => { const r = env.roles[s.id === ps.id ? "primary" : "secondary"]; return h("td", `${r.pre} → ${r.post}`); }))))] : null) : null,
 
         tracks.length ? sec("L", "Lanes & teams", tbl(["Lane", "Department", "Responsible for", "Steps"], tracks.map((t) => h("tr", h("td", h("b", t.name)), h("td", t.dept && PR.app.dept(t.dept) ? PR.app.dept(t.dept).full || PR.app.dept(t.dept).name : "—"), h("td", t.desc || ""), h("td", String(steps.filter(({ step, section }) => M().trackOf(step, section) === t.id).length)))))) : null,
-        tracks.length || steps.some(({ step }) => M().deps(step).length) ? sec("W", "Workflow", h("div.help", "Lanes run side by side. Dashed lines follow the order on the page; bold arrows are hand-offs — the step waits until the step the arrow comes from is done."), h("div.pd-flow", PR.flow.render({ proc: p, zoomKey: "printFlowZoom" }))) : null,
+        tracks.length || steps.some(({ step }) => M().deps(step).length) ? sec("W", "Workflow", h("div.help", "Lanes run side by side. Dashed lines follow the order on the page; bold arrows are hand-offs — the step waits until the step the arrow comes from is done."), h("div.pd-flow", PR.flow.render({ proc: p, zoomKey: "printFlowZoom", dirKey: "bldFlowDir" }))) : null,
 
         (p.setup.readiness.length || p.setup.milestones.length) ? sec("R", "Run setup",
           p.setup.readiness.length ? [h("h3", "Readiness checklist"), h("ul.pd-checks", p.setup.readiness.map((r) => h("li", "☐ ", r.label)))] : null,

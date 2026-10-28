@@ -1011,3 +1011,25 @@ tr.row-added td { background: color-mix(in srgb, var(--green-soft) 60%, transpar
 .rsw-top { display: flex; gap: 8px; align-items: center; } .rsw-top .inp:not(.w-num) { flex: 0 1 220px; } .rsw-when { flex: 1; }
 .view-toggle .seg-btn { white-space: nowrap; min-width: 0; }
 .rsw-q { margin-bottom: 6px; } .rsw-q .inp { flex: 1 1 auto !important; }
+/* team filter + vertical workflow */
+.team-bar { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.tb-k { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-right: 2px; }
+.tb-chip { --c: var(--accent-ink); font: inherit; font-size: 12.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px; border-radius: 99px; border: 1px solid var(--line-2); background: var(--panel); color: var(--text); cursor: pointer; }
+.tb-chip i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
+.tb-chip:hover { border-color: var(--c); }
+.tb-chip.on { background: var(--c); border-color: var(--c); color: #fff; } .tb-chip.on i { background: #fff; }
+.tb-chip small { font-weight: 400; opacity: .8; }
+.cv-teams { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.st-card.st-hidden { height: 0; min-height: 0; margin: 0; padding: 0; border: 0; overflow: hidden; }
+.hidden-run { font-size: 12px; color: var(--muted); padding: 5px 12px; margin: 4px 0; border: 1px dashed var(--line-2); border-radius: 8px; cursor: pointer; }
+.hidden-run:hover { color: var(--accent-ink); border-color: var(--accent-ink); }
+.flow-legend { font-size: 12px; }
+.lg-ghost { width: 14px; height: 10px; border: 1.5px dashed var(--line-2); border-radius: 3px; display: inline-block; opacity: .7; }
+.flow-node.ghost { opacity: .55; } .flow-node.ghost .fn-box { stroke-dasharray: 5 3; fill: var(--panel-2); }
+.flow-node.ghost:hover { opacity: .9; }
+.flow-lane.collapsed .fl-band { fill: var(--panel-2); stroke-dasharray: 4 4; }
+.flow-lane.clickable { cursor: pointer; } .flow-lane.clickable:hover .fl-band { stroke: var(--c); }
+.fe-dep.cross { stroke-width: 3.5; }
+.flow-dir .seg-btn { white-space: nowrap; }
+.flow-svg.dir-v .fl-name { font-size: 14px; }
+.fl-hid { font-style: italic; }

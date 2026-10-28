@@ -763,7 +763,7 @@ PR.runner = (() => {
   const laneName = (f) => { const t = M().trackById(proc, M().trackOf(f.step, f.section)); return t ? t.name : ""; };
   function flowModal() {
     const draw = () => PR.flow.render({ proc, keep: (step) => applicable(step) && !(run.setup.excluded || []).includes(step.id), status: (step) => statusOf(step), blocked: (step) => waitingAll(step).length > 0,
-      selected: focusId, zoomKey: "runFlowZoom", mine: (l) => !!chairView && l.id === chairView,
+      selected: focusId, zoomKey: "runFlowZoom", dirKey: "runFlowDir", focusKey: `runFlowFocus_${run.id}`, defaultFocus: chairView ? [chairView] : [], mine: (l) => !!chairView && l.id === chairView,
       laneInfo: (l) => { if (l.shared) return { icon: "👥", sub: "shared — everyone" }; const pg = M().trackProgress(run, l.id); const d = l.dept && PR.app.dept(l.dept); return { icon: d ? d.icon : "", sub: `${pg.done}/${pg.total} done${pg.signoff ? " · signed off" : ""}` }; },
       onSelect: (id) => { close && close(); const f = M().findStep(proc, id); if (f && !inMyChair(f.step, f.section)) setChair(""); filter = "all"; setFocus(id); } });
     let close = null;

@@ -441,6 +441,7 @@ PR.views.builder = (() => {
       ro.variants.length ? ro.variants.map((v) => h("span.cv-sheet", { title: M().scheduleLabel(v) }, v.icon || "📋", " ", v.name || "(unnamed)", h("span.muted.small", ` · ${M().scheduleLabel(v)}`))) : h("span.muted", "none yet — one list for every run"),
       h("button.link-btn", { type: "button", onclick: () => openSettings("quick") }, "Edit sheets & schedules"),
       h("button.link-btn", { type: "button", title: "Import a worksheet or another Excel file as one more run sheet — steps that are already here are matched by title", onclick: () => PR.importer.open({ addSheetTo: (built, name) => addSheet(built, name) }) }, "＋ Add a sheet from Excel")));
+    const tb = laneBar(); if (tb) head.append(tb);
     c.append(head);
     const secs = h("div.cv-secs");
     proc.sections.forEach((sec) => secs.append(sectionNode(sec)));
@@ -476,7 +477,14 @@ PR.views.builder = (() => {
           h("button.add-btn", { type: "button", onclick: () => addStepFromTemplate("blank", { secId: sec.id, index: sec.steps.length }) }, "＋ Step"),
           h("button.add-btn", { type: "button", onclick: (e) => menu(e.currentTarget, STEP_TEMPLATES.filter((t) => t.make).map((t) => ({ icon: t.icon, label: t.label, onClick: () => addStepFromTemplate(t.id, { secId: sec.id, index: sec.steps.length }) }))) }, "＋ From template ▾"))]);
     if (!sec.collapsed) {
-      sec.steps.forEach((st) => list.append(stepNode(st, sec)));
+      let run = [];
+      const flush = () => { if (!run.length) return; const lanes = [...new Set(run.map((x) => (M().trackById(proc, M().trackOf(x, sec)) || {}).name).filter(Boolean))];
+        list.append(h("div.hidden-run", { title: "Hidden by the team filter at the top", onclick: () => setLaneFocus([]) }, `⋯ ${run.length} step${run.length > 1 ? "s" : ""} for ${lanes.join(", ") || "other teams"} hidden · show all teams`)); run = []; };
+      sec.steps.forEach((st) => {
+        if (laneVisible(st, sec)) { flush(); list.append(stepNode(st, sec)); }
+        else { run.push(st); list.append(h("div.st-card.st-hidden", { dataset: { stepId: st.id } })); } // keeps drop positions right
+      });
+      flush();
       if (!sec.steps.length) list.append(h("div.sec-empty", "Drop steps or components here"));
       zone(list, { items: () => $$(":scope > .st-card", list), accepts: (d) => ["step", "new-step", "new-block", "new-section"].includes(d.kind), drop: (i, d) => onStepDrop(sec.id, i, d) });
     }
@@ -591,6 +599,23 @@ PR.views.builder = (() => {
     if (f && old) { old.replaceWith(stepNode(f.step, f.section)); applySelection(); } else renderCanvas();
   }
 
+  /* Team filter (lanes): shared by the Page and Workflow views. Default: your own team's lanes. */
+  const focusKey = () => `laneFocus_${proc.id}`;
+  function laneFocus() { const ids = M().tracks(proc).map((t) => t.id); return M().tracks(proc).length > 1 ? PR.flow.focusGet(focusKey(), PR.flow.myLanes(proc)).filter((x) => ids.includes(x)) : []; }
+  function setLaneFocus(f) { PR.flow.focusSet(focusKey(), f); renderCanvas(); }
+  function laneVisible(st, sec) {
+    const f = laneFocus(); if (!f.length) return true;
+    const t = M().trackOf(st, sec); return !M().trackById(proc, t) || f.includes(t);
+  }
+  function laneBar() {
+    const lanes = M().tracks(proc); if (lanes.length < 2) return null;
+    const f = laneFocus();
+    const hidden = f.length ? M().allSteps(proc).filter(({ step, section }) => !laneVisible(step, section)).length : 0;
+    return h("div.cv-teams", PR.flow.teamBar(lanes, f, setLaneFocus, { laneInfo: laneInfoB, mine: (l) => PR.flow.myLanes(proc).includes(l.id) }),
+      f.length ? h("span.muted.small", `Showing ${f.map((id) => (M().trackById(proc, id) || {}).name).join(" + ")} and shared steps · ${hidden} other step${hidden === 1 ? "" : "s"} hidden`) : null);
+  }
+  function laneInfoB(l) { const d = l.dept ? PR.app.dept(l.dept) : null; return l.shared ? { icon: "👥", sub: M().tracks(proc).length ? "shared — everyone" : "" } : { icon: d ? d.icon : "", sub: l.desc || (d ? d.full : "") }; }
+
   function addSheet(built, name) {
     let res;
     mutate(() => { res = PR.importer.mergeSheet(proc, built, name); });
@@ -602,12 +627,13 @@ PR.views.builder = (() => {
     const old = $(".flow-scroll", c); const keep = old ? { l: old.scrollLeft, t: old.scrollTop } : null;
     c.innerHTML = "";
     const lanes = M().tracks(proc);
-    const laneInfo = (l) => { const d = l.dept ? PR.app.dept(l.dept) : null; return l.shared ? { icon: "👥", sub: lanes.length ? "shared — everyone" : "" } : { icon: d ? d.icon : "", sub: l.desc || (d ? d.full : "") }; };
+    const laneInfo = laneInfoB;
     c.append(h("div.flow-head", h("h2", "Workflow"),
       h("span.muted.small", lanes.length ? `${lanes.length} lane${lanes.length > 1 ? "s" : ""} · steps in a lane run in order, lanes run side by side, shared steps (go / no-go, kickoff) bring everyone together.` : "Add lanes to split the work between teams or chairs that work at the same time."),
       h("div.spacer"),
       h("button.btn.btn-sm", { type: "button", onclick: () => (locked ? toast("Read-only — choose “Edit anyway” first", "warn") : openSettings("chairs")) }, lanes.length ? "👥 Lanes & teams…" : "＋ Add team lanes")),
-      PR.flow.render({ proc, editable: !locked, selected: sel && sel.kind === "step" ? sel.id : null, laneInfo, zoomKey: "bldFlowZoom",
+      PR.flow.render({ proc, editable: !locked, selected: sel && sel.kind === "step" ? sel.id : null, laneInfo, zoomKey: "bldFlowZoom", dirKey: "bldFlowDir",
+        focusKey: focusKey(), defaultFocus: PR.flow.myLanes(proc), mine: (l) => PR.flow.myLanes(proc).includes(l.id),
         onSelect: (id) => select("step", id),
         onOpen: (id) => { select("step", id); setView("page"); },
         onLink: (from, to) => {
