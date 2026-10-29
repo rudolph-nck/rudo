@@ -7,6 +7,7 @@ import { rng } from "../utils/random";
 export type Assets = {
   bebas: Font;
   oswald: Font;
+  inter: Font;
   rudo: THREE.Texture;
   concrete: THREE.Texture;
   concreteBump: THREE.Texture;
@@ -129,9 +130,14 @@ const load = () => {
   if (!pending) {
     pending = (async () => {
       await document.fonts.ready;
-      const [bebas, oswald, rudo] = await Promise.all([loadFont("fonts/bebas.typeface.json"), loadFont("fonts/oswald700.typeface.json"), loadTex("images/rudo-cutout.png")]);
+      const [bebas, oswald, inter, rudo] = await Promise.all([
+        loadFont("fonts/bebas.typeface.json"),
+        loadFont("fonts/oswald700.typeface.json"),
+        loadFont("fonts/inter800.typeface.json"),
+        loadTex("images/rudo-cutout.png"),
+      ]);
       const { tex, btex } = makeConcrete();
-      cache = { bebas, oswald, rudo, concrete: tex, concreteBump: btex };
+      cache = { bebas, oswald, inter, rudo, concrete: tex, concreteBump: btex };
       return cache;
     })();
   }

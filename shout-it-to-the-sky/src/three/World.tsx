@@ -6,7 +6,8 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { Assets } from "./assets";
-import { Word3D, layoutRows, wordGeo } from "./Word3D";
+import { engrave, engravePhoto } from "./engrave";
+import { ACCENT, FillLine, SparkBurst, advance, letterGeo, sparkMat, typeMats } from "./Type";
 import { CH1, CRACK_ORIGIN, EDGE, LID, PRE_WORDS, ROOM, RUDO_POS, SLOT, STAIRS, STAIR_RISE, TRENCH, camAt, lineAnchor, stepPos } from "./layout";
 import { BIG_KICKS, Line, kickEnv, linesOf, nextLineStart, sectionById } from "../data";
 import { clamp01, cubicOut, expoOut } from "../utils/ease";
@@ -55,6 +56,7 @@ type Seg = { a: THREE.Vector2; b: THREE.Vector2; d0: number; d1: number; w: numb
 const buildCracks = () => {
   const r = rng(808);
   const segs: Seg[] = [];
+  const mainPts: THREE.Vector2[] = [];
   const walk = (x: number, y: number, ang: number, len: number, w: number, d: number, depth: number, main = false) => {
     let L = 0;
     while (L < len) {
@@ -68,6 +70,7 @@ const buildCracks = () => {
       const ww = main ? w : w * (1 - (L / len) * 0.8);
       segs.push({ a: new THREE.Vector2(x, y), b: new THREE.Vector2(nx, ny), d0: main ? y - CRACK_ORIGIN.y : d + L, d1: main ? ny - CRACK_ORIGIN.y : d + L + s, w: ww });
       x = nx; y = ny; L += s;
+      if (main) mainPts.push(new THREE.Vector2(x, y));
       if (depth < 3 && r() < (main ? 0.06 : 0.07)) walk(x, y, ang + (r() < 0.5 ? -1 : 1) * (0.5 + r() * 0.8), (main ? 1.2 + r() * 4 : len * 0.4), main ? 0.03 : ww * 0.7, main ? y - CRACK_ORIGIN.y : d + L, depth + 1);
       if (main && y > LID.y0) break;
     }
@@ -94,7 +97,7 @@ const buildCracks = () => {
   g.setAttribute("aD", new THREE.Float32BufferAttribute(dist, 1));
   g.setAttribute("aS", new THREE.Float32BufferAttribute(side, 1));
   g.setIndex(idx);
-  return g;
+  return { geo: g, main: mainPts };
 };
 const crackMat = () =>
   new THREE.ShaderMaterial({
@@ -102,7 +105,7 @@ const crackMat = () =>
     vertexShader: `attribute float aD; attribute float aS; varying float vD; varying float vS; void main(){ vD=aD; vS=aS; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
     fragmentShader: `uniform float uTip; uniform float uGlow; varying float vD; varying float vS;
       void main(){ if(vD>uTip) discard; float hot=exp(-(uTip-vD)*0.9);
-        float core=exp(-vS*vS*7.0); vec3 lava=vec3(1.0,0.5,0.12)*uGlow*(1.6+1.6*hot);
+        float core=exp(-vS*vS*7.0); vec3 lava=vec3(1.0,0.36,0.08)*uGlow*(1.7+2.2*hot);
         vec3 c=mix(vec3(0.05,0.025,0.01),lava,core); gl_FragColor=vec4(c,1.0);} `,
     side: THREE.DoubleSide,
     toneMapped: false,
@@ -163,64 +166,6 @@ const pointsGeo = (n: number, fill: (i: number, r: () => number) => { p: [number
   return g;
 };
 
-// ---------------------------------------------------------------------------------------------
-/** A lyric line as a slab of 3D words in the world, oriented toward where the camera will be. */
-const LinePanel: React.FC<{
-  a: Assets;
-  line: Line;
-  t: number;
-  family: "bebas" | "oswald";
-  size: number;
-  maxW: number;
-  mat: THREE.Material;
-  hot?: THREE.Material;
-  pick?: (w: string) => THREE.Material | undefined;
-  reveal: "slam" | "snap" | "rise" | "flare" | "glide";
-  at: THREE.Vector3;
-  face: THREE.Vector3;
-  up: THREE.Vector3;
-  tilt?: [number, number, number];
-  out?: number;
-  chant?: boolean;
-  scale?: number;
-}> = ({ a, line, t, family, size, maxW, mat, hot, pick, reveal, at, face, up, tilt = [0, 0, 0], out, chant, scale = 1 }) => {
-  const font = family === "bebas" ? a.bebas : a.oswald;
-  const words = useMemo(() => line.words.map((w) => w.w.toUpperCase()), [line.id]);
-  const lay = useMemo(() => layoutRows(font, words, size, maxW, 1.02, chant ? (w) => /!$/.test(w) : undefined), [line.id, family, size, maxW]);
-  const quat = useMemo(() => {
-    const o = new THREE.Object3D();
-    o.position.copy(at);
-    o.up.copy(up);
-    o.lookAt(face);
-    o.rotateX(tilt[0]);
-    o.rotateY(tilt[1]);
-    o.rotateZ(tilt[2]);
-    return o.quaternion.clone();
-  }, [at.x, at.y, at.z, face.x, face.y, face.z, tilt[0], tilt[1], tilt[2]]);
-  if (t < line.start - 0.05 || (out !== undefined && t > out + 0.5)) return null;
-  return (
-    <group position={at} quaternion={quat} scale={scale}>
-      {line.words.map((w, i) => (
-        <Word3D
-          key={i}
-          font={font}
-          family={family}
-          text={words[i]}
-          size={size}
-          depth={size * 0.22}
-          material={pick?.(w.w) ?? mat}
-          hot={hot}
-          t={t}
-          at={w.s}
-          out={out}
-          reveal={reveal}
-          position={[lay.pos[i].x, lay.pos[i].y, 0]}
-        />
-      ))}
-    </group>
-  );
-};
-
 /** Embers bursting from a point cloud of positions (when a chorus line lets go). */
 const Burst: React.FC<{ t: number; at: number; center: THREE.Vector3; up: THREE.Vector3; spread: number; mat: THREE.ShaderMaterial; seed: number }> = ({ t, at, center, up, spread, mat, seed }) => {
   const seeds = useMemo(() => {
@@ -253,41 +198,118 @@ const Burst: React.FC<{ t: number; at: number; center: THREE.Vector3; up: THREE.
 };
 
 // ---------------------------------------------------------------------------------------------
+/** Orients its children (local +y up, +z toward the viewer) to face a point. */
+const Panel: React.FC<{ at: THREE.Vector3; face: THREE.Vector3; up: THREE.Vector3; tilt?: [number, number, number]; children: React.ReactNode }> = ({ at, face, up, tilt = [0, 0, 0], children }) => {
+  const o = new THREE.Object3D();
+  o.position.copy(at);
+  o.up.copy(up);
+  o.lookAt(face);
+  o.rotateX(tilt[0]);
+  o.rotateY(tilt[1]);
+  o.rotateZ(tilt[2]);
+  return (
+    <group position={at} quaternion={o.quaternion}>
+      {children}
+    </group>
+  );
+};
+
+/** Blueprint drawing of the room: axes, polar rings round RUDO, floor grid, outlines. */
+const buildBlueprint = () => {
+  const v: number[] = [];
+  const seg = (a: [number, number, number], b: [number, number, number]) => v.push(...a, ...b);
+  const W2 = ROOM.halfW, D = ROOM.depth, Hh = ROOM.height;
+  // axes through the crack origin
+  seg([-W2, CRACK_ORIGIN.y, 0.005], [W2, CRACK_ORIGIN.y, 0.005]);
+  seg([0, 0, 0.005], [0, Hh, 0.005]);
+  // polar rings + spokes on the floor round RUDO
+  for (const r of [0.55, 0.95, 1.45, 2.1]) {
+    for (let i = 0; i < 72; i++) {
+      const a0 = (i / 72) * Math.PI * 2, a1 = ((i + 1) / 72) * Math.PI * 2;
+      seg([Math.cos(a0) * r, 0.004, RUDO_POS.z + 0.25 + Math.sin(a0) * r], [Math.cos(a1) * r, 0.004, RUDO_POS.z + 0.25 + Math.sin(a1) * r]);
+    }
+  }
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2;
+    seg([0, 0.004, RUDO_POS.z + 0.25], [Math.cos(a) * 2.1, 0.004, RUDO_POS.z + 0.25 + Math.sin(a) * 2.1]);
+  }
+  // floor grid
+  for (let x = -W2; x <= W2 + 1e-6; x += 0.5) seg([x, 0.003, 0], [x, 0.003, D]);
+  for (let z = 0; z <= D + 1e-6; z += 0.5) seg([-W2, 0.003, z], [W2, 0.003, z]);
+  // room outline
+  const c: [number, number, number][] = [[-W2, 0, 0], [W2, 0, 0], [W2, Hh, 0], [-W2, Hh, 0]];
+  for (let i = 0; i < 4; i++) seg(c[i], c[(i + 1) % 4]);
+  for (const x of [-W2, W2]) {
+    seg([x, 0, 0], [x, 0, D]);
+    seg([x, Hh, 0], [x, Hh, D]);
+  }
+  // dimension line across the floor, with ticks
+  seg([-W2, 0.01, 7.6], [W2, 0.01, 7.6]);
+  for (let x = -W2; x <= W2 + 1e-6; x += 0.4) seg([x, 0.01, 7.52], [x, 0.01, 7.68]);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+  return g;
+};
+
+// ---------------------------------------------------------------------------------------------
 export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a, bloom }) => {
   const { camera, scene, gl, size } = useThree();
 
   // ---- materials ----
   const M = useMemo(() => {
-    const concrete = new THREE.MeshStandardMaterial({ map: a.concrete, bumpMap: a.concreteBump, bumpScale: 1.4, color: "#9a938a", roughness: 0.96, metalness: 0, side: THREE.DoubleSide });
-    const floor = concrete.clone();
-    floor.color = new THREE.Color("#6f6a63");
-    floor.roughness = 0.78;
-    const stone = new THREE.MeshStandardMaterial({ map: a.concrete, color: "#efe4d1", roughness: 0.82, metalness: 0.02, emissive: "#3a3128", emissiveIntensity: 0.6 });
-    const hot = new THREE.MeshStandardMaterial({ color: "#ffffff", emissive: "#fff1d8", emissiveIntensity: 0.7 });
-    const steel = new THREE.MeshStandardMaterial({ color: "#d9e6ef", emissive: "#2c5f86", emissiveIntensity: 0.55, roughness: 0.35, metalness: 0.5 });
-    const cyan = new THREE.MeshStandardMaterial({ color: "#a8e4ff", emissive: "#3bb8ff", emissiveIntensity: 1.1, toneMapped: false });
-    const red = new THREE.MeshStandardMaterial({ color: "#ff5546", emissive: "#ff2414", emissiveIntensity: 1.0, toneMapped: false });
-    const gold = new THREE.MeshStandardMaterial({ color: "#ffe2a8", emissive: "#ff9a2e", emissiveIntensity: 0.55, roughness: 0.45, toneMapped: false });
-    const goldHot = new THREE.MeshStandardMaterial({ color: "#ffffff", emissive: "#fff0c8", emissiveIntensity: 1.4, toneMapped: false });
-    const brick = new THREE.MeshStandardMaterial({ map: a.concrete, color: "#d9c6a8", roughness: 0.9, emissive: "#2a221a", emissiveIntensity: 0.5 });
-    const brickInk = new THREE.MeshStandardMaterial({ color: "#2b231c", roughness: 0.7 });
+    const wall = engrave({ map: a.concrete, bump: a.concreteBump, bumpScale: 1.2, color: "#a7a095", ink: "#ece4d7", spacing: 0.026 });
+    const floor = engrave({ map: a.concrete, color: "#8d877e", ink: "#ddd4c6", spacing: 0.03, dir: [0.1, 0.35, 1] });
+    const cold = engrave({ map: a.concrete, bump: a.concreteBump, color: "#9aa3aa", ink: "#c6d2dc", spacing: 0.03, gain: 2.6 });
+    const brick = engrave({ map: a.concrete, color: "#d9c6a8", ink: "#f3e7d3", spacing: 0.014, dir: [0, 1, 0.35], warp: 0.8 });
+    const roof = engrave({ map: a.concrete, color: "#968a7c", ink: "#efd6b4", spacing: 0.034, gain: 2.8 });
+    const photo = engravePhoto(a.rudo);
     const tube = new THREE.MeshBasicMaterial({ color: "#ffffff", toneMapped: false });
-    const rudo = new THREE.MeshBasicMaterial({ map: a.rudo, transparent: true, depthWrite: true, alphaTest: 0.35 });
     const silhouette = new THREE.MeshBasicMaterial({ map: a.rudo, color: "#000000", transparent: true, alphaTest: 0.35 });
-    const halo = new THREE.MeshBasicMaterial({ map: a.rudo, color: "#ffb257", transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
-    const cable = new THREE.MeshStandardMaterial({ color: "#0d1a24", emissive: "#2f8fe0", emissiveIntensity: 0.5, roughness: 0.4 });
-    const led = new THREE.MeshBasicMaterial({ color: "#6fc7ff", toneMapped: false });
-    const packet = new THREE.MeshBasicMaterial({ color: "#d8f2ff", toneMapped: false });
-    const rim = new THREE.MeshBasicMaterial({ color: "#ffbf72", toneMapped: false });
-    const shadow = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, color: "#000000", opacity: 0.55, alphaMap: (() => {
-      const c = document.createElement("canvas"); c.width = c.height = 128; const x = c.getContext("2d")!;
-      const g = x.createRadialGradient(64, 64, 0, 64, 64, 64); g.addColorStop(0, "#fff"); g.addColorStop(1, "#000"); x.fillStyle = g; x.fillRect(0, 0, 128, 128);
-      return new THREE.CanvasTexture(c);
-    })() });
-    return { concrete, floor, stone, hot, steel, cyan, red, gold, goldHot, brick, brickInk, tube, rudo, silhouette, halo, cable, led, packet, rim, shadow };
+    const halo = new THREE.MeshBasicMaterial({ map: a.rudo, color: ACCENT, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+    const cable = new THREE.MeshStandardMaterial({ color: "#121416", roughness: 0.5, metalness: 0.3 });
+    const led = new THREE.MeshBasicMaterial({ color: "#d9e2ea", toneMapped: false });
+    const packet = new THREE.MeshBasicMaterial({ color: new THREE.Color(ACCENT).multiplyScalar(2), toneMapped: false });
+    const rim = new THREE.MeshBasicMaterial({ color: new THREE.Color(ACCENT).multiplyScalar(1.6), toneMapped: false });
+    const edge = new THREE.LineBasicMaterial({ color: ACCENT, transparent: true, opacity: 0.9 });
+    const blue = new THREE.LineBasicMaterial({ color: "#c9c3b8", transparent: true, opacity: 0.5 });
+    const blueHot = new THREE.LineBasicMaterial({ color: ACCENT, transparent: true, opacity: 0.85 });
+    const shadow = new THREE.MeshBasicMaterial({
+      transparent: true,
+      depthWrite: false,
+      color: "#000000",
+      opacity: 0.6,
+      alphaMap: (() => {
+        const c = document.createElement("canvas");
+        c.width = c.height = 128;
+        const x = c.getContext("2d")!;
+        const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+        g.addColorStop(0, "#fff");
+        g.addColorStop(1, "#000");
+        x.fillStyle = g;
+        x.fillRect(0, 0, 128, 128);
+        return new THREE.CanvasTexture(c);
+      })(),
+    });
+    return { wall, floor, cold, brick, roof, photo, tube, silhouette, halo, cable, led, packet, rim, edge, blue, blueHot, shadow };
   }, [a]);
+  const TM = useMemo(() => typeMats(), []);
+  const SP = useMemo(() => sparkMat(), []);
 
-  const cracks = useMemo(() => ({ geo: buildCracks(), mat: crackMat() }), []);
+  const cracks = useMemo(() => {
+    const b = buildCracks();
+    return { geo: b.geo, main: b.main, mat: crackMat() };
+  }, []);
+  const mainX = (y: number) => {
+    const m = cracks.main;
+    let lo = 0, hi = m.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (m[mid].y < y) lo = mid + 1;
+      else hi = mid;
+    }
+    return m[Math.min(lo, m.length - 1)]?.x ?? 0;
+  };
+  const blueprint = useMemo(() => buildBlueprint(), []);
   const sky = useMemo(() => skyMat(), []);
   const starMat = useMemo(() => pointsMat(520), []);
   const emberMat = useMemo(() => pointsMat(260), []);
@@ -300,7 +322,6 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
           const deep = i > 2600;
           let p: [number, number, number];
           if (deep) {
-            // a field around the warp corridor
             const k = r();
             p = [(r() - 0.5) * 220, 230 + k * 400, 60 + k * 330 + (r() - 0.5) * 160];
           } else {
@@ -325,7 +346,7 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
           const x = gx ? a1 + (r() - 0.5) : (r() - 0.5) * 500;
           const y = EDGE + 25 + (gx ? b1 : Math.floor(r() * 80) * 7.5);
           const w = r();
-          return { p: [x, y, -48 - r() * 3], c: [1, 0.55 + w * 0.3, 0.2 + w * 0.2], s: 1.2 + r() * 2.2 };
+          return { p: [x, y, -48 - r() * 3], c: [1, 0.45 + w * 0.3, 0.15 + w * 0.15], s: 1.2 + r() * 2.2 };
         },
         23,
       ),
@@ -340,7 +361,7 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
   const composer = useMemo(() => {
     const c = new EffectComposer(gl);
     c.addPass(new RenderPass(scene, camera));
-    const b = new UnrealBloomPass(new THREE.Vector2(size.width / 2, size.height / 2), 0.5, 0.45, 0.9);
+    const b = new UnrealBloomPass(new THREE.Vector2(size.width / 2, size.height / 2), 0.5, 0.4, 0.88);
     c.addPass(b);
     c.addPass(new OutputPass());
     return { c, b };
@@ -368,28 +389,31 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
   gl.toneMapping = THREE.ACESFilmicToneMapping;
   gl.toneMappingExposure = inSky ? 1.05 : 1.15;
   composer.b.strength = bloom;
-  scene.background = new THREE.Color(inSky ? "#03040a" : "#020202");
-  const fogC = t < DROP ? null : t < 29.6 ? "#040506" : t < CH1.start - 0.4 ? "#050b12" : null;
+  scene.background = new THREE.Color(inSky ? "#03040a" : "#030303");
+  const fogC = t < DROP ? null : t < 29.6 ? "#040404" : t < CH1.start - 0.4 ? "#04070a" : null;
   scene.fog = fogC ? new THREE.Fog(fogC, 4, t < 29.6 ? 34 : 26) : null;
 
-  const tip = t < DROP ? -1 : Math.max(3.5 * expoOut(clamp01((t - DROP) / 0.45)), cam.pos.y - CRACK_ORIGIN.y + 9 + (t - DROP) * 0.1);
-  cracks.mat.uniforms.uTip.value = Math.min(tip, 400);
+  const tipAt = (tt: number) => (tt < DROP ? -1 : Math.max(3.5 * expoOut(clamp01((tt - DROP) / 0.45)), camAt(tt).pos.y - CRACK_ORIGIN.y + 9 + (tt - DROP) * 0.1));
+  cracks.mat.uniforms.uTip.value = Math.min(tipAt(t), 400);
   cracks.mat.uniforms.uGlow.value = 0.8 + 0.35 * Math.min(1, kickEnv(t, 0.25)) + 0.3 * Math.exp(-Math.max(0, t - DROP) / 0.35);
   sky.uniforms.uGlow.value = 0.8 + 0.5 * kickEnv(t, 0.3);
   starMat.uniforms.uTime.value = t;
   starMat.uniforms.uFade.value = inSky ? clamp01((t - CH1.start + 0.4) / 1.2) : 0;
-  emberMat.uniforms.uFade.value = 1;
+  M.photo.uniforms.uLevel.value = 0.06 + 0.94 * level;
+  // the room is drawn as a blueprint during the strings, then the tube fills it in
+  const draw = clamp01((t - 0.25) / 3.1);
+  M.blue.opacity = (t < TUBE_ON ? 0.7 : 0.7 - 0.5 * clamp01((t - TUBE_ON) / 1.5)) * (0.35 + 0.65 * draw);
+  for (const e of [M.wall, M.floor, M.brick]) e.u.uMix.value = 1;
 
-  // rooftop embers drift up (+z) ahead of the camera
   if (inSky) {
     const P = emberGeo.attributes.position.array as Float32Array, Cc = emberGeo.attributes.aColor.array as Float32Array, S = emberGeo.attributes.aSize.array as Float32Array;
     const local = t - CH1.start;
     embersSeed.forEach((e, i) => {
       const age = (local + e.off) % e.life;
       const k = age / e.life;
-      P.set([e.x + Math.sin(age + e.ph) * 0.8, cam.pos.y + 2 + e.y - ((cam.pos.y * 0.0) % 1), -1 + age * e.vz], i * 3);
+      P.set([e.x + Math.sin(age + e.ph) * 0.8, cam.pos.y + 2 + e.y, -1 + age * e.vz], i * 3);
       const f = Math.sin(Math.PI * k) * (0.8 + 0.4 * kick);
-      Cc.set([1.5 * f, (0.4 + e.hot * 0.5) * f, 0.1 * f], i * 3);
+      Cc.set([1.5 * f, (0.3 + e.hot * 0.4) * f, 0.06 * f], i * 3);
       S[i] = e.s;
     });
     emberGeo.attributes.position.needsUpdate = true;
@@ -401,9 +425,9 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
   const intro = linesOf("intro");
   const [nobody, built] = intro;
   const v1 = linesOf("verse1");
+  const pre = linesOf("prechorus1");
   const ch1 = linesOf("chorus1");
 
-  // bricks for "So I built it!": letters on bricks, rows dropped onto the floor beside RUDO
   const bricks = useMemo(() => {
     const rows = [[0, 1], [2, 3]];
     const S = 0.3, G = 0.012;
@@ -438,7 +462,7 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
           const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.25, bevelEnabled: false });
           const uv = geo.attributes.uv as THREE.BufferAttribute;
           for (let q = 0; q < uv.count; q++) uv.setXY(q, (uv.getX(q) + c.x) / 2.6, (uv.getY(q) + c.y) / 2.6);
-          out.push({ geo, c: new THREE.Vector3(c.x, c.y, -0.25), v: new THREE.Vector3((c.x) * (1.5 + r() * 2), (r() - 0.3) * 6, 9 + r() * 10), spin: new THREE.Vector3((r() - 0.5) * 9, (r() - 0.5) * 9, (r() - 0.5) * 6) });
+          out.push({ geo, c: new THREE.Vector3(c.x, c.y, -0.25), v: new THREE.Vector3(c.x * (1.5 + r() * 2), (r() - 0.3) * 6, 9 + r() * 10), spin: new THREE.Vector3((r() - 0.5) * 9, (r() - 0.5) * 9, (r() - 0.5) * 6) });
         });
       }
     return out;
@@ -450,12 +474,9 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
       const x0 = -1.25 + i * 0.5;
       const pts: THREE.Vector3[] = [];
       for (let y = TRENCH.y0; y <= STAIRS.y0; y += 4) pts.push(new THREE.Vector3(x0 + Math.sin(y * 0.11 + i) * 0.12, y, TRENCH.floor + 0.06 + r() * 0.05));
-      return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 220, 0.035 + r() * 0.02, 6, false);
+      return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 220, 0.03 + r() * 0.015, 6, false);
     });
   }, []);
-  const packetGeo = useMemo(() => new THREE.SphereGeometry(0.05, 8, 8), []);
-  const ledGeo = useMemo(() => new THREE.BoxGeometry(0.03, STAIRS.y0 - TRENCH.y0, 0.03), []);
-
   const G = useMemo(
     () => ({
       roomFloor: plane(ROOM.halfW * 2, ROOM.depth, 2.6),
@@ -464,40 +485,46 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
       trWall: plane(-TRENCH.floor, TRENCH.y1 - TRENCH.y0, 2.6),
       trCap: plane(TRENCH.halfW * 2, -TRENCH.floor, 2.6),
       box: new THREE.BoxGeometry(1, 1, 1),
+      boxEdges: new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1)),
+      packet: new THREE.SphereGeometry(0.035, 8, 8),
+      led: new THREE.BoxGeometry(0.012, STAIRS.y0 - TRENCH.y0, 0.012),
     }),
     [],
   );
   const highway = v1.find((l) => /highway/i.test(l.text));
+  const preLast = new Set(pre.map((l) => l.words[l.words.length - 1]));
+  const Z = new THREE.Vector3(0, 0, 1);
+
+  // crack-tip sparks: a burst every 0.2 s from where the fracture front is
+  const tipBursts: number[] = [];
+  if (t > DROP && t < 29.5) for (let k = Math.ceil((t - 0.9 - DROP) / 0.2); DROP + k * 0.2 <= t; k++) if (k >= 0) tipBursts.push(DROP + k * 0.2);
 
   return (
     <>
-      <ambientLight intensity={inSky ? 0.18 : 0.035} />
+      <ambientLight intensity={inSky ? 0.18 : 0.03} />
       {/* ===================== ROOM ===================== */}
       {inRoom ? (
         <group>
-          <mesh geometry={G.roomFloor} material={M.floor} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, ROOM.depth / 2]} receiveShadow />
+          <mesh geometry={G.roomFloor} material={M.floor.m} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, ROOM.depth / 2]} />
           {[-1, 1].map((s) => (
-            <mesh key={s} geometry={G.roomWall} material={M.concrete} rotation={[0, (-s * Math.PI) / 2, 0]} position={[s * ROOM.halfW, ROOM.height / 2, ROOM.depth / 2]} />
+            <mesh key={s} geometry={G.roomWall} material={M.wall.m} rotation={[0, (-s * Math.PI) / 2, 0]} position={[s * ROOM.halfW, ROOM.height / 2, ROOM.depth / 2]} />
           ))}
-          {/* fluorescent tube */}
-          <mesh position={[0, 4.15, 1.6]} material={M.tube} scale={[1, 1, 1]}>
+          <lineSegments geometry={blueprint} material={M.blue} />
+          <mesh position={[0, 4.15, 1.6]} material={M.tube}>
             <boxGeometry args={[1.7, 0.045, 0.06]} />
           </mesh>
-          <pointLight position={[0, 3.95, 1.7]} intensity={26 * level} distance={0} decay={2} color="#e8f0ff" />
-          <spotLight position={[0, 4.1, 1.6]} target-position={[0, 0.8, 0.4]} angle={0.75} penumbra={0.9} intensity={60 * level} distance={0} decay={2} color="#f2f4ff" />
-          {/* key light from behind the camera so the stone words read */}
-          <pointLight position={[0.8, 2.6, 7.2]} intensity={14 * level} distance={0} decay={2} color="#ffe6c8" />
-          <pointLight position={[0.6, 1.6, 3.6]} intensity={5 * level * clamp01((t - built.start + 0.5) / 0.5)} distance={6} decay={1.5} color="#ffe2bd" />
-          {/* crack light spilling into the room after the drop */}
-          {t > DROP ? <pointLight position={[0, 2.6, 0.6]} intensity={6 * (0.6 + kick)} distance={0} decay={2} color="#ffa24a" /> : null}
-          {/* RUDO */}
+          <pointLight position={[0, 3.95, 1.7]} intensity={26 * level} distance={0} decay={2} color="#eef2ff" />
+          <spotLight position={[0, 4.1, 1.6]} angle={0.75} penumbra={0.9} intensity={60 * level} distance={0} decay={2} color="#f2f4ff" />
+          <pointLight position={[1.6, 2.4, 6.4]} intensity={9 * level} distance={0} decay={2} color="#ffe6c8" />
+          <pointLight position={[-1.2, 1.4, 3.4]} intensity={5 * level * clamp01((t - built.start + 0.5) / 0.5)} distance={6} decay={1.5} color="#ffe2bd" />
+          {t > DROP ? <pointLight position={[0, 2.6, 0.6]} intensity={6 * (0.6 + kick)} distance={0} decay={2} color="#ff7a3a" /> : null}
+          {/* RUDO, engraved */}
           {(() => {
             const asp = (a.rudo.image as HTMLImageElement).width / (a.rudo.image as HTMLImageElement).height;
             const h = 1.36;
-            M.rudo.color.setScalar(0.08 + 0.92 * level);
             return (
               <>
-                <mesh position={[RUDO_POS.x, h / 2 - 0.03, RUDO_POS.z]} material={M.rudo}>
+                <mesh position={[RUDO_POS.x, h / 2 - 0.03, RUDO_POS.z]} material={M.photo}>
                   <planeGeometry args={[h * asp, h]} />
                 </mesh>
                 <mesh position={[0, 0.003, RUDO_POS.z + 0.25]} rotation={[-Math.PI / 2, 0, 0]} material={M.shadow}>
@@ -506,27 +533,24 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
               </>
             );
           })()}
-          {/* NOBODY HANDED ME NOTHING! — stone words slam into the space between us and him */}
-          {nobody.words.map((w, i) => {
-            const P: [number, number, number][] = [[-0.05, 2.2, 4.0], [-0.17, 1.84, 4.2], [0.27, 1.84, 4.2], [0.02, 1.45, 4.4]];
-            const R: [number, number, number][] = [[0, 0.2, 0.02], [0, -0.14, 0], [0, -0.14, 0], [0, 0.08, -0.02]];
-            const S = [0.34, 0.25, 0.25, 0.32];
-            return (
-              <Word3D key={i} font={a.bebas} family="bebas" text={w.w.toUpperCase()} size={S[i]} depth={0.14} material={M.stone} hot={M.hot} t={t} at={w.s} out={built.start - 0.2} reveal="slam" position={P[i]} rotation={R[i]} />
-            );
-          })}
-          {/* So I built it! — a wall of lettered bricks */}
+          {/* NOBODY HANDED ME NOTHING! */}
+          <Panel at={new THREE.Vector3(0.04, 1.98, 4.15)} face={new THREE.Vector3(0.1, 1.6, 7.6)} up={new THREE.Vector3(0, 1, 0)} tilt={[0, 0.16, 0.02]}>
+            <FillLine font={a.inter} line={nobody} t={t} size={0.2} maxW={0.8} mats={TM} mode="slam" out={built.start - 0.2} sparks={SP} />
+          </Panel>
+          {/* So I built it! — lettered bricks */}
           <group position={[-1.75, 0, 2.35]} rotation={[0, 1.0, 0]}>
             {bricks.map((b, i) => {
               if (t < b.t0) return null;
               const p = clamp01((t - b.t0) / 0.3);
               const land = t - b.t0 - 0.3;
               const dy = (1 - p * p) * 3.2 + (land > 0 ? Math.abs(Math.sin(land * 26)) * 0.05 * Math.exp(-land / 0.07) : 0);
-              const g = wordGeo(a.bebas, b.ch, 0.22, 0.03, "bebas");
+              const lit = land > 0;
               return (
                 <group key={i} position={[b.x, b.y + dy, 0]} rotation={[0, (1 - p) * 0.6, (1 - p) * 0.3]}>
-                  <mesh material={M.brick} geometry={G.box} scale={[b.w, 0.3, 0.3]} />
-                  <mesh geometry={g.geo} material={M.brickInk} position={[0, 0, 0.152]} />
+                  <mesh material={M.brick.m} geometry={G.box} scale={[b.w, 0.3, 0.3]} />
+                  <lineSegments geometry={G.boxEdges} material={M.edge} scale={[b.w * 1.002, 0.302, 0.302]} />
+                  <mesh geometry={letterGeo(a.inter, b.ch, 0.17)} material={lit ? (i >= bricks.length - 3 ? TM.accent : TM.lit) : TM.ghost} position={[-advance(a.inter, b.ch, 0.17) / 2, -0.065, 0.152]} />
+                  <SparkBurst t={t} at={b.t0 + 0.3} origin={[0, -0.15, 0.1]} count={26} speed={2.2} spread={1.4} gravity={[0, -7, 0]} mat={SP} seed={i + 5} life={0.45} dir={[0, 0.4, 1]} />
                 </group>
               );
             })}
@@ -534,112 +558,115 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
           {/* RUDO / SHOUT IT TO THE SKY set into the wall */}
           {t > TITLE_IN
             ? "RUDO".split("").map((ch, i) => {
-                const p = cubicOut(clamp01((t - TITLE_IN - i * 0.18) / 1.4));
-                return <Word3D key={ch} font={a.bebas} family="bebas" text={ch} size={0.55} depth={0.08} material={M.stone} t={t} at={TITLE_IN} position={[(i - 1.5) * 0.72, 3.15, -0.05 + p * 0.09]} reveal="glide" />;
+                const p = cubicOut(clamp01((t - TITLE_IN - i * 0.18) / 1.0));
+                if (p <= 0) return null;
+                return <mesh key={ch} geometry={letterGeo(a.inter, ch, 0.42)} material={p < 0.25 ? TM.hot : TM.lit} position={[(i - 1.5) * 0.66 - advance(a.inter, ch, 0.42) / 2, 2.98 - (1 - p) * 0.08, 0.01]} />;
               })
             : null}
-          {t > TITLE_IN + 0.9 ? <Word3D font={a.oswald} family="oswald" text="SHOUT IT TO THE SKY" size={0.085} depth={0.015} material={M.stone} t={t} at={TITLE_IN + 0.9} position={[0, 2.66, 0.02]} reveal="glide" /> : null}
+          {t > TITLE_IN + 0.9
+            ? [..."SHOUT IT TO THE SKY"].map((ch, i, arr) => {
+                if (ch === " " || t < TITLE_IN + 0.9 + i * 0.03) return null;
+                const x0 = arr.slice(0, i).reduce((s2, c) => s2 + advance(a.inter, c, 0.07) + 0.035, 0);
+                const total = arr.reduce((s2, c) => s2 + advance(a.inter, c, 0.07) + 0.035, 0);
+                return <mesh key={i} geometry={letterGeo(a.inter, ch, 0.07)} material={TM.accent} position={[x0 - total / 2, 2.66, 0.01]} />;
+              })
+            : null}
         </group>
       ) : null}
 
       {/* ===================== THE WALL (later: the ground) ===================== */}
       <group>
-        <WallPiece x0={-40} x1={-TRENCH.halfW} y0={0} y1={EDGE} mat={M.concrete} />
-        <WallPiece x0={TRENCH.halfW} x1={40} y0={0} y1={EDGE} mat={M.concrete} />
-        <WallPiece x0={-TRENCH.halfW} x1={TRENCH.halfW} y0={0} y1={SLOT.y0} mat={M.concrete} />
-        <WallPiece x0={-TRENCH.halfW} x1={-SLOT.halfW} y0={SLOT.y0} y1={SLOT.y1} mat={M.concrete} />
-        <WallPiece x0={SLOT.halfW} x1={TRENCH.halfW} y0={SLOT.y0} y1={SLOT.y1} mat={M.concrete} />
-        <WallPiece x0={-TRENCH.halfW} x1={TRENCH.halfW} y0={SLOT.y1} y1={LID.y0} mat={M.concrete} />
-        <WallPiece x0={-TRENCH.halfW} x1={TRENCH.halfW} y0={LID.y1} y1={EDGE} mat={M.concrete} />
-        {/* the lid over the stairs: whole until the chorus, then it blows out */}
+        <WallPiece x0={-40} x1={-TRENCH.halfW} y0={0} y1={EDGE} mat={inSky ? M.roof.m : M.wall.m} />
+        <WallPiece x0={TRENCH.halfW} x1={40} y0={0} y1={EDGE} mat={inSky ? M.roof.m : M.wall.m} />
+        <WallPiece x0={-TRENCH.halfW} x1={TRENCH.halfW} y0={0} y1={SLOT.y0} mat={M.wall.m} />
+        <WallPiece x0={-TRENCH.halfW} x1={-SLOT.halfW} y0={SLOT.y0} y1={SLOT.y1} mat={M.wall.m} />
+        <WallPiece x0={SLOT.halfW} x1={TRENCH.halfW} y0={SLOT.y0} y1={SLOT.y1} mat={M.wall.m} />
+        <WallPiece x0={-TRENCH.halfW} x1={TRENCH.halfW} y0={SLOT.y1} y1={LID.y0} mat={M.wall.m} />
+        <WallPiece x0={-TRENCH.halfW} x1={TRENCH.halfW} y0={LID.y1} y1={EDGE} mat={inSky ? M.roof.m : M.wall.m} />
         {t < CH1.start ? (
-          <WallPiece x0={-TRENCH.halfW} x1={TRENCH.halfW} y0={LID.y0} y1={LID.y1} mat={M.concrete} />
+          <WallPiece x0={-TRENCH.halfW} x1={TRENCH.halfW} y0={LID.y0} y1={LID.y1} mat={M.wall.m} />
         ) : (
           lidShards.map((s, i) => {
-            const d = t - CH1.start;
-            if (d > 3) return null;
-            const e = d;
-            return (
-              <mesh key={i} geometry={s.geo} material={M.concrete} position={[s.c.x + s.v.x * e, s.c.y + s.v.y * e, s.c.z + s.v.z * e - 4.9 * e * e]} rotation={[s.spin.x * e, s.spin.y * e, s.spin.z * e]} />
-            );
+            const e = t - CH1.start;
+            if (e > 3) return null;
+            return <mesh key={i} geometry={s.geo} material={M.roof.m} position={[s.c.x + s.v.x * e, s.c.y + s.v.y * e, s.c.z + s.v.z * e - 4.9 * e * e]} rotation={[s.spin.x * e, s.spin.y * e, s.spin.z * e]} />;
           })
         )}
         {t > DROP && t < 30 ? (
           <>
-            <pointLight position={[0.3, cam.pos.y + 3.5, 0.9]} intensity={22 * (0.7 + 0.5 * kick)} distance={18} decay={1.2} color="#ffab55" />
-            <pointLight position={[-2.5, cam.pos.y + 10, 4]} intensity={30} distance={40} decay={1.1} color="#8aa6c8" />
+            <pointLight position={[0.3, cam.pos.y + 3.5, 0.9]} intensity={22 * (0.7 + 0.5 * kick)} distance={18} decay={1.2} color="#ff8a4a" />
+            <pointLight position={[-2.5, cam.pos.y + 10, 4]} intensity={30} distance={40} decay={1.1} color="#b8c2cc" />
           </>
         ) : null}
         <mesh geometry={cracks.geo} material={cracks.mat} position={[0, 0, 0.012]} />
         <mesh geometry={cracks.geo} material={cracks.mat} position={[0, 0, -0.012]} />
+        {tipBursts.map((tb) => {
+          const ty = Math.min(SLOT.y0, CRACK_ORIGIN.y + tipAt(tb) - 6.5);
+          return <SparkBurst key={tb} t={t} at={tb} origin={[mainX(ty), ty, 0.03]} count={30} speed={3.2} spread={0.9} gravity={tb < DROP + 0.6 ? [0, -7, 0] : [0, 0, -7]} mat={SP} seed={Math.round(tb * 10)} life={0.55} dir={tb < DROP + 0.6 ? [0, 0.3, 1] : [0, 0.5, 1]} />;
+        })}
       </group>
 
       {/* ===================== TRENCH (verse 1) + STAIRS (pre-chorus) ===================== */}
       {t > 27 && t < CH1.start + 2.5 ? (
         <group>
-          <mesh geometry={G.trFloor} material={M.floor} position={[0, (TRENCH.y0 + TRENCH.y1) / 2, TRENCH.floor]} />
+          <mesh geometry={G.trFloor} material={M.cold.m} position={[0, (TRENCH.y0 + TRENCH.y1) / 2, TRENCH.floor]} />
           {[-1, 1].map((s) => (
-            <mesh key={s} geometry={G.trWall} material={M.concrete} position={[s * TRENCH.halfW, (TRENCH.y0 + TRENCH.y1) / 2, TRENCH.floor / 2]} rotation={[0, (-s * Math.PI) / 2, 0]} />
+            <mesh key={s} geometry={G.trWall} material={M.cold.m} position={[s * TRENCH.halfW, (TRENCH.y0 + TRENCH.y1) / 2, TRENCH.floor / 2]} rotation={[0, (-s * Math.PI) / 2, 0]} />
           ))}
-          <mesh geometry={G.trCap} material={M.concrete} position={[0, TRENCH.y0, TRENCH.floor / 2]} rotation={[Math.PI / 2, 0, 0]} />
-          {/* cables and data packets */}
+          <mesh geometry={G.trCap} material={M.cold.m} position={[0, TRENCH.y0, TRENCH.floor / 2]} rotation={[Math.PI / 2, 0, 0]} />
           {cables.map((g, i) => (
             <mesh key={i} geometry={g} material={M.cable} />
           ))}
           {Array.from({ length: 36 }, (_, i) => {
             const lane = i % 6;
             const y = TRENCH.y0 + ((t * (11 + (i % 5)) + i * 7.3) % (STAIRS.y0 - TRENCH.y0));
-            return <mesh key={i} geometry={packetGeo} material={M.packet} position={[-1.25 + lane * 0.5 + Math.sin(y * 0.11 + lane) * 0.12, y, TRENCH.floor + 0.12]} scale={[1, 6, 1]} />;
+            return <mesh key={i} geometry={G.packet} material={M.packet} position={[-1.25 + lane * 0.5 + Math.sin(y * 0.11 + lane) * 0.12, y, TRENCH.floor + 0.1]} scale={[1, 8, 1]} />;
           })}
-          {/* LED strips: clean lines that draw the perspective */}
-          {[-1, 1].flatMap((s) =>
-            [-2.4, -7.6].map((z) => <mesh key={`${s}${z}`} geometry={ledGeo} material={M.led} position={[s * (TRENCH.halfW - 0.02), (TRENCH.y0 + STAIRS.y0) / 2, z]} />),
-          )}
-          {/* moving light pool that travels with us (fixed grid, so the lights don't swim) */}
+          {[-1, 1].flatMap((s) => [-2.4, -7.6].map((z) => <mesh key={`${s}${z}`} geometry={G.led} material={M.led} position={[s * (TRENCH.halfW - 0.02), (TRENCH.y0 + STAIRS.y0) / 2, z]} />))}
           {[0, 1, 2].map((i) => {
             const y = Math.floor(cam.pos.y / 9) * 9 + i * 9;
-            return <pointLight key={i} position={[0, y, -3.2]} intensity={14} distance={16} decay={1.4} color="#7cc4ff" />;
+            return <pointLight key={i} position={[0, y, -3.2]} intensity={16} distance={16} decay={1.4} color="#d7e4ee" />;
           })}
-          {/* headlights down the highway */}
           {highway && t > highway.start - 0.2 && t < highway.end + 1.2
             ? Array.from({ length: 10 }, (_, i) => {
                 const d = t - highway.start - i * 0.12;
                 if (d < 0) return null;
                 const y = cam.pos.y + 26 - d * 38;
                 const s = i % 2 ? 1 : -1;
-                return (
-                  <mesh key={i} geometry={G.box} position={[s * 1.25, y, TRENCH.floor + 0.4 + (i % 3) * 0.5]} material={i % 3 === 0 ? M.red : M.packet} scale={[0.05, 2.6, 0.05]} />
-                );
+                return <mesh key={i} geometry={G.box} position={[s * 1.25, y, TRENCH.floor + 0.4 + (i % 3) * 0.5]} material={i % 3 === 0 ? M.packet : M.led} scale={[0.03, 2.6, 0.03]} />;
               })
             : null}
-          {/* verse 1: each line hangs in the canyon at an angle; we fly through it */}
           {v1.map((l, i) => {
             const at = lineAnchor(l, 0.35);
             const side = i % 2 ? 1 : -1;
             const pos = new THREE.Vector3(side * 0.16, at.y, at.z + (i % 3 === 0 ? 0.2 : -0.25));
             const from = camAt(l.start).pos;
-            const pick = (w: string) => (/^red$/i.test(w) ? M.red : /server|switch|port/i.test(w) ? M.cyan : undefined);
             return (
-              <LinePanel key={l.id} a={a} line={l} t={t} family="oswald" size={0.21} maxW={1.85} mat={M.steel} hot={M.hot} pick={pick} reveal="snap" at={pos} face={new THREE.Vector3(from.x * 0.5, from.y, from.z)} up={new THREE.Vector3(0, 0, 1)} tilt={[0, side * 0.22, side * 0.04]} />
+              <Panel key={l.id} at={pos} face={new THREE.Vector3(from.x * 0.5, from.y, from.z)} up={Z} tilt={[0, side * 0.22, side * 0.04]}>
+                <FillLine font={a.inter} line={l} t={t} size={0.19} maxW={1.85} mats={TM} base="steel" accentAll={/^red$/i} sparks={SP} />
+              </Panel>
             );
           })}
-          {/* pre-chorus: one step per word */}
           {stepsVisible
             ? PRE_WORDS.map((w, k) => {
                 if (t < w.s - 0.02) return null;
                 const s = stepPos(k);
                 const h = s.z - TRENCH.floor;
                 const p = expoOut(clamp01((t - w.s) / 0.22));
+                const mini = { id: `S${k}`, section: "prechorus1", text: w.w, style: "rap" as const, words: [w], start: w.s, end: w.e, anchored: 1 };
                 return (
                   <group key={k}>
-                    <mesh material={M.floor} geometry={G.box} position={[0, s.y + STAIRS.run / 2, TRENCH.floor + (h * p) / 2]} scale={[TRENCH.halfW * 2 - 0.02, STAIRS.run, Math.max(0.001, h * p)]} />
-                    <Word3D font={a.bebas} family="bebas" text={w.w.toUpperCase()} size={STAIR_RISE * 0.72} depth={0.025} material={M.stone} hot={M.hot} t={t} at={w.s} reveal="snap" position={[0, s.y - 0.015, s.z - STAIR_RISE * 0.5]} rotation={[Math.PI / 2, 0, 0]} />
+                    <mesh material={M.cold.m} geometry={G.box} position={[0, s.y + STAIRS.run / 2, TRENCH.floor + (h * p) / 2]} scale={[TRENCH.halfW * 2 - 0.02, STAIRS.run, Math.max(0.001, h * p)]} />
+                    <lineSegments geometry={G.boxEdges} material={M.edge} position={[0, s.y + STAIRS.run / 2, TRENCH.floor + (h * p) / 2]} scale={[TRENCH.halfW * 2 - 0.02, STAIRS.run, Math.max(0.001, h * p)]} />
+                    <group position={[0, s.y - 0.02, s.z - STAIR_RISE * 0.5]} rotation={[Math.PI / 2, 0, 0]}>
+                      <FillLine font={a.inter} line={mini} t={t} size={STAIR_RISE * 0.62} maxW={3} mats={TM} accentLast={preLast.has(w)} />
+                    </group>
                   </group>
                 );
               })
             : null}
-          {stepsVisible ? <pointLight position={[0, LID.y0 + 1, -0.8]} intensity={4 + 30 * clamp01((t - PRE_WORDS[0].s) / (CH1.start - PRE_WORDS[0].s))} distance={30} decay={1.5} color="#ffb867" /> : null}
-          {stepsVisible ? <pointLight position={[0.6, cam.pos.y + 1.6, cam.pos.z + 0.6]} intensity={14} distance={10} decay={1.2} color="#ffd2a0" /> : null}
+          {stepsVisible ? <pointLight position={[0, LID.y0 + 1, -0.8]} intensity={4 + 30 * clamp01((t - PRE_WORDS[0].s) / (CH1.start - PRE_WORDS[0].s))} distance={30} decay={1.5} color="#ffb084" /> : null}
+          {stepsVisible ? <pointLight position={[0.6, cam.pos.y + 1.6, cam.pos.z + 0.6]} intensity={16} distance={10} decay={1.2} color="#f4ead9" /> : null}
         </group>
       ) : null}
 
@@ -652,11 +679,10 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
           <points geometry={stars} material={starMat} frustumCulled={false} />
           <points geometry={city} material={starMat} frustumCulled={false} />
           <hemisphereLight args={["#2b3050", "#120c08", 0.6]} />
-          <directionalLight position={[0, 400, 30]} intensity={1.6} color="#ffb260" />
+          <directionalLight position={[0, 400, 30]} intensity={1.8} color="#ffb070" />
           <mesh position={[0, EDGE - 0.01, 0.02]} material={M.rim}>
-            <boxGeometry args={[80, 0.03, 0.04]} />
+            <boxGeometry args={[80, 0.025, 0.03]} />
           </mesh>
-          {/* RUDO at the edge, against the glow */}
           {(() => {
             const asp = (a.rudo.image as HTMLImageElement).width / (a.rudo.image as HTMLImageElement).height;
             const h = 1.36;
@@ -672,18 +698,23 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
             );
           })()}
           <points geometry={emberGeo} material={emberMat} frustumCulled={false} />
-          {/* chorus lines launch up off the roof like flares, then burst into embers */}
           {ch1.map((l, i) => {
             const out = outOf(l, 1.1);
             const c0 = camAt(l.start);
             const c1 = camAt(out);
             const fwd = c1.look.clone().sub(c1.pos).normalize();
-            const at = c1.pos.clone().addScaledVector(fwd, 4.6).add(new THREE.Vector3(0, 0, 0.15));
+            const at = c1.pos.clone().addScaledVector(fwd, 4.6).add(new THREE.Vector3(0, 0, 0.55));
             const chant = /grinding/i.test(l.text);
             const s = 1 + (chant ? kickEnv(t, 0.12) * 0.08 : 0);
             return (
               <React.Fragment key={l.id}>
-                <LinePanel a={a} line={l} t={t} family="bebas" size={0.5} maxW={2.5} mat={M.gold} hot={M.goldHot} reveal="flare" at={at} face={c0.pos.clone().lerp(c1.pos, 0.5)} up={c1.up} tilt={[0, (i % 2 ? 1 : -1) * 0.12, 0]} out={out} chant={chant} scale={s} />
+                <Panel at={at} face={c0.pos.clone().lerp(c1.pos, 0.5)} up={c1.up} tilt={[0, (i % 2 ? 1 : -1) * 0.12, 0]}>
+                  <group scale={s}>
+                    <FillLine font={a.inter} line={l} t={t} size={/universe/i.test(l.text) ? 0.5 : 0.44} maxW={2.2} mats={TM} out={out} chant={chant} sparks={SP} />
+                    {/* grinder spray off the chant */}
+                    {chant ? <SparkBurst t={t} at={l.start} origin={[1.0, -0.1, 0.05]} count={260} rate={110} speed={4.2} spread={0.35} gravity={[0, -6, 0]} mat={SP} seed={i * 31} life={0.6} dir={[1, 0.45, 0.3]} /> : null}
+                  </group>
+                </Panel>
                 <Burst t={t} at={out} center={at} up={c1.up} spread={2.4} mat={emberMat} seed={i * 17 + 3} />
               </React.Fragment>
             );
@@ -693,4 +724,3 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
     </>
   );
 };
-

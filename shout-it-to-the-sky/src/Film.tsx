@@ -8,6 +8,7 @@ import { ensureFonts } from "./utils/fonts";
 import { hash01 } from "./utils/random";
 import { GlideLine, RapLine } from "./text/Kinetic";
 import { ChromaDefs, Flash, Grade, Grain, LightLeaks, Vignette } from "./fx/Post";
+import { Hud } from "./fx/Hud";
 import { useAssets } from "./three/assets";
 import { DROP, World } from "./three/World";
 import { CH1 } from "./three/layout";
@@ -56,7 +57,7 @@ export const Film: React.FC<{ muted?: boolean }> = ({ muted }) => {
   const rot = (hash01(f + 13) - 0.5) * shakeAmp * 0.04;
   const ca = Math.min(16, imp * 11);
   const burst = t >= CH1.start && t < CH1.start + 0.8 ? Math.exp(-(t - CH1.start) / 0.16) * 0.75 : 0;
-  const warmth = t > CH1.start ? 1 : t > DROP ? 0.45 : 0.25;
+  const warmth = t > CH1.start ? 0.7 : t > DROP ? 0.3 : 0.12;
 
   return (
     <AbsoluteFill style={{ background: C.black }}>
@@ -71,6 +72,7 @@ export const Film: React.FC<{ muted?: boolean }> = ({ muted }) => {
         ) : (
           <Generic t={t} id={sec.id} />
         )}
+        {t < JOURNEY_END ? <Hud t={t} /> : null}
       </AbsoluteFill>
       <LightLeaks t={t} amount={warmth * (0.35 + 0.35 * kickEnv(t, 0.3)) + Math.min(0.5, imp * 0.35)} />
       <Flash v={Math.min(0.3, imp * 0.16) + burst * 0.6} color={burst > 0.05 ? "255,214,150" : "255,244,225"} />
