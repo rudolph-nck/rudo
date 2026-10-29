@@ -6,8 +6,8 @@ import { Line } from "../data";
 import { clamp01, cubicOut, mix } from "../utils/ease";
 import { rng } from "../utils/random";
 
-// RUDO palette: monochrome stone/concrete greys; the accent is white light, not a hue.
-export const ACCENT = "#ffffff";
+// RUDO palette: monochrome concrete greys; the pop is the cover's warm stone grey (the RUDO lettering), lifted.
+export const ACCENT = "#c4b6a2";
 
 // ---------------------------------------------------------------------------------------------
 // letters
@@ -30,8 +30,8 @@ const wordW = (font: Font, w: string, size: number) => [...w].reduce((a, ch) => 
 /** Shared flat type materials: ghost (unspoken letters), lit, accent, hot flash. */
 export const typeMats = () => ({
   ghost: new THREE.MeshBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0.13, depthWrite: false }),
-  lit: new THREE.MeshBasicMaterial({ color: "#a8a49d" }),
-  accent: new THREE.MeshBasicMaterial({ color: new THREE.Color("#f4f2ee").multiplyScalar(1.25), toneMapped: false }),
+  lit: new THREE.MeshBasicMaterial({ color: "#e4e2de" }),
+  accent: new THREE.MeshBasicMaterial({ color: new THREE.Color(ACCENT).multiplyScalar(0.95), toneMapped: false }),
   hot: new THREE.MeshBasicMaterial({ color: new THREE.Color("#ffffff").multiplyScalar(2.2), toneMapped: false }),
   steel: new THREE.MeshBasicMaterial({ color: "#9ea3a6" }),
 });
