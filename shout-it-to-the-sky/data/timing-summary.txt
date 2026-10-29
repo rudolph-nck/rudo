@@ -1,0 +1,113 @@
+duration 4:01.22  bpm 143.55  beats 557  downbeats 139  kicks 307
+lines 97  words 706  ASR-anchored 641 (91%)
+
+[0:00.00 – 0:29.21] Intro
+   0:04.64–0:06.64  impact 100%  NOBODY HANDED ME NOTHING! hit 0:04.64
+   0:08.80–0:10.94  sung   100%  So I built it!
+   0:19.84–0:20.86  adlib  100%  Still grinding!
+   0:23.28–0:24.30  adlib  100%  Still grinding!
+   0:25.28–0:26.38  adlib  100%  Still grinding!
+   0:26.96–0:28.06  adlib  100%  Still grinding!
+[0:29.21 – 0:49.73] Verse 1: Fast Aggressive Rap
+   0:30.16–0:32.00  rap    100%  Started with a headset in a cold back room
+   0:32.00–0:33.68  rap    100%  Password resets, eating noodles at noon
+   0:33.68–0:35.52  rap    88%  Bank account red and I'm praying on Fridays
+   0:35.52–0:37.25  rap    100%  Ten-year-old whip smoking down the highway
+   0:37.36–0:38.80  rap    100%  Nobody knew me, nobody called
+   0:38.80–0:40.69  rap    100%  Just a kid with a dream and his back to the wall
+   0:40.72–0:42.37  rap    100%  Took every shift, took every class
+   0:42.40–0:44.00  rap    100%  Took every no and I put it in the gas
+   0:44.00–0:45.68  rap    100%  Learned every server, every switch, every port
+   0:45.68–0:47.36  rap    100%  Fixed every outage when the night ran short
+   0:47.36–0:49.04  rap    100%  Now I lead the team from the seat where I sat
+   0:49.04–0:50.80  rap    100%  Same screen, new title, and I earned all that!
+[0:49.73 – 0:58.27] Pre-Chorus: Rising, Intense
+   0:50.80–0:52.64  rap    86%  Every door they closed built another stair
+   0:52.64–0:54.07  rap    89%  Every no they gave me got me right here
+   0:54.05–0:55.92  rap    73%  Now I'm standing on the roof with my chest out loud
+   0:55.92–0:57.89  rap    100%  Let me hear it, let me hear it, let me say it now!
+[0:58.27 – 1:20.43] Chorus: Sung, Belted, Anthemic
+   0:58.64–1:00.94  sung   100%  I'ma shout it to the sky!
+   1:02.08–1:04.46  sung   100%  Every scar, every night!
+   1:04.96–1:07.58  sung   100%  Came up from the floor alive!
+   1:08.08–1:12.72  sung   100%  Still grinding! Still grinding! Still grinding!
+   1:12.72–1:13.92  sung   100%  Building that legacy!
+   1:13.92–1:15.44  sung   100%  Till the whole world remembers me!
+   1:15.44–1:17.34  sung   60%  Shout it to the universe!
+   1:17.44–1:20.62  sung   100%  Still grinding! Still grinding!
+[1:20.43 – 1:39.14] Post-Chorus: Shouted Rap
+   1:20.80–1:22.32  impact 100%  STILL GRINDING, STILL CLIMBING! hit 1:20.80
+   1:22.32–1:24.08  rap    100%  Came up from the floor, now look at me shining!
+   1:24.08–1:25.81  rap    100%  No time to play, no time to wait!
+   1:25.84–1:27.57  rap    100%  Building that legacy every single day!
+   1:29.20–1:31.01  rap    50%  Building that legacy every single day!
+   1:32.72–1:34.37  rap    17%  Building that legacy every single day!   <-- low anchor
+[1:39.14 – 2:12.87] Verse 2
+   1:40.08–1:42.00  rap    100%  Clock out at five, but I never clock out
+   1:42.00–1:43.68  rap    100%  Pull up to the flip, it's a gut, tear it out
+   1:43.68–1:45.36  rap    100%  Rip up the floors, pull the nails, break the tile
+   1:45.36–1:47.04  rap    100%  Sledgehammer swinging, I been here a while
+   1:47.04–1:48.72  rap    100%  Frame up the walls, every stud, every line
+   1:48.72–1:50.68  rap    100%  Hang that drywall, screw it tight, keep it plumb every time
+   1:50.64–1:52.16  rap    50%  Throw that mud, feather it out like glass
+   1:52.16–1:53.68  rap    89%  Lay that tile, set it straight, built to last
+   1:53.68–1:55.32  rap    100%  Fix the bones of a house they left for dead
+   1:55.28–1:57.44  rap    100%  Make it beautiful again like the life I'm building instead
+   1:57.44–1:59.28  rap    100%  I won't accept mediocre, won't settle for less
+   1:59.28–2:01.01  rap    70%  Average is a cage and I'm too stubborn to rest
+   2:01.04–2:02.56  rap    88%  Bank account red, yeah, it's red like before
+   2:02.56–2:04.16  rap    100%  Every dollar I got is in the walls and the floor
+   2:04.16–2:05.88  rap    62%  Maxed out, stretched thin, pushing limits every day
+   2:05.84–2:07.92  rap    50%  People see the after pics, don't see what I paid
+   2:07.92–2:10.45  rap    100%  They don't see the cost, they just see the shine
+   2:10.88–2:13.84  rap    100%  Every house I flip is a step up the line!
+[2:12.87 – 2:21.25] Pre-Chorus: Rising, Intense
+   2:13.84–2:15.76  rap    100%  Every door they closed built another stair
+   2:15.76–2:17.20  rap    56%  Every no they gave me got me right here
+   2:17.20–2:18.96  rap    100%  Now I'm standing on the roof with my chest out loud
+   2:18.96–2:20.93  rap    100%  Let me hear it, let me hear it, let me say it now!
+[2:21.25 – 2:41.37] Chorus: Sung, Belted, Anthemic
+   2:21.60–2:23.98  sung   83%  I'ma shout it to the sky!
+   2:24.98–2:27.34  sung   75%  Every scar, every night!
+   2:27.84–2:30.20  sung   83%  Came up from the floor alive!
+   2:30.88–2:35.36  sung   83%  Still grinding! Still grinding! Still grinding!
+   2:35.36–2:36.50  sung   0%  Building that legacy!   <-- low anchor
+   2:36.50–2:38.32  sung   83%  Till the whole world remembers me!
+   2:38.32–2:40.00  sung   100%  Shout it to the universe!
+   2:40.00–2:42.24  sung   100%  Still grinding! Still grinding!
+[2:41.37 – 3:01.41] Verse 3
+   2:42.24–2:44.72  rap    100%  And when the world gets quiet and the house goes still
+   2:44.72–2:46.32  rap    100%  I grab the mic and I let it all spill
+   2:46.32–2:48.05  rap    100%  This is where I breathe, this is where I flow
+   2:48.08–2:49.60  rap    100%  Every line clean, every word on go
+   2:49.60–2:51.28  rap    100%  Spit it real fast but I say it real clear
+   2:51.28–2:52.88  rap    40%  Every bar's a brick that I been stacking for years   <-- low anchor
+   2:52.88–2:54.08  rap    100%  Tired eyes but the pen don't stop
+   2:54.08–2:55.92  rap    100%  No sleep, no breaks, still I'm climbing to the top
+   2:55.92–2:57.44  rap    80%  Learning every day, I ain't the same as last week
+   2:57.44–2:59.12  rap    100%  Every L is a lesson, every lesson's a peak
+   2:59.12–3:00.80  rap    88%  IT by the day, flipping houses by dusk
+   3:00.80–3:02.88  rap    100%  Spitting by midnight, three lives, one hustle, no rust!
+[3:01.41 – 3:11.38] Bridge: Half-time, Sung, Raw
+   3:02.88–3:04.56  sung   100%  To the kid in the back with the holes in his shoes
+   3:04.56–3:06.24  sung   100%  To the one on the night shift paying his dues
+   3:06.24–3:07.60  sung   100%  Keep going, I know it's slow
+   3:07.60–3:10.78  sung   100%  I'm the proof that the slow ones grow!
+[3:11.38 – 3:32.93] Chorus: Sung, Belted, Anthemic
+   3:11.68–3:14.06  sung   100%  I'ma shout it to the sky!
+   3:16.32–3:17.84  sung   0%  Every scar, every night!   <-- low anchor
+   3:17.84–3:20.70  sung   33%  Came up from the floor alive!   <-- low anchor
+   3:20.88–3:25.44  sung   100%  Still grinding! Still grinding! Still grinding!
+   3:25.44–3:26.56  sung   100%  Building that legacy!
+   3:26.56–3:28.24  sung   100%  Till the whole world remembers me!
+   3:28.24–3:29.92  sung   100%  Shout it to the universe!
+   3:29.92–3:33.18  sung   100%  Still grinding! Still grinding!
+[3:32.93 – 3:44.49] Post-Chorus: Shouted Rap
+   3:33.20–3:34.80  impact 100%  STILL GRINDING, STILL CLIMBING! hit 3:33.20
+   3:34.80–3:36.48  rap    100%  Came up from the floor, now look at me shining!
+   3:36.48–3:38.13  rap    100%  No time to play, no time to wait!
+   3:38.16–3:39.97  rap    100%  Building that legacy every single day!
+   3:41.44–3:43.33  rap    50%  Building that legacy every single day!
+[3:44.49 – 4:01.22] Outro
+   3:45.68–3:46.80  impact 100%  STILL GRINDING! hit 3:45.72
+   3:58.80–3:59.90  adlib  100%  Still grinding!

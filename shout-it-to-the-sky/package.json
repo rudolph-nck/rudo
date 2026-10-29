@@ -1,0 +1,30 @@
+{
+  "name": "shout-it-to-the-sky",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kinetic lyric video — Shout It to the Sky by RUDO (Static & Silence, Vol. 1)",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "still": "remotion still src/index.ts",
+    "render": "remotion render src/index.ts LyricVideo renders/final/shout-it-to-the-sky.mp4",
+    "preview": "remotion render src/index.ts Preview renders/previews/preview-15s.mp4",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource/bebas-neue": "^5.2.0",
+    "@fontsource/oswald": "^5.2.0",
+    "@fontsource/caveat": "^5.2.0",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@react-three/fiber": "^9.8.1",
+    "@remotion/cli": "^4.0.530",
+    "@remotion/three": "^4.0.530",
+    "@remotion/noise": "^4.0.530",
+    "@types/react": "^19.3.0",
+    "@types/three": "^0.186.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "remotion": "^4.0.530",
+    "three": "^0.186.1",
+    "typescript": "^5.6.0"
+  }
+}
