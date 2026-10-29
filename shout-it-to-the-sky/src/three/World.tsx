@@ -61,48 +61,55 @@ const buildCracks = () => {
       const s = 0.12 + r() * 0.1;
       if (main) {
         // the main crack heads up the wall toward the slot, then runs straight along the lid
-        const target = y < SLOT.y0 ? Math.PI / 2 + (-x * 0.9) : Math.PI / 2 - x * 3;
+        const target = y < SLOT.y0 ? Math.PI / 2 + x * 0.9 : Math.PI / 2 + x * 3;
         ang += (target - ang) * 0.25 + (y < SLOT.y0 ? (r() - 0.5) * 0.7 : 0);
       } else ang += (r() - 0.5) * 0.8;
       const nx = x + Math.cos(ang) * s, ny = y + Math.sin(ang) * s;
       const ww = main ? w : w * (1 - (L / len) * 0.8);
-      segs.push({ a: new THREE.Vector2(x, y), b: new THREE.Vector2(nx, ny), d0: d + L, d1: d + L + s, w: ww });
+      segs.push({ a: new THREE.Vector2(x, y), b: new THREE.Vector2(nx, ny), d0: main ? y - CRACK_ORIGIN.y : d + L, d1: main ? ny - CRACK_ORIGIN.y : d + L + s, w: ww });
       x = nx; y = ny; L += s;
-      if (depth < 3 && r() < (main ? 0.06 : 0.07)) walk(x, y, ang + (r() < 0.5 ? -1 : 1) * (0.5 + r() * 0.8), (main ? 1.2 + r() * 4 : len * 0.4), main ? 0.03 : ww * 0.7, d + L, depth + 1);
+      if (depth < 3 && r() < (main ? 0.06 : 0.07)) walk(x, y, ang + (r() < 0.5 ? -1 : 1) * (0.5 + r() * 0.8), (main ? 1.2 + r() * 4 : len * 0.4), main ? 0.03 : ww * 0.7, main ? y - CRACK_ORIGIN.y : d + L, depth + 1);
       if (main && y > LID.y0) break;
     }
   };
-  walk(CRACK_ORIGIN.x, CRACK_ORIGIN.y, Math.PI / 2, 999, 0.055, 0, 0, true);
+  walk(CRACK_ORIGIN.x, CRACK_ORIGIN.y, Math.PI / 2, 999, 0.065, 0, 0, true);
   for (let i = 0; i < 9; i++) {
     const a = (i / 9) * Math.PI * 2 + 0.3;
     if (Math.abs(a - Math.PI / 2) < 0.4) continue;
     walk(CRACK_ORIGIN.x, CRACK_ORIGIN.y, a, 1.2 + r() * 2.2, 0.035, 0, 1);
   }
-  const pos: number[] = [], dist: number[] = [], idx: number[] = [];
+  const pos: number[] = [], dist: number[] = [], side: number[] = [], idx: number[] = [];
   segs.forEach((s, i) => {
     const dir = s.b.clone().sub(s.a).normalize();
     const n = new THREE.Vector2(-dir.y, dir.x).multiplyScalar(s.w / 2);
     const v = [s.a.clone().add(n), s.a.clone().sub(n), s.b.clone().add(n), s.b.clone().sub(n)];
     v.forEach((p) => pos.push(p.x, p.y, 0));
     dist.push(s.d0, s.d0, s.d1, s.d1);
+    side.push(1, -1, 1, -1);
     const o = i * 4;
     idx.push(o, o + 1, o + 2, o + 1, o + 3, o + 2);
   });
   const g = new THREE.BufferGeometry();
   g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute("aD", new THREE.Float32BufferAttribute(dist, 1));
+  g.setAttribute("aS", new THREE.Float32BufferAttribute(side, 1));
   g.setIndex(idx);
   return g;
 };
 const crackMat = () =>
   new THREE.ShaderMaterial({
     uniforms: { uTip: { value: 0 }, uGlow: { value: 1 } },
-    vertexShader: `attribute float aD; varying float vD; void main(){ vD=aD; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
-    fragmentShader: `uniform float uTip; uniform float uGlow; varying float vD;
+    vertexShader: `attribute float aD; attribute float aS; varying float vD; varying float vS; void main(){ vD=aD; vS=aS; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
+    fragmentShader: `uniform float uTip; uniform float uGlow; varying float vD; varying float vS;
       void main(){ if(vD>uTip) discard; float hot=exp(-(uTip-vD)*0.9);
-        vec3 c=vec3(1.0,0.62,0.22)*uGlow*(1.4+3.5*hot); gl_FragColor=vec4(c,1.0);} `,
+        float core=exp(-vS*vS*7.0); vec3 lava=vec3(1.0,0.5,0.12)*uGlow*(1.6+1.6*hot);
+        vec3 c=mix(vec3(0.05,0.025,0.01),lava,core); gl_FragColor=vec4(c,1.0);} `,
     side: THREE.DoubleSide,
     toneMapped: false,
+    // sits on the wall: win the depth test without z-fighting at long range
+    polygonOffset: true,
+    polygonOffsetFactor: -4,
+    polygonOffsetUnits: -4,
   });
 
 // ---------------------------------------------------------------------------------------------
@@ -118,8 +125,8 @@ const skyMat = () =>
         vec3 zen=vec3(0.012,0.018,0.05); vec3 mid=vec3(0.04,0.035,0.08); vec3 hor=vec3(0.95,0.58,0.24);
         vec3 c=mix(mid,zen,smoothstep(0.0,0.7,up));
         float h=smoothstep(0.22,-0.01,up);
-        c=mix(c,hor,h*h*(0.12+0.88*pow(toward,4.0))*(0.55+0.35*uGlow));
-        c+=vec3(1.0,0.75,0.42)*exp(-pow(up*20.0,2.0))*pow(toward,14.0)*(0.5+0.6*uGlow);
+        c=mix(c,hor*0.8,h*h*(0.1+0.9*pow(toward,5.0))*(0.45+0.3*uGlow));
+        c+=vec3(1.0,0.75,0.42)*exp(-pow(up*30.0,2.0))*pow(toward,18.0)*(0.3+0.35*uGlow);
         if(up<-0.02) c=mix(c,vec3(0.02,0.015,0.015),smoothstep(-0.02,-0.15,up));
         gl_FragColor=vec4(c*uFade,1.0);
       }`,
@@ -255,14 +262,14 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
     const floor = concrete.clone();
     floor.color = new THREE.Color("#6f6a63");
     floor.roughness = 0.78;
-    const stone = new THREE.MeshStandardMaterial({ map: a.concrete, color: "#efe4d1", roughness: 0.82, metalness: 0.02 });
-    const hot = new THREE.MeshStandardMaterial({ color: "#ffffff", emissive: "#fff1d8", emissiveIntensity: 2.2 });
+    const stone = new THREE.MeshStandardMaterial({ map: a.concrete, color: "#efe4d1", roughness: 0.82, metalness: 0.02, emissive: "#3a3128", emissiveIntensity: 0.6 });
+    const hot = new THREE.MeshStandardMaterial({ color: "#ffffff", emissive: "#fff1d8", emissiveIntensity: 0.7 });
     const steel = new THREE.MeshStandardMaterial({ color: "#d9e6ef", emissive: "#2c5f86", emissiveIntensity: 0.55, roughness: 0.35, metalness: 0.5 });
-    const cyan = new THREE.MeshStandardMaterial({ color: "#a8e4ff", emissive: "#3bb8ff", emissiveIntensity: 2.4, toneMapped: false });
-    const red = new THREE.MeshStandardMaterial({ color: "#ff5546", emissive: "#ff2414", emissiveIntensity: 2.2, toneMapped: false });
-    const gold = new THREE.MeshStandardMaterial({ color: "#ffe2a8", emissive: "#ffae45", emissiveIntensity: 1.9, roughness: 0.4, toneMapped: false });
-    const goldHot = new THREE.MeshStandardMaterial({ color: "#ffffff", emissive: "#fff0c8", emissiveIntensity: 4, toneMapped: false });
-    const brick = new THREE.MeshStandardMaterial({ map: a.concrete, color: "#b9a588", roughness: 0.9 });
+    const cyan = new THREE.MeshStandardMaterial({ color: "#a8e4ff", emissive: "#3bb8ff", emissiveIntensity: 1.1, toneMapped: false });
+    const red = new THREE.MeshStandardMaterial({ color: "#ff5546", emissive: "#ff2414", emissiveIntensity: 1.0, toneMapped: false });
+    const gold = new THREE.MeshStandardMaterial({ color: "#ffe2a8", emissive: "#ff9a2e", emissiveIntensity: 0.55, roughness: 0.45, toneMapped: false });
+    const goldHot = new THREE.MeshStandardMaterial({ color: "#ffffff", emissive: "#fff0c8", emissiveIntensity: 1.4, toneMapped: false });
+    const brick = new THREE.MeshStandardMaterial({ map: a.concrete, color: "#d9c6a8", roughness: 0.9, emissive: "#2a221a", emissiveIntensity: 0.5 });
     const brickInk = new THREE.MeshStandardMaterial({ color: "#2b231c", roughness: 0.7 });
     const tube = new THREE.MeshBasicMaterial({ color: "#ffffff", toneMapped: false });
     const rudo = new THREE.MeshBasicMaterial({ map: a.rudo, transparent: true, depthWrite: true, alphaTest: 0.35 });
@@ -282,7 +289,7 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
 
   const cracks = useMemo(() => ({ geo: buildCracks(), mat: crackMat() }), []);
   const sky = useMemo(() => skyMat(), []);
-  const starMat = useMemo(() => pointsMat(300), []);
+  const starMat = useMemo(() => pointsMat(520), []);
   const emberMat = useMemo(() => pointsMat(260), []);
   const SKY_C = useMemo(() => new THREE.Vector3(0, 175, 0), []);
   const stars = useMemo(
@@ -333,7 +340,7 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
   const composer = useMemo(() => {
     const c = new EffectComposer(gl);
     c.addPass(new RenderPass(scene, camera));
-    const b = new UnrealBloomPass(new THREE.Vector2(size.width / 2, size.height / 2), 0.85, 0.55, 0.82);
+    const b = new UnrealBloomPass(new THREE.Vector2(size.width / 2, size.height / 2), 0.5, 0.45, 0.9);
     c.addPass(b);
     c.addPass(new OutputPass());
     return { c, b };
@@ -349,7 +356,7 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
     c.up.copy(cam.up);
     c.lookAt(cam.look);
     c.fov = cam.fov;
-    c.near = 0.04;
+    c.near = t > DROP && t < 29.4 ? 0.12 : 0.04;
     c.far = 3000;
     c.updateProjectionMatrix();
   });
@@ -367,7 +374,7 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
 
   const tip = t < DROP ? -1 : Math.max(3.5 * expoOut(clamp01((t - DROP) / 0.45)), cam.pos.y - CRACK_ORIGIN.y + 9 + (t - DROP) * 0.1);
   cracks.mat.uniforms.uTip.value = Math.min(tip, 400);
-  cracks.mat.uniforms.uGlow.value = 0.9 + 0.5 * Math.min(1, kickEnv(t, 0.25)) + 1.2 * Math.exp(-Math.max(0, t - DROP) / 0.35);
+  cracks.mat.uniforms.uGlow.value = 0.8 + 0.35 * Math.min(1, kickEnv(t, 0.25)) + 0.3 * Math.exp(-Math.max(0, t - DROP) / 0.35);
   sky.uniforms.uGlow.value = 0.8 + 0.5 * kickEnv(t, 0.3);
   starMat.uniforms.uTime.value = t;
   starMat.uniforms.uFade.value = inSky ? clamp01((t - CH1.start + 0.4) / 1.2) : 0;
@@ -478,6 +485,9 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
           </mesh>
           <pointLight position={[0, 3.95, 1.7]} intensity={26 * level} distance={0} decay={2} color="#e8f0ff" />
           <spotLight position={[0, 4.1, 1.6]} target-position={[0, 0.8, 0.4]} angle={0.75} penumbra={0.9} intensity={60 * level} distance={0} decay={2} color="#f2f4ff" />
+          {/* key light from behind the camera so the stone words read */}
+          <pointLight position={[0.8, 2.6, 7.2]} intensity={14 * level} distance={0} decay={2} color="#ffe6c8" />
+          <pointLight position={[0.6, 1.6, 3.6]} intensity={5 * level * clamp01((t - built.start + 0.5) / 0.5)} distance={6} decay={1.5} color="#ffe2bd" />
           {/* crack light spilling into the room after the drop */}
           {t > DROP ? <pointLight position={[0, 2.6, 0.6]} intensity={6 * (0.6 + kick)} distance={0} decay={2} color="#ffa24a" /> : null}
           {/* RUDO */}
@@ -498,15 +508,15 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
           })()}
           {/* NOBODY HANDED ME NOTHING! — stone words slam into the space between us and him */}
           {nobody.words.map((w, i) => {
-            const P: [number, number, number][] = [[-0.25, 2.12, 5.25], [-0.12, 1.55, 5.45], [0.42, 1.55, 5.45], [0.02, 0.92, 5.7]];
+            const P: [number, number, number][] = [[-0.05, 2.2, 4.0], [-0.17, 1.84, 4.2], [0.27, 1.84, 4.2], [0.02, 1.45, 4.4]];
             const R: [number, number, number][] = [[0, 0.2, 0.02], [0, -0.14, 0], [0, -0.14, 0], [0, 0.08, -0.02]];
-            const S = [0.62, 0.44, 0.44, 0.6];
+            const S = [0.34, 0.25, 0.25, 0.32];
             return (
               <Word3D key={i} font={a.bebas} family="bebas" text={w.w.toUpperCase()} size={S[i]} depth={0.14} material={M.stone} hot={M.hot} t={t} at={w.s} out={built.start - 0.2} reveal="slam" position={P[i]} rotation={R[i]} />
             );
           })}
           {/* So I built it! — a wall of lettered bricks */}
-          <group position={[1.75, 0, 2.35]} rotation={[0, -1.0, 0]}>
+          <group position={[-1.75, 0, 2.35]} rotation={[0, 1.0, 0]}>
             {bricks.map((b, i) => {
               if (t < b.t0) return null;
               const p = clamp01((t - b.t0) / 0.3);
@@ -554,8 +564,14 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
             );
           })
         )}
-        <mesh geometry={cracks.geo} material={cracks.mat} position={[0, 0, 0.006]} />
-        <mesh geometry={cracks.geo} material={cracks.mat} position={[0, 0, -0.006]} />
+        {t > DROP && t < 30 ? (
+          <>
+            <pointLight position={[0.3, cam.pos.y + 3.5, 0.9]} intensity={22 * (0.7 + 0.5 * kick)} distance={18} decay={1.2} color="#ffab55" />
+            <pointLight position={[-2.5, cam.pos.y + 10, 4]} intensity={30} distance={40} decay={1.1} color="#8aa6c8" />
+          </>
+        ) : null}
+        <mesh geometry={cracks.geo} material={cracks.mat} position={[0, 0, 0.012]} />
+        <mesh geometry={cracks.geo} material={cracks.mat} position={[0, 0, -0.012]} />
       </group>
 
       {/* ===================== TRENCH (verse 1) + STAIRS (pre-chorus) ===================== */}
@@ -582,7 +598,7 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
           {/* moving light pool that travels with us (fixed grid, so the lights don't swim) */}
           {[0, 1, 2].map((i) => {
             const y = Math.floor(cam.pos.y / 9) * 9 + i * 9;
-            return <pointLight key={i} position={[0, y, -3.2]} intensity={7} distance={14} decay={1.6} color="#7cc4ff" />;
+            return <pointLight key={i} position={[0, y, -3.2]} intensity={14} distance={16} decay={1.4} color="#7cc4ff" />;
           })}
           {/* headlights down the highway */}
           {highway && t > highway.start - 0.2 && t < highway.end + 1.2
@@ -600,11 +616,11 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
           {v1.map((l, i) => {
             const at = lineAnchor(l, 0.35);
             const side = i % 2 ? 1 : -1;
-            const pos = new THREE.Vector3(side * 0.42, at.y, at.z + (i % 3 === 0 ? 0.25 : -0.35));
+            const pos = new THREE.Vector3(side * 0.16, at.y, at.z + (i % 3 === 0 ? 0.2 : -0.25));
             const from = camAt(l.start).pos;
             const pick = (w: string) => (/^red$/i.test(w) ? M.red : /server|switch|port/i.test(w) ? M.cyan : undefined);
             return (
-              <LinePanel key={l.id} a={a} line={l} t={t} family="oswald" size={0.25} maxW={2.3} mat={M.steel} hot={M.hot} pick={pick} reveal="snap" at={pos} face={new THREE.Vector3(from.x * 0.5, from.y, from.z)} up={new THREE.Vector3(0, 0, 1)} tilt={[0, side * 0.32, side * 0.05]} />
+              <LinePanel key={l.id} a={a} line={l} t={t} family="oswald" size={0.21} maxW={1.85} mat={M.steel} hot={M.hot} pick={pick} reveal="snap" at={pos} face={new THREE.Vector3(from.x * 0.5, from.y, from.z)} up={new THREE.Vector3(0, 0, 1)} tilt={[0, side * 0.22, side * 0.04]} />
             );
           })}
           {/* pre-chorus: one step per word */}
@@ -617,12 +633,13 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
                 return (
                   <group key={k}>
                     <mesh material={M.floor} geometry={G.box} position={[0, s.y + STAIRS.run / 2, TRENCH.floor + (h * p) / 2]} scale={[TRENCH.halfW * 2 - 0.02, STAIRS.run, Math.max(0.001, h * p)]} />
-                    <Word3D font={a.bebas} family="bebas" text={w.w.toUpperCase()} size={0.34} depth={0.08} material={M.stone} hot={M.hot} t={t} at={w.s} reveal="rise" position={[((k % 3) - 1) * 0.55, s.y + STAIRS.run * 0.55, s.z + 0.19]} rotation={[Math.PI / 2, 0, 0]} />
+                    <Word3D font={a.bebas} family="bebas" text={w.w.toUpperCase()} size={STAIR_RISE * 0.72} depth={0.025} material={M.stone} hot={M.hot} t={t} at={w.s} reveal="snap" position={[0, s.y - 0.015, s.z - STAIR_RISE * 0.5]} rotation={[Math.PI / 2, 0, 0]} />
                   </group>
                 );
               })
             : null}
           {stepsVisible ? <pointLight position={[0, LID.y0 + 1, -0.8]} intensity={4 + 30 * clamp01((t - PRE_WORDS[0].s) / (CH1.start - PRE_WORDS[0].s))} distance={30} decay={1.5} color="#ffb867" /> : null}
+          {stepsVisible ? <pointLight position={[0.6, cam.pos.y + 1.6, cam.pos.z + 0.6]} intensity={14} distance={10} decay={1.2} color="#ffd2a0" /> : null}
         </group>
       ) : null}
 
@@ -657,18 +674,17 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
           <points geometry={emberGeo} material={emberMat} frustumCulled={false} />
           {/* chorus lines launch up off the roof like flares, then burst into embers */}
           {ch1.map((l, i) => {
-            const ta = l.start;
-            const c0 = camAt(ta);
-            const fwd = c0.look.clone().sub(c0.pos).normalize();
-            const D = /universe/i.test(l.text) ? 7.5 : 6.2;
-            const at = c0.pos.clone().addScaledVector(fwd, D).add(new THREE.Vector3(0, 0, 0.25));
             const out = outOf(l, 1.1);
+            const c0 = camAt(l.start);
+            const c1 = camAt(out);
+            const fwd = c1.look.clone().sub(c1.pos).normalize();
+            const at = c1.pos.clone().addScaledVector(fwd, 4.6).add(new THREE.Vector3(0, 0, 0.15));
             const chant = /grinding/i.test(l.text);
             const s = 1 + (chant ? kickEnv(t, 0.12) * 0.08 : 0);
             return (
               <React.Fragment key={l.id}>
-                <LinePanel a={a} line={l} t={t} family="bebas" size={0.5} maxW={2.5} mat={M.gold} hot={M.goldHot} reveal="flare" at={at} face={c0.pos} up={c0.up} tilt={[0, (i % 2 ? 1 : -1) * 0.12, 0]} out={out} chant={chant} scale={s} />
-                <Burst t={t} at={out} center={at} up={c0.up} spread={2.4} mat={emberMat} seed={i * 17 + 3} />
+                <LinePanel a={a} line={l} t={t} family="bebas" size={0.5} maxW={2.5} mat={M.gold} hot={M.goldHot} reveal="flare" at={at} face={c0.pos.clone().lerp(c1.pos, 0.5)} up={c1.up} tilt={[0, (i % 2 ? 1 : -1) * 0.12, 0]} out={out} chant={chant} scale={s} />
+                <Burst t={t} at={out} center={at} up={c1.up} spread={2.4} mat={emberMat} seed={i * 17 + 3} />
               </React.Fragment>
             );
           })}

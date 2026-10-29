@@ -52,10 +52,10 @@ const makeConcrete = (size = 1024) => {
   noiseLayer(64, 0.25, b, 90, 160);
 
   // knockdown splats
-  for (let i = 0; i < 1300; i++) {
+  for (let i = 0; i < 2600; i++) {
     const x = r() * size;
     const y = r() * size;
-    const rx = 5 + r() * 26;
+    const rx = 3 + r() * 13;
     const ry = rx * (0.5 + r() * 0.5);
     const rot = r() * Math.PI;
     const blob = (ctx: CanvasRenderingContext2D, ox: number, oy: number, fill: string) => {
@@ -75,10 +75,10 @@ const makeConcrete = (size = 1024) => {
       }
     };
     const tone = 120 + Math.floor(r() * 40);
-    blob(c, 1.5, 1.5, "rgba(20,18,16,0.20)");
-    blob(c, -0.8, -0.8, "rgba(235,228,215,0.10)");
-    blob(c, 0, 0, `rgba(${tone},${tone - 4},${tone - 10},0.55)`);
-    blob(b, 0, 0, "rgba(220,220,220,0.85)");
+    blob(c, 1.2, 1.2, "rgba(20,18,16,0.12)");
+    blob(c, -0.6, -0.6, "rgba(235,228,215,0.06)");
+    blob(c, 0, 0, `rgba(${tone},${tone - 4},${tone - 10},0.22)`);
+    blob(b, 0, 0, "rgba(200,200,200,0.6)");
   }
   // stains and pores
   for (let i = 0; i < 14; i++) {

@@ -65,7 +65,7 @@ export const Film: React.FC<{ muted?: boolean }> = ({ muted }) => {
         {t < JOURNEY_END ? (
           assets ? (
             <ThreeCanvas width={W} height={H} style={{ position: "absolute", inset: 0 }} gl={{ antialias: true, preserveDrawingBuffer: true }}>
-              <World t={t} a={assets} bloom={0.75 + 0.35 * kickEnv(t, 0.3) * (t > CH1.start ? 1 : 0.4)} />
+              <World t={t} a={assets} bloom={0.45 + 0.25 * kickEnv(t, 0.3) * (t > CH1.start ? 1 : 0.4)} />
             </ThreeCanvas>
           ) : null
         ) : (
@@ -73,7 +73,7 @@ export const Film: React.FC<{ muted?: boolean }> = ({ muted }) => {
         )}
       </AbsoluteFill>
       <LightLeaks t={t} amount={warmth * (0.35 + 0.35 * kickEnv(t, 0.3)) + Math.min(0.5, imp * 0.35)} />
-      <Flash v={Math.min(0.5, imp * 0.3) + burst} color={burst > 0.05 ? "255,214,150" : "255,244,225"} />
+      <Flash v={Math.min(0.3, imp * 0.16) + burst * 0.6} color={burst > 0.05 ? "255,214,150" : "255,244,225"} />
       <Vignette strength={0.62} />
       <Grain opacity={0.12} />
       {muted ? null : <Audio src={staticFile("audio/shout-it-to-the-sky.m4a")} startFrom={Math.round(offset * FPS)} />}

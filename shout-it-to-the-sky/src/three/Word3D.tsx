@@ -68,9 +68,8 @@ export const Word3D: React.FC<{
   let sx = 1, sy = 1, sz = 1, ox = 0, oy = 0, oz = 0, ry = 0;
   if (reveal === "slam") {
     const p = cubicOut(clamp01(dt / 0.12));
-    const s = mix(2.4, 1, p) * (1 + 0.04 * Math.exp(-Math.max(0, dt - 0.12) / 0.07) * Math.sin(dt * 70));
+    const s = mix(1.6, 1, p) * (1 + 0.04 * Math.exp(-Math.max(0, dt - 0.12) / 0.07) * Math.sin(dt * 70));
     sx = sy = sz = s;
-    oz = (1 - p) * size * 3;
   } else if (reveal === "snap") {
     const p = cubicOut(clamp01(dt / 0.08));
     sx = sy = sz = mix(1.35, 1, p);
@@ -101,7 +100,7 @@ export const Word3D: React.FC<{
     sz *= 1 + q * 0.5;
   }
   if (!vis) return null;
-  const useHot = hot && dt < 0.14;
+  const useHot = hot && dt < 0.08;
   return (
     <group position={position} rotation={euler}>
       <group position={[ox, oy, oz]} rotation={[0, ry, 0]} scale={[sx, sy, sz]}>
