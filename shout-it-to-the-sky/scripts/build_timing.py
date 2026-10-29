@@ -18,7 +18,7 @@ norm = lambda w: re.sub(r"[^a-z0-9]", "", w.lower())
 
 # ---------- lyrics ----------
 SECTION_KIND = {
-    "Intro": "intro", "Verse 1": "verse1", "Pre-Chorus": "prechorus", "Chorus": "chorus",
+    "Intro": "intro", "Final Chorus": "chorus", "Verse 1": "verse1", "Pre-Chorus": "prechorus", "Chorus": "chorus",
     "Post-Chorus": "postchorus", "Verse 2": "verse2", "Verse 3": "verse3", "Bridge": "bridge", "Outro": "outro",
 }
 sections, lines = [], []
@@ -31,6 +31,10 @@ for raw in LYR.splitlines():
     if m:
         tag = m.group(1)
         name = tag.split(":")[0].strip()
+        if name not in SECTION_KIND:  # performance notes: [Shouted], [Strings swell, 808 drop], [End]
+            if cur is not None:
+                cur.setdefault("notes", []).append(tag)
+            continue
         kind = SECTION_KIND[name]
         n = sum(1 for s in sections if s["kind"] == kind) + 1
         cur = {"id": f"{kind}{n}" if kind in ("chorus", "prechorus", "postchorus") else kind,
@@ -187,6 +191,19 @@ while k < n:
 for k, (li, wi, _) in enumerate(L):
     lines[li]["words"][wi]["s"] = round(t[k], 3)
     lines[li]["words"][wi]["src"] = "asr" if match[k] is not None else ("asr-loose" if t_loose[k] else "interp")
+
+# manual overrides: shift a whole line so it starts at the given time
+import os
+ap = f"{ROOT}/data/anchors.json"
+for key, at in (json.load(open(ap)).items() if os.path.exists(ap) else []):
+    if key.startswith("_"):
+        continue
+    sid, idx = key.split(":")
+    sec = next(x for x in sections if x["id"] == sid)
+    ln = next(x for x in lines if x["id"] == sec["lines"][int(idx)])
+    d = at - ln["words"][0]["s"]
+    for w in ln["words"]:
+        w["s"] = round(w["s"] + d, 3); w["src"] = "manual"
 
 TAIL = {"rap": 0.45, "impact": 0.8, "sung": 1.1, "adlib": 0.7}
 for li, ln in enumerate(lines):

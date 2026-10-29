@@ -2428,11 +2428,11 @@
    "label": "Intro",
    "lines": [
     "L000",
-    "L001",
-    "L002",
-    "L003",
-    "L004",
-    "L005"
+    "L001"
+   ],
+   "notes": [
+    "Strings swell, 808 drop",
+    "Shouted"
    ],
    "start": 0.0,
    "end": 29.211
@@ -2443,6 +2443,10 @@
    "tag": "Verse 1: Fast Aggressive Rap",
    "label": "Verse 1",
    "lines": [
+    "L002",
+    "L003",
+    "L004",
+    "L005",
     "L006",
     "L007",
     "L008",
@@ -2450,11 +2454,7 @@
     "L010",
     "L011",
     "L012",
-    "L013",
-    "L014",
-    "L015",
-    "L016",
-    "L017"
+    "L013"
    ],
    "start": 29.211,
    "end": 49.726
@@ -2465,10 +2465,10 @@
    "tag": "Pre-Chorus: Rising, Intense",
    "label": "Pre-Chorus",
    "lines": [
-    "L018",
-    "L019",
-    "L020",
-    "L021"
+    "L014",
+    "L015",
+    "L016",
+    "L017"
    ],
    "start": 49.726,
    "end": 58.27
@@ -2479,14 +2479,14 @@
    "tag": "Chorus: Sung, Belted, Anthemic",
    "label": "Chorus",
    "lines": [
+    "L018",
+    "L019",
+    "L020",
+    "L021",
     "L022",
     "L023",
     "L024",
-    "L025",
-    "L026",
-    "L027",
-    "L028",
-    "L029"
+    "L025"
    ],
    "start": 58.27,
    "end": 80.434
@@ -2497,12 +2497,10 @@
    "tag": "Post-Chorus: Shouted Rap",
    "label": "Post-Chorus",
    "lines": [
-    "L030",
-    "L031",
-    "L032",
-    "L033",
-    "L034",
-    "L035"
+    "L026",
+    "L027",
+    "L028",
+    "L029"
    ],
    "start": 80.434,
    "end": 99.138
@@ -2510,9 +2508,15 @@
   {
    "id": "verse2",
    "kind": "verse2",
-   "tag": "Verse 2",
+   "tag": "Verse 2: Fast Aggressive Rap",
    "label": "Verse 2",
    "lines": [
+    "L030",
+    "L031",
+    "L032",
+    "L033",
+    "L034",
+    "L035",
     "L036",
     "L037",
     "L038",
@@ -2524,13 +2528,7 @@
     "L044",
     "L045",
     "L046",
-    "L047",
-    "L048",
-    "L049",
-    "L050",
-    "L051",
-    "L052",
-    "L053"
+    "L047"
    ],
    "start": 99.138,
    "end": 132.865
@@ -2541,10 +2539,10 @@
    "tag": "Pre-Chorus: Rising, Intense",
    "label": "Pre-Chorus",
    "lines": [
-    "L054",
-    "L055",
-    "L056",
-    "L057"
+    "L048",
+    "L049",
+    "L050",
+    "L051"
    ],
    "start": 132.865,
    "end": 141.247
@@ -2555,14 +2553,14 @@
    "tag": "Chorus: Sung, Belted, Anthemic",
    "label": "Chorus",
    "lines": [
+    "L052",
+    "L053",
+    "L054",
+    "L055",
+    "L056",
+    "L057",
     "L058",
-    "L059",
-    "L060",
-    "L061",
-    "L062",
-    "L063",
-    "L064",
-    "L065"
+    "L059"
    ],
    "start": 141.247,
    "end": 161.367
@@ -2570,21 +2568,21 @@
   {
    "id": "verse3",
    "kind": "verse3",
-   "tag": "Verse 3",
+   "tag": "Verse 3: Rapid-Fire Flow, Clean and Fast",
    "label": "Verse 3",
    "lines": [
+    "L060",
+    "L061",
+    "L062",
+    "L063",
+    "L064",
+    "L065",
     "L066",
     "L067",
     "L068",
     "L069",
     "L070",
-    "L071",
-    "L072",
-    "L073",
-    "L074",
-    "L075",
-    "L076",
-    "L077"
+    "L071"
    ],
    "start": 161.367,
    "end": 181.406
@@ -2595,10 +2593,10 @@
    "tag": "Bridge: Half-time, Sung, Raw",
    "label": "Bridge",
    "lines": [
-    "L078",
-    "L079",
-    "L080",
-    "L081"
+    "L072",
+    "L073",
+    "L074",
+    "L075"
    ],
    "start": 181.406,
    "end": 191.379
@@ -2606,17 +2604,17 @@
   {
    "id": "chorus3",
    "kind": "chorus",
-   "tag": "Chorus: Sung, Belted, Anthemic",
-   "label": "Chorus",
+   "tag": "Final Chorus: Sung, Belted, Explosive",
+   "label": "Final Chorus",
    "lines": [
+    "L076",
+    "L077",
+    "L078",
+    "L079",
+    "L080",
+    "L081",
     "L082",
-    "L083",
-    "L084",
-    "L085",
-    "L086",
-    "L087",
-    "L088",
-    "L089"
+    "L083"
    ],
    "start": 191.379,
    "end": 212.927
@@ -2627,11 +2625,10 @@
    "tag": "Post-Chorus: Shouted Rap",
    "label": "Post-Chorus",
    "lines": [
-    "L090",
-    "L091",
-    "L092",
-    "L093",
-    "L094"
+    "L084",
+    "L085",
+    "L086",
+    "L087"
    ],
    "start": 212.927,
    "end": 224.491
@@ -2642,8 +2639,12 @@
    "tag": "Outro",
    "label": "Outro",
    "lines": [
-    "L095",
-    "L096"
+    "L088"
+   ],
+   "notes": [
+    "Strings and 808 ring out",
+    "Shouted",
+    "End"
    ],
    "start": 224.491,
    "end": 241.216
@@ -2723,98 +2724,6 @@
   },
   {
    "id": "L002",
-   "section": "intro",
-   "text": "Still grinding!",
-   "style": "adlib",
-   "words": [
-    {
-     "w": "Still",
-     "s": 19.84,
-     "src": "asr",
-     "e": 20.16
-    },
-    {
-     "w": "grinding!",
-     "s": 20.16,
-     "src": "asr",
-     "e": 20.86
-    }
-   ],
-   "start": 19.84,
-   "end": 20.86,
-   "anchored": 1.0
-  },
-  {
-   "id": "L003",
-   "section": "intro",
-   "text": "Still grinding!",
-   "style": "adlib",
-   "words": [
-    {
-     "w": "Still",
-     "s": 23.28,
-     "src": "asr",
-     "e": 23.6
-    },
-    {
-     "w": "grinding!",
-     "s": 23.6,
-     "src": "asr",
-     "e": 24.3
-    }
-   ],
-   "start": 23.28,
-   "end": 24.3,
-   "anchored": 1.0
-  },
-  {
-   "id": "L004",
-   "section": "intro",
-   "text": "Still grinding!",
-   "style": "adlib",
-   "words": [
-    {
-     "w": "Still",
-     "s": 25.28,
-     "src": "asr",
-     "e": 25.68
-    },
-    {
-     "w": "grinding!",
-     "s": 25.68,
-     "src": "asr",
-     "e": 26.38
-    }
-   ],
-   "start": 25.28,
-   "end": 26.38,
-   "anchored": 1.0
-  },
-  {
-   "id": "L005",
-   "section": "intro",
-   "text": "Still grinding!",
-   "style": "adlib",
-   "words": [
-    {
-     "w": "Still",
-     "s": 26.96,
-     "src": "asr",
-     "e": 27.36
-    },
-    {
-     "w": "grinding!",
-     "s": 27.36,
-     "src": "asr",
-     "e": 28.06
-    }
-   ],
-   "start": 26.96,
-   "end": 28.06,
-   "anchored": 1.0
-  },
-  {
-   "id": "L006",
    "section": "verse1",
    "text": "Started with a headset in a cold back room",
    "style": "rap",
@@ -2879,7 +2788,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L007",
+   "id": "L003",
    "section": "verse1",
    "text": "Password resets, eating noodles at noon",
    "style": "rap",
@@ -2926,7 +2835,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L008",
+   "id": "L004",
    "section": "verse1",
    "text": "Bank account red and I'm praying on Fridays",
    "style": "rap",
@@ -2985,7 +2894,7 @@
    "anchored": 0.88
   },
   {
-   "id": "L009",
+   "id": "L005",
    "section": "verse1",
    "text": "Ten-year-old whip smoking down the highway",
    "style": "rap",
@@ -3032,7 +2941,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L010",
+   "id": "L006",
    "section": "verse1",
    "text": "Nobody knew me, nobody called",
    "style": "rap",
@@ -3073,7 +2982,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L011",
+   "id": "L007",
    "section": "verse1",
    "text": "Just a kid with a dream and his back to the wall",
    "style": "rap",
@@ -3156,7 +3065,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L012",
+   "id": "L008",
    "section": "verse1",
    "text": "Took every shift, took every class",
    "style": "rap",
@@ -3203,7 +3112,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L013",
+   "id": "L009",
    "section": "verse1",
    "text": "Took every no and I put it in the gas",
    "style": "rap",
@@ -3274,7 +3183,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L014",
+   "id": "L010",
    "section": "verse1",
    "text": "Learned every server, every switch, every port",
    "style": "rap",
@@ -3327,7 +3236,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L015",
+   "id": "L011",
    "section": "verse1",
    "text": "Fixed every outage when the night ran short",
    "style": "rap",
@@ -3386,7 +3295,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L016",
+   "id": "L012",
    "section": "verse1",
    "text": "Now I lead the team from the seat where I sat",
    "style": "rap",
@@ -3463,7 +3372,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L017",
+   "id": "L013",
    "section": "verse1",
    "text": "Same screen, new title, and I earned all that!",
    "style": "rap",
@@ -3528,7 +3437,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L018",
+   "id": "L014",
    "section": "prechorus1",
    "text": "Every door they closed built another stair",
    "style": "rap",
@@ -3581,7 +3490,7 @@
    "anchored": 0.86
   },
   {
-   "id": "L019",
+   "id": "L015",
    "section": "prechorus1",
    "text": "Every no they gave me got me right here",
    "style": "rap",
@@ -3646,7 +3555,7 @@
    "anchored": 0.89
   },
   {
-   "id": "L020",
+   "id": "L016",
    "section": "prechorus1",
    "text": "Now I'm standing on the roof with my chest out loud",
    "style": "rap",
@@ -3723,7 +3632,7 @@
    "anchored": 0.73
   },
   {
-   "id": "L021",
+   "id": "L017",
    "section": "prechorus1",
    "text": "Let me hear it, let me hear it, let me say it now!",
    "style": "rap",
@@ -3812,7 +3721,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L022",
+   "id": "L018",
    "section": "chorus1",
    "text": "I'ma shout it to the sky!",
    "style": "sung",
@@ -3859,7 +3768,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L023",
+   "id": "L019",
    "section": "chorus1",
    "text": "Every scar, every night!",
    "style": "sung",
@@ -3894,7 +3803,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L024",
+   "id": "L020",
    "section": "chorus1",
    "text": "Came up from the floor alive!",
    "style": "sung",
@@ -3941,23 +3850,11 @@
    "anchored": 1.0
   },
   {
-   "id": "L025",
+   "id": "L021",
    "section": "chorus1",
-   "text": "Still grinding! Still grinding! Still grinding!",
+   "text": "Still grinding! Still grinding!",
    "style": "sung",
    "words": [
-    {
-     "w": "Still",
-     "s": 68.08,
-     "src": "asr",
-     "e": 68.48
-    },
-    {
-     "w": "grinding!",
-     "s": 68.48,
-     "src": "asr",
-     "e": 69.38
-    },
     {
      "w": "Still",
      "s": 69.76,
@@ -3983,12 +3880,12 @@
      "e": 72.72
     }
    ],
-   "start": 68.08,
+   "start": 69.76,
    "end": 72.72,
    "anchored": 1.0
   },
   {
-   "id": "L026",
+   "id": "L022",
    "section": "chorus1",
    "text": "Building that legacy!",
    "style": "sung",
@@ -4017,7 +3914,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L027",
+   "id": "L023",
    "section": "chorus1",
    "text": "Till the whole world remembers me!",
    "style": "sung",
@@ -4064,7 +3961,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L028",
+   "id": "L024",
    "section": "chorus1",
    "text": "Shout it to the universe!",
    "style": "sung",
@@ -4105,7 +4002,7 @@
    "anchored": 0.6
   },
   {
-   "id": "L029",
+   "id": "L025",
    "section": "chorus1",
    "text": "Still grinding! Still grinding!",
    "style": "sung",
@@ -4140,7 +4037,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L030",
+   "id": "L026",
    "section": "postchorus1",
    "text": "STILL GRINDING, STILL CLIMBING!",
    "style": "impact",
@@ -4176,7 +4073,7 @@
    "hit": 80.8
   },
   {
-   "id": "L031",
+   "id": "L027",
    "section": "postchorus1",
    "text": "Came up from the floor, now look at me shining!",
    "style": "rap",
@@ -4247,7 +4144,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L032",
+   "id": "L028",
    "section": "postchorus1",
    "text": "No time to play, no time to wait!",
    "style": "rap",
@@ -4306,7 +4203,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L033",
+   "id": "L029",
    "section": "postchorus1",
    "text": "Building that legacy every single day!",
    "style": "rap",
@@ -4353,101 +4250,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L034",
-   "section": "postchorus1",
-   "text": "Building that legacy every single day!",
-   "style": "rap",
-   "words": [
-    {
-     "w": "Building",
-     "s": 89.2,
-     "src": "interp",
-     "e": 89.44
-    },
-    {
-     "w": "that",
-     "s": 89.44,
-     "src": "interp",
-     "e": 89.68
-    },
-    {
-     "w": "legacy",
-     "s": 89.68,
-     "src": "interp",
-     "e": 89.92
-    },
-    {
-     "w": "every",
-     "s": 89.92,
-     "src": "asr",
-     "e": 90.16
-    },
-    {
-     "w": "single",
-     "s": 90.16,
-     "src": "asr",
-     "e": 90.56
-    },
-    {
-     "w": "day!",
-     "s": 90.56,
-     "src": "asr",
-     "e": 91.01
-    }
-   ],
-   "start": 89.2,
-   "end": 91.01,
-   "anchored": 0.5
-  },
-  {
-   "id": "L035",
-   "section": "postchorus1",
-   "text": "Building that legacy every single day!",
-   "style": "rap",
-   "words": [
-    {
-     "w": "Building",
-     "s": 92.72,
-     "src": "interp",
-     "e": 92.96
-    },
-    {
-     "w": "that",
-     "s": 92.96,
-     "src": "asr",
-     "e": 93.2
-    },
-    {
-     "w": "legacy",
-     "s": 93.2,
-     "src": "interp",
-     "e": 93.44
-    },
-    {
-     "w": "every",
-     "s": 93.44,
-     "src": "interp",
-     "e": 93.68
-    },
-    {
-     "w": "single",
-     "s": 93.68,
-     "src": "interp",
-     "e": 93.92
-    },
-    {
-     "w": "day!",
-     "s": 93.92,
-     "src": "interp",
-     "e": 94.37
-    }
-   ],
-   "start": 92.72,
-   "end": 94.37,
-   "anchored": 0.17
-  },
-  {
-   "id": "L036",
+   "id": "L030",
    "section": "verse2",
    "text": "Clock out at five, but I never clock out",
    "style": "rap",
@@ -4512,7 +4315,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L037",
+   "id": "L031",
    "section": "verse2",
    "text": "Pull up to the flip, it's a gut, tear it out",
    "style": "rap",
@@ -4589,7 +4392,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L038",
+   "id": "L032",
    "section": "verse2",
    "text": "Rip up the floors, pull the nails, break the tile",
    "style": "rap",
@@ -4660,7 +4463,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L039",
+   "id": "L033",
    "section": "verse2",
    "text": "Sledgehammer swinging, I been here a while",
    "style": "rap",
@@ -4713,7 +4516,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L040",
+   "id": "L034",
    "section": "verse2",
    "text": "Frame up the walls, every stud, every line",
    "style": "rap",
@@ -4772,7 +4575,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L041",
+   "id": "L035",
    "section": "verse2",
    "text": "Hang that drywall, screw it tight, keep it plumb every time",
    "style": "rap",
@@ -4849,7 +4652,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L042",
+   "id": "L036",
    "section": "verse2",
    "text": "Throw that mud, feather it out like glass",
    "style": "rap",
@@ -4908,7 +4711,7 @@
    "anchored": 0.5
   },
   {
-   "id": "L043",
+   "id": "L037",
    "section": "verse2",
    "text": "Lay that tile, set it straight, built to last",
    "style": "rap",
@@ -4973,7 +4776,7 @@
    "anchored": 0.89
   },
   {
-   "id": "L044",
+   "id": "L038",
    "section": "verse2",
    "text": "Fix the bones of a house they left for dead",
    "style": "rap",
@@ -5044,7 +4847,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L045",
+   "id": "L039",
    "section": "verse2",
    "text": "Make it beautiful again like the life I'm building instead",
    "style": "rap",
@@ -5115,7 +4918,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L046",
+   "id": "L040",
    "section": "verse2",
    "text": "I won't accept mediocre, won't settle for less",
    "style": "rap",
@@ -5174,7 +4977,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L047",
+   "id": "L041",
    "section": "verse2",
    "text": "Average is a cage and I'm too stubborn to rest",
    "style": "rap",
@@ -5245,7 +5048,7 @@
    "anchored": 0.7
   },
   {
-   "id": "L048",
+   "id": "L042",
    "section": "verse2",
    "text": "Bank account red, yeah, it's red like before",
    "style": "rap",
@@ -5304,7 +5107,7 @@
    "anchored": 0.88
   },
   {
-   "id": "L049",
+   "id": "L043",
    "section": "verse2",
    "text": "Every dollar I got is in the walls and the floor",
    "style": "rap",
@@ -5381,7 +5184,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L050",
+   "id": "L044",
    "section": "verse2",
    "text": "Maxed out, stretched thin, pushing limits every day",
    "style": "rap",
@@ -5440,7 +5243,7 @@
    "anchored": 0.62
   },
   {
-   "id": "L051",
+   "id": "L045",
    "section": "verse2",
    "text": "People see the after pics, don't see what I paid",
    "style": "rap",
@@ -5511,7 +5314,7 @@
    "anchored": 0.5
   },
   {
-   "id": "L052",
+   "id": "L046",
    "section": "verse2",
    "text": "They don't see the cost, they just see the shine",
    "style": "rap",
@@ -5582,7 +5385,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L053",
+   "id": "L047",
    "section": "verse2",
    "text": "Every house I flip is a step up the line!",
    "style": "rap",
@@ -5653,7 +5456,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L054",
+   "id": "L048",
    "section": "prechorus2",
    "text": "Every door they closed built another stair",
    "style": "rap",
@@ -5706,7 +5509,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L055",
+   "id": "L049",
    "section": "prechorus2",
    "text": "Every no they gave me got me right here",
    "style": "rap",
@@ -5771,7 +5574,7 @@
    "anchored": 0.56
   },
   {
-   "id": "L056",
+   "id": "L050",
    "section": "prechorus2",
    "text": "Now I'm standing on the roof with my chest out loud",
    "style": "rap",
@@ -5848,7 +5651,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L057",
+   "id": "L051",
    "section": "prechorus2",
    "text": "Let me hear it, let me hear it, let me say it now!",
    "style": "rap",
@@ -5937,7 +5740,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L058",
+   "id": "L052",
    "section": "chorus2",
    "text": "I'ma shout it to the sky!",
    "style": "sung",
@@ -5984,7 +5787,7 @@
    "anchored": 0.83
   },
   {
-   "id": "L059",
+   "id": "L053",
    "section": "chorus2",
    "text": "Every scar, every night!",
    "style": "sung",
@@ -6019,7 +5822,7 @@
    "anchored": 0.75
   },
   {
-   "id": "L060",
+   "id": "L054",
    "section": "chorus2",
    "text": "Came up from the floor alive!",
    "style": "sung",
@@ -6066,9 +5869,9 @@
    "anchored": 0.83
   },
   {
-   "id": "L061",
+   "id": "L055",
    "section": "chorus2",
-   "text": "Still grinding! Still grinding! Still grinding!",
+   "text": "Still grinding! Still grinding!",
    "style": "sung",
    "words": [
     {
@@ -6093,71 +5896,59 @@
      "w": "grinding!",
      "s": 152.96,
      "src": "asr",
-     "e": 153.86
-    },
-    {
-     "w": "Still",
-     "s": 154.16,
-     "src": "asr",
-     "e": 154.54
-    },
-    {
-     "w": "grinding!",
-     "s": 154.54,
-     "src": "interp",
-     "e": 155.36
+     "e": 153.26
     }
    ],
    "start": 150.88,
-   "end": 155.36,
-   "anchored": 0.83
+   "end": 153.26,
+   "anchored": 1.0
   },
   {
-   "id": "L062",
+   "id": "L056",
    "section": "chorus2",
    "text": "Building that legacy!",
    "style": "sung",
    "words": [
     {
      "w": "Building",
-     "s": 155.36,
+     "s": 153.26,
      "src": "interp",
-     "e": 155.74
+     "e": 153.56
     },
     {
      "w": "that",
-     "s": 155.74,
+     "s": 153.56,
      "src": "interp",
-     "e": 156.12
+     "e": 153.86
     },
     {
      "w": "legacy!",
-     "s": 156.12,
+     "s": 153.86,
      "src": "interp",
-     "e": 156.5
+     "e": 154.16
     }
    ],
-   "start": 155.36,
-   "end": 156.5,
+   "start": 153.26,
+   "end": 154.16,
    "anchored": 0.0
   },
   {
-   "id": "L063",
+   "id": "L057",
    "section": "chorus2",
    "text": "Till the whole world remembers me!",
    "style": "sung",
    "words": [
     {
      "w": "Till",
-     "s": 156.5,
-     "src": "interp",
-     "e": 156.88
+     "s": 154.16,
+     "src": "asr",
+     "e": 154.54
     },
     {
      "w": "the",
-     "s": 156.88,
-     "src": "asr",
-     "e": 156.96
+     "s": 154.54,
+     "src": "interp",
+     "e": 155.44
     },
     {
      "w": "whole",
@@ -6184,12 +5975,12 @@
      "e": 158.32
     }
    ],
-   "start": 156.5,
+   "start": 154.16,
    "end": 158.32,
    "anchored": 0.83
   },
   {
-   "id": "L064",
+   "id": "L058",
    "section": "chorus2",
    "text": "Shout it to the universe!",
    "style": "sung",
@@ -6230,7 +6021,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L065",
+   "id": "L059",
    "section": "chorus2",
    "text": "Still grinding! Still grinding!",
    "style": "sung",
@@ -6265,7 +6056,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L066",
+   "id": "L060",
    "section": "verse3",
    "text": "And when the world gets quiet and the house goes still",
    "style": "rap",
@@ -6342,7 +6133,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L067",
+   "id": "L061",
    "section": "verse3",
    "text": "I grab the mic and I let it all spill",
    "style": "rap",
@@ -6413,7 +6204,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L068",
+   "id": "L062",
    "section": "verse3",
    "text": "This is where I breathe, this is where I flow",
    "style": "rap",
@@ -6484,7 +6275,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L069",
+   "id": "L063",
    "section": "verse3",
    "text": "Every line clean, every word on go",
    "style": "rap",
@@ -6537,7 +6328,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L070",
+   "id": "L064",
    "section": "verse3",
    "text": "Spit it real fast but I say it real clear",
    "style": "rap",
@@ -6608,7 +6399,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L071",
+   "id": "L065",
    "section": "verse3",
    "text": "Every bar's a brick that I been stacking for years",
    "style": "rap",
@@ -6679,7 +6470,7 @@
    "anchored": 0.4
   },
   {
-   "id": "L072",
+   "id": "L066",
    "section": "verse3",
    "text": "Tired eyes but the pen don't stop",
    "style": "rap",
@@ -6732,7 +6523,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L073",
+   "id": "L067",
    "section": "verse3",
    "text": "No sleep, no breaks, still I'm climbing to the top",
    "style": "rap",
@@ -6803,7 +6594,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L074",
+   "id": "L068",
    "section": "verse3",
    "text": "Learning every day, I ain't the same as last week",
    "style": "rap",
@@ -6874,7 +6665,7 @@
    "anchored": 0.8
   },
   {
-   "id": "L075",
+   "id": "L069",
    "section": "verse3",
    "text": "Every L is a lesson, every lesson's a peak",
    "style": "rap",
@@ -6939,7 +6730,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L076",
+   "id": "L070",
    "section": "verse3",
    "text": "IT by the day, flipping houses by dusk",
    "style": "rap",
@@ -6998,7 +6789,7 @@
    "anchored": 0.88
   },
   {
-   "id": "L077",
+   "id": "L071",
    "section": "verse3",
    "text": "Spitting by midnight, three lives, one hustle, no rust!",
    "style": "rap",
@@ -7063,7 +6854,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L078",
+   "id": "L072",
    "section": "bridge",
    "text": "To the kid in the back with the holes in his shoes",
    "style": "sung",
@@ -7146,7 +6937,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L079",
+   "id": "L073",
    "section": "bridge",
    "text": "To the one on the night shift paying his dues",
    "style": "sung",
@@ -7217,7 +7008,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L080",
+   "id": "L074",
    "section": "bridge",
    "text": "Keep going, I know it's slow",
    "style": "sung",
@@ -7264,7 +7055,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L081",
+   "id": "L075",
    "section": "bridge",
    "text": "I'm the proof that the slow ones grow!",
    "style": "sung",
@@ -7323,7 +7114,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L082",
+   "id": "L076",
    "section": "chorus3",
    "text": "I'ma shout it to the sky!",
    "style": "sung",
@@ -7370,7 +7161,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L083",
+   "id": "L077",
    "section": "chorus3",
    "text": "Every scar, every night!",
    "style": "sung",
@@ -7405,7 +7196,7 @@
    "anchored": 0.0
   },
   {
-   "id": "L084",
+   "id": "L078",
    "section": "chorus3",
    "text": "Came up from the floor alive!",
    "style": "sung",
@@ -7452,9 +7243,9 @@
    "anchored": 0.33
   },
   {
-   "id": "L085",
+   "id": "L079",
    "section": "chorus3",
-   "text": "Still grinding! Still grinding! Still grinding!",
+   "text": "Still grinding! Still grinding!",
    "style": "sung",
    "words": [
     {
@@ -7479,36 +7270,24 @@
      "w": "grinding!",
      "s": 202.88,
      "src": "asr",
-     "e": 203.78
-    },
-    {
-     "w": "Still",
-     "s": 204.16,
-     "src": "asr",
-     "e": 204.56
-    },
-    {
-     "w": "grinding!",
-     "s": 204.56,
-     "src": "asr",
-     "e": 205.44
+     "e": 203.98
     }
    ],
    "start": 200.88,
-   "end": 205.44,
+   "end": 203.98,
    "anchored": 1.0
   },
   {
-   "id": "L086",
+   "id": "L080",
    "section": "chorus3",
    "text": "Building that legacy!",
    "style": "sung",
    "words": [
     {
      "w": "Building",
-     "s": 205.44,
+     "s": 204.56,
      "src": "asr",
-     "e": 205.76
+     "e": 205.46
     },
     {
      "w": "that",
@@ -7523,12 +7302,12 @@
      "e": 206.56
     }
    ],
-   "start": 205.44,
+   "start": 204.56,
    "end": 206.56,
    "anchored": 1.0
   },
   {
-   "id": "L087",
+   "id": "L081",
    "section": "chorus3",
    "text": "Till the whole world remembers me!",
    "style": "sung",
@@ -7575,7 +7354,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L088",
+   "id": "L082",
    "section": "chorus3",
    "text": "Shout it to the universe!",
    "style": "sung",
@@ -7616,7 +7395,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L089",
+   "id": "L083",
    "section": "chorus3",
    "text": "Still grinding! Still grinding!",
    "style": "sung",
@@ -7651,7 +7430,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L090",
+   "id": "L084",
    "section": "postchorus2",
    "text": "STILL GRINDING, STILL CLIMBING!",
    "style": "impact",
@@ -7687,7 +7466,7 @@
    "hit": 213.2
   },
   {
-   "id": "L091",
+   "id": "L085",
    "section": "postchorus2",
    "text": "Came up from the floor, now look at me shining!",
    "style": "rap",
@@ -7758,7 +7537,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L092",
+   "id": "L086",
    "section": "postchorus2",
    "text": "No time to play, no time to wait!",
    "style": "rap",
@@ -7817,7 +7596,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L093",
+   "id": "L087",
    "section": "postchorus2",
    "text": "Building that legacy every single day!",
    "style": "rap",
@@ -7864,54 +7643,7 @@
    "anchored": 1.0
   },
   {
-   "id": "L094",
-   "section": "postchorus2",
-   "text": "Building that legacy every single day!",
-   "style": "rap",
-   "words": [
-    {
-     "w": "Building",
-     "s": 221.44,
-     "src": "interp",
-     "e": 221.68
-    },
-    {
-     "w": "that",
-     "s": 221.68,
-     "src": "interp",
-     "e": 221.92
-    },
-    {
-     "w": "legacy",
-     "s": 221.92,
-     "src": "interp",
-     "e": 222.16
-    },
-    {
-     "w": "every",
-     "s": 222.16,
-     "src": "asr",
-     "e": 222.4
-    },
-    {
-     "w": "single",
-     "s": 222.4,
-     "src": "asr",
-     "e": 222.88
-    },
-    {
-     "w": "day!",
-     "s": 222.88,
-     "src": "asr",
-     "e": 223.33
-    }
-   ],
-   "start": 221.44,
-   "end": 223.33,
-   "anchored": 0.5
-  },
-  {
-   "id": "L095",
+   "id": "L088",
    "section": "outro",
    "text": "STILL GRINDING!",
    "style": "impact",
@@ -7919,43 +7651,20 @@
     {
      "w": "STILL",
      "s": 225.68,
-     "src": "asr",
-     "e": 226.0
+     "src": "manual",
+     "e": 226.08
     },
     {
      "w": "GRINDING!",
-     "s": 226.0,
-     "src": "asr-loose",
-     "e": 226.8
+     "s": 226.08,
+     "src": "manual",
+     "e": 226.88
     }
    ],
    "start": 225.68,
-   "end": 226.8,
+   "end": 226.88,
    "anchored": 1.0,
    "hit": 225.721
-  },
-  {
-   "id": "L096",
-   "section": "outro",
-   "text": "Still grinding!",
-   "style": "adlib",
-   "words": [
-    {
-     "w": "Still",
-     "s": 238.8,
-     "src": "asr",
-     "e": 239.2
-    },
-    {
-     "w": "grinding!",
-     "s": 239.2,
-     "src": "asr",
-     "e": 239.9
-    }
-   ],
-   "start": 238.8,
-   "end": 239.9,
-   "anchored": 1.0
   }
  ]
 }

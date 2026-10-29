@@ -1,13 +1,9 @@
 duration 4:01.22  bpm 143.55  beats 557  downbeats 139  kicks 307
-lines 97  words 706  ASR-anchored 641 (91%)
+lines 89  words 672  ASR-anchored 619 (92%)
 
 [0:00.00 – 0:29.21] Intro
    0:04.64–0:06.64  impact 100%  NOBODY HANDED ME NOTHING! hit 0:04.64
    0:08.80–0:10.94  sung   100%  So I built it!
-   0:19.84–0:20.86  adlib  100%  Still grinding!
-   0:23.28–0:24.30  adlib  100%  Still grinding!
-   0:25.28–0:26.38  adlib  100%  Still grinding!
-   0:26.96–0:28.06  adlib  100%  Still grinding!
 [0:29.21 – 0:49.73] Verse 1: Fast Aggressive Rap
    0:30.16–0:32.00  rap    100%  Started with a headset in a cold back room
    0:32.00–0:33.68  rap    100%  Password resets, eating noodles at noon
@@ -30,7 +26,7 @@ lines 97  words 706  ASR-anchored 641 (91%)
    0:58.64–1:00.94  sung   100%  I'ma shout it to the sky!
    1:02.08–1:04.46  sung   100%  Every scar, every night!
    1:04.96–1:07.58  sung   100%  Came up from the floor alive!
-   1:08.08–1:12.72  sung   100%  Still grinding! Still grinding! Still grinding!
+   1:09.76–1:12.72  sung   100%  Still grinding! Still grinding!
    1:12.72–1:13.92  sung   100%  Building that legacy!
    1:13.92–1:15.44  sung   100%  Till the whole world remembers me!
    1:15.44–1:17.34  sung   60%  Shout it to the universe!
@@ -40,9 +36,7 @@ lines 97  words 706  ASR-anchored 641 (91%)
    1:22.32–1:24.08  rap    100%  Came up from the floor, now look at me shining!
    1:24.08–1:25.81  rap    100%  No time to play, no time to wait!
    1:25.84–1:27.57  rap    100%  Building that legacy every single day!
-   1:29.20–1:31.01  rap    50%  Building that legacy every single day!
-   1:32.72–1:34.37  rap    17%  Building that legacy every single day!   <-- low anchor
-[1:39.14 – 2:12.87] Verse 2
+[1:39.14 – 2:12.87] Verse 2: Fast Aggressive Rap
    1:40.08–1:42.00  rap    100%  Clock out at five, but I never clock out
    1:42.00–1:43.68  rap    100%  Pull up to the flip, it's a gut, tear it out
    1:43.68–1:45.36  rap    100%  Rip up the floors, pull the nails, break the tile
@@ -70,12 +64,12 @@ lines 97  words 706  ASR-anchored 641 (91%)
    2:21.60–2:23.98  sung   83%  I'ma shout it to the sky!
    2:24.98–2:27.34  sung   75%  Every scar, every night!
    2:27.84–2:30.20  sung   83%  Came up from the floor alive!
-   2:30.88–2:35.36  sung   83%  Still grinding! Still grinding! Still grinding!
-   2:35.36–2:36.50  sung   0%  Building that legacy!   <-- low anchor
-   2:36.50–2:38.32  sung   83%  Till the whole world remembers me!
+   2:30.88–2:33.26  sung   100%  Still grinding! Still grinding!
+   2:33.26–2:34.16  sung   0%  Building that legacy!   <-- low anchor
+   2:34.16–2:38.32  sung   83%  Till the whole world remembers me!
    2:38.32–2:40.00  sung   100%  Shout it to the universe!
    2:40.00–2:42.24  sung   100%  Still grinding! Still grinding!
-[2:41.37 – 3:01.41] Verse 3
+[2:41.37 – 3:01.41] Verse 3: Rapid-Fire Flow, Clean and Fast
    2:42.24–2:44.72  rap    100%  And when the world gets quiet and the house goes still
    2:44.72–2:46.32  rap    100%  I grab the mic and I let it all spill
    2:46.32–2:48.05  rap    100%  This is where I breathe, this is where I flow
@@ -93,12 +87,12 @@ lines 97  words 706  ASR-anchored 641 (91%)
    3:04.56–3:06.24  sung   100%  To the one on the night shift paying his dues
    3:06.24–3:07.60  sung   100%  Keep going, I know it's slow
    3:07.60–3:10.78  sung   100%  I'm the proof that the slow ones grow!
-[3:11.38 – 3:32.93] Chorus: Sung, Belted, Anthemic
+[3:11.38 – 3:32.93] Final Chorus: Sung, Belted, Explosive
    3:11.68–3:14.06  sung   100%  I'ma shout it to the sky!
    3:16.32–3:17.84  sung   0%  Every scar, every night!   <-- low anchor
    3:17.84–3:20.70  sung   33%  Came up from the floor alive!   <-- low anchor
-   3:20.88–3:25.44  sung   100%  Still grinding! Still grinding! Still grinding!
-   3:25.44–3:26.56  sung   100%  Building that legacy!
+   3:20.88–3:23.98  sung   100%  Still grinding! Still grinding!
+   3:24.56–3:26.56  sung   100%  Building that legacy!
    3:26.56–3:28.24  sung   100%  Till the whole world remembers me!
    3:28.24–3:29.92  sung   100%  Shout it to the universe!
    3:29.92–3:33.18  sung   100%  Still grinding! Still grinding!
@@ -107,7 +101,5 @@ lines 97  words 706  ASR-anchored 641 (91%)
    3:34.80–3:36.48  rap    100%  Came up from the floor, now look at me shining!
    3:36.48–3:38.13  rap    100%  No time to play, no time to wait!
    3:38.16–3:39.97  rap    100%  Building that legacy every single day!
-   3:41.44–3:43.33  rap    50%  Building that legacy every single day!
 [3:44.49 – 4:01.22] Outro
-   3:45.68–3:46.80  impact 100%  STILL GRINDING! hit 3:45.72
-   3:58.80–3:59.90  adlib  100%  Still grinding!
+   3:45.68–3:46.88  impact 100%  STILL GRINDING! hit 3:45.72
