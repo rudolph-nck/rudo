@@ -8,6 +8,8 @@ export type Assets = {
   bebas: Font;
   oswald: Font;
   inter: Font;
+  caveat: Font;
+  sneakers: THREE.Texture;
   rudo: THREE.Texture;
   concrete: THREE.Texture;
   concreteBump: THREE.Texture;
@@ -130,14 +132,16 @@ const load = () => {
   if (!pending) {
     pending = (async () => {
       await document.fonts.ready;
-      const [bebas, oswald, inter, rudo] = await Promise.all([
+      const [bebas, oswald, inter, caveat, rudo, sneakers] = await Promise.all([
         loadFont("fonts/bebas.typeface.json"),
         loadFont("fonts/oswald700.typeface.json"),
         loadFont("fonts/inter800.typeface.json"),
+        loadFont("fonts/caveat500.typeface.json"),
         loadTex("images/rudo-cutout.png"),
+        loadTex("images/sneakers.png"),
       ]);
       const { tex, btex } = makeConcrete();
-      cache = { bebas, oswald, inter, rudo, concrete: tex, concreteBump: btex };
+      cache = { bebas, oswald, inter, caveat, rudo, sneakers, concrete: tex, concreteBump: btex };
       return cache;
     })();
   }

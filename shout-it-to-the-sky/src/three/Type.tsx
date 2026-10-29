@@ -6,7 +6,8 @@ import { Line } from "../data";
 import { clamp01, cubicOut, mix } from "../utils/ease";
 import { rng } from "../utils/random";
 
-export const ACCENT = "#ff5a1f";
+// RUDO palette: monochrome stone/concrete greys; the accent is white light, not a hue.
+export const ACCENT = "#ffffff";
 
 // ---------------------------------------------------------------------------------------------
 // letters
@@ -29,10 +30,10 @@ const wordW = (font: Font, w: string, size: number) => [...w].reduce((a, ch) => 
 /** Shared flat type materials: ghost (unspoken letters), lit, accent, hot flash. */
 export const typeMats = () => ({
   ghost: new THREE.MeshBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0.13, depthWrite: false }),
-  lit: new THREE.MeshBasicMaterial({ color: "#f3efe8" }),
-  accent: new THREE.MeshBasicMaterial({ color: new THREE.Color(ACCENT).multiplyScalar(1.35), toneMapped: false }),
-  hot: new THREE.MeshBasicMaterial({ color: new THREE.Color("#fff3e0").multiplyScalar(2.2), toneMapped: false }),
-  steel: new THREE.MeshBasicMaterial({ color: "#cfdbe4" }),
+  lit: new THREE.MeshBasicMaterial({ color: "#a8a49d" }),
+  accent: new THREE.MeshBasicMaterial({ color: new THREE.Color("#f4f2ee").multiplyScalar(1.25), toneMapped: false }),
+  hot: new THREE.MeshBasicMaterial({ color: new THREE.Color("#ffffff").multiplyScalar(2.2), toneMapped: false }),
+  steel: new THREE.MeshBasicMaterial({ color: "#9ea3a6" }),
 });
 export type TypeMats = ReturnType<typeof typeMats>;
 
@@ -87,8 +88,9 @@ export const FillLine: React.FC<{
   sparks?: THREE.Material;
   up?: [number, number, number];
   accentLast?: boolean;
-}> = ({ font, line, t, size, maxW, mats, mode = "fill", out, chant, accentAll, base = "lit", sparks, up = [0, 1, 0], accentLast = true }) => {
-  const words = useMemo(() => line.words.map((w) => w.w.toUpperCase()), [line.id]);
+  upper?: boolean;
+}> = ({ font, line, t, size, maxW, mats, mode = "fill", out, chant, accentAll, base = "lit", sparks, up = [0, 1, 0], accentLast = true, upper = true }) => {
+  const words = useMemo(() => line.words.map((w) => (upper ? w.w.toUpperCase() : w.w)), [line.id, upper]);
   const lay = useMemo(() => layoutWords(font, words, size, maxW, 1.08, chant), [line.id, size, maxW]);
   if (t < line.start - 0.01) return null;
   const q = out !== undefined ? clamp01((t - out) / 0.3) : 0;
@@ -183,8 +185,8 @@ export const SparkBurst: React.FC<{
     const tail = head.clone().addScaledVector(vel, -len * (1 / Math.max(0.5, speed)) * 4);
     pos.set([head.x, head.y, head.z, tail.x, tail.y, tail.z], i * 6);
     const f = k >= 1 ? 0 : (1 - k) * (1 - k);
-    const r = 2.2 * f, gg = (0.55 + p.hot * 0.9) * f * f * 1.6, b = 0.25 * f * f * f * 2;
-    col.set([r, gg, b, r * 0.4, gg * 0.25, 0], i * 6);
+    const v = (1.4 + p.hot * 0.9) * f * f;
+    col.set([v, v, v * 1.04, v * 0.3, v * 0.3, v * 0.32], i * 6);
   });
   geo.attributes.position.needsUpdate = true;
   geo.attributes.color.needsUpdate = true;

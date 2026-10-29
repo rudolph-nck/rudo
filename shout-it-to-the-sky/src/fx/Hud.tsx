@@ -5,7 +5,7 @@ import { F } from "../utils/fonts";
 import { clamp01, cubicOut } from "../utils/ease";
 import { hash01 } from "../utils/random";
 import { T, kickEnv, linesOf, sectionAt } from "../data";
-import { CH1, PRE_WORDS, camAt } from "../three/layout";
+import { CH1, CH3, OUTRO, PRE_WORDS, V2, camAt } from "../three/layout";
 import { ACCENT } from "../three/Type";
 
 const GREY = "rgba(200,196,188,0.78)";
@@ -122,7 +122,7 @@ export const Hud: React.FC<{ t: number }> = ({ t }) => {
 
   // pre-chorus step counter
   const step = PRE_WORDS.filter((w) => w.s <= t).length;
-  const alt = t > CH1.start ? camAt(t).pos.z * 9.5 + (camAt(t).pos.y - 140) * 0.8 : 0;
+  const alt = camAt(t).pos.z * 9.5 + Math.max(0, camAt(t).pos.y - 140) * 0.8;
 
   return (
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
@@ -188,10 +188,10 @@ export const Hud: React.FC<{ t: number }> = ({ t }) => {
       ) : null}
 
       {/* chorus: altimeter */}
-      {t > CH1.start + 0.6 ? (
+      {(t > CH1.start + 0.6 && t < V2.start) || (t > CH3.start + 0.6 && t < OUTRO.start) ? (
         <div style={{ position: "absolute", left: 64, top: 300 }}>
           <div style={mono(20, ACCENT)}>ALT +{alt.toFixed(1)} m</div>
-          <div style={mono(17, DIM)}>{t > 75.4 ? "heading ... universe · r = ∞" : "heading ... sky"}</div>
+          <div style={mono(17, DIM)}>{t > 75.4 && t < V2.start ? "heading ... universe · r = ∞" : "heading ... sky"}</div>
         </div>
       ) : null}
     </div>

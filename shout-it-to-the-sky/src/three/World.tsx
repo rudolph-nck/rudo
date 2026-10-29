@@ -6,9 +6,11 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { Assets } from "./assets";
-import { engrave, engravePhoto } from "./engrave";
+import { buildMats } from "./materials";
+import { Burst, Panel, outOf, pointsGeo, pointsMat, skyMat } from "./common";
 import { ACCENT, FillLine, SparkBurst, advance, letterGeo, sparkMat, typeMats } from "./Type";
-import { CH1, CRACK_ORIGIN, EDGE, LID, PRE_WORDS, ROOM, RUDO_POS, SLOT, STAIRS, STAIR_RISE, TRENCH, camAt, lineAnchor, stepPos } from "./layout";
+import { BR, CH1, CH3, CRACK_ORIGIN, EDGE, LID, OUTRO, POST2, PRE2, PRE_WORDS, ROOM, RUDO_POS, SLOT, STAIRS, STAIR_RISE, TRENCH, V2, V3, camAt, lineAnchor, stepPos } from "./layout";
+import { ChorusFlares, Deck, Desk, Floaters, Hallway, House, Slabs } from "./Sets";
 import { BIG_KICKS, Line, kickEnv, linesOf, nextLineStart, sectionById } from "../data";
 import { clamp01, cubicOut, expoOut } from "../utils/ease";
 import { noise1, rng } from "../utils/random";
@@ -27,8 +29,6 @@ export const DROP = BIG_KICKS.find((k) => k > 15 && k < 20) ?? 17.22;
 export const TUBE_ON = 3.61;
 const TITLE_IN = 11.6;
 
-/** When a line leaves (or bursts). */
-export const outOf = (l: Line, hold = 1.3) => Math.max(l.end, Math.min(nextLineStart(l) - 0.06, l.end + hold));
 
 // ---------------------------------------------------------------------------------------------
 // geometry helpers
@@ -105,7 +105,7 @@ const crackMat = () =>
     vertexShader: `attribute float aD; attribute float aS; varying float vD; varying float vS; void main(){ vD=aD; vS=aS; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
     fragmentShader: `uniform float uTip; uniform float uGlow; varying float vD; varying float vS;
       void main(){ if(vD>uTip) discard; float hot=exp(-(uTip-vD)*0.9);
-        float core=exp(-vS*vS*7.0); vec3 lava=vec3(1.0,0.36,0.08)*uGlow*(1.7+2.2*hot);
+        float core=exp(-vS*vS*7.0); vec3 lava=vec3(0.93,0.94,0.97)*uGlow*(0.95+1.1*hot);
         vec3 c=mix(vec3(0.05,0.025,0.01),lava,core); gl_FragColor=vec4(c,1.0);} `,
     side: THREE.DoubleSide,
     toneMapped: false,
@@ -116,104 +116,6 @@ const crackMat = () =>
   });
 
 // ---------------------------------------------------------------------------------------------
-const skyMat = () =>
-  new THREE.ShaderMaterial({
-    side: THREE.BackSide,
-    depthWrite: false,
-    uniforms: { uGlow: { value: 1 }, uFade: { value: 1 } },
-    vertexShader: `varying vec3 vDir; void main(){ vDir=normalize(position); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
-    fragmentShader: `varying vec3 vDir; uniform float uGlow; uniform float uFade;
-      void main(){
-        float up=vDir.z; float toward=max(0.0,dot(normalize(vDir.xy),vec2(0.0,1.0)));
-        vec3 zen=vec3(0.012,0.018,0.05); vec3 mid=vec3(0.04,0.035,0.08); vec3 hor=vec3(0.95,0.58,0.24);
-        vec3 c=mix(mid,zen,smoothstep(0.0,0.7,up));
-        float h=smoothstep(0.22,-0.01,up);
-        c=mix(c,hor*0.8,h*h*(0.1+0.9*pow(toward,5.0))*(0.45+0.3*uGlow));
-        c+=vec3(1.0,0.75,0.42)*exp(-pow(up*30.0,2.0))*pow(toward,18.0)*(0.3+0.35*uGlow);
-        if(up<-0.02) c=mix(c,vec3(0.02,0.015,0.015),smoothstep(-0.02,-0.15,up));
-        gl_FragColor=vec4(c*uFade,1.0);
-      }`,
-  });
-const pointsMat = (sizeScale = 300) =>
-  new THREE.ShaderMaterial({
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    uniforms: { uTime: { value: 0 }, uFade: { value: 1 } },
-    vertexShader: `attribute float aSize; attribute vec3 aColor; attribute float aPhase; uniform float uTime; varying vec3 vC;
-      void main(){ vec4 mv=modelViewMatrix*vec4(position,1.0);
-        float tw=0.7+0.3*sin(uTime*(1.3+aPhase*2.0)+aPhase*40.0); vC=aColor*tw;
-        gl_PointSize=aSize*(${sizeScale.toFixed(1)}/-mv.z); gl_Position=projectionMatrix*mv; }`,
-    fragmentShader: `varying vec3 vC; uniform float uFade; void main(){ float d=length(gl_PointCoord-0.5); float a=smoothstep(0.5,0.0,d); a*=a; gl_FragColor=vec4(vC*a*uFade,a*uFade);} `,
-    toneMapped: false,
-  });
-
-const pointsGeo = (n: number, fill: (i: number, r: () => number) => { p: [number, number, number]; c: [number, number, number]; s: number }, seed: number) => {
-  const r = rng(seed);
-  const p = new Float32Array(n * 3), c = new Float32Array(n * 3), s = new Float32Array(n), ph = new Float32Array(n);
-  for (let i = 0; i < n; i++) {
-    const v = fill(i, r);
-    p.set(v.p, i * 3);
-    c.set(v.c, i * 3);
-    s[i] = v.s;
-    ph[i] = r();
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute("position", new THREE.BufferAttribute(p, 3));
-  g.setAttribute("aColor", new THREE.BufferAttribute(c, 3));
-  g.setAttribute("aSize", new THREE.BufferAttribute(s, 1));
-  g.setAttribute("aPhase", new THREE.BufferAttribute(ph, 1));
-  return g;
-};
-
-/** Embers bursting from a point cloud of positions (when a chorus line lets go). */
-const Burst: React.FC<{ t: number; at: number; center: THREE.Vector3; up: THREE.Vector3; spread: number; mat: THREE.ShaderMaterial; seed: number }> = ({ t, at, center, up, spread, mat, seed }) => {
-  const seeds = useMemo(() => {
-    const r = rng(seed);
-    return Array.from({ length: 160 }, () => ({ o: new THREE.Vector3((r() - 0.5) * spread, (r() - 0.5) * spread * 0.25, (r() - 0.5) * 0.4), v: new THREE.Vector3((r() - 0.5) * 2.2, (r() - 0.5) * 1.2, (r() - 0.5) * 2.2), life: 0.8 + r() * 1.1, s: 0.6 + r() * 1.6, hot: r() }));
-  }, [seed, spread]);
-  const geo = useMemo(() => {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(seeds.length * 3), 3));
-    g.setAttribute("aColor", new THREE.BufferAttribute(new Float32Array(seeds.length * 3), 3));
-    g.setAttribute("aSize", new THREE.BufferAttribute(new Float32Array(seeds.length), 1));
-    g.setAttribute("aPhase", new THREE.BufferAttribute(new Float32Array(seeds.length), 1));
-    return g;
-  }, [seeds]);
-  const dt = t - at;
-  if (dt < 0 || dt > 2.2) return null;
-  const P = geo.attributes.position.array as Float32Array, Cc = geo.attributes.aColor.array as Float32Array, S = geo.attributes.aSize.array as Float32Array;
-  seeds.forEach((e, i) => {
-    const k = clamp01(dt / e.life);
-    const p = center.clone().add(e.o).addScaledVector(e.v, dt).addScaledVector(up, dt * 1.6 + dt * dt * 0.8);
-    P.set([p.x, p.y, p.z], i * 3);
-    const f = (1 - k) * (k < 0.04 ? k / 0.04 : 1);
-    Cc.set([1.6 * f, (0.5 + e.hot * 0.6) * f, 0.15 * f], i * 3);
-    S[i] = e.s * (1 - k * 0.4);
-  });
-  geo.attributes.position.needsUpdate = true;
-  geo.attributes.aColor.needsUpdate = true;
-  geo.attributes.aSize.needsUpdate = true;
-  return <points geometry={geo} material={mat} frustumCulled={false} />;
-};
-
-// ---------------------------------------------------------------------------------------------
-/** Orients its children (local +y up, +z toward the viewer) to face a point. */
-const Panel: React.FC<{ at: THREE.Vector3; face: THREE.Vector3; up: THREE.Vector3; tilt?: [number, number, number]; children: React.ReactNode }> = ({ at, face, up, tilt = [0, 0, 0], children }) => {
-  const o = new THREE.Object3D();
-  o.position.copy(at);
-  o.up.copy(up);
-  o.lookAt(face);
-  o.rotateX(tilt[0]);
-  o.rotateY(tilt[1]);
-  o.rotateZ(tilt[2]);
-  return (
-    <group position={at} quaternion={o.quaternion}>
-      {children}
-    </group>
-  );
-};
-
 /** Blueprint drawing of the room: axes, polar rings round RUDO, floor grid, outlines. */
 const buildBlueprint = () => {
   const v: number[] = [];
@@ -251,47 +153,14 @@ const buildBlueprint = () => {
   return g;
 };
 
+
+
 // ---------------------------------------------------------------------------------------------
 export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a, bloom }) => {
   const { camera, scene, gl, size } = useThree();
 
   // ---- materials ----
-  const M = useMemo(() => {
-    const wall = engrave({ map: a.concrete, bump: a.concreteBump, bumpScale: 1.2, color: "#a7a095", ink: "#ece4d7", spacing: 0.026 });
-    const floor = engrave({ map: a.concrete, color: "#8d877e", ink: "#ddd4c6", spacing: 0.03, dir: [0.1, 0.35, 1] });
-    const cold = engrave({ map: a.concrete, bump: a.concreteBump, color: "#9aa3aa", ink: "#c6d2dc", spacing: 0.03, gain: 2.6 });
-    const brick = engrave({ map: a.concrete, color: "#d9c6a8", ink: "#f3e7d3", spacing: 0.014, dir: [0, 1, 0.35], warp: 0.8 });
-    const roof = engrave({ map: a.concrete, color: "#968a7c", ink: "#efd6b4", spacing: 0.034, gain: 2.8 });
-    const photo = engravePhoto(a.rudo);
-    const tube = new THREE.MeshBasicMaterial({ color: "#ffffff", toneMapped: false });
-    const silhouette = new THREE.MeshBasicMaterial({ map: a.rudo, color: "#000000", transparent: true, alphaTest: 0.35 });
-    const halo = new THREE.MeshBasicMaterial({ map: a.rudo, color: ACCENT, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
-    const cable = new THREE.MeshStandardMaterial({ color: "#121416", roughness: 0.5, metalness: 0.3 });
-    const led = new THREE.MeshBasicMaterial({ color: "#d9e2ea", toneMapped: false });
-    const packet = new THREE.MeshBasicMaterial({ color: new THREE.Color(ACCENT).multiplyScalar(2), toneMapped: false });
-    const rim = new THREE.MeshBasicMaterial({ color: new THREE.Color(ACCENT).multiplyScalar(1.6), toneMapped: false });
-    const edge = new THREE.LineBasicMaterial({ color: ACCENT, transparent: true, opacity: 0.9 });
-    const blue = new THREE.LineBasicMaterial({ color: "#c9c3b8", transparent: true, opacity: 0.5 });
-    const blueHot = new THREE.LineBasicMaterial({ color: ACCENT, transparent: true, opacity: 0.85 });
-    const shadow = new THREE.MeshBasicMaterial({
-      transparent: true,
-      depthWrite: false,
-      color: "#000000",
-      opacity: 0.6,
-      alphaMap: (() => {
-        const c = document.createElement("canvas");
-        c.width = c.height = 128;
-        const x = c.getContext("2d")!;
-        const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
-        g.addColorStop(0, "#fff");
-        g.addColorStop(1, "#000");
-        x.fillStyle = g;
-        x.fillRect(0, 0, 128, 128);
-        return new THREE.CanvasTexture(c);
-      })(),
-    });
-    return { wall, floor, cold, brick, roof, photo, tube, silhouette, halo, cable, led, packet, rim, edge, blue, blueHot, shadow };
-  }, [a]);
+  const M = useMemo(() => buildMats(a), [a]);
   const TM = useMemo(() => typeMats(), []);
   const SP = useMemo(() => sparkMat(), []);
 
@@ -311,6 +180,7 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
   };
   const blueprint = useMemo(() => buildBlueprint(), []);
   const sky = useMemo(() => skyMat(), []);
+  const skyDeck = useMemo(() => skyMat(), []);
   const starMat = useMemo(() => pointsMat(520), []);
   const emberMat = useMemo(() => pointsMat(260), []);
   const SKY_C = useMemo(() => new THREE.Vector3(0, 175, 0), []);
@@ -346,7 +216,7 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
           const x = gx ? a1 + (r() - 0.5) : (r() - 0.5) * 500;
           const y = EDGE + 25 + (gx ? b1 : Math.floor(r() * 80) * 7.5);
           const w = r();
-          return { p: [x, y, -48 - r() * 3], c: [1, 0.45 + w * 0.3, 0.15 + w * 0.15], s: 1.2 + r() * 2.2 };
+          return { p: [x, y, -48 - r() * 3], c: [0.85 + w * 0.15, 0.85 + w * 0.15, 0.88 + w * 0.12], s: 1.2 + r() * 2.2 };
         },
         23,
       ),
@@ -383,26 +253,30 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
   });
 
   // ---- environment by zone ----
-  const inRoom = t < DROP + 1.4;
-  const inSky = t >= CH1.start - 0.4;
-  const level = tubeLevel(t, TUBE_ON);
+  const outro = t >= OUTRO.start;
+  const inRoom = t < DROP + 1.4 || outro;
+  const inSky = (t >= CH1.start - 0.4 && t < V2.start) || (t >= CH3.start && t < OUTRO.start);
+  const inHouse = t >= V2.start && t < V3.start;
+  const inDesk = t >= V3.start && t < CH3.start;
+  const level = outro ? 1 : tubeLevel(t, TUBE_ON);
   gl.toneMapping = THREE.ACESFilmicToneMapping;
   gl.toneMappingExposure = inSky ? 1.05 : 1.15;
   composer.b.strength = bloom;
-  scene.background = new THREE.Color(inSky ? "#03040a" : "#030303");
-  const fogC = t < DROP ? null : t < 29.6 ? "#040404" : t < CH1.start - 0.4 ? "#04070a" : null;
-  scene.fog = fogC ? new THREE.Fog(fogC, 4, t < 29.6 ? 34 : 26) : null;
+  scene.background = new THREE.Color(inSky ? "#030304" : "#030303");
+  const fogC = outro || t < DROP ? null : inDesk ? "#050505" : inHouse ? null : t < 29.6 ? "#040404" : t < CH1.start - 0.4 ? "#05060a" : null;
+  scene.fog = fogC ? new THREE.Fog(fogC, 4, inDesk ? 22 : t < 29.6 ? 34 : 26) : null;
 
   const tipAt = (tt: number) => (tt < DROP ? -1 : Math.max(3.5 * expoOut(clamp01((tt - DROP) / 0.45)), camAt(tt).pos.y - CRACK_ORIGIN.y + 9 + (tt - DROP) * 0.1));
-  cracks.mat.uniforms.uTip.value = Math.min(tipAt(t), 400);
+  cracks.mat.uniforms.uTip.value = outro || t > CH1.start ? 400 : Math.min(tipAt(t), 400);
   cracks.mat.uniforms.uGlow.value = 0.8 + 0.35 * Math.min(1, kickEnv(t, 0.25)) + 0.3 * Math.exp(-Math.max(0, t - DROP) / 0.35);
   sky.uniforms.uGlow.value = 0.8 + 0.5 * kickEnv(t, 0.3);
+  sky.uniforms.uSun.value = t >= CH3.start ? 0.35 : 0;
   starMat.uniforms.uTime.value = t;
   starMat.uniforms.uFade.value = inSky ? clamp01((t - CH1.start + 0.4) / 1.2) : 0;
   M.photo.uniforms.uLevel.value = 0.06 + 0.94 * level;
   // the room is drawn as a blueprint during the strings, then the tube fills it in
   const draw = clamp01((t - 0.25) / 3.1);
-  M.blue.opacity = (t < TUBE_ON ? 0.7 : 0.7 - 0.5 * clamp01((t - TUBE_ON) / 1.5)) * (0.35 + 0.65 * draw);
+  M.blue.opacity = (t < TUBE_ON ? 1 : 1 - 0.75 * clamp01((t - TUBE_ON) / 1.5)) * (0.35 + 0.65 * draw);
   for (const e of [M.wall, M.floor, M.brick]) e.u.uMix.value = 1;
 
   if (inSky) {
@@ -413,7 +287,7 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
       const k = age / e.life;
       P.set([e.x + Math.sin(age + e.ph) * 0.8, cam.pos.y + 2 + e.y, -1 + age * e.vz], i * 3);
       const f = Math.sin(Math.PI * k) * (0.8 + 0.4 * kick);
-      Cc.set([1.5 * f, (0.3 + e.hot * 0.4) * f, 0.06 * f], i * 3);
+      Cc.set([(0.7 + e.hot * 0.5) * f, (0.7 + e.hot * 0.5) * f, (0.74 + e.hot * 0.5) * f], i * 3);
       S[i] = e.s;
     });
     emberGeo.attributes.position.needsUpdate = true;
@@ -515,9 +389,9 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
           </mesh>
           <pointLight position={[0, 3.95, 1.7]} intensity={26 * level} distance={0} decay={2} color="#eef2ff" />
           <spotLight position={[0, 4.1, 1.6]} angle={0.75} penumbra={0.9} intensity={60 * level} distance={0} decay={2} color="#f2f4ff" />
-          <pointLight position={[1.6, 2.4, 6.4]} intensity={9 * level} distance={0} decay={2} color="#ffe6c8" />
-          <pointLight position={[-1.2, 1.4, 3.4]} intensity={5 * level * clamp01((t - built.start + 0.5) / 0.5)} distance={6} decay={1.5} color="#ffe2bd" />
-          {t > DROP ? <pointLight position={[0, 2.6, 0.6]} intensity={6 * (0.6 + kick)} distance={0} decay={2} color="#ff7a3a" /> : null}
+          <pointLight position={[1.6, 2.4, 6.4]} intensity={9 * level} distance={0} decay={2} color="#f2f1ee" />
+          <pointLight position={[-1.2, 1.4, 3.4]} intensity={5 * level * clamp01((t - built.start + 0.5) / 0.5)} distance={6} decay={1.5} color="#eeedea" />
+          {t > DROP ? <pointLight position={[0, 2.6, 0.6]} intensity={6 * (0.6 + kick)} distance={0} decay={2} color="#f4f6fa" /> : null}
           {/* RUDO, engraved */}
           {(() => {
             const asp = (a.rudo.image as HTMLImageElement).width / (a.rudo.image as HTMLImageElement).height;
@@ -594,7 +468,7 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
         )}
         {t > DROP && t < 30 ? (
           <>
-            <pointLight position={[0.3, cam.pos.y + 3.5, 0.9]} intensity={22 * (0.7 + 0.5 * kick)} distance={18} decay={1.2} color="#ff8a4a" />
+            <pointLight position={[0.3, cam.pos.y + 3.5, 0.9]} intensity={22 * (0.7 + 0.5 * kick)} distance={18} decay={1.2} color="#e9edf2" />
             <pointLight position={[-2.5, cam.pos.y + 10, 4]} intensity={30} distance={40} decay={1.1} color="#b8c2cc" />
           </>
         ) : null}
@@ -665,8 +539,8 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
                 );
               })
             : null}
-          {stepsVisible ? <pointLight position={[0, LID.y0 + 1, -0.8]} intensity={4 + 30 * clamp01((t - PRE_WORDS[0].s) / (CH1.start - PRE_WORDS[0].s))} distance={30} decay={1.5} color="#ffb084" /> : null}
-          {stepsVisible ? <pointLight position={[0.6, cam.pos.y + 1.6, cam.pos.z + 0.6]} intensity={16} distance={10} decay={1.2} color="#f4ead9" /> : null}
+          {stepsVisible ? <pointLight position={[0, LID.y0 + 1, -0.8]} intensity={4 + 30 * clamp01((t - PRE_WORDS[0].s) / (CH1.start - PRE_WORDS[0].s))} distance={30} decay={1.5} color="#eeeeee" /> : null}
+          {stepsVisible ? <pointLight position={[0.6, cam.pos.y + 1.6, cam.pos.z + 0.6]} intensity={16} distance={10} decay={1.2} color="#f0f0f0" /> : null}
         </group>
       ) : null}
 
@@ -678,8 +552,8 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
           </mesh>
           <points geometry={stars} material={starMat} frustumCulled={false} />
           <points geometry={city} material={starMat} frustumCulled={false} />
-          <hemisphereLight args={["#2b3050", "#120c08", 0.6]} />
-          <directionalLight position={[0, 400, 30]} intensity={1.8} color="#ffb070" />
+          <hemisphereLight args={["#2c2e33", "#0d0d0e", 0.6]} />
+          <directionalLight position={[0, 400, 30]} intensity={1.8} color="#e8e9ec" />
           <mesh position={[0, EDGE - 0.01, 0.02]} material={M.rim}>
             <boxGeometry args={[80, 0.025, 0.03]} />
           </mesh>
@@ -698,28 +572,23 @@ export const World: React.FC<{ t: number; a: Assets; bloom: number }> = ({ t, a,
             );
           })()}
           <points geometry={emberGeo} material={emberMat} frustumCulled={false} />
-          {ch1.map((l, i) => {
-            const out = outOf(l, 1.1);
-            const c0 = camAt(l.start);
-            const c1 = camAt(out);
-            const fwd = c1.look.clone().sub(c1.pos).normalize();
-            const at = c1.pos.clone().addScaledVector(fwd, 4.6).add(new THREE.Vector3(0, 0, 0.55));
-            const chant = /grinding/i.test(l.text);
-            const s = 1 + (chant ? kickEnv(t, 0.12) * 0.08 : 0);
-            return (
-              <React.Fragment key={l.id}>
-                <Panel at={at} face={c0.pos.clone().lerp(c1.pos, 0.5)} up={c1.up} tilt={[0, (i % 2 ? 1 : -1) * 0.12, 0]}>
-                  <group scale={s}>
-                    <FillLine font={a.inter} line={l} t={t} size={/universe/i.test(l.text) ? 0.5 : 0.44} maxW={2.2} mats={TM} out={out} chant={chant} sparks={SP} />
-                    {/* grinder spray off the chant */}
-                    {chant ? <SparkBurst t={t} at={l.start} origin={[1.0, -0.1, 0.05]} count={260} rate={110} speed={4.2} spread={0.35} gravity={[0, -6, 0]} mat={SP} seed={i * 31} life={0.6} dir={[1, 0.45, 0.3]} /> : null}
-                  </group>
-                </Panel>
-                <Burst t={t} at={out} center={at} up={c1.up} spread={2.4} mat={emberMat} seed={i * 17 + 3} />
-              </React.Fragment>
-            );
-          })}
+          {t < V2.start ? <ChorusFlares t={t} a={a} M={M} TM={TM} SP={SP} id="chorus1" up={Z} emberMat={emberMat} /> : <ChorusFlares t={t} a={a} M={M} TM={TM} SP={SP} id="chorus3" up={Z} emberMat={emberMat} />}
+          {t > 79 && t < V2.start ? <Slabs t={t} a={a} M={M} TM={TM} SP={SP} id="postchorus1" /> : null}
+          {t > POST2.start - 1 ? <Slabs t={t} a={a} M={M} TM={TM} SP={SP} id="postchorus2" /> : null}
+          {t >= CH3.start ? <Floaters t={t} a={a} M={M} TM={TM} SP={SP} start={CH3.start} /> : null}
         </group>
+      ) : null}
+      {/* ===================== HOUSE / DECK (verse 2, pre-chorus 2, chorus 2) ===================== */}
+      {inHouse ? <House t={t} a={a} M={M} TM={TM} SP={SP} /> : null}
+      {inHouse && t > PRE2.start - 2 ? <Deck t={t} a={a} M={M} TM={TM} SP={SP} emberMat={emberMat} sky={skyDeck} /> : null}
+      {/* ===================== DESK / HALLWAY (verse 3, bridge) ===================== */}
+      {inDesk ? <Desk t={t} a={a} M={M} TM={TM} SP={SP} /> : null}
+      {inDesk && t > BR.start - 3 ? <Hallway t={t} a={a} M={M} TM={TM} SP={SP} emberMat={emberMat} /> : null}
+      {/* ===================== OUTRO ===================== */}
+      {outro ? (
+        <Panel at={new THREE.Vector3(0, 2.05, 2.2)} face={new THREE.Vector3(0, 1.5, 6.4)} up={new THREE.Vector3(0, 1, 0)}>
+          <FillLine font={a.inter} line={linesOf("outro")[0]} t={t} size={0.26} maxW={1.2} mats={TM} mode="slam" sparks={SP} />
+        </Panel>
       ) : null}
     </>
   );

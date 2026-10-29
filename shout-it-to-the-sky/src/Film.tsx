@@ -2,7 +2,7 @@ import React from "react";
 import { AbsoluteFill, Audio, staticFile } from "remotion";
 import { ThreeCanvas } from "@remotion/three";
 import { C, H, W } from "./theme";
-import { FPS, Line, impactEnv, kickEnv, linesOf, nextLineStart, sectionAt, sectionById } from "./data";
+import { FPS, Line, T, impactEnv, kickEnv, linesOf, nextLineStart, sectionAt, sectionById } from "./data";
 import { useOffset, useT } from "./time";
 import { ensureFonts } from "./utils/fonts";
 import { hash01 } from "./utils/random";
@@ -15,8 +15,8 @@ import { CH1 } from "./three/layout";
 
 ensureFonts();
 
-/** The 3D journey currently runs through chorus 1; later sections still use the 2D placeholder. */
-export const JOURNEY_END = sectionById("postchorus1").start;
+/** Everything is the 3D journey now; the 2D layer remains only as a fallback past the end. */
+export const JOURNEY_END = T.duration + 1;
 
 const outOf = (l: Line) => {
   const next = nextLineStart(l);
@@ -74,10 +74,12 @@ export const Film: React.FC<{ muted?: boolean }> = ({ muted }) => {
         )}
         {t < JOURNEY_END ? <Hud t={t} /> : null}
       </AbsoluteFill>
-      <LightLeaks t={t} amount={warmth * (0.35 + 0.35 * kickEnv(t, 0.3)) + Math.min(0.5, imp * 0.35)} />
-      <Flash v={Math.min(0.3, imp * 0.16) + burst * 0.6} color={burst > 0.05 ? "255,214,150" : "255,244,225"} />
+      <LightLeaks t={t} amount={warmth * (0.3 + 0.3 * kickEnv(t, 0.3)) + Math.min(0.4, imp * 0.3)} color="215,215,220" color2="240,240,245" />
+      <Flash v={Math.min(0.3, imp * 0.16) + burst * 0.6} color="245,245,248" />
       <Vignette strength={0.62} />
       <Grain opacity={0.12} />
+      {/* cut to black on the last shout */}
+      <AbsoluteFill style={{ background: "#000", opacity: Math.min(1, Math.max(0, (t - (T.duration - 1.4)) / 0.9)), pointerEvents: "none" }} />
       {muted ? null : <Audio src={staticFile("audio/shout-it-to-the-sky.m4a")} startFrom={Math.round(offset * FPS)} />}
     </AbsoluteFill>
   );
