@@ -354,7 +354,7 @@ const Title: React.FC<{ t: number; l: Line; out: number }> = ({ t, l, out }) => 
 
 // ---------------------------------------------------------------------------------------------
 /** Verse 1, 0:29–0:50: the IT years, told through the screens he lived in. */
-export const Verse1: React.FC<{ t: number; assets: { geo: THREE.BufferGeometry; font: Font } | null }> = ({ t, assets }) => {
+export const Verse1: React.FC<{ t: number; assets: { geo: THREE.BufferGeometry; font: Font } | null; bare?: boolean }> = ({ t, assets, bare }) => {
   const outs = L.map((l, i) => lineOut(l, L[i + 1], 1.2));
   const apps = [Helpdesk, Reset, Bank, Highway, Phone, null, Calendar, Gas, Network, Outage, Org, Title];
   const wall = L[5];
@@ -380,11 +380,8 @@ export const Verse1: React.FC<{ t: number; assets: { geo: THREE.BufferGeometry; 
         const App = apps[i];
         return App ? <App key={l.id} t={t} l={l} out={outs[i]} /> : null;
       })}
-      {L.map((l, i) => (
-        <LyricLine key={l.id} line={l} t={t} top={250} out={outs[i]} maxSize={108} special={{ re: /^red$/i, color: RED }} />
-      ))}
-      {/* section tag */}
-      <div style={{ position: "absolute", left: SAFE.left, top: 170, ...mono(20, STONE) }}>02 / VERSE 1 — the back room</div>
+      {bare ? null : L.map((l, i) => <LyricLine key={l.id} line={l} t={t} top={250} out={outs[i]} maxSize={108} special={{ re: /^red$/i, color: RED }} />)}
+      {bare ? null : <div style={{ position: "absolute", left: SAFE.left, top: 170, ...mono(20, STONE) }}>02 / VERSE 1 — the back room</div>}
     </AbsoluteFill>
   );
 };
