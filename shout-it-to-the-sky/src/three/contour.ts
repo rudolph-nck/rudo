@@ -6,7 +6,7 @@ import * as THREE from "three";
  * light, so form reads through line weight alone. Strokes are anti-aliased with fwidth and
  * keep a constant on-screen pitch, so they stay razor sharp at any distance.
  */
-export const contourMat = (opts: { ink?: string; pitch?: number; warp?: number } = {}) =>
+export const contourMat = (opts: { ink?: string; pitch?: number; warp?: number; axis?: [number, number, number] } = {}) =>
   new THREE.ShaderMaterial({
     uniforms: {
       uInk: { value: new THREE.Color(opts.ink ?? "#ecebe8") },
@@ -17,6 +17,7 @@ export const contourMat = (opts: { ink?: string; pitch?: number; warp?: number }
       uLevel: { value: 1 },
       uRes: { value: new THREE.Vector2(1080, 1920) },
       uFlow: { value: 0 },
+      uAxis: { value: new THREE.Vector3(...(opts.axis ?? [0, 1, 0])).normalize() },
     },
     vertexShader: /* glsl */ `
       varying vec3 vW;
@@ -31,7 +32,7 @@ export const contourMat = (opts: { ink?: string; pitch?: number; warp?: number }
       }`,
     fragmentShader: /* glsl */ `
       uniform vec3 uInk; uniform vec3 uKey; uniform float uRim; uniform float uPitch;
-      uniform float uWarp; uniform float uLevel; uniform float uFlow;
+      uniform float uWarp; uniform float uLevel; uniform float uFlow; uniform vec3 uAxis;
       varying vec3 vW; varying vec3 vN; varying vec3 vObj;
       void main() {
         vec3 n = normalize(vN);
@@ -41,7 +42,7 @@ export const contourMat = (opts: { ink?: string; pitch?: number; warp?: number }
         float rim = pow(1.0 - max(0.0, dot(n, v)), 2.5);
         float I = clamp((0.08 + 0.95 * key + uRim * rim) * uLevel, 0.0, 1.0);
         // contour coordinate: height slices bent by the surface normal, like the reference
-        float h = vW.y + uWarp * (n.x * 0.06 + n.z * 0.04) + 0.012 * sin(vW.x * 23.0 + vW.z * 17.0) + uFlow;
+        float h = dot(vW, uAxis) + uWarp * (n.x * 0.06 + n.z * 0.04) + 0.012 * sin(vW.x * 23.0 + vW.z * 17.0) + uFlow;
         // keep the on-screen pitch constant: scale by how fast h changes per pixel
         float dh = max(fwidth(h), 1e-5);
         float lev = log2(dh * uPitch);
