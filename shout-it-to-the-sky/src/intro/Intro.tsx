@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
-import { AbsoluteFill, Audio, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Audio, Img, staticFile, useCurrentFrame } from "remotion";
 import { ThreeCanvas } from "@remotion/three";
 import * as THREE from "three";
-import { DROP, IntroScene, projectIntro, useIntroAssets } from "./Scene3D";
+import { DROP, IntroScene, TUBE_ON, projectIntro, tubeLevel, useIntroAssets } from "./Scene3D";
 import { FPS, impactEnv, linesOf } from "../data";
 import { SAFE, W, H } from "../theme";
 import { F, ensureFonts } from "../utils/fonts";
@@ -178,6 +178,67 @@ const Tracker: React.FC<{ t: number }> = ({ t }) => {
 };
 
 // ---------------------------------------------------------------------------------------------
+/**
+ * The real RUDO: the cover photo shows during the tube's strikes, then a scan line converts it
+ * into the 3D contour model. Each shouted word glitches the photo back in for two frames.
+ * The photo is scaled/placed to sit on the model as the camera frames it at 0:03.6.
+ */
+const PHOTO = { scale: 1.8, left: -575, top: -345 };
+const SCAN_AT = TUBE_ON;
+const SCAN_DUR = 0.7;
+const PhotoFlash: React.FC<{ t: number; frame: number }> = ({ t, frame }) => {
+  const lvl = tubeLevel(t);
+  let show = 0;
+  let clipTop = 0;
+  let scanY = -1;
+  if (t < SCAN_AT) show = lvl > 0.05 ? 1 : 0;
+  else if (t < SCAN_AT + SCAN_DUR) {
+    const p = cubicOut((t - SCAN_AT) / SCAN_DUR);
+    scanY = p * H;
+    clipTop = scanY;
+    show = 1;
+  }
+  // glitch-backs on the shout
+  const hit = NOBODY.words.find((w) => t >= w.s && t < w.s + 2 / FPS);
+  const glitch = !!hit && t >= SCAN_AT + SCAN_DUR;
+  if (glitch) show = 1;
+  if (!show) return t < SCAN_AT ? <AbsoluteFill style={{ background: "#000" }} /> : null;
+  const off = glitch ? (hash01(frame) - 0.5) * 40 : 0;
+  const img = (dx: number, tint: string, blend: React.CSSProperties["mixBlendMode"], o: number) => (
+    <Img
+      src={staticFile("images/room.png")}
+      style={{
+        position: "absolute",
+        left: PHOTO.left + dx,
+        top: PHOTO.top,
+        width: 1254 * PHOTO.scale,
+        height: 1254 * PHOTO.scale,
+        filter: `brightness(${t < SCAN_AT ? 0.25 + 0.95 * lvl : 1.05}) contrast(1.1) saturate(0.6) ${tint}`,
+        mixBlendMode: blend,
+        opacity: o,
+      }}
+    />
+  );
+  return (
+    <AbsoluteFill style={{ clipPath: clipTop > 0 ? `inset(${clipTop}px 0 0 0)` : undefined }}>
+      {t < SCAN_AT ? <AbsoluteFill style={{ background: "#000" }} /> : null}
+      {glitch ? (
+        <>
+          {img(off, "", "normal", 0.85)}
+          {img(off + 12, "sepia(1) hue-rotate(-50deg) saturate(4)", "screen", 0.35)}
+          {img(off - 12, "sepia(1) hue-rotate(150deg) saturate(4)", "screen", 0.35)}
+        </>
+      ) : (
+        img(0, "", "normal", 1)
+      )}
+      {scanY >= 0 ? (
+        <div style={{ position: "absolute", left: 0, top: scanY - 3, width: W, height: 6, background: "#ffffff", boxShadow: "0 0 30px 10px rgba(255,255,255,0.55), 0 0 120px 30px rgba(255,255,255,0.18)" }} />
+      ) : null}
+    </AbsoluteFill>
+  );
+};
+
+// ---------------------------------------------------------------------------------------------
 export const Intro: React.FC<{ muted?: boolean }> = ({ muted }) => {
   const frame = useCurrentFrame();
   const t = frame / FPS;
@@ -196,6 +257,7 @@ export const Intro: React.FC<{ muted?: boolean }> = ({ muted }) => {
             <IntroScene t={t} geo={assets.geo} font={assets.font} />
           </ThreeCanvas>
         ) : null}
+        <PhotoFlash t={t} frame={frame} />
         {/* legibility band behind the shout */}
         <AbsoluteFill style={{ background: `linear-gradient(180deg, rgba(0,0,0,${0.5 * clamp01((t - 4.4) / 0.3) * (1 - clamp01((t - 8) / 0.6))}) 0%, rgba(0,0,0,0) 50%)` }} />
         <Vignette strength={0.5} />
