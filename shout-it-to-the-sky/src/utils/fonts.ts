@@ -5,6 +5,9 @@ import "@fontsource/oswald/700.css";
 import "@fontsource/caveat/500.css";
 import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/500.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/800.css";
+import "@fontsource/inter/900.css";
 import { continueRender, delayRender } from "remotion";
 
 // Bebas Neue is the closest open match to the cover's tall condensed RUDO lettering;
@@ -14,9 +17,13 @@ export const F = {
   cond: "'Oswald', sans-serif",
   hand: "'Caveat', cursive",
   mono: "'IBM Plex Mono', monospace",
+  grotesk: "'Inter', sans-serif",
 };
 
 const specs = [
+  "500 20px 'Inter'",
+  "800 20px 'Inter'",
+  "900 20px 'Inter'",
   "400 20px 'Bebas Neue'",
   "300 20px 'Oswald'",
   "500 20px 'Oswald'",

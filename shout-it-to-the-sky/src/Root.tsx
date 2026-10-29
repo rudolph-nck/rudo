@@ -1,6 +1,7 @@
 import React from "react";
 import { Composition, Series } from "remotion";
 import { Film } from "./Film";
+import { INTRO_FRAMES, Intro } from "./intro/Intro";
 import { TimeOffset } from "./time";
 import { DURATION_FRAMES, FPS, sectionById } from "./data";
 
@@ -29,6 +30,7 @@ export const Root: React.FC = () => (
   <>
     <Composition id="LyricVideo" component={Film} durationInFrames={DURATION_FRAMES} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
     <Composition id="Journey" component={Film} durationInFrames={Math.round(sectionById("postchorus1").start * FPS)} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
+    <Composition id="Intro" component={Intro} durationInFrames={INTRO_FRAMES} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
     <Composition id="Preview" component={Preview} durationInFrames={previewFrames} fps={FPS} width={1080} height={1920} />
   </>
 );

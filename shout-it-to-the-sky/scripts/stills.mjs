@@ -10,7 +10,7 @@ fs.mkdirSync(outDir, { recursive: true });
 const shell = ["/opt/pw-browsers/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell", "/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell"].find((p) => fs.existsSync(p));
 const opts = { browserExecutable: shell, chromiumOptions: { gl: "swangle" } };
 const serveUrl = await bundle({ entryPoint: path.resolve("src/index.ts") });
-const composition = await selectComposition({ serveUrl, id: "LyricVideo", inputProps: { muted: true }, ...opts });
+const composition = await selectComposition({ serveUrl, id: process.env.COMP ?? "LyricVideo", inputProps: { muted: true }, ...opts });
 for (const t of times) {
   const frame = Math.round(Number(t) * 30);
   const output = path.join(outDir, `t${Number(t).toFixed(2).padStart(7, "0")}.jpg`);
