@@ -5,7 +5,7 @@ Shout It to the Sky pipeline (Remotion + Three.js, morph toolkit, contour RUDO).
 the lyrics drive the effects (a word-effect library keyed to each hero word's timing and voice).
 
 ## Status
-Step 1 (word analysis) delivered: `creative/word-analysis.html`. Waiting for approval.
+Step 1 approved (all 94 hero words kept). Step 2 storyboard: `creative/storyboard.html` (scripts/storyboard.py + scripts/sketches.py). Waiting for approval.
 
 ## Timing pipeline (no ASR model reachable from this environment)
 | Step | Script | Output |

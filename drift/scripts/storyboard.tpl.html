@@ -1,0 +1,93 @@
+<title>Drift Storyboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Caveat:wght@500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: the step-1 page's dark column; a wide scrolling timeline; world cards; a grid of 9:16 sketch frames. Single dark theme on purpose: the video's palette. */
+:root {
+  --bg: #0b0a09; --panel: #151310; --line: #2a2723; --ink: #efede9; --muted: #8d877e;
+  --stone: #c4b6a2; --hot: #fff4e6; --drift: #a9b7c4;
+  --band2: #12110f; --band3: #181613; --energy: rgba(196,182,162,0.16);
+  --display: "Bebas Neue", "Oswald", "Arial Narrow", sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body); margin: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 80px; display: grid; gap: 56px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; letter-spacing: 0.02em; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(64px, 14vw, 140px); line-height: 0.85; }
+h2 { font-size: 44px; line-height: 1; }
+h3 { font-size: 30px; line-height: 1; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font: 500 12px var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--stone); }
+.lead { color: var(--muted); }
+.stack { display: grid; gap: 14px; }
+.thesis { font-size: 19px; max-width: 52ch; }
+.throughline { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.throughline div { background: var(--bg); padding: 16px; display: grid; gap: 6px; align-content: start; }
+.throughline h3 { font-size: 22px; color: var(--stone); }
+.tlbox { overflow-x: auto; border: 1px solid var(--line); }
+.tlbox svg { display: block; }
+.tw1 { font: 16px var(--display); fill: var(--ink); letter-spacing: 0.04em; }
+.tl { font: 10px var(--mono); fill: var(--muted); }
+.fn { font: 500 10px var(--mono); fill: var(--bg); }
+.worlds { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+.world { border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.world header { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.world .t, .world .sl { font: 12px var(--mono); color: var(--muted); }
+.world .words { font: 12px var(--mono); color: var(--stone); }
+.world dl { margin: 0; display: grid; gap: 6px; }
+.world dt { font: 10px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.world dd { margin: 0; font-size: 14px; color: #d6d2cb; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 22px 16px; }
+.fr { margin: 0; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.fimg { border: 1px solid var(--line); aspect-ratio: 9 / 16; max-width: 100%; }
+.fimg svg { display: block; width: 100%; height: 100%; }
+.fr figcaption { display: grid; gap: 4px; }
+.fr .n { font: 500 11px var(--mono); color: var(--bg); background: var(--ink); width: 20px; height: 20px; border-radius: 50%; display: inline-grid; place-items: center; }
+.fr .t { font: 12px var(--mono); color: var(--muted); }
+.fr strong { font: 24px var(--display); font-weight: 400; letter-spacing: 0.03em; }
+.fr p { font-size: 14px; color: #d6d2cb; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 12px var(--mono); color: var(--muted); }
+.legend i { display: inline-block; width: 18px; height: 6px; border-radius: 3px; vertical-align: middle; margin-right: 6px; }
+a:focus-visible { outline: 2px solid var(--stone); }
+</style>
+
+<div class="wrap">
+  <header class="stack">
+    <span class="eyebrow">RUDO · Drift · Step 2 of 5 · Storyboard</span>
+    <h1>Weight, then drift</h1>
+    <p class="thesis">One continuous journey built from the approved words. Each verse is a heavier world, each chorus a weightless one, and every repeated word comes back changed. Nothing cuts: each section is handed to the next by a word's own effect.</p>
+  </header>
+
+  <section class="stack">
+    <h2>Throughlines</h2>
+    <div class="throughline">
+      <div><h3>The hot point</h3><p>The film's only light. It breathes on "Yeah", draws every object, runs backwards to erase on NO, and redraws him at the end.</p></div>
+      <div><h3>The stone block</h3><p>Crushes (WEIGHT, 0:33) → carried (bridge, 2:48) → lifted off (breakdown, 3:16) → picked up by choice (outro, 3:52).</p></div>
+      <div><h3>The stars</h3><p>Every DRIFT turns letters into stars. They accumulate: chorus 2 still holds chorus 1's stars, and the last DRIFT dissolves into all of them.</p></div>
+      <div><h3>The erased things</h3><p>Everything drawn in the verses is something a NO can later unmake: calendar, crowd, road, mask, phone, ceiling slab, trophy wall.</p></div>
+    </div>
+  </section>
+
+  <section class="stack">
+    <h2>Timeline</h2>
+    <p class="lead">Worlds per section, the energy curve, motif lanes (every hero word on its motif, bar length = sung length) and the 20 sketch frames (numbered dots, linked). Diamonds mark the hand-offs. Scroll sideways.</p>
+    <div class="tlbox">{{TIMELINE}}</div>
+    <div class="legend"><span><i style="background:var(--stone)"></i>weight / got-list</span><span><i style="background:var(--drift)"></i>drift</span><span><i style="background:var(--hot)"></i>erase, stars, breath</span><span><i style="background:var(--ink)"></i>everybody, time</span></div>
+  </section>
+
+  <section class="stack">
+    <h2>The worlds</h2>
+    <p class="lead">One world per section, built from its dominant words. Pacing comes from the energy curve; the hand-off is the word effect that becomes the next section's start.</p>
+    <div class="worlds">{{WORLDS}}</div>
+  </section>
+
+  <section class="stack">
+    <h2>Key frames</h2>
+    <p class="lead">Rough sketches of composition and motion only. The font, colours and materials get locked in step 3.</p>
+    <div class="frames">{{FRAMES}}</div>
+  </section>
+</div>
