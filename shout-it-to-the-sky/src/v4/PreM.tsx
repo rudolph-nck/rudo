@@ -3,7 +3,7 @@ import { AbsoluteFill } from "remotion";
 import { Line, kickEnv, linesOf, sectionById } from "../data";
 import { SAFE, W, H } from "../theme";
 import { F } from "../utils/fonts";
-import { clamp01, cubicIn, cubicOut, mix } from "../utils/ease";
+import { clamp01, cubicIn, cubicOut, expoOut, mix } from "../utils/ease";
 import { Caption, lineOut } from "../v3/LyricType";
 import { Headline, HotLine, INK, MorphDefs, STONE } from "./Morph";
 
@@ -80,10 +80,93 @@ const Step: React.FC<{ k: number; word: string; at: number; t: number; last: boo
   );
 };
 
+/** "Every no they gave me got me right here": a giant NO, NOs raining, collapse, a pin drops. */
+const NoPin: React.FC<{ t: number; line: Line; until: number }> = ({ t, line, until }) => {
+  const W_ = line.words;
+  if (t < line.start - 0.02 || t >= until) return null;
+  const no = W_[1].s, rain = W_[2].s, got = W_[5].s, here = W_[8].s, right = W_[7].s;
+  const slam = expoOut(clamp01((t - no) / 0.12));
+  const rainP = clamp01((t - rain) / 0.5);
+  const col = cubicIn(clamp01((t - got) / 0.28));
+  const pinDrop = clamp01((t - right) / 0.22);
+  const land = t - right - 0.22;
+  const cx = W / 2, cy = H * 0.6;
+  const r = (i: number, k: number) => ((Math.sin(i * 91.7 + k * 13.3) * 43758.5) % 1 + 1) % 1;
+  return (
+    <AbsoluteFill>
+      {/* the big NO */}
+      {t >= no && col < 1 ? (
+        <div style={{ position: "absolute", left: 0, top: cy - 420, width: W, textAlign: "center", fontFamily: F.display, fontSize: 760, lineHeight: 1, color: INK, transform: `scale(${mix(1.8, 1, slam) * mix(1, 0.02, col)}) scaleY(${1.15})`, textShadow: "0 20px 60px rgba(0,0,0,0.8)", opacity: 1 - col }}>
+          NO
+        </div>
+      ) : null}
+      {/* every no they gave me: a rain of NOs */}
+      {rainP > 0 && col < 1
+        ? Array.from({ length: 44 }, (_, i) => {
+            const d = clamp01(rainP * 1.6 - r(i, 1) * 0.6);
+            if (d <= 0) return null;
+            const x = 60 + r(i, 2) * (W - 120), y0 = -120, y1 = 300 + r(i, 3) * 1300;
+            const x2 = mix(x, cx, col), y2 = mix(mix(y0, y1, cubicOut(d)), cy, col);
+            return <div key={i} style={{ position: "absolute", left: x2 - 60, top: y2 - 40, fontFamily: F.display, fontSize: 60 + r(i, 4) * 70, color: r(i, 5) > 0.7 ? STONE : "rgba(239,237,233,0.75)", transform: `rotate(${(r(i, 6) - 0.5) * 50}deg) scale(${1 - col})` }}>NO</div>;
+          })
+        : null}
+      {/* the collapse: everything becomes one point of light */}
+      {col > 0.6 ? <div style={{ position: "absolute", left: cx - 14, top: cy - 14, width: 28, height: 28, borderRadius: 14, background: "#fff4e6", boxShadow: "0 0 40px 14px rgba(255,240,220,0.7)", opacity: 1 - pinDrop * 0.4 }} /> : null}
+      {/* RIGHT HERE: the pin drops onto the point; rings ripple out */}
+      {pinDrop > 0 ? (
+        <>
+          {land > 0
+            ? [0, 0.12, 0.24].map((d, i) => {
+                const a = clamp01((land - d) / 0.6);
+                return a > 0 && a < 1 ? <div key={i} style={{ position: "absolute", left: cx - 300 * a, top: cy - 90 * a, width: 600 * a, height: 180 * a, borderRadius: "50%", border: `3px solid rgba(239,237,233,${1 - a})` }} /> : null;
+              })
+            : null}
+          <svg viewBox="0 0 200 260" width={300} height={390} style={{ position: "absolute", left: cx - 150, top: cy - 390 - mix(900, 0, cubicIn(pinDrop)) + (land > 0 ? -Math.abs(Math.sin(land * 22)) * 30 * Math.exp(-land / 0.08) : 0), overflow: "visible" }}>
+            <path d="M100 250 C60 180 20 140 20 95 A80 80 0 1 1 180 95 C180 140 140 180 100 250 Z" fill="url(#metal)" stroke="#fff4e6" strokeWidth={5} />
+            <circle cx={100} cy={95} r={32} fill="#0b0b0c" stroke={INK} strokeWidth={4} />
+          </svg>
+          {t >= here ? (
+            <div style={{ position: "absolute", left: 0, width: W, top: cy + 110, textAlign: "center" }}>
+              <div style={{ fontFamily: F.display, fontSize: 200, color: STONE, lineHeight: 1, transform: `scaleY(${mix(1.8, 1, expoOut(clamp01((t - here) / 0.2)))})` }}>HERE</div>
+              <div style={mono(26, "rgba(239,237,233,0.6)")}>you are here · 28.5383° N, 81.3792° W</div>
+            </div>
+          ) : null}
+        </>
+      ) : null}
+    </AbsoluteFill>
+  );
+};
+
+/** "Let me hear it, let me hear it": sound rings burst on each "hear it". */
+const Rings: React.FC<{ t: number; line: Line; until: number }> = ({ t, line, until }) => {
+  if (t < line.start - 0.02 || t > until + 0.3) return null;
+  const hits = line.words.filter((w) => /hear|say|now/i.test(w.w)).map((w) => w.s);
+  const cx = W / 2, cy = H * 0.62;
+  const out = clamp01((t - until) / 0.25);
+  return (
+    <AbsoluteFill style={{ opacity: 1 - out }}>
+      {/* the speaker */}
+      <svg viewBox="0 0 200 200" width={300} height={300} style={{ position: "absolute", left: cx - 150, top: cy - 150, overflow: "visible" }}>
+        <path d="M100 30 A70 70 0 1 1 99.9 30 M100 70 A30 30 0 1 1 99.9 70" stroke={INK} strokeWidth={6} fill="none" transform={`translate(100 100) scale(${1 + kickEnv(t, 0.1) * 0.12}) translate(-100 -100)`} />
+      </svg>
+      {hits.flatMap((h, hi) =>
+        [0, 0.08, 0.16].map((d, i) => {
+          const a = clamp01((t - h - d) / 0.55);
+          if (a <= 0 || a >= 1) return null;
+          const r = 150 + a * 700;
+          return <div key={`${hi}-${i}`} style={{ position: "absolute", left: cx - r, top: cy - r, width: r * 2, height: r * 2, borderRadius: "50%", border: `${6 * (1 - a) + 1}px solid rgba(255,244,230,${1 - a})` }} />;
+        }),
+      )}
+    </AbsoluteFill>
+  );
+};
+
 export const PreChorusM: React.FC<{ t: number; id?: string; bare?: boolean }> = ({ t, id = "prechorus1", bare }) => {
   const sec = sectionById(id);
   const lines = linesOf(id);
-  const words = lines.flatMap((l) => l.words.map((w, i) => ({ w, last: i === l.words.length - 1 })));
+  // stairs carry lines 1 and 3; line 2 is the NO + pin, line 4 the sound rings
+  const words = [lines[0], lines[2]].flatMap((l) => l.words.map((w, i) => ({ w, last: i === l.words.length - 1 })));
+  const showStairs = (t < lines[1].start - 0.02) || (t >= lines[2].start - 0.03 && t < lines[3].start - 0.02);
   const outs = lines.map((l, i) => lineOut(l, lines[i + 1], 0.8));
   const last = lines[lines.length - 1];
   const tall = sub(last, Math.max(0, last.words.length - 5));
@@ -108,6 +191,7 @@ export const PreChorusM: React.FC<{ t: number; id?: string; bare?: boolean }> = 
       <MorphDefs />
       {/* the hot line from the last section, until the first door takes it */}
       <HotLine x0={SAFE.left - 60} x1={SAFE.right + 60} y={H * 0.48} o={1 - enter} />
+      {showStairs ? (
       <AbsoluteFill style={{ perspective: 1500, perspectiveOrigin: "50% 45%", opacity: 1 - hush }}>
         <div
           style={{
@@ -123,6 +207,9 @@ export const PreChorusM: React.FC<{ t: number; id?: string; bare?: boolean }> = 
           ))}
         </div>
       </AbsoluteFill>
+      ) : null}
+      <NoPin t={t} line={lines[1]} until={lines[2].start - 0.03} />
+      <Rings t={t} line={lines[3]} until={squash} />
       {/* the second time round, light falls on the stairs from above */}
       {second ? <AbsoluteFill style={{ background: "radial-gradient(ellipse 70% 40% at 50% 0%, rgba(240,238,234,0.18) 0%, rgba(0,0,0,0) 100%)", mixBlendMode: "screen" }} /> : null}
       {/* LET ME SAY IT NOW! — tall, then squashed to a line, then to a point */}
