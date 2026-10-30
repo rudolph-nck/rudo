@@ -86,6 +86,34 @@ const NoSign: React.FC<{ r: number; draw: number; slash: number; o: number }> = 
   return (<>{<primitive object={obj.ring.l} />}{slash > 0 ? <primitive object={obj.slash.l} /> : null}</>);
 };
 
+/** A big, quiet clock in the sky behind FOR A MINUTE: thin crisp lines, a ticking second hand. */
+const SkyClock: React.FC<{ r: number; sec: number; o: number }> = ({ r, sec, o }) => {
+  const obj = useMemo(() => {
+    const ring = mkLine(121, 1.6, "#d8d1c6");
+    ring.g.setPositions(Array.from({ length: 121 }, (_, i) => { const q = (i / 120) * Math.PI * 2; return [Math.cos(q) * r, Math.sin(q) * r, 0]; }).flat());
+    const ticks = Array.from({ length: 60 }, (_, i) => {
+      const l = mkLine(2, i % 5 === 0 ? 1.8 : 1.0, "#d8d1c6"), q = (i / 60) * Math.PI * 2, k = i % 5 === 0 ? 0.86 : 0.93;
+      l.g.setPositions([Math.sin(q) * r * k, Math.cos(q) * r * k, 0, Math.sin(q) * r * 0.98, Math.cos(q) * r * 0.98, 0]);
+      return l;
+    });
+    const sHand = mkLine(2, 1.4, "#efe9df"), mHand = mkLine(2, 2.2, "#d8d1c6");
+    mHand.g.setPositions([0, 0, 0, 0, r * 0.62, 0]);
+    return { ring, ticks, sHand, mHand };
+  }, [r]);
+  const q = -(Math.floor(sec) + Math.min(1, (sec % 1) * 8)) * (Math.PI / 30); // ticks, with a quick settle
+  obj.sHand.g.setPositions([-Math.sin(q) * r * -0.12, -Math.cos(q) * r * 0.12, 0, Math.sin(-q) * r * 0.9, Math.cos(q) * r * 0.9, 0]);
+  [obj.ring, obj.sHand, obj.mHand, ...obj.ticks].forEach((l) => (l.m.opacity = o));
+  if (o <= 0.01) return null;
+  return (
+    <>
+      <primitive object={obj.ring.l} />
+      {obj.ticks.map((l, i) => <primitive key={i} object={l.l} />)}
+      <primitive object={obj.mHand.l} />
+      <primitive object={obj.sHand.l} />
+    </>
+  );
+};
+
 /** A word made of small tiles, so pieces of it can be pulled away. */
 const useTiles = (a: ReturnType<typeof useAssets>, text: string, size: number, n: number, seed: number) =>
   useMemo(() => {
@@ -245,25 +273,9 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
         dist = D + u * 9; o *= 1 - u * 0.7; rot = [0, 0, u * 0.18];
         xf = (i, x) => ({ p: [x * (1 + u * 0.15), Math.sin(i * 1.7) * u * 0.08, 0], r: [0, 0, (i - (n - 1) / 2) * u * 0.05] });
       }
-      if (r.li === 3 && r.hero) { // DISAPPEAR fades into the night, letter by letter
-        const u = clamp01((t - (w.s + 0.35)) / Math.max(1.3, L(4)[0].s - w.s - 0.45)); // fades right up to the next line
-        xf = (i, x) => ({ p: [x, 0, -Math.max(0, u * (n + 2) - i) * 0.15], r: [0, 0, 0] });
-        const lettersGone = (i: number) => clamp01(u * (n + 2) - i);
-        // per-letter opacity via separate materials
-        for (let i = 0; i < n; i++) {
-          const lo = o * (1 - lettersGone(i));
-          if (lo <= 0.01) continue;
-          const lay = layout(a.bebas, r.text, r.size, 0.04);
-          const dir = skyDir(r.li), C = O.clone().addScaledVector(dir, dist);
-          sky.push(
-            <group key={`${key}-${i}`} position={C.toArray() as [number, number, number]} ref={(g) => { if (g) g.lookAt(O); }}>
-              <group position={[r.x + lay.letters[i].x, r.y, -Math.max(0, u * (n + 2) - i) * 0.4]}>
-                <Letters font={a.bebas} family="bebas" text={r.text[i]} size={r.size} depth={0.001} material={flat(`${key}-${i}`, r.color, lo)} bevel={0} shadows={false} />
-              </group>
-            </group>,
-          );
-        }
-        return;
+      if (r.li === 3 && r.hero) { // DISAPPEAR: the whole word drifts away into the abyss
+        const u = cubicIn(clamp01((t - (w.s + 0.3)) / Math.max(1.4, L(4)[0].s - w.s - 0.35)));
+        dist = D + u * 16; o *= 1 - u; rot = [0, 0, u * 0.12];
       }
       if (r.li === 4 && r.wi === 5) { const u = clamp01((t - stopT) / 0.07); o = u * (lineNow > 4 ? mix(0.3, 0.9, zoom) : 1); scl = [1, mix(1.2, 1, u), 1]; }
       const dir = skyDir(r.li), C = O.clone().addScaledVector(dir, dist);
@@ -421,7 +433,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   const el = Math.max(0, t - tStart);
   const pop = cubicOut(clamp01((t - tStart) / 0.3));
   const tug = timeVis ? Math.min(1, Math.max(0, t - (tmW.s + 0.15)) * 3) * (1 - clamp01((t - (shelfT - 0.1)) / 0.3)) : 0;
-  const timerUI = t >= tStart && find < 0.5 ? (
+  const timerUI = false ? (
     <div style={{ position: "absolute", right: 150 - tug * 40, top: 230 - tug * 24, width: 112, height: 112, opacity: pop * (1 - zoom) * 0.9, transform: `scale(${mix(0.6, 1, pop)}) rotate(${tug * 14}deg)`, transformOrigin: "100% 0%" }}>
       <svg width={112} height={112} viewBox="0 0 112 112">
         <circle cx={56} cy={56} r={46} stroke="rgba(239,237,233,0.2)" strokeWidth={2.5} fill="none" />
@@ -447,6 +459,15 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
             <mesh position={[0, -0.6 - 20, 6]}><boxGeometry args={[14, 40, 12]} /><meshBasicMaterial color="#020202" /></mesh>
             <mesh position={[0, 0.35, 0.18]} material={sil} visible={zoom > 0.01}><planeGeometry args={[0.76, 0.96]} /></mesh>
             {sky}
+            {(() => {
+              const m0 = L(5)[0].s, o = cubicOut(clamp01((t - (m0 - 0.1)) / 0.6)) * (1 - dawn) * (1 - zoom) * 0.5;
+              const C = O.clone().addScaledVector(skyDir(5), D + 3.5);
+              return o > 0.01 ? (
+                <group position={C.toArray() as [number, number, number]} ref={(g) => { if (g) g.lookAt(O); }}>
+                  <SkyClock r={1.55} sec={Math.max(0, t - L(5)[2].s)} o={o} />
+                </group>
+              ) : null;
+            })()}
             {qDraw > 0 && !inRoom ? (
               <group position={qC.toArray() as [number, number, number]} ref={(g) => { if (g) g.lookAt(O); }}>
                 <group position={[qRow.x, qRow.y, 0]}><NoSign r={qR} draw={qDraw} slash={qSlash} o={lineNow > 2 ? mix(0.0, 0.9, zoom) : 1} /></group>
