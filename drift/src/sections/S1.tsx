@@ -38,8 +38,8 @@ const SHELF_K = 12;
 // ---- world anchors ----
 const O = new THREE.Vector3(0, 0.25, 0.25); // your eyes on the rooftop
 const D = 7; // sky words distance
-const YAW = [0.0, -0.46, 0.42, -0.44, 0.4, 0.0];
-const PITCH = [0.82, 1.0, 1.04, 0.62, 0.6, 0.36];
+const YAW = [0.0, -0.46, 0.42, -0.44, 0.4, -0.38, 0.02];
+const PITCH = [0.82, 1.0, 1.04, 0.62, 0.6, 0.34, 0.24];
 const skyDir = (k: number) => new THREE.Vector3(Math.cos(PITCH[k]) * Math.sin(YAW[k]), Math.sin(PITCH[k]), -Math.cos(PITCH[k]) * Math.cos(YAW[k]));
 const FLOOR_Y = 100; // the bedroom
 const CY = 102.6; // ceiling height
@@ -175,7 +175,8 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   type Row = { li: number; wi: number; text: string; size: number; x: number; y: number; hero: boolean; color: string };
   const rows: Row[] = [];
   const row = (li: number, wis: number[], y: number, size: number, hero = false, maxW = 2.2, color0 = INK) => {
-    const color = li >= 6 ? (color0 === STONE ? "#6f604e" : "#262421") : color0;
+    const inSky = li < 6 || (li === 6 && wis[0] <= 1);
+    const color = !inSky ? (color0 === STONE ? "#6f604e" : "#262421") : color0;
     const texts = wis.map((wi) => L(li)[wi].w.toUpperCase().replace(/[.,]/g, ""));
     const s0 = Math.min(size, size * (maxW / layout(a.bebas, texts.join(" "), size, 0.04).width));
     const lay = layout(a.bebas, texts.join(" "), s0, 0.04);
@@ -194,7 +195,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   row(4, [0, 1, 2], 0.95, 0.26); row(4, [3], 0.48, 0.55, true); row(4, [4], 0.05, 0.22); row(4, [5], -0.55, 1.05, true, 2.0, STONE);
   row(5, [0, 1], 0.42, 0.3); row(5, [2], -0.15, 0.7, true);
   // ceiling — sizes for 2 m away
-  row(6, [0], 0.32, 0.07); row(6, [1], 0.18, 0.15, true, 0.62, STONE); row(6, [2], 0.02, 0.06); row(6, [3], -0.12, 0.12, true);
+  row(6, [0], 0.45, 0.3); row(6, [1], -0.2, 0.95, true, 2.0, STONE); row(6, [2], 0.1, 0.07); row(6, [3], -0.06, 0.15, true);
   row(7, [0], 0.3, 0.06); row(7, [1], 0.15, 0.17, true, 0.62, STONE); row(7, [2, 3], -0.03, 0.06); row(7, [4], -0.16, 0.12, true);
   row(8, [0, 1, 2], 0.26, 0.06); row(8, [3, 4], 0.15, 0.06); row(8, [5], 0.0, 0.16, true, 0.6, STONE);
   row(9, [0, 1], 0.3, 0.06); row(9, [2], 0.16, 0.13, true, 0.62); row(9, [3], 0.03, 0.05); row(9, [4], -0.12, 0.15, true, 0.6, STONE);
@@ -225,7 +226,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
     let scl: [number, number, number] = [1, 1, 1];
     let xf: ((i: number, x: number) => { p: [number, number, number]; r?: [number, number, number] }) | undefined;
     const n = r.text.length;
-    if (r.li < 6) {
+    if (r.li < 6 || (r.li === 6 && r.wi <= 1)) {
       // ----- night sky -----
       const past = lineNow > r.li && r.li < 5;
       if (past) o *= mix(0.3, 0.9, zoom);
@@ -256,7 +257,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
         }
         return;
       }
-      if (r.li === 4 && r.wi === 5) { const u = clamp01((t - stopT) / 0.07); o = u; scl = [1, mix(1.2, 1, u), 1]; }
+      if (r.li === 4 && r.wi === 5) { const u = clamp01((t - stopT) / 0.07); o = u * (lineNow > 4 ? mix(0.3, 0.9, zoom) : 1); scl = [1, mix(1.2, 1, u), 1]; }
       const dir = skyDir(r.li), C = O.clone().addScaledVector(dir, dist);
       sky.push(
         <group key={key} position={C.toArray() as [number, number, number]} ref={(g) => { if (g) g.lookAt(O); }}>
@@ -275,7 +276,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
     const fall = Math.max(0, t - (nextStart - 0.05));
     const fz = st < 10 ? 0.5 * 5 * fall * fall : 0;
     if (st < 10 && fz > 2.2) return;
-    o *= 1 - clamp01(fall / 0.6);
+    o *= 1 - clamp01(fall / 0.22);
     p = [p[0], p[1], 0.06 + fz];
     if (r.li === 7 && r.wi === 1) { // PRESSURE: squeezed and trembling
       const u = cubicOut(clamp01((t - (w.s + 0.1)) / 0.45));
@@ -350,7 +351,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   if (!inRoom) {
     // POV: turn from line to line across the sky
     let dir = skyDir(0);
-    for (let k = 1; k <= 5; k++) { const u = cubicInOut(clamp01((t - (L(k)[0].s - 0.12)) / 0.5)); if (u > 0) dir = dir.clone().lerp(skyDir(k), u).normalize(); }
+    for (let k = 1; k <= 6; k++) { const u = cubicInOut(clamp01((t - (L(k)[0].s - 0.12)) / 0.5)); if (u > 0) dir = dir.clone().lerp(skyDir(k), u).normalize(); }
     const breathe = new THREE.Vector3((noise1(t * 0.25, 1) - 0.5) * 0.02, (noise1(t * 0.21, 2) - 0.5) * 0.02, 0);
     pos = O.clone(); look = O.clone().addScaledVector(dir.add(breathe), 5);
     // STOP: out of your eyes — the silhouette on the building edge, the sky of lines above
@@ -424,7 +425,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
             {sky}
             {qDraw > 0 && !inRoom ? (
               <group position={qC.toArray() as [number, number, number]} ref={(g) => { if (g) g.lookAt(O); }}>
-                <group position={[qRow.x, qRow.y, 0]}><NoSign r={qR} draw={qDraw} slash={qSlash} o={lineNow > 2 ? mix(0.4, 0.9, zoom) : 1} /></group>
+                <group position={[qRow.x, qRow.y, 0]}><NoSign r={qR} draw={qDraw} slash={qSlash} o={lineNow > 2 ? mix(0.0, 0.9, zoom) : 1} /></group>
               </group>
             ) : null}
           </>
