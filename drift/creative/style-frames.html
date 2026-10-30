@@ -1,0 +1,81 @@
+<title>Drift Style Frames</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Caveat:wght@500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@500&display=swap">
+<style>
+/* Layout: same dark column as steps 1–2; a 2-up grid of 9:16 renders; the locked spec as compact tables. Single dark theme: the video's palette. */
+:root { --bg:#0b0a09; --panel:#151310; --line:#2a2723; --ink:#efede9; --muted:#8d877e; --stone:#c4b6a2; --hot:#fff4e6; --drift:#a9b7c4;
+  --display:"Bebas Neue","Oswald","Arial Narrow",sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace; color-scheme:dark; }
+* { box-sizing:border-box; }
+body { background:var(--bg); color:var(--ink); font:15px/1.55 var(--body); margin:0; }
+.wrap { max-width:1180px; margin:0 auto; padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); padding-block:40px 80px; display:grid; gap:56px; }
+h1,h2,h3 { font-family:var(--display); font-weight:400; letter-spacing:.02em; margin:0; text-wrap:balance; }
+h1 { font-size:clamp(64px,14vw,140px); line-height:.85; } h2 { font-size:44px; line-height:1; } h3 { font-size:32px; line-height:1; }
+p { margin:0; max-width:68ch; }
+.eyebrow { font:500 12px var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--stone); }
+.lead { color:var(--muted); } .stack { display:grid; gap:14px; }
+.thesis { font-size:19px; max-width:54ch; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:28px 18px; }
+.sf { margin:0; display:grid; gap:12px; align-content:start; min-width:0; }
+.sf img, video { width:100%; height:auto; max-width:100%; display:block; border:1px solid var(--line); background:#000; }
+.sf figcaption { display:grid; gap:6px; }
+.t { font:12px var(--mono); color:var(--muted); }
+.mat { font:500 11px var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--bg); background:var(--stone); padding:3px 7px; border-radius:2px; justify-self:start; }
+.sf p { font-size:14px; color:#d6d2cb; } .sf .spec { font:12px var(--mono); color:var(--muted); }
+.motion { display:grid; grid-template-columns:minmax(0,320px) minmax(0,1fr); gap:24px; align-items:start; }
+@media (max-width:640px) { .motion { grid-template-columns:1fr; } }
+.tw { overflow-x:auto; }
+table { border-collapse:collapse; width:100%; font-size:14px; }
+th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+th { font:400 11px var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+td:first-child { white-space:nowrap; color:var(--stone); font-family:var(--mono); font-size:12px; }
+.chip { display:inline-block; width:14px; height:14px; border-radius:2px; vertical-align:-2px; margin-right:6px; border:1px solid var(--line); }
+.f-bebas { font-family:var(--display); font-size:28px; letter-spacing:.02em; } .f-inter { font-family:Inter,sans-serif; font-weight:500; }
+.f-caveat { font-family:Caveat,cursive; font-size:26px; } .f-mono { font-family:var(--mono); }
+</style>
+<div class="wrap">
+  <header class="stack">
+    <span class="eyebrow">RUDO · Drift · Step 3 of 5 · Style frames</span>
+    <h1>Real light, real weight</h1>
+    <p class="thesis">Eight stills rendered by the actual video engine at 1080×1920, not mock-ups: physically lit 3D type, real materials, depth of field, bloom and film grain. No people, only words. Each frame is the exact moment in the song, captions included.</p>
+  </header>
+
+  <section class="stack">
+    <h2>The eight frames</h2>
+    <div class="grid"><figure class="sf"><img src="style/weight.jpg" width="720" height="1280" alt="WEIGHT style frame" loading="lazy"><figcaption><span class="t">0:33.6 · line 12</span><h3>WEIGHT</h3><span class="mat">Stone · HEAVY</span><p>Cast stone with fine concrete grain, bevelled edges catching an overhead lamp. Letters fall under real gravity (22 m/s²), land on the kick, bounce 6% and settle; the room jolts and a dust puff rolls out along the floor. Hard contact shadows.</p><p class="spec">Bebas Neue extruded, stone #c4b6a2, concrete room #6d6862, warm lamp</p></figcaption></figure><figure class="sf"><img src="style/envy.jpg" width="720" height="1280" alt="ENVY style frame" loading="lazy"><figcaption><span class="t">0:37.6 · line 14</span><h3>ENVY</h3><span class="mat">Glass · GLASS</span><p>Thick clear glass (index 1.52, slight dispersion) on a dark plinth, backlit by a softbox so the edges and refraction carry the shape. Studio reflections on the glass only; the room stays dark.</p><p class="spec">Glass, dark concrete, single softbox</p></figcaption></figure><figure class="sf"><img src="style/break.jpg" width="720" height="1280" alt="BREAK style frame" loading="lazy"><figcaption><span class="t">0:55.7 · line 23</span><h3>BREAK</h3><span class="mat">Stone + light · CRACK-OPEN</span><p>The word splits along a jagged crack; the two halves pull apart by the integral of his voice over the held note. White-hot crack edges, deep stars visible through the gap.</p><p class="spec">Grey stone, hot point #fff4e6, starfield</p></figcaption></figure><figure class="sf"><img src="style/stars.jpg" width="720" height="1280" alt="STARS style frame" loading="lazy"><figcaption><span class="t">1:01.8 · line 26</span><h3>STARS</h3><span class="mat">Points of light · NEON</span><p>16,000 points sampled on the letters (half along the outlines for crisp edges) ignite left to right as he sings, each one flaring then settling. FLOAT drifts past in the out-of-focus foreground.</p><p class="spec">Hot points, drift grey #a9b7c4 matte</p></figcaption></figure><figure class="sf"><img src="style/no.jpg" width="720" height="1280" alt="NO DEADLINES style frame" loading="lazy"><figcaption><span class="t">1:06.7 · line 28</span><h3>NO DEADLINES</h3><span class="mat">Light lines · ERASE</span><p>A calendar drawn in light: white-hot core, warm glow, wide bloom. On NO the hot point runs back along its own path and unwrites it, leaving a faint afterimage. Real month grid in Plex Mono.</p><p class="spec">Hot line #fff4e6, NO in Bebas Neue white-hot</p></figcaption></figure><figure class="sf"><img src="style/father.jpg" width="720" height="1280" alt="FATHER style frame" loading="lazy"><figcaption><span class="t">1:51.6 · line 45</span><h3>FATHER</h3><span class="mat">Carved concrete · CARVE (soft)</span><p>Handwritten in Caveat, cut into concrete by the hot point under a raking light: the groove is real relief, the fresh cut glows and cools behind the point, sparks spray. No beat cuts here.</p><p class="spec">Caveat, concrete wall, warm point light</p></figcaption></figure><figure class="sf"><img src="style/drift.jpg" width="720" height="1280" alt="DRIFT style frame" loading="lazy"><figcaption><span class="t">1:25.9 · line 34</span><h3>DRIFT</h3><span class="mat">Matte drift grey · DRIFT</span><p>Letters unhook and float apart with no gravity; how far is the voice-integrated held note, so the effect lasts exactly as long as he sings it. F and T begin to come apart into points. DIE stays a small quiet caption above.</p><p class="spec">Drift grey #a9b7c4 with clearcoat, cool rim light, starfield</p></figcaption></figure><figure class="sf"><img src="style/keep.jpg" width="720" height="1280" alt="KEEP + WEIGHT style frame" loading="lazy"><figcaption><span class="t">3:54.2 · line 91</span><h3>KEEP + WEIGHT</h3><span class="mat">Stone at dawn · HEAVY (shouldered)</span><p>Dawn horizon, low sun behind, long shadows toward camera. KEEP stands up under the same stone block from verse 1 and lifts it level.</p><p class="spec">Stone, horizon glow, ground fog</p></figcaption></figure></div>
+  </section>
+
+  <section class="stack">
+    <h2>Motion test</h2>
+    <div class="motion">
+      <video src="style/weight-motion.mp4" controls muted loop playsinline width="540" height="960"></video>
+      <div class="stack">
+        <p>Two and a half seconds around WEIGHT (0:32.8–0:35.3), rendered at full quality. The letters fall under gravity with a 25 ms stagger, their shadows rush toward them from the overhead lamp, they land on the kick, bounce once (6% of the drop, damped) and settle. The camera takes the hit and recovers.</p>
+        <p>This is the motion standard for the build: heavy things obey gravity and inertia, light things obey air drag and the voice. No generic easing curves on anything that's supposed to have mass.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="stack">
+    <h2>Locked style</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Element</th><th>Choice</th><th>Rule</th></tr></thead>
+      <tbody>
+        <tr><td>Hero type</td><td><span class="f-bebas">Bebas Neue</span>, extruded and bevelled</td><td>Every hero word is a 3D object made of its material. Tall and condensed, as in Shout It to the Sky.</td></tr>
+        <tr><td>Captions</td><td><span class="f-inter">Inter 500, 38 px</span></td><td>Top left, letters light as they're sung, hero word in stone. Small and steady.</td></tr>
+        <tr><td>Handwriting</td><td><span class="f-caveat">Caveat</span></td><td>Only for FATHER and the personal lines around it.</td></tr>
+        <tr><td>Detail</td><td><span class="f-mono">IBM Plex Mono</span></td><td>Calendar days, timestamps, UI fragments inside icons.</td></tr>
+        <tr><td>Ink</td><td><span class="chip" style="background:#efede9"></span>#efede9</td><td>Default for type and lines.</td></tr>
+        <tr><td>Stone</td><td><span class="chip" style="background:#c4b6a2"></span>#c4b6a2</td><td>The weight family: weight, pressure, carrying, keep, stronger, father.</td></tr>
+        <tr><td>Hot point</td><td><span class="chip" style="background:#fff4e6"></span>#fff4e6</td><td>The only light source that draws and erases. Core, warm glow, wide bloom, anamorphic streak, sparks.</td></tr>
+        <tr><td>Drift grey</td><td><span class="chip" style="background:#a9b7c4"></span>#a9b7c4</td><td>DRIFT and FLOAT only.</td></tr>
+        <tr><td>Red</td><td><span class="chip" style="background:#e5483b"></span>#e5483b</td><td>Money only. No money words in Drift, so it never appears.</td></tr>
+        <tr><td>Materials</td><td>Stone · glass · light · matte drift grey · points of light · carved concrete</td><td>One material per hero word, chosen by the word. Repeats return in the same material, evolved.</td></tr>
+        <tr><td>Light</td><td>One key per scene</td><td>Overhead lamp (verses), softbox (glass), raking light (carving), low sun (outro), starlight (choruses).</td></tr>
+        <tr><td>Camera</td><td>35–40 mm feel</td><td>Shallow depth of field, slight handheld drift, takes impacts physically.</td></tr>
+        <tr><td>Finish</td><td>Filmic tone mapping, bloom on lights only, grain 8–10%, vignette</td><td>Highlights roll off like film; nothing clips flat white except the hot point.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="lead">Render cost at this quality is about 2.2 s per frame on this machine, so the full 4:24 song is roughly 5 hours of rendering. Section clips in step 4 take 10–20 minutes each.</p>
+  </section>
+</div>
