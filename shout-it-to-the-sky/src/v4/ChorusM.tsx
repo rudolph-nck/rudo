@@ -6,7 +6,7 @@ import { Font } from "three/examples/jsm/loaders/FontLoader.js";
 import { kickEnv, linesOf, sectionById, T } from "../data";
 import { SAFE, W, H } from "../theme";
 import { F } from "../utils/fonts";
-import { clamp01, cubicIn, cubicOut, mix } from "../utils/ease";
+import { clamp01, cubicIn, cubicOut, expoOut, mix } from "../utils/ease";
 import { rng } from "../utils/random";
 import { Caption, lineOut } from "../v3/LyricType";
 import { RoofScene } from "../v3/Rise";
@@ -61,6 +61,45 @@ const Sparks: React.FC<{ t: number; kicks: number[]; x: number; y: number }> = (
   </svg>
 );
 
+/** Angle grinder drawn in light. The disc carries the word and spins; sparks spray off the rim. */
+const Grinder: React.FC<{ t: number; start: number; kicks: number[] }> = ({ t, start, kicks }) => {
+  const d = t - start + 0.2;
+  const draw = clamp01(d / 0.3);
+  const fill = clamp01((d - 0.25) / 0.2);
+  const pop = expoOut(clamp01(d / 0.25));
+  const spin = Math.max(0, d - 0.3);
+  const rpm = spin * (900 + 500 * Math.min(1, spin));
+  const kick = kickEnv(t, 0.1);
+  // one coordinate system: viewBox 0 0 500 400, disc centre (170, 230) r 130
+  const S = 1000, X0 = CX - 560, Y0 = H * 0.66 - 400;
+  const k = S / 500;
+  const rimX = X0 + (170 - 120) * k, rimY = Y0 + (230 + 90) * k;
+  return (
+    <>
+      <svg viewBox="0 0 500 400" width={S} height={S * 0.8} style={{ position: "absolute", left: X0, top: Y0, overflow: "visible", transform: `scale(${mix(0.85, 1, pop) * (1 + kick * 0.03)})`, transformOrigin: "34% 57%" }}>
+        <defs>
+          <path id="discText" d="M170 230 m-104 0 a104 104 0 1 1 208 0 a104 104 0 1 1 -208 0" />
+        </defs>
+        {/* body (gear head → motor → tail), side handle, cord */}
+        <Drawn d="M200 196 h40 l20 -14 h170 a34 34 0 0 1 0 68 h-170 l-20 -14 h-40 z M300 182 v68 M464 216 h40 M210 196 v-90 M194 106 h32" p={draw} fill={fill} w={5} />
+        {/* guard over the back half of the disc */}
+        <Drawn d="M60 170 A136 136 0 0 1 300 200" p={draw} fill={fill} w={7} />
+        {/* the disc */}
+        <g transform={`rotate(${rpm} 170 230)`} opacity={draw}>
+          <circle cx={170} cy={230} r={130} fill="#121212" stroke={draw >= 1 ? "url(#metal)" : "#fff4e6"} strokeWidth={7} />
+          <circle cx={170} cy={230} r={74} fill="none" stroke="rgba(239,237,233,0.3)" strokeWidth={2} />
+          <circle cx={170} cy={230} r={22} fill="url(#metal)" stroke={INK} strokeWidth={3} />
+          <text fontFamily="Bebas Neue" fontSize={44} letterSpacing={3} fill={INK} opacity={fill}>
+            <textPath href="#discText">GRINDING · GRINDING · GRINDING ·</textPath>
+          </text>
+        </g>
+        <circle cx={170} cy={230} r={104} fill="none" stroke={`rgba(239,237,233,${0.2 * clamp01(spin * 2)})`} strokeWidth={34} />
+      </svg>
+      {spin > 0 ? <Sparks t={t} kicks={[...kicks.filter((k2) => k2 > start - 0.1), ...Array.from({ length: 10 }, (_, i) => start + 0.35 + i * 0.21)]} x={rimX} y={rimY} /> : null}
+    </>
+  );
+};
+
 export const ChorusM: React.FC<{ t: number; a: Assets | null; id?: string; bare?: boolean }> = ({ t, a, id = "chorus1", bare }) => {
   const sec = sectionById(id);
   const L = linesOf(id);
@@ -98,7 +137,7 @@ export const ChorusM: React.FC<{ t: number; a: Assets | null; id?: string; bare?
       <MorphDefs />
       {/* RUDO on the roof, in contour lines */}
       {a && roof > 0 && t < w(6, 4) + 0.6 ? (
-        <AbsoluteFill style={{ opacity: roof * (1 - warp) }}>
+        <AbsoluteFill style={{ opacity: roof * (1 - warp) * (grindOn ? 0.35 : 1) }}>
           <ThreeCanvas width={W} height={H} style={{ position: "absolute", inset: 0 }} gl={{ antialias: true, alpha: true }}>
             <RoofScene t={t} a={a} id={id} />
           </ThreeCanvas>
@@ -134,18 +173,8 @@ export const ChorusM: React.FC<{ t: number; a: Assets | null; id?: string; bare?
       {/* the burst: the point from the pre-chorus shoots up into the sky */}
       {t < w(0, 1) + 0.2 ? <HotLine x0={CX - 3} x1={CX + 3} y={mix(H * 0.3, H * 0.1, burst)} o={1 - clamp01((t - w(0, 1)) / 0.2)} /> : null}
       {burst > 0 && burst < 1 ? <div style={{ position: "absolute", left: CX - 3, top: H * 0.1, width: 6, height: (HORIZON - H * 0.1) * burst, background: "#fff4e6", boxShadow: "0 0 30px 8px rgba(255,240,220,0.6)" }} /> : null}
-      {/* grinder wheel at the ledge + sparks on the kicks */}
-      {grindOn ? (
-        <>
-          <Obj x={CX + 250} y={H * 0.68} size={240} rot={t * 900}>
-            <Drawn d="M100 30 A70 70 0 1 1 99.9 30 M100 70 A30 30 0 1 1 99.9 70" p={clamp01((t - w(3, 0) + 0.2) / 0.25)} fill={1} w={6} />
-            {Array.from({ length: 12 }, (_, i) => (
-              <line key={i} x1={100 + Math.cos((i / 12) * Math.PI * 2) * 40} y1={100 + Math.sin((i / 12) * Math.PI * 2) * 40} x2={100 + Math.cos((i / 12) * Math.PI * 2) * 66} y2={100 + Math.sin((i / 12) * Math.PI * 2) * 66} stroke={INK} strokeWidth={3} />
-            ))}
-          </Obj>
-          <Sparks t={t} kicks={kicks.filter((k) => k > w(3, 0) - 0.3)} x={CX + 140} y={H * 0.7} />
-        </>
-      ) : null}
+      {/* the angle grinder: GRINDING printed round the disc, spinning, sparks on the kicks */}
+      {grindOn ? <Grinder t={t} start={t >= w(7, 0) - 0.2 ? w(7, 0) : w(3, 0)} kicks={kicks} /> : null}
       {/* legacy tower: floors stack in light, then round into the world */}
       {tower > 0 && t < w(6, 1) ? (
         <svg width={W} height={H} style={{ position: "absolute", left: 0, top: 0 }}>
