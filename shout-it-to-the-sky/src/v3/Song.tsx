@@ -8,8 +8,9 @@ import { Verse1M } from "../v4/Verse1M";
 import { PreChorusM } from "../v4/PreM";
 import { ChorusM } from "../v4/ChorusM";
 import { PostChorusM } from "../v4/PostM";
-import { Verse2 } from "./Flip";
-import { Bridge, Outro, Verse3 } from "./Night";
+import { Verse2M } from "../v4/Verse2M";
+import { Verse3M } from "../v4/Verse3M";
+import { BridgeM, OutroM } from "../v4/EndM";
 
 /** The full song in the v3 style. */
 export const SONG_FRAMES = DURATION_FRAMES;
@@ -40,9 +41,9 @@ const renderBare = (src: number, a: Assets): React.ReactNode => {
   if (id === "verse1") return <Verse1M t={src} assets={a} bare />;
   if (id.startsWith("prechorus")) return <PreChorusM t={src} id={id} a={a} bare />;
   if (id.startsWith("chorus")) return <ChorusM t={src} a={a} id={id} bare />;
-  if (id === "verse2") return <Verse2 t={src} bare />;
-  if (id === "verse3") return <Verse3 t={src} a={a} bare />;
-  if (id === "bridge") return <Bridge t={src} a={a} bare />;
+  if (id === "verse2") return <Verse2M t={src} bare />;
+  if (id === "verse3") return <Verse3M t={src} bare />;
+  if (id === "bridge") return <BridgeM t={src} bare />;
   return null;
 };
 
@@ -59,10 +60,10 @@ export const Song: React.FC<{ muted?: boolean }> = ({ muted }) => {
       {id === "chorus1" || id === "chorus2" || id === "chorus3" ? <ChorusM t={t} a={a} id={id} /> : null}
       {id === "postchorus1" ? <PostChorusM t={t} a={a} id={id} montage={POST1_MONTAGE} renderAt={at} /> : null}
       {id === "postchorus2" ? <PostChorusM t={t} a={a} id={id} montage={POST2_MONTAGE} renderAt={at} /> : null}
-      {id === "verse2" ? <Verse2 t={t} /> : null}
-      {id === "verse3" ? <Verse3 t={t} a={a} renderAt={at} /> : null}
-      {id === "bridge" ? <Bridge t={t} a={a} /> : null}
-      {id === "outro" ? <Outro t={t} a={a} /> : null}
+      {id === "verse2" ? <Verse2M t={t} /> : null}
+      {id === "verse3" ? <Verse3M t={t} renderAt={at} /> : null}
+      {id === "bridge" ? <BridgeM t={t} /> : null}
+      {id === "outro" ? <OutroM t={t} a={a} /> : null}
       {muted ? null : <Audio src={staticFile("audio/shout-it-to-the-sky.m4a")} />}
     </AbsoluteFill>
   );

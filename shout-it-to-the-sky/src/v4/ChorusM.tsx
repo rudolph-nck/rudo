@@ -128,7 +128,7 @@ const arcPath = (cx: number, y0: number, len: number, theta: number) => {
  * bends from a straight word into a ring and spins, and every new word spins it faster. The two
  * rings sit one inside the other like a cutting disc; sparks fly off the rim on the kicks.
  */
-const GrindLyric: React.FC<{ t: number; line: { words: { w: string; s: number; e: number }[] }; end: number; kicks: number[]; slab?: boolean; disc?: number }> = ({ t, line, end, kicks, slab, disc = 0.85 }) => {
+export const GrindLyric: React.FC<{ t: number; line: { words: { w: string; s: number; e: number }[] }; end: number; kicks: number[]; slab?: boolean; disc?: number }> = ({ t, line, end, kicks, slab, disc = 0.85 }) => {
   const ws = line.words;
   const grinds = ws.map((w, i) => ({ w, i })).filter(({ w }) => /grind/i.test(w.w));
   const stills = ws.map((w, i) => ({ w, i })).filter(({ w }) => /still/i.test(w.w));
@@ -272,7 +272,7 @@ export const ChorusM: React.FC<{ t: number; a: Assets | null; id?: string; bare?
       ) : null}
       {/* RUDO on the roof, in contour lines; the camera whips up to the sky and back */}
       {a && t < w(6, 4) + 0.6 ? (
-        <AbsoluteFill style={{ opacity: (1 - warp) * (grindOn ? 0.35 : 1) }}>
+        <AbsoluteFill style={{ opacity: (1 - warp) * (grindOn ? 0.35 : 1) * (1 - 0.55 * clamp01(tower * 3) * (1 - shrink)) }}>
           <ThreeCanvas width={W} height={H} style={{ position: "absolute", inset: 0 }} gl={{ antialias: true, alpha: true }}>
             <RoofScene t={t} a={a} id={id} />
           </ThreeCanvas>
