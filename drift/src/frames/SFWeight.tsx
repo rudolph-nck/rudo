@@ -14,7 +14,7 @@ import { capHeight } from "../words/glyphs";
 const LI = 12;
 const G = 22; // gravity, m/s²
 
-const Dust: React.FC<{ t: number; t0: number }> = ({ t, t0 }) => {
+export const Dust: React.FC<{ t: number; t0: number }> = ({ t, t0 }) => {
   const geo = useMemo(() => {
     const r = rng(7);
     const n = 700;
@@ -44,7 +44,7 @@ const Dust: React.FC<{ t: number; t0: number }> = ({ t, t0 }) => {
 };
 
 /** Motes hanging in the light cone (always there; the room's air). */
-const Motes: React.FC<{ t: number }> = ({ t }) => {
+export const Motes: React.FC<{ t: number }> = ({ t }) => {
   const geo = useMemo(() => {
     const r = rng(11);
     const n = 900;

@@ -6,7 +6,7 @@ import { stoneMat } from "../three/materials";
 import { LINES, heroOf } from "../data";
 import { clamp01, cubicOut, mix } from "../utils/ease";
 import { capHeight, layout } from "../words/glyphs";
-import { Caption, Finish, Full, Letters } from "./kit";
+import { Finish, Full, Letters } from "./kit";
 
 /** HEAVY (shouldered): at dawn, KEEP stands up under the verse-1 stone block and lifts it. */
 const LI = 91;
@@ -36,20 +36,26 @@ export const SFKeep: React.FC<{ t: number }> = ({ t }) => {
   const top = cap * sy;
   return (
     <Full>
-      <Stage cam={{ pos: [-1.4, 0.75, 9.8], look: [0, 1.85, 0], fov: 36 }} look={{ exposure: 1.0, env: 0.15, bloom: { strength: 0.5, radius: 0.7, threshold: 0.8 }, fog: { color: "#3a3631", near: 12, far: 80 } }}>
+      <Stage cam={{ pos: [-1.2, 2.9, 10.8], look: [-0.1, 1.75, 0], fov: 36 }} look={{ exposure: 1.0, env: 0.15, bloom: { strength: 0.5, radius: 0.7, threshold: 0.8 }, fog: { color: "#3a3631", near: 12, far: 80 } }}>
         <Sky />
         <directionalLight position={[3, 3.2, -14]} intensity={4} color="#ffe6c8" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-6} shadow-camera-right={6} shadow-camera-top={6} shadow-camera-bottom={-6} shadow-bias={-0.0005} />
         <directionalLight position={[-4, 3, 8]} intensity={0.55} color="#9fb0c0" />
         <mesh rotation={[-Math.PI / 2, 0, 0]} material={m.ground} receiveShadow><planeGeometry args={[300, 300]} /></mesh>
+        <group position={[0.4, capHeight(a.bebas, 4.4) / 2, -34]}>
+          <Letters font={a.bebas} family="bebas" text="TOMORROW" size={4.4} depth={1.2} material={m.stone} tracking={0.05} bevel={0.02} />
+        </group>
+        <group position={[-kw / 2 - 0.32, capHeight(a.bebas, 0.34) / 2, 0.2]}>
+          <Letters font={a.bebas} family="bebas" text="I'LL" size={0.34} depth={0.14} material={m.stone} tracking={0.04} bevel={0.02} />
+        </group>
         <group position={[0, top / 2, 0]} scale={[1, sy, 1]}>
           <Letters font={a.bebas} family="bebas" text="KEEP" size={size} depth={0.6} material={m.stone} tracking={0.04} bevel={0.025} />
         </group>
         <group position={[0, top + bh / 2 + 0.005, 0]} rotation={[0, 0, mix(0.05, 0.0, lift)]}>
           <mesh material={m.block} castShadow receiveShadow><boxGeometry args={[bw, bh, 0.9]} /></mesh>
-          <Letters font={a.bebas} family="bebas" text="WEIGHT" size={0.44} depth={0.06} material={m.weight} tracking={0.08} bevel={0.02} position={[0, 0, 0.46]} />
+          <Letters font={a.bebas} family="bebas" text="CARRYING THE" size={0.13} depth={0.03} material={m.weight} tracking={0.12} bevel={0.01} position={[0, 0.19, 0.46]} />
+          <Letters font={a.bebas} family="bebas" text="WEIGHT" size={0.36} depth={0.06} material={m.weight} tracking={0.08} bevel={0.02} position={[0, -0.07, 0.46]} />
         </group>
       </Stage>
-      <Caption line={LINES[LI]} t={t} hero="weight" />
       <Finish grain={0.09} vignette={0.55} />
     </Full>
   );

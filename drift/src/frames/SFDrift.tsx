@@ -6,7 +6,8 @@ import { LINES, heroOf, sungAmount, vol } from "../data";
 import { rng, noise1 } from "../utils/random";
 import { Glow, useStarfield } from "../words/points";
 import { layout, wordPoints } from "../words/glyphs";
-import { Caption, Finish, Full, Letters, DRIFT } from "./kit";
+import { Finish, Full, Letters, DRIFT } from "./kit";
+import { matteMat } from "../three/materials";
 
 /**
  * DRIFT: the letters unhook from the baseline and float apart with no gravity. The distance is
@@ -39,6 +40,7 @@ export const SFDrift: React.FC<{ t: number }> = ({ t }) => {
       return g;
     });
   }, [a]);
+  const still = useMemo(() => ({ ink: matteMat("#cfcac3", 0.6), dim: matteMat("#5e5b57", 0.7) }), []);
   if (!a || !dust) return <Full>{null}</Full>;
   const k = amt * 1.15;
   const place = (i: number, x: number) => {
@@ -64,15 +66,15 @@ export const SFDrift: React.FC<{ t: number }> = ({ t }) => {
   });
   return (
     <Full>
-      <Stage cam={{ pos: [-0.2, 0.9, 9.8], look: [-0.25, 0.85, 0], fov: 38 }} look={{ exposure: 0.9, env: 0.25, bloom: { strength: 0.4, radius: 0.5, threshold: 0.85 }, bg: "#030405", dof: { focus: 9.0, aperture: 0.0025, maxblur: 0.008 } }}>
+      <Stage cam={{ pos: [-0.2, 1.2, 10.2], look: [-0.25, 1.15, 0], fov: 38 }} look={{ exposure: 0.9, env: 0.25, bloom: { strength: 0.4, radius: 0.5, threshold: 0.85 }, bg: "#030405", dof: { focus: 9.0, aperture: 0.0025, maxblur: 0.008 } }}>
         <directionalLight position={[-3, 4, 5]} intensity={0.9} color="#eef2f6" />
         <directionalLight position={[3, 1, -4]} intensity={1.6} color="#bccbd8" />
         <Glow geo={stars} size={5} gain={0.65} time={t} twinkle={0.45} />
+        <Letters font={a.bebas} family="bebas" text="I DON'T WANNA DIE" size={0.26} depth={0.08} material={still.dim} tracking={0.08} shadows={false} position={[-0.35, 2.05, 0]} />
+        <Letters font={a.bebas} family="bebas" text="I JUST WANNA" size={0.44} depth={0.16} material={still.ink} tracking={0.05} shadows={false} position={[-0.55, 1.5, 0]} />
         <Letters font={a.bebas} family="bebas" text="DRIFT" size={size} depth={0.32} material={(i) => mats[i]} tracking={0.04} bevel={0.03} shadows={false} xf={place} />
         {dust.map((g, j) => <Glow key={j} geo={g} size={1.3} gain={(0.1 + diss[3 + j] * 0.5) * (0.8 + vol(w, t))} time={t} color="#e6edf3" twinkle={0.4} />)}
       </Stage>
-      <Caption line={LINES[LI - 1]} t={t} top={250} size={30} o={0.45} />
-      <Caption line={LINES[LI]} t={t} hero="drift" top={300} />
       <Finish grain={0.08} />
     </Full>
   );

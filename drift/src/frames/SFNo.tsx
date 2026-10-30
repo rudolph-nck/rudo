@@ -6,7 +6,7 @@ import { clamp01, cubicInOut } from "../utils/ease";
 import { Stage } from "../three/Stage";
 import { Glow, useStarfield } from "../words/points";
 import { LightPath, LineDefs, at } from "../words/lines";
-import { Caption, Finish, Full } from "./kit";
+import { Finish, Full } from "./kit";
 
 /** ERASE: a calendar drawn in light; on NO the hot point runs back along its own path and unwrites it. */
 const LI = 28;
@@ -67,7 +67,6 @@ export const SFNo: React.FC<{ t: number }> = ({ t }) => {
           </svg>
         </div>
       </AbsoluteFill>
-      <Caption line={LINES[LI]} t={t} hero="deadlines" top={1700} align="center" size={34} />
       <Finish grain={0.08} />
     </Full>
   );

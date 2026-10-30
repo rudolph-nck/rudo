@@ -6,7 +6,7 @@ import { glassMat, lightMat, stoneMat } from "../three/materials";
 import { LINES, heroOf } from "../data";
 import { noise1 } from "../utils/random";
 import { capHeight } from "../words/glyphs";
-import { Caption, Finish, Full, Letters } from "./kit";
+import { Finish, Full, Letters } from "./kit";
 
 const softbox = () =>
   new THREE.ShaderMaterial({
@@ -40,11 +40,22 @@ export const SFEnvy: React.FC<{ t: number }> = ({ t }) => {
           <mesh key={i} position={[x, 2.0, -1.45]} material={m.stripDim}><boxGeometry args={[0.05, 3.2, 0.04]} /></mesh>
         ))}
         <mesh position={[0, 0.45, 0]} material={m.plinth} castShadow receiveShadow><boxGeometry args={[3.4, 0.9, 1.3]} /></mesh>
+        <pointLight position={[-1.2, 0.2, 2.2]} intensity={2.2} decay={2} color="#e9e2d8" />
+        {(() => {
+          // the line in relief across the plinth front; each word cut in as it's sung
+          const words = LINES[LI].words.slice(0, 5);
+          const text = words.map((x) => x.w.toUpperCase()).join(" ");
+          const owner: number[] = [];
+          words.forEach((x, wi) => { for (let k = 0; k < x.w.length; k++) owner.push(wi); owner.push(-1); });
+          return (
+            <Letters font={a.bebas} family="bebas" text={text} size={0.15} depth={0.025} material={m.plaque} tracking={0.06} bevel={0.01} shadows={false} position={[0, 0.47, 0.66]}
+              xf={(i, x) => { const wi = owner[i]; const up = wi < 0 ? 1 : Math.min(1, Math.max(0, (t - words[wi].s + 0.05) / 0.18)); return { p: [x, 0, -0.03 + 0.03 * up], hide: up <= 0 }; }} />
+          );
+        })()}
         <group position={[0, 0.9 + cap / 2 + 0.003, 0]} rotation={[0, turn, 0]} scale={0.94 + 0.06 * appear}>
           <Letters font={a.bebas} family="bebas" text="ENVY" size={size} depth={0.55} material={m.glass} tracking={0.04} bevel={0.035} />
         </group>
       </Stage>
-      <Caption line={LINES[LI]} t={t} hero="envy" />
       <Finish />
     </Full>
   );
