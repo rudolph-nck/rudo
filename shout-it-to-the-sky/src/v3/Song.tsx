@@ -38,7 +38,7 @@ const POST2_MONTAGE = [35.0, 109.9, 53.6, 123.0, 168.0, 63.5, 113.0, 186.0, 44.8
 const renderBare = (src: number, a: Assets): React.ReactNode => {
   const id = sectionFor(src);
   if (id === "verse1") return <Verse1M t={src} assets={a} bare />;
-  if (id.startsWith("prechorus")) return <PreChorusM t={src} id={id} bare />;
+  if (id.startsWith("prechorus")) return <PreChorusM t={src} id={id} a={a} bare />;
   if (id.startsWith("chorus")) return <ChorusM t={src} a={a} id={id} bare />;
   if (id === "verse2") return <Verse2 t={src} bare />;
   if (id === "verse3") return <Verse3 t={src} a={a} bare />;
@@ -55,7 +55,7 @@ export const Song: React.FC<{ muted?: boolean }> = ({ muted }) => {
     <AbsoluteFill style={{ background: "#000" }}>
       {id === "intro" ? <Intro muted /> : null}
       {id === "verse1" ? <Verse1M t={t} assets={a} /> : null}
-      {id === "prechorus1" || id === "prechorus2" ? <PreChorusM t={t} id={id} /> : null}
+      {id === "prechorus1" || id === "prechorus2" ? <PreChorusM t={t} id={id} a={a} /> : null}
       {id === "chorus1" || id === "chorus2" || id === "chorus3" ? <ChorusM t={t} a={a} id={id} /> : null}
       {id === "postchorus1" ? <PostChorus t={t} a={a} id={id} montage={POST1_MONTAGE} renderAt={at} /> : null}
       {id === "postchorus2" ? <PostChorus t={t} a={a} id={id} montage={POST2_MONTAGE} renderAt={at} /> : null}

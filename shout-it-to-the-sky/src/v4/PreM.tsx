@@ -5,6 +5,11 @@ import { SAFE, W, H } from "../theme";
 import { F } from "../utils/fonts";
 import { clamp01, cubicIn, cubicOut, expoOut, mix } from "../utils/ease";
 import { Caption, lineOut } from "../v3/LyricType";
+import { ThreeCanvas } from "@remotion/three";
+import * as THREE from "three";
+import { Font } from "three/examples/jsm/loaders/FontLoader.js";
+import { RoofScene } from "../v3/Rise";
+import { makeCam } from "../v3/cam";
 import { Headline, HotLine, INK, MorphDefs, STONE } from "./Morph";
 
 /**
@@ -161,12 +166,36 @@ const Rings: React.FC<{ t: number; line: Line; until: number }> = ({ t, line, un
   );
 };
 
-export const PreChorusM: React.FC<{ t: number; id?: string; bare?: boolean }> = ({ t, id = "prechorus1", bare }) => {
+/** Camera for the tower flight (RoofScene world: RUDO at the origin facing -z, tower below the ledge). */
+const flyCams = new Map<string, ReturnType<typeof makeCam>>();
+const flyCam = (t0: number, t1: number, t2: number) => {
+  const key = `${t0}`;
+  if (!flyCams.has(key))
+    flyCams.set(
+      key,
+      makeCam([
+        { t: t0 - 0.03, p: [0.6, -64, -10], l: [0, -40, -0.6], fov: 62 },
+        { t: t0 + 0.5, p: [1.6, -54, -5.5], l: [0, -36, -0.6], fov: 60 },
+        { t: t0 + (t1 - t0) * 0.62, p: [2.2, -22, -3.4], l: [0, -6, -0.6], fov: 58 },
+        { t: t1 - 0.15, p: [1.0, -1.2, -3.2], l: [0, 1.3, 0], fov: 50 },
+        { t: t1 + 0.6, p: [0.4, 1.6, -3.4], l: [0, 0.75, 0], fov: 42 },
+        { t: t2, p: [0.0, 1.25, -2.9], l: [0, 0.7, 0], fov: 40 },
+      ]),
+    );
+  return flyCams.get(key)!;
+};
+
+export const PreChorusM: React.FC<{ t: number; id?: string; bare?: boolean; a?: { geo: THREE.BufferGeometry; font: Font } | null }> = ({ t, id = "prechorus1", bare, a }) => {
   const sec = sectionById(id);
   const lines = linesOf(id);
   // stairs carry lines 1 and 3; line 2 is the NO + pin, line 4 the sound rings
-  const words = [lines[0], lines[2]].flatMap((l) => l.words.map((w, i) => ({ w, last: i === l.words.length - 1 })));
-  const showStairs = (t < lines[1].start - 0.02) || (t >= lines[2].start - 0.03 && t < lines[3].start - 0.02);
+  const words = lines[0].words.map((w, i, arr) => ({ w, last: i === arr.length - 1 }));
+  const showStairs = t < lines[1].start - 0.02;
+  // RIGHT HERE is the foot of a tower: look up, fly up beside it, crest the roof onto RUDO
+  const flyFrom = lines[2].start - 0.03;
+  const fly = t >= flyFrom;
+  const fcam = flyCam(lines[2].start, lines[3].start, sec.end);
+  const chId = id === "prechorus2" ? "chorus2" : "chorus1";
   const outs = lines.map((l, i) => lineOut(l, lines[i + 1], 0.8));
   const last = lines[lines.length - 1];
   const tall = sub(last, Math.max(0, last.words.length - 5));
@@ -182,7 +211,7 @@ export const PreChorusM: React.FC<{ t: number; id?: string; bare?: boolean }> = 
   const yaw = mix(-34, second ? 26 : -12, clamp01(k / n));
   const pitch = mix(14, 24, clamp01(k / n));
   const zoom = mix(0.78, 0.58, clamp01(k / n));
-  const hush = clamp01((t - squash - 0.25) / 0.12);
+  const hush = 0;
   const point = clamp01((t - squash - 0.2) / 0.15) * (1 - clamp01((t - sec.end + 0.02) / 0.05));
   const enter = clamp01((t - (sec.start + 0.9)) / 0.25);
   const kick = kickEnv(t, 0.12);
@@ -209,6 +238,20 @@ export const PreChorusM: React.FC<{ t: number; id?: string; bare?: boolean }> = 
       </AbsoluteFill>
       ) : null}
       <NoPin t={t} line={lines[1]} until={lines[2].start - 0.03} />
+      {fly && a ? (
+        <ThreeCanvas width={W} height={H} style={{ position: "absolute", inset: 0 }} gl={{ antialias: true, alpha: true }}>
+          <RoofScene t={sectionById(chId).start} a={a} id={chId} cam={fcam(t)} tower />
+        </ThreeCanvas>
+      ) : null}
+      {fly ? <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 36%)" }} /> : null}
+      {/* speed lines while flying up */}
+      {fly && t < lines[3].start
+        ? Array.from({ length: 18 }, (_, i) => {
+            const v = clamp01((t - flyFrom) / 0.3) * (1 - clamp01((t - lines[3].start + 0.35) / 0.3));
+            const x = ((i * 137) % 1000) + 40, y = ((((i * 311 + t * 4200) % 2400) + 2400) % 2400) - 300;
+            return <div key={i} style={{ position: "absolute", left: x, top: H - y, width: 3, height: 220, background: "linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.7))", opacity: v * 0.7 }} />;
+          })
+        : null}
       <Rings t={t} line={lines[3]} until={squash} />
       {/* the second time round, light falls on the stairs from above */}
       {second ? <AbsoluteFill style={{ background: "radial-gradient(ellipse 70% 40% at 50% 0%, rgba(240,238,234,0.18) 0%, rgba(0,0,0,0) 100%)", mixBlendMode: "screen" }} /> : null}

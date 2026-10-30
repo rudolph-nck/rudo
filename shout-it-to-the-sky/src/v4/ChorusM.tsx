@@ -61,42 +61,89 @@ const Sparks: React.FC<{ t: number; kicks: number[]; x: number; y: number }> = (
   </svg>
 );
 
-/** Angle grinder drawn in light. The disc carries the word and spins; sparks spray off the rim. */
-const Grinder: React.FC<{ t: number; start: number; kicks: number[] }> = ({ t, start, kicks }) => {
-  const d = t - start + 0.2;
-  const draw = clamp01(d / 0.3);
-  const fill = clamp01((d - 0.25) / 0.2);
-  const pop = expoOut(clamp01(d / 0.25));
-  const spin = Math.max(0, d - 0.3);
-  const rpm = spin * (900 + 500 * Math.min(1, spin));
+/** Arc path of length len, curvature theta (0 = straight, 2pi = closed ring), top-centred at (cx, y0). */
+const arcPath = (cx: number, y0: number, len: number, theta: number) => {
+  const th = Math.max(0.02, Math.min(Math.PI * 2 - 0.002, theta));
+  const r = len / th;
+  const cy = y0 + r;
+  const a0 = -Math.PI / 2 - th / 2, a1 = -Math.PI / 2 + th / 2;
+  const p0 = [cx + r * Math.cos(a0), cy + r * Math.sin(a0)], p1 = [cx + r * Math.cos(a1), cy + r * Math.sin(a1)];
+  return { d: `M${p0[0].toFixed(2)} ${p0[1].toFixed(2)} A${r.toFixed(2)} ${r.toFixed(2)} 0 ${th > Math.PI ? 1 : 0} 1 ${p1[0].toFixed(2)} ${p1[1].toFixed(2)}`, r, cy };
+};
+
+/**
+ * "Still grinding! Still grinding!" as the grinder itself: each STILL pans in; each GRINDING
+ * bends from a straight word into a ring and spins, and every new word spins it faster. The two
+ * rings sit one inside the other like a cutting disc; sparks fly off the rim on the kicks.
+ */
+const GrindLyric: React.FC<{ t: number; line: { words: { w: string; s: number; e: number }[] }; end: number; kicks: number[] }> = ({ t, line, end, kicks }) => {
+  const ws = line.words;
+  const grinds = ws.map((w, i) => ({ w, i })).filter(({ w }) => /grind/i.test(w.w));
+  const stills = ws.map((w, i) => ({ w, i })).filter(({ w }) => /still/i.test(w.w));
+  const C = { x: CX, y: H * 0.52 };
+  const radii = [175, 300];
+  const fs = 120;
+  const g0 = grinds[0]?.w.s ?? end;
+  const g1 = grinds[1]?.w.s ?? end;
+  // spin: slow after the first ring, fast after the second, fastest into the exit
+  const spin = (x: number) => Math.max(0, x);
+  const ang = 140 * spin(t - g0) ** 2 + 520 * spin(t - g1) ** 2 + 260 * spin(t - g1);
+  const out = cubicIn(clamp01((t - end + 0.22) / 0.2));
   const kick = kickEnv(t, 0.1);
-  // one coordinate system: viewBox 0 0 500 400, disc centre (170, 230) r 130
-  const S = 1000, X0 = CX - 560, Y0 = H * 0.66 - 400;
-  const k = S / 500;
-  const rimX = X0 + (170 - 120) * k, rimY = Y0 + (230 + 90) * k;
   return (
-    <>
-      <svg viewBox="0 0 500 400" width={S} height={S * 0.8} style={{ position: "absolute", left: X0, top: Y0, overflow: "visible", transform: `scale(${mix(0.85, 1, pop) * (1 + kick * 0.03)})`, transformOrigin: "34% 57%" }}>
-        <defs>
-          <path id="discText" d="M170 230 m-104 0 a104 104 0 1 1 208 0 a104 104 0 1 1 -208 0" />
-        </defs>
-        {/* body (gear head → motor → tail), side handle, cord */}
-        <Drawn d="M200 196 h40 l20 -14 h170 a34 34 0 0 1 0 68 h-170 l-20 -14 h-40 z M300 182 v68 M464 216 h40 M210 196 v-90 M194 106 h32" p={draw} fill={fill} w={5} />
-        {/* guard over the back half of the disc */}
-        <Drawn d="M60 170 A136 136 0 0 1 300 200" p={draw} fill={fill} w={7} />
-        {/* the disc */}
-        <g transform={`rotate(${rpm} 170 230)`} opacity={draw}>
-          <circle cx={170} cy={230} r={130} fill="#121212" stroke={draw >= 1 ? "url(#metal)" : "#fff4e6"} strokeWidth={7} />
-          <circle cx={170} cy={230} r={74} fill="none" stroke="rgba(239,237,233,0.3)" strokeWidth={2} />
-          <circle cx={170} cy={230} r={22} fill="url(#metal)" stroke={INK} strokeWidth={3} />
-          <text fontFamily="Bebas Neue" fontSize={44} letterSpacing={3} fill={INK} opacity={fill}>
-            <textPath href="#discText">GRINDING · GRINDING · GRINDING ·</textPath>
-          </text>
-        </g>
-        <circle cx={170} cy={230} r={104} fill="none" stroke={`rgba(239,237,233,${0.2 * clamp01(spin * 2)})`} strokeWidth={34} />
+    <AbsoluteFill style={{ opacity: 1 - out, transform: `scale(${mix(1, 0.2, out)})`, transformOrigin: `${C.x}px ${C.y}px` }}>
+      {/* the disc behind the rings, drawn as the second ring closes */}
+      <svg width={W} height={H} style={{ position: "absolute", left: 0, top: 0, overflow: "visible" }}>
+        <circle cx={C.x} cy={C.y} r={radii[1] + 70} fill="rgba(18,18,18,0.85)" stroke="url(#metal)" strokeWidth={8} opacity={clamp01((t - g1 - 0.2) / 0.2)} />
+        <circle cx={C.x} cy={C.y} r={36} fill="url(#metal)" stroke={INK} strokeWidth={3} opacity={clamp01((t - g0 - 0.25) / 0.2)} />
+        {grinds.map(({ w }, gi) => {
+          const dt = t - w.s;
+          if (dt < -0.15) return null;
+          const R = radii[gi] ?? radii[0];
+          // pan in from the right, then curl
+          const pan = expoOut(clamp01((dt + 0.15) / 0.22));
+          const curl = cubicOut(clamp01((dt - 0.08) / 0.38));
+          const wordLen = fs * 0.4 * 9;
+          const len = mix(wordLen, Math.PI * 2 * R, curl);
+          const y0 = mix(C.y - 40, C.y - R, curl);
+          const arc = arcPath(C.x, y0, len, curl * Math.PI * 2);
+          const id = `grind-${gi}-${Math.round(w.s * 100)}`;
+          const rot = curl >= 1 ? ang * (gi === 0 ? 1 : -0.8) : 0;
+          const text = curl > 0.85 ? "GRINDING · GRINDING · GRINDING · " : "GRINDING!";
+          const shift = (1 - pan) * 900;
+          return (
+            <g key={gi} transform={`translate(${shift} 0) rotate(${rot} ${C.x} ${arc.cy})`}>
+              <defs>
+                <path id={id} d={arc.d} />
+              </defs>
+              <text fontFamily="Bebas Neue" fontSize={gi === 0 ? fs : fs * 1.05} fill={gi === 0 ? INK : STONE} textLength={len * 0.995} lengthAdjust="spacingAndGlyphs" style={{ filter: curl >= 1 ? "none" : "drop-shadow(0 10px 30px rgba(0,0,0,0.8))" }}>
+                <textPath href={`#${id}`}>{text}</textPath>
+              </text>
+            </g>
+          );
+        })}
+        {/* motion-blur rings once they're moving fast */}
+        {[0, 1].map((gi) => {
+          const g = grinds[gi];
+          if (!g) return null;
+          const v = clamp01((t - g.w.s - 0.5) / 0.6) * (gi === 0 ? 0.6 : 1);
+          return v > 0 ? <circle key={gi} cx={C.x} cy={C.y} r={radii[gi] + 28} fill="none" stroke={`rgba(239,237,233,${0.12 * v + kick * 0.05})`} strokeWidth={70} /> : null;
+        })}
       </svg>
-      {spin > 0 ? <Sparks t={t} kicks={[...kicks.filter((k2) => k2 > start - 0.1), ...Array.from({ length: 10 }, (_, i) => start + 0.35 + i * 0.21)]} x={rimX} y={rimY} /> : null}
-    </>
+      {/* STILL pans across, left of the disc */}
+      {stills.map(({ w }, si) => {
+        const dt = t - w.s;
+        if (dt < -0.1 || dt > 0.9) return null;
+        const p = expoOut(clamp01((dt + 0.1) / 0.25));
+        const leave = cubicIn(clamp01((dt - 0.45) / 0.4));
+        return (
+          <div key={si} style={{ position: "absolute", left: mix(W, SAFE.left, p) - leave * 900, top: H * 0.2 + si * 10, fontFamily: F.display, fontSize: 260, lineHeight: 1, color: INK, transform: "scaleY(1.4)", transformOrigin: "0 0" }}>
+            STILL
+          </div>
+        );
+      })}
+      {t > g0 + 0.4 ? <Sparks t={t} kicks={[...kicks.filter((k) => k > g0), ...Array.from({ length: 14 }, (_, i) => g0 + 0.45 + i * 0.18)]} x={C.x - (radii[1] + 60) * 0.7} y={C.y + (radii[1] + 60) * 0.7} /> : null}
+    </AbsoluteFill>
   );
 };
 
@@ -121,7 +168,7 @@ export const ChorusM: React.FC<{ t: number; a: Assets | null; id?: string; bare?
   }, []);
   const starify = (i: number) => clamp01((t - (i < 6 ? w(1, 1) : i < 40 ? w(1, 2) : w(1, 3)) - 0.18) / 0.25);
   // C. RUDO on the ledge
-  const roof = clamp01((t - (w(2, 0) - 0.4)) / 0.6);
+  const roof = 1; // RUDO is already on the roof: the pre-chorus flight landed us here
   // D/H. grinder
   const grindOn = (t >= w(3, 0) - 0.2 && t < w(4, 0)) || t >= w(7, 0) - 0.2;
   // E. legacy tower
@@ -174,7 +221,8 @@ export const ChorusM: React.FC<{ t: number; a: Assets | null; id?: string; bare?
       {t < w(0, 1) + 0.2 ? <HotLine x0={CX - 3} x1={CX + 3} y={mix(H * 0.3, H * 0.1, burst)} o={1 - clamp01((t - w(0, 1)) / 0.2)} /> : null}
       {burst > 0 && burst < 1 ? <div style={{ position: "absolute", left: CX - 3, top: H * 0.1, width: 6, height: (HORIZON - H * 0.1) * burst, background: "#fff4e6", boxShadow: "0 0 30px 8px rgba(255,240,220,0.6)" }} /> : null}
       {/* the angle grinder: GRINDING printed round the disc, spinning, sparks on the kicks */}
-      {grindOn ? <Grinder t={t} start={t >= w(7, 0) - 0.2 ? w(7, 0) : w(3, 0)} kicks={kicks} /> : null}
+      {!bare && t >= w(3, 0) - 0.05 && t < w(4, 0) ? <GrindLyric t={t} line={L[3]} end={w(4, 0)} kicks={kicks} /> : null}
+      {!bare && t >= w(7, 0) - 0.05 ? <GrindLyric t={t} line={L[7]} end={sec.end} kicks={kicks} /> : null}
       {/* legacy tower: floors stack in light, then round into the world */}
       {tower > 0 && t < w(6, 1) ? (
         <svg width={W} height={H} style={{ position: "absolute", left: 0, top: 0 }}>
@@ -209,9 +257,7 @@ export const ChorusM: React.FC<{ t: number; a: Assets | null; id?: string; bare?
         <>
           <Headline line={L[0]} t={t} squashAt={outs[0] - 0.25} y={H * 0.27} maxH={520} />
           <Headline line={L[2]} t={t} squashAt={outs[2] - 0.25} y={H * 0.27} maxH={420} color={(x) => (/alive/i.test(x) ? STONE : null)} />
-          <Headline line={L[3]} t={t} squashAt={outs[3] - 0.2} y={H * 0.27} maxH={460} />
           <Headline line={L[6]} t={t} squashAt={outs[6] - 0.2} y={H * 0.25} maxH={460} color={(x) => (/universe/i.test(x) ? STONE : null)} />
-          <Headline line={L[7]} t={t} squashAt={sec.end - 0.35} y={H * 0.27} maxH={460} />
           {L.map((l, i) => (
             <Caption key={l.id} line={l} t={t} out={outs[i]} top={210} />
           ))}

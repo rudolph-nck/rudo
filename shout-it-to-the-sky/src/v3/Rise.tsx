@@ -130,7 +130,10 @@ const buildCh = (id: string) => {
   const d = sec.start - CH1_START;
   const mood = id === "chorus2" ? "sunrise" : id === "chorus3" ? "final" : "night";
   const cam = makeCam([
-    { t: sec.start + 0.9, p: [0.8, 1.0, 3.6], l: [0, 0.55, 0], fov: 36 },
+    // opens exactly where the pre-chorus flight landed: in front of him on the roof
+    { t: sec.start, p: [0.0, 1.25, -2.9], l: [0, 0.7, 0], fov: 40 },
+    { t: sec.start + 0.9, p: [1.6, 1.3, -2.2], l: [0, 0.6, 0], fov: 38 },
+    { t: sec.start + 2.4, p: [2.4, 1.2, 1.6], l: [0, 0.55, 0], fov: 36 },
     { t: 64 + d, p: [2.6, 1.3, 2.6], l: [0, 0.6, 0], fov: 36 },
     { t: 69.5 + d, p: [2.9, 0.75, -1.4], l: [0, 0.55, 0], fov: 38 },
     { t: 73.5 + d, p: [0.6, 2.0, -3.4], l: [0, 0.2, 3], fov: 40 },
@@ -145,8 +148,45 @@ const chData = (id: string) => {
   return chCache.get(id)!;
 };
 
-export const RoofScene: React.FC<{ t: number; a: Assets; id?: string }> = ({ t, a, id = "chorus1" }) => {
+/** Window facade texture for the tower (crisp lit/unlit windows). */
+let facadeTex: THREE.CanvasTexture | null = null;
+const facade = () => {
+  if (facadeTex) return facadeTex;
+  const c = document.createElement("canvas");
+  c.width = 512;
+  c.height = 6144;
+  const x = c.getContext("2d")!;
+  x.fillStyle = "#0b0b0b";
+  x.fillRect(0, 0, c.width, c.height);
+  const r = rng(42);
+  const cols = 6, rows = 64;
+  const cw = c.width / cols, rh = c.height / rows;
+  for (let j = 0; j < rows; j++)
+    for (let i = 0; i < cols; i++) {
+      const lit = r() < 0.38;
+      x.fillStyle = lit ? `rgba(240,236,228,${0.55 + r() * 0.45})` : "#1a1a1a";
+      x.fillRect(i * cw + cw * 0.18, j * rh + rh * 0.16, cw * 0.64, rh * 0.62);
+      x.strokeStyle = "rgba(239,237,233,0.55)";
+      x.lineWidth = 3;
+      x.strokeRect(i * cw + cw * 0.18, j * rh + rh * 0.16, cw * 0.64, rh * 0.62);
+    }
+  x.strokeStyle = "rgba(239,237,233,0.35)";
+  x.lineWidth = 4;
+  for (let i = 0; i <= cols; i++) {
+    x.beginPath();
+    x.moveTo(i * cw, 0);
+    x.lineTo(i * cw, c.height);
+    x.stroke();
+  }
+  facadeTex = new THREE.CanvasTexture(c);
+  facadeTex.colorSpace = THREE.SRGBColorSpace;
+  facadeTex.anisotropy = 8;
+  return facadeTex;
+};
+
+export const RoofScene: React.FC<{ t: number; a: Assets; id?: string; cam?: ReturnType<ReturnType<typeof makeCam>>; tower?: boolean }> = ({ t, a, id = "chorus1", cam, tower }) => {
   const D = chData(id);
+  const winMat = useMemo(() => new THREE.MeshBasicMaterial({ map: facade() }), []);
   const { camera, gl } = useThree();
   const M = useMemo(
     () => ({
@@ -178,7 +218,7 @@ export const RoofScene: React.FC<{ t: number; a: Assets; id?: string }> = ({ t, 
     return g;
   }, []);
   const starMat = useMemo(() => new THREE.PointsMaterial({ color: "#e8e6e2", size: 1.6, sizeAttenuation: false }), []);
-  useLayoutEffect(() => applyCam(camera, D.cam(t)));
+  useLayoutEffect(() => applyCam(camera, cam ?? D.cam(t)));
   gl.setClearColor("#000", 0);
   const kick = kickEnv(t, 0.2);
   // night: light from the city behind him; sunrise: from the low sun in front
@@ -197,6 +237,14 @@ export const RoofScene: React.FC<{ t: number; a: Assets; id?: string }> = ({ t, 
       <mesh geometry={a.geo} material={M.body} position={[0, 0, 0]} rotation={[0, Math.PI, 0]} />
       <mesh geometry={box} material={M.ledge} position={[0, -0.25, 0]} scale={[5, 0.5, 1.4]} />
       <mesh geometry={box} material={M.ledge} position={[0, -6, 2.5]} scale={[5, 11, 5]} />
+      {tower ? (
+        <>
+          <mesh geometry={box} material={M.bldg} position={[0, -42, 2.5]} scale={[5, 61, 5]} />
+          <mesh material={winMat} position={[0, -36, -0.02]} rotation={[0, Math.PI, 0]}>
+            <planeGeometry args={[4.8, 71]} />
+          </mesh>
+        </>
+      ) : null}
       {city.map((b, i) => (
         <mesh key={i} geometry={box} material={M.bldg} position={[b.x, -30 + b.h / 2, b.z]} scale={[b.w, b.h, b.w]} />
       ))}
