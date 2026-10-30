@@ -338,7 +338,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   const qW = L(2)[4];
   const qRow = rows.find((r) => r.li === 2 && r.hero)!;
   const qR = Math.max(layout(a.bebas, "QUIT", qRow.size, 0.04).width * 0.62, cap(qRow.size) * 0.85);
-  const qDraw = cubicInOut(clamp01((t - (qW.s + 0.2)) / 0.45)), qSlash = cubicInOut(clamp01((t - (qW.s + 0.62)) / 0.18));
+  const qDraw = cubicInOut(clamp01((t - (qW.s + 0.06)) / 0.28)), qSlash = cubicInOut(clamp01((t - (qW.s + 0.36)) / 0.12));
   const qC = O.clone().addScaledVector(skyDir(2), D);
 
   // ME and TIME pulled apart (ceiling local)
@@ -371,7 +371,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   if (!inRoom) {
     // POV: turn from line to line across the sky
     let dir = skyDir(0);
-    for (let k = 1; k <= 6; k++) { const u = cubicInOut(clamp01((t - (L(k)[0].s - 0.12)) / 0.5)); if (u > 0) dir = dir.clone().lerp(skyDir(k), u).normalize(); }
+    for (let k = 1; k <= 6; k++) { const u = cubicInOut(clamp01((t - (L(k)[0].s + (k === 3 ? 0.08 : -0.12))) / 0.5)); if (u > 0) dir = dir.clone().lerp(skyDir(k), u).normalize(); }
     const breathe = new THREE.Vector3((noise1(t * 0.25, 1) - 0.5) * 0.02, (noise1(t * 0.21, 2) - 0.5) * 0.02, 0);
     pos = O.clone(); look = O.clone().addScaledVector(dir.add(breathe), 5);
     // STOP: out of your eyes — the silhouette on the building edge, the sky of lines above

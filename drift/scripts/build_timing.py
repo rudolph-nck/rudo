@@ -73,6 +73,66 @@ for a, b in zip(idx, idx[1:] + [len(words)]):
     for q, w in enumerate(run):
         w["e"] = round(run[q + 1]["s"] if q + 1 < len(run) else max(w["s"] + 0.2, end), 3)
 
+# ---- snap to the lead vocal stem: each line's words onto real vocal onsets (ordered DP) ----
+ONS = [o for o in voc.get("onsets", []) if o["db"] > -40]
+if ONS:
+    ot = np.array([o["t"] for o in ONS]); ov = np.array([o["v"] for o in ONS])
+    floor_t = -1.0
+    for li, ln in enumerate(lines):
+        ws = ln["words"]
+        nxt = lines[li + 1]["words"][0]["s"] if li + 1 < len(lines) else DUR
+        lo, hi = max(floor_t + 0.05, ws[0]["s"] - 0.6), min(nxt + 0.25, ws[-1]["s"] + 0.6)
+        cand = [j for j in range(len(ot)) if lo <= ot[j] <= hi]
+        n, m = len(ws), len(cand)
+        INF = 1e9
+        # state = index of the last candidate used so far (m = none yet); each word is placed on a later
+        # candidate or left unplaced (cost U). Keeps every placed word strictly in order.
+        U = 0.32
+        c_ = lambda i, k: abs(ot[cand[k]] - ws[i]["s"]) - 0.12 * ov[cand[k]]
+        dp = [dict() for _ in range(n)]
+        dp[0][m] = (U, None, None)
+        for k in range(m): dp[0][k] = (c_(0, k), None, k)
+        for i in range(1, n):
+            for st, (cv, _, _) in dp[i - 1].items():
+                # unplaced
+                if cv + U < dp[i].get(st, (INF,))[0]: dp[i][st] = (cv + U, st, None)
+                for k in range(m):
+                    if st != m and not (k > st and ot[cand[k]] - ot[cand[st]] >= 0.06): continue
+                    v = cv + c_(i, k)
+                    if v < dp[i].get(k, (INF,))[0]: dp[i][k] = (v, st, k)
+        st = min(dp[n - 1], key=lambda q: dp[n - 1][q][0]); pick = [None] * n
+        for i in range(n - 1, -1, -1):
+            _, prev, placed = dp[i][st]; pick[i] = placed; st = prev
+        new = [ot[cand[pk]] if pk is not None else None for pk in pick]
+        # unplaced words: spread evenly between the placed words around them
+        i = 0
+        while i < n:
+            if new[i] is not None: i += 1; continue
+            j = i
+            while j < n and new[j] is None: j += 1
+            a_ = new[i - 1] if i > 0 else max(lo, (new[j] if j < n else hi) - 0.25 * (j - i + 1))
+            b_ = new[j] if j < n else min(hi, a_ + 0.3 * (j - i + 1))
+            for q in range(i, j): new[q] = a_ + (b_ - a_) * (q - i + 1) / (j - i + 1)
+            i = j
+        for i, w in enumerate(ws):
+            w["s"] = round(float(new[i]), 3); w["src"] = "stem" if pick[i] is not None else w["src"]
+        floor_t = ws[-1]["s"]
+    # ends: next word's start; a line's last word ends where the voice actually stops
+    for li, ln in enumerate(lines):
+        ws = ln["words"]
+        nxt = lines[li + 1]["words"][0]["s"] if li + 1 < len(lines) else DUR
+        for q, w in enumerate(ws):
+            if q + 1 < len(ws):
+                w["e"] = round(ws[q + 1]["s"], 3); continue
+            i0 = int(w["s"] / HOP); i1 = int(min(nxt - 0.02, w["s"] + 4.5) / HOP)
+            seg = DBs[i0:i1]
+            if len(seg) < 3: w["e"] = round(max(w["s"] + 0.15, nxt - 0.02), 3); continue
+            pk = seg[: max(3, int(0.4 / HOP))].max(); thr = max(-42, pk - 18)
+            end = i1
+            for k in range(int(0.12 / HOP), len(seg) - int(0.1 / HOP)):
+                if (seg[k: k + int(0.1 / HOP)] < thr).all(): end = i0 + k; break
+            w["e"] = round(max(w["s"] + 0.15, end * HOP), 3)
+
 # ---- per-word sung features ----
 kicks = [k["t"] for k in beats["kicks"]]
 bt = beats["beats"]
