@@ -4,9 +4,8 @@ sys.path.insert(0, "scripts")
 from sketches import F, INK, STONE, HOT, MUTED, W, H
 
 def starword(f, x, y, t, size, o=1, anchor="middle", rot=0, dim=False):
-    c = HOT if not dim else INK
-    f.add(f'<text x="0" y="0" transform="translate({x} {y}) rotate({rot})" font-family="Bebas Neue, Oswald, sans-serif" font-size="{size}" text-anchor="{anchor}" fill="none" stroke="#ffe9cf" stroke-width="{size*0.06:.2f}" stroke-dasharray="0.1 {size*0.07:.2f}" stroke-linecap="round" opacity="{0.35*o}" filter="url(#{f.id}s)">{t}</text>')
-    return f.add(f'<text x="0" y="0" transform="translate({x} {y}) rotate({rot})" font-family="Bebas Neue, Oswald, sans-serif" font-size="{size}" text-anchor="{anchor}" fill="none" stroke="{c}" stroke-width="{size*0.035:.2f}" stroke-dasharray="0.1 {size*0.07:.2f}" stroke-linecap="round" opacity="{o}">{t}</text>')
+    # clean, crisp, flat type: no outline, no glow, no texture
+    return f.add(f'<text x="0" y="0" transform="translate({x} {y}) rotate({rot})" font-family="Bebas Neue, Oswald, sans-serif" font-size="{size}" text-anchor="{anchor}" fill="#f3f0ea" opacity="{o}">{t}</text>')
 def solid(f, x, y, t, size, fill=INK, o=1, sx=1, sy=1, rot=0):
     return f.text(x, y, t, size, fill, o=o, sx=sx, sy=sy, rot=rot)
 def roof(f, o=1):
@@ -37,24 +36,24 @@ def frames():
     f = F("a1").stars(170, 1).add('<rect width="270" height="480" fill="#000" opacity="0.35"/>'); roof(f)
     out.append(("0:00", "Night opens", "Black. The stars fade up slowly. A dark rooftop edge at the very bottom of the frame tells you where you are: lying on your back, looking up.", f))
     f = F("a2").stars(170, 1); roof(f); starword(f, 135, 230, "YEAH", 44, 0.45)
-    out.append(("0:04", "YEAH", "The sky takes a breath. YEAH glows faintly between the stars and fades with the exhale. Nothing else moves.", f))
+    out.append(("0:04", "YEAH", "The sky takes a breath. YEAH appears softly between the stars and fades with the exhale. Nothing else moves.", f))
     f = F("a3").stars(170, 1); roof(f); starword(f, 135, 150, "YOU EVER GET SO", 20); starword(f, 160, 230, "TIRED", 26, 0.5, rot=-8); lids(f, 0.28)
-    out.append(("0:06–0:08", "TIRED", "YOU EVER GET SO forms one word at a time, like constellations. TIRED sinks deeper into the sky, smaller and fainter, and the frame's edges close in slowly like heavy eyelids.", f))
+    out.append(("0:06–0:08", "TIRED", "YOU EVER GET SO appears one word at a time among the stars. TIRED sinks deeper into the sky, smaller and fainter, and the frame's edges close in slowly like heavy eyelids.", f))
     f = F("a4").stars(170, 2); roof(f); starword(f, 135, 150, "YOU DON'T WANT TO", 19); starword(f, 135, 255, "QUIT", 52)
-    f.add('<circle cx="135" cy="238" r="58" fill="none" stroke="#fff4e6" stroke-width="2.2" stroke-dasharray="0.1 5" stroke-linecap="round"/>').line(94, 197, 176, 279, HOT, 2, 0.9, "0.1 5")
-    out.append(("0:09", "QUIT", "QUIT, with a no-sign drawn around it in stars: the circle, then the slash.", f))
+    f.add('<circle cx="135" cy="238" r="58" fill="none" stroke="#f3f0ea" stroke-width="1.6"/>').line(94, 197, 176, 279, "#f3f0ea", 1.6, 1)
+    out.append(("0:09", "QUIT", "QUIT, and a no-sign is drawn around it in one thin, crisp line: the circle, then the slash.", f))
     f = F("a5").stars(170, 3); roof(f); starword(f, 135, 150, "YOU DON'T WANT TO", 19); starword(f, 135, 250, "DISAPP", 42, 0.6, anchor="end", rot=0); f.add('<g opacity="0.15">'); starword(f, 135, 250, "EAR", 42, 1, anchor="start"); f.add('</g>')
-    out.append(("0:11", "DISAPPEAR", "DISAPPEAR's stars go out one by one, left to right, until the sky is just sky again.", f))
+    out.append(("0:11", "DISAPPEAR", "DISAPPEAR fades into the night, letter by letter, until the sky is just sky again.", f))
     f = F("a6").stars(220, 4, o=0.6)
     for (x, y, t_, s) in [(70, 70, "YEAH", 11), (190, 110, "TIRED", 12), (60, 170, "QUIT", 14), (200, 215, "DISAPPEAR", 10), (120, 290, "EVERYTHING", 13)]: starword(f, x, y, t_, s, 0.7)
-    f.add('<circle cx="60" cy="166" r="13" fill="none" stroke="#fff4e6" stroke-width="0.8" opacity="0.6"/>'); starword(f, 135, 380, "STOP", 46)
-    out.append(("0:18", "STOP", "On STOP the camera pulls out fast. Every line so far turns out to be a constellation in one big sky, a star map of the whole intro. It holds for a moment.", f))
+    f.add('<circle cx="60" cy="166" r="13" fill="none" stroke="#f3f0ea" stroke-width="0.8" opacity="0.6"/>'); starword(f, 135, 380, "STOP", 46)
+    out.append(("0:18", "STOP", "On STOP the camera pulls out fast. Every line so far is out there in one big sky, scattered among the stars like a map of the whole intro. It holds for a moment.", f))
     f = F("a7").stars(170, 5); roof(f); starword(f, 135, 210, "FOR A", 18); starword(f, 135, 260, "MINUTE", 40); timer(f, "0:00", 0.02)
     out.append(("0:19.4", "FOR A MINUTE", "Back in close. A small ring timer pops up in the top corner and starts counting. It runs one real minute and completes on 'I just wanna drift' at about 1:20.", f))
     f = F("a8").stars(120, 6, o=0.35)
     f.add('<defs><linearGradient id="dawn" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e8c9a0" stop-opacity="0.75"/><stop offset="0.45" stop-color="#6b5a4a" stop-opacity="0.25"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient></defs><rect width="270" height="480" fill="url(#dawn)"/>')
     roof(f); solid(f, 135, 240, "ANOTHER", 18, INK, 0.8); solid(f, 135, 300, "MORNING", 50, STONE); timer(f, "0:03", 0.05)
-    out.append(("0:21–0:23", "ANOTHER MORNING", "Dawn floods up from the rooftop edge and the stars fade out. The words stop being made of stars: from here on they're solid and heavy.", f))
+    out.append(("0:21–0:23", "ANOTHER MORNING", "Dawn floods up from the rooftop edge and the stars fade out. From here on the words feel heavier: they settle and press down.", f))
     f = F("a9"); ceiling(f); solid(f, 135, 200, "SAME", 18, INK, 0.8); solid(f, 135, 250, "CEILING", 40, INK); timer(f, "0:04", 0.07)
     out.append(("0:23.7", "SAME CEILING", "The sky is gone. Still lying on your back, you're looking at the same bedroom ceiling as every morning. The stars were the escape.", f))
     f = F("a10"); ceiling(f, 1, 6); solid(f, 135, 200, "SAME", 16, INK, 0.7); solid(f, 135, 255, "PRESSURE", 44, STONE, sx=0.8, sy=0.62); solid(f, 110, 320, "ON MY", 16, INK, 0.8)
@@ -87,8 +86,8 @@ def frames():
     f = F("a17"); f.add('<rect width="270" height="480" fill="#1a1816"/>'); f.line(0, 200, 270, 200, MUTED, 0.6, 0.5)
     solid(f, 135, 150, "I FORGOT WHAT'S ACTUALLY", 16, INK, 0.85); solid(f, 150, 330, "WEIGHT", 54, STONE, 0.6)
     for (x, y) in [(70, 380), (96, 392), (120, 400), (188, 394), (212, 382)]: f.add(f'<polygon points="{x},{y} {x+9},{y-6} {x+14},{y+3} {x+4},{y+8}" fill="#5a5550"/>')
-    solid(f, 118, 404, "mine", 12, HOT, font="hand") if False else f.text(110, 408, "MINE", 11, HOT); f.hot(118, 404, 14, 0.5)
-    out.append(("0:34.4–0:36", "I FORGOT WHAT'S ACTUALLY MINE", "Same physical logic as the shelf. The words drop in among the rubble, and the camera searches the cracked floor and finds MINE, tiny and half buried under the debris, the one small thing that's his. It glows faintly, the first warm light since the stars.", f))
+    f.text(110, 408, "MINE", 11, "#f3f0ea")
+    out.append(("0:34.4–0:36", "I FORGOT WHAT'S ACTUALLY MINE", "Same physical logic as the shelf. The words drop in among the rubble, and the camera searches the cracked floor and finds MINE, tiny and half buried under the debris, the one small thing that's his. It's lit softly by the morning light, the first warm thing since the stars.", f))
     return out
 
 FR = frames()
@@ -100,12 +99,14 @@ page = head + f'''<div class="wrap">
   <header class="stack">
     <span class="eyebrow">RUDO · Drift · Section 1 storyboard · 0:00–0:36</span>
     <h1>Looking up</h1>
-    <p class="thesis">We are the person lying on their back. No figure on screen; the camera is their eyes. Night: the lyrics form in the sky like constellations. Morning: the sky turns into the same bedroom ceiling, and the words become solid and heavy. At 0:32 they sit up and face the wall with the shelf.</p>
+    <p class="thesis">We are the person lying on their back. No figure on screen; the camera is their eyes. Night: the lyrics appear in the sky among the stars. Morning: the sky turns into the same bedroom ceiling, and the words become solid and heavy. At 0:32 they sit up and face the wall with the shelf.</p>
   </header>
   <section class="stack">
+    <h2>Look</h2>
+    <p class="lead">Clean and effortless. Crisp, flat type in one simple face: no bevels, no embossing, no texture, no glow, no light outlines. The beauty comes from the motion, the composition and the light in the world around the words.</p>
     <h2>The journey</h2>
     <div class="throughline">
-      <div><h3>Night · 0:00–0:21</h3><p>Rooftop, stars, lying on your back. Words are made of stars: light, distant, drifting. TIRED sinks away, QUIT is refused, DISAPPEAR goes out, STOP pulls back to the whole sky.</p></div>
+      <div><h3>Night · 0:00–0:21</h3><p>Rooftop, stars, lying on your back. Words float among the stars: light, distant, drifting. TIRED sinks away, QUIT is refused, DISAPPEAR goes out, STOP pulls back to the whole sky.</p></div>
       <div><h3>Dawn · 0:21–0:23</h3><p>MORNING floods the sky with light and the stars fade. The escape is over.</p></div>
       <div><h3>Ceiling · 0:23–0:32</h3><p>Same POV, now a bedroom ceiling. Solid words, gravity, pressure. People lean in, pieces of ME are pulled away, even the minute is taken.</p></div>
       <div><h3>Up · 0:32–0:36</h3><p>Sitting up to face the wall: the shelf, WEIGHT through the floor, and MINE found small in the rubble.</p></div>
@@ -113,7 +114,7 @@ page = head + f'''<div class="wrap">
   </section>
   <section class="stack">
     <h2>Frames</h2>
-    <p class="lead">Rough sketches of composition and motion. The final look is the clean, calm style from the draft: solid type, lots of dark space, one effect per line.</p>
+    <p class="lead">Rough sketches of composition and motion. Type is always crisp and flat: one simple face, no bevels, embossing, texture, glow or outlines. The beauty is in the motion, the composition and the light in the scene.</p>
     <div class="frames">{cards}</div>
   </section>
 </div>
