@@ -4,6 +4,7 @@ import { DURATION_FRAMES, FPS, SECTIONS, linesOf } from "../data";
 import { Intro } from "../intro/Intro";
 import { useIntroAssets } from "../intro/Scene3D";
 import { Verse1 } from "./Verse1";
+import { Verse1M } from "../v4/Verse1M";
 import { Chorus, PostChorus, PreChorus } from "./Rise";
 import { Verse2 } from "./Flip";
 import { Bridge, Outro, Verse3 } from "./Night";
@@ -34,7 +35,7 @@ const POST2_MONTAGE = [35.0, 109.9, 53.6, 123.0, 168.0, 63.5, 113.0, 186.0, 44.8
 /** Render the picture of any moment without its lyrics (for montages and the three-lives split). */
 const renderBare = (src: number, a: Assets): React.ReactNode => {
   const id = sectionFor(src);
-  if (id === "verse1") return <Verse1 t={src} assets={a} bare />;
+  if (id === "verse1") return <Verse1M t={src} assets={a} bare />;
   if (id.startsWith("prechorus")) return <PreChorus t={src} a={a} id={id} bare />;
   if (id.startsWith("chorus")) return <Chorus t={src} a={a} id={id} bare />;
   if (id === "verse2") return <Verse2 t={src} bare />;
@@ -51,7 +52,7 @@ export const Song: React.FC<{ muted?: boolean }> = ({ muted }) => {
   return (
     <AbsoluteFill style={{ background: "#000" }}>
       {id === "intro" ? <Intro muted /> : null}
-      {id === "verse1" ? <Verse1 t={t} assets={a} /> : null}
+      {id === "verse1" ? <Verse1M t={t} assets={a} /> : null}
       {id === "prechorus1" || id === "prechorus2" ? <PreChorus t={t} a={a} id={id} /> : null}
       {id === "chorus1" || id === "chorus2" || id === "chorus3" ? <Chorus t={t} a={a} id={id} /> : null}
       {id === "postchorus1" ? <PostChorus t={t} a={a} id={id} montage={POST1_MONTAGE} renderAt={at} /> : null}
