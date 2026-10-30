@@ -4,6 +4,7 @@ import { Film } from "./Film";
 import { INTRO_FRAMES, Intro } from "./intro/Intro";
 import { ContourTest } from "./intro/ContourTest";
 import { SONG_FRAMES, Song } from "./v3/Song";
+import { RailTest } from "./v4/RailTest";
 import { TimeOffset } from "./time";
 import { DURATION_FRAMES, FPS, sectionById } from "./data";
 
@@ -34,6 +35,7 @@ export const Root: React.FC = () => (
     <Composition id="Journey" component={Film} durationInFrames={Math.round(sectionById("postchorus1").start * FPS)} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
     <Composition id="Intro" component={Intro} durationInFrames={INTRO_FRAMES} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
     <Composition id="Song" component={Song} durationInFrames={SONG_FRAMES} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
+    <Composition id="RailTest" component={RailTest} durationInFrames={Math.round(21 * FPS)} fps={FPS} width={1080} height={1920} defaultProps={{ from: 29.2 }} />
     <Composition id="ContourTest" component={ContourTest} durationInFrames={300} fps={FPS} width={1080} height={1920} />
     <Composition id="Preview" component={Preview} durationInFrames={previewFrames} fps={FPS} width={1080} height={1920} />
   </>

@@ -101,3 +101,24 @@ export const LyricLine: React.FC<{
 
 /** When a line should leave: just before the next one starts. */
 export const lineOut = (l: Line, next?: Line, hold = 1.0) => (next ? Math.min(next.start - 0.05, l.end + hold) : l.end + hold);
+
+/** Small one-line karaoke caption (the reference's top caption): letters fill as they're sung. */
+export const Caption: React.FC<{ line: Line; t: number; out: number; top?: number }> = ({ line, t, out, top = 230 }) => {
+  if (t < line.start - 0.01 || t > out) return null;
+  return (
+    <div style={{ position: "absolute", left: SAFE.left, top, width: SAFE.right - SAFE.left, fontFamily: F.grotesk, fontWeight: 500, fontSize: 40, lineHeight: 1.2 }}>
+      {line.words.map((w, wi) => {
+        const dur = Math.max(0.1, (w.e - w.s) * 0.85);
+        return (
+          <span key={wi}>
+            {[...w.w].map((ch, li) => (
+              <span key={li} style={{ color: t >= w.s + (dur * li) / w.w.length ? (wi === line.words.length - 1 ? STONE : INK) : "rgba(239,237,233,0.22)" }}>
+                {ch}
+              </span>
+            ))}{" "}
+          </span>
+        );
+      })}
+    </div>
+  );
+};

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { AbsoluteFill } from "remotion";
 import { ThreeCanvas } from "@remotion/three";
 import { Line, kickEnv, linesOf } from "../data";
@@ -7,12 +7,14 @@ import { F } from "../utils/fonts";
 import { clamp01, cubicOut, expoOut, mix } from "../utils/ease";
 import { hash01 } from "../utils/random";
 import { IntroScene } from "../intro/Scene3D";
-import { DIM, INK, LyricLine, STONE, lineOut } from "./LyricType";
+import { Caption, DIM, INK, STONE, lineOut } from "./LyricType";
+import { RailView, buildRail } from "../v4/Rail";
 import * as THREE from "three";
 import { Font } from "three/examples/jsm/loaders/FontLoader.js";
 
 const L = linesOf("verse1");
 const RED = "#e5483b";
+const RED3 = new THREE.Color(RED);
 const PANEL = "#0d0d0e";
 const EDGE = "#34332f";
 const WIN = { left: 70, top: 720, width: 940, height: 740 };
@@ -358,6 +360,7 @@ export const Verse1: React.FC<{ t: number; assets: { geo: THREE.BufferGeometry; 
   const outs = L.map((l, i) => lineOut(l, L[i + 1], 1.2));
   const apps = [Helpdesk, Reset, Bank, Highway, Phone, null, Calendar, Gas, Network, Outage, Org, Title];
   const wall = L[5];
+  const rail = useMemo(() => (assets ? buildRail(L, assets.font, { seed: 11, size: 0.16 }) : null), [assets]);
   const kick = kickEnv(t, 0.15);
   return (
     <AbsoluteFill style={{ background: "#000" }}>
@@ -376,12 +379,21 @@ export const Verse1: React.FC<{ t: number; assets: { geo: THREE.BufferGeometry; 
           <IntroScene t={4.0 + (t - wall.start) * 0.35} geo={assets.geo} font={assets.font} />
         </ThreeCanvas>
       ) : null}
-      {L.map((l, i) => {
-        const App = apps[i];
-        return App ? <App key={l.id} t={t} l={l} out={outs[i]} /> : null;
-      })}
-      {bare ? null : L.map((l, i) => <LyricLine key={l.id} line={l} t={t} top={250} out={outs[i]} maxSize={108} special={{ re: /^red$/i, color: RED }} />)}
-      {bare ? null : <div style={{ position: "absolute", left: SAFE.left, top: 170, ...mono(20, STONE) }}>02 / VERSE 1 — the back room</div>}
+      {/* the apps sit in the lower half, under the rail */}
+      <div style={{ position: "absolute", inset: 0, transform: "translateY(260px) scale(0.8)", transformOrigin: "50% 100%" }}>
+        {L.map((l, i) => {
+          const App = apps[i];
+          return App ? <App key={l.id} t={t} l={l} out={outs[i]} /> : null;
+        })}
+      </div>
+      {/* the lyric rides a network cable; the data pulse lights it */}
+      {bare || !rail ? null : (
+        <ThreeCanvas width={W} height={H} style={{ position: "absolute", inset: 0 }} gl={{ antialias: true, alpha: true }}>
+          <RailView rail={rail} t={t} cam={{ drop: 0.42 }} accent={(li, wi) => (/^red$/i.test(L[li].words[wi].w) ? RED3 : null)} />
+        </ThreeCanvas>
+      )}
+      {bare ? null : L.map((l, i) => <Caption key={l.id} line={l} t={t} out={outs[i]} />)}
+      {bare ? null : <div style={{ position: "absolute", left: SAFE.left, top: 180, ...mono(20, STONE) }}>02 / VERSE 1 — the back room</div>}
     </AbsoluteFill>
   );
 };
