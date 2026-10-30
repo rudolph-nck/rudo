@@ -13,8 +13,8 @@ import { noise1, rng } from "../utils/random";
 export const DROP = 17.218;
 export const TUBE_ON = 3.61;
 const BUILT = linesOf("intro")[1];
-const WALL_Z = -0.72;
-const CRACK_Y = 1.62;
+export const WALL_Z = -0.72;
+export const CRACK_Y = 1.62;
 
 export const tubeLevel = (t: number) => {
   if (t < TUBE_ON - 1.25) return 0;
@@ -120,7 +120,7 @@ export const useIntroAssets = () => {
 };
 
 // ---------------------------------------------------------------------------------------------
-const buildCrack = () => {
+export const buildCrack = () => {
   const r = rng(808);
   const pos: number[] = [], dist: number[] = [], side: number[] = [], idx: number[] = [];
   let n = 0;
@@ -157,7 +157,7 @@ const buildCrack = () => {
   g.setIndex(idx);
   return g;
 };
-const crackMat = () =>
+export const crackMat = () =>
   new THREE.ShaderMaterial({
     uniforms: { uTip: { value: -1 }, uGlow: { value: 1 } },
     vertexShader: `attribute float aD; attribute float aS; varying float vD; varying float vS; void main(){ vD=aD; vS=aS; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,

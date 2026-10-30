@@ -13,17 +13,11 @@ import { rng } from "../utils/random";
 import { contourMat } from "../three/contour";
 import { CamKey, applyCam, makeCam } from "./cam";
 import { DIM, INK, LyricLine, STONE, lineOut } from "./LyricType";
-import { Verse1 } from "./Verse1";
 
 type Assets = { geo: THREE.BufferGeometry; font: Font };
 const mono = (size: number, color = INK): React.CSSProperties => ({ fontFamily: F.mono, fontSize: size, color, lineHeight: 1.35, whiteSpace: "pre" });
 
-const PRE = linesOf("prechorus1");
-const PRE_WORDS = PRE.flatMap((l) => l.words.map((w) => ({ w, last: w === l.words[l.words.length - 1] })));
-const CH = linesOf("chorus1");
-const POST = linesOf("postchorus1");
-const CH_SEC = sectionById("chorus1");
-const POST_SEC = sectionById("postchorus1");
+const CH1_START = sectionById("chorus1").start;
 
 const textGeoCache = new Map<string, { geo: THREE.BufferGeometry; w: number }>();
 const textGeo = (font: Font, s: string, size: number) => {
@@ -44,27 +38,42 @@ const textGeo = (font: Font, s: string, size: number) => {
 // PRE-CHORUS: every word is a step that folds down onto the last one.
 const RISE = 0.3, RUN = 0.5, STEP_W = 2.1;
 const stepAt = (k: number) => new THREE.Vector3(0, k * RISE, -k * RUN);
-const preCam = makeCam([
-  { t: 49.7, p: [3.6, 1.4, 6.2], l: [0, -0.2, 0.6], fov: 38 },
-  ...PRE_WORDS.map(({ w }, k): CamKey => {
-    const s = stepAt(k);
-    return { t: w.s + 0.05, p: [s.x + 3.4, s.y + 1.6, s.z + 5.6], l: [s.x - 0.1, s.y - 0.55, s.z + 0.9], fov: 38 };
-  }),
-  { t: 58.3, p: [stepAt(PRE_WORDS.length - 1).x + 3.6, stepAt(PRE_WORDS.length - 1).y + 2.4, stepAt(PRE_WORDS.length - 1).z + 5.0], l: [0, stepAt(PRE_WORDS.length - 1).y * 0.6, stepAt(PRE_WORDS.length - 1).z * 0.6], fov: 40 },
-]);
+const preCache = new Map<string, ReturnType<typeof buildPre>>();
+const buildPre = (id: string) => {
+  const sec = sectionById(id);
+  const lines = linesOf(id);
+  const words = lines.flatMap((l) => l.words.map((w) => ({ w, last: w === l.words[l.words.length - 1] })));
+  const n = words.length - 1;
+  // pre-chorus 2 is seen from higher up, lit from above
+  const lift = id === "prechorus2" ? 1.4 : 0;
+  const cam = makeCam([
+    { t: sec.start, p: [3.6, 1.4 + lift, 6.2], l: [0, -0.2, 0.6], fov: 38 },
+    ...words.map(({ w }, k): CamKey => {
+      const s = stepAt(k);
+      return { t: w.s + 0.05, p: [s.x + 3.4 - lift * 0.8, s.y + 1.6 + lift, s.z + 5.6], l: [s.x - 0.1, s.y - 0.55, s.z + 0.9], fov: 38 };
+    }),
+    { t: sec.end + 0.03, p: [stepAt(n).x + 3.6, stepAt(n).y + 2.4 + lift, stepAt(n).z + 5.0], l: [0, stepAt(n).y * 0.6, stepAt(n).z * 0.6], fov: 40 },
+  ]);
+  return { sec, lines, words, cam, lift };
+};
+const preData = (id: string) => {
+  if (!preCache.has(id)) preCache.set(id, buildPre(id));
+  return preCache.get(id)!;
+};
 
-const StairScene: React.FC<{ t: number; a: Assets }> = ({ t, a }) => {
+const StairScene: React.FC<{ t: number; a: Assets; id: string }> = ({ t, a, id }) => {
+  const D = preData(id);
   const { camera, gl } = useThree();
   const M = useMemo(() => ({ step: contourMat({ pitch: 6, warp: 0.15, axis: [0, 1, 0.35] }), letter: new THREE.MeshBasicMaterial({ color: INK }), accent: new THREE.MeshBasicMaterial({ color: STONE }), edge: new THREE.LineBasicMaterial({ color: "#8e8b86" }) }), []);
   const box = useMemo(() => new THREE.BoxGeometry(1, 1, 1), []);
   const edges = useMemo(() => new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1)), []);
-  useLayoutEffect(() => applyCam(camera, preCam(t)));
+  useLayoutEffect(() => applyCam(camera, D.cam(t)));
   gl.setClearColor("#000");
-  M.step.uniforms.uKey.value.set(0.5, 1, 0.6).normalize();
-  M.step.uniforms.uLevel.value = 0.85 + 0.3 * kickEnv(t, 0.2);
+  M.step.uniforms.uKey.value.set(D.lift ? 0.1 : 0.5, 1, D.lift ? 0.2 : 0.6).normalize();
+  M.step.uniforms.uLevel.value = 0.85 + 0.3 * kickEnv(t, 0.2) + D.lift * 0.15;
   return (
     <>
-      {PRE_WORDS.map(({ w, last }, k) => {
+      {D.words.map(({ w, last }, k) => {
         const dt = t - w.s;
         if (dt < 0) return null;
         const s = stepAt(k);
@@ -88,19 +97,22 @@ const StairScene: React.FC<{ t: number; a: Assets }> = ({ t, a }) => {
   );
 };
 
-export const PreChorus: React.FC<{ t: number; a: Assets | null; bare?: boolean }> = ({ t, a, bare }) => {
-  const step = PRE_WORDS.filter(({ w }) => w.s <= t).length;
+export const PreChorus: React.FC<{ t: number; a: Assets | null; bare?: boolean; id?: string }> = ({ t, a, bare, id = "prechorus1" }) => {
+  const D = preData(id);
+  const PRE = D.lines;
+  const step = D.words.filter(({ w }) => w.s <= t).length;
   const hush = t > PRE[PRE.length - 1].end ? clamp01((t - PRE[PRE.length - 1].end) / 0.15) : 0;
   return (
     <AbsoluteFill style={{ background: "#000" }}>
       {a ? (
         <ThreeCanvas width={W} height={H} style={{ position: "absolute", inset: 0 }} gl={{ antialias: true }}>
-          <StairScene t={t} a={a} />
+          <StairScene t={t} a={a} id={id} />
         </ThreeCanvas>
       ) : null}
       {bare ? null : PRE.map((l, i) => <LyricLine key={l.id} line={l} t={t} top={250} out={lineOut(l, PRE[i + 1], 0.5)} maxSize={104} />)}
-      {bare ? null : <div style={{ position: "absolute", left: SAFE.left, top: 170, ...mono(20, STONE) }}>03 / PRE-CHORUS — every door they closed</div>}
-      <div style={{ position: "absolute", left: SAFE.left, top: 206, ...mono(18, DIM), opacity: bare ? 0 : 1 }}>{`step ${String(step).padStart(2, "0")} / ${PRE_WORDS.length} · rise ${RISE.toFixed(2)} · run ${RUN.toFixed(2)}`}</div>
+      {bare ? null : <div style={{ position: "absolute", left: SAFE.left, top: 170, ...mono(20, STONE) }}>{id === "prechorus2" ? "07 / PRE-CHORUS — another stair" : "03 / PRE-CHORUS — every door they closed"}</div>}
+      <div style={{ position: "absolute", left: SAFE.left, top: 206, ...mono(18, DIM), opacity: bare ? 0 : 1 }}>{`step ${String(step).padStart(2, "0")} / ${D.words.length} · rise ${RISE.toFixed(2)} · run ${RUN.toFixed(2)}`}</div>
+      {D.lift ? <AbsoluteFill style={{ background: "radial-gradient(ellipse 70% 40% at 50% 0%, rgba(240,238,234,0.16) 0%, rgba(0,0,0,0) 100%)", mixBlendMode: "screen" }} /> : null}
       {/* the silent beat before the chorus */}
       {hush > 0 ? <AbsoluteFill style={{ background: `rgba(0,0,0,${0.85 * hush})` }} /> : null}
     </AbsoluteFill>
@@ -109,18 +121,32 @@ export const PreChorus: React.FC<{ t: number; a: Assets | null; bare?: boolean }
 
 // =============================================================================================
 // CHORUS: the roof at night. RUDO sits on the ledge above a city drawn in lines.
-const uni = CH.find((l) => /universe/i.test(l.text))!;
-const chCam = makeCam([
-  { t: CH_SEC.start + 0.9, p: [0.8, 1.0, 3.6], l: [0, 0.55, 0], fov: 36 },
-  { t: 64, p: [2.6, 1.3, 2.6], l: [0, 0.6, 0], fov: 36 },
-  { t: 69.5, p: [2.9, 0.75, -1.4], l: [0, 0.55, 0], fov: 38 },
-  { t: 73.5, p: [0.6, 2.0, -3.4], l: [0, 0.2, 3], fov: 40 },
-  { t: uni.start, p: [-0.4, 1.2, -2.6], l: [0, 1.0, 2], fov: 42 },
-  { t: uni.start + 1.6, p: [0, 3.5, -1.0], l: [0, 40, 6], fov: 60 },
-  { t: CH_SEC.end, p: [0, 6.5, 0.5], l: [0, 60, 10], fov: 62 },
-]);
+/** Per-chorus data: lines, the "universe" line, and the chorus-1 camera moves shifted in time. */
+const chCache = new Map<string, ReturnType<typeof buildCh>>();
+const buildCh = (id: string) => {
+  const sec = sectionById(id);
+  const lines = linesOf(id);
+  const uni = lines.find((l) => /universe/i.test(l.text))!;
+  const d = sec.start - CH1_START;
+  const mood = id === "chorus2" ? "sunrise" : id === "chorus3" ? "final" : "night";
+  const cam = makeCam([
+    { t: sec.start + 0.9, p: [0.8, 1.0, 3.6], l: [0, 0.55, 0], fov: 36 },
+    { t: 64 + d, p: [2.6, 1.3, 2.6], l: [0, 0.6, 0], fov: 36 },
+    { t: 69.5 + d, p: [2.9, 0.75, -1.4], l: [0, 0.55, 0], fov: 38 },
+    { t: 73.5 + d, p: [0.6, 2.0, -3.4], l: [0, 0.2, 3], fov: 40 },
+    { t: uni.start, p: [-0.4, 1.2, -2.6], l: [0, 1.0, 2], fov: 42 },
+    { t: uni.start + 1.6, p: [0, 3.5, -1.0], l: [0, 40, 6], fov: 60 },
+    { t: sec.end, p: [0, 6.5, 0.5], l: [0, 60, 10], fov: 62 },
+  ]);
+  return { sec, lines, uni, cam, mood };
+};
+const chData = (id: string) => {
+  if (!chCache.has(id)) chCache.set(id, buildCh(id));
+  return chCache.get(id)!;
+};
 
-const RoofScene: React.FC<{ t: number; a: Assets }> = ({ t, a }) => {
+const RoofScene: React.FC<{ t: number; a: Assets; id?: string }> = ({ t, a, id = "chorus1" }) => {
+  const D = chData(id);
   const { camera, gl } = useThree();
   const M = useMemo(
     () => ({
@@ -152,15 +178,20 @@ const RoofScene: React.FC<{ t: number; a: Assets }> = ({ t, a }) => {
     return g;
   }, []);
   const starMat = useMemo(() => new THREE.PointsMaterial({ color: "#e8e6e2", size: 1.6, sizeAttenuation: false }), []);
-  useLayoutEffect(() => applyCam(camera, chCam(t)));
-  gl.setClearColor("#000");
+  useLayoutEffect(() => applyCam(camera, D.cam(t)));
+  gl.setClearColor("#000", 0);
   const kick = kickEnv(t, 0.2);
-  M.body.uniforms.uKey.value.set(-0.2, 0.7, -0.8).normalize(); // light from the city/sky behind
+  // night: light from the city behind him; sunrise: from the low sun in front
+  if (D.mood === "sunrise") M.body.uniforms.uKey.value.set(0.3, 0.35, 0.9).normalize();
+  else M.body.uniforms.uKey.value.set(-0.2, 0.7, -0.8).normalize();
   M.body.uniforms.uRim.value = 1.3;
   M.body.uniforms.uLevel.value = 0.9 + 0.25 * kick;
   M.ledge.uniforms.uLevel.value = 0.7;
   M.bldg.uniforms.uLevel.value = 0.55 + 0.2 * kick;
-  starMat.size = 1.6 + clamp01((t - uni.start) / 1.5) * 2.5;
+  starMat.size = 1.6 + clamp01((t - D.uni.start) / 1.5) * 2.5;
+  starMat.opacity = D.mood === "sunrise" ? 0.25 : 1;
+  starMat.transparent = true;
+  const lift = D.mood === "final" ? Math.max(0, t - D.sec.start) : 0;
   return (
     <>
       <mesh geometry={a.geo} material={M.body} position={[0, 0, 0]} rotation={[0, Math.PI, 0]} />
@@ -170,6 +201,20 @@ const RoofScene: React.FC<{ t: number; a: Assets }> = ({ t, a }) => {
         <mesh key={i} geometry={box} material={M.bldg} position={[b.x, -30 + b.h / 2, b.z]} scale={[b.w, b.h, b.w]} />
       ))}
       <points geometry={stars} material={starMat} />
+      {/* final chorus: everything he built lifts into the sky around him */}
+      {D.mood === "final"
+        ? Array.from({ length: 26 }, (_, i) => {
+            const r = (k: number) => ((Math.sin(i * 12.9898 + k * 78.233) * 43758.5453) % 1 + 1) % 1;
+            const ang = r(1) * Math.PI * 2, rad = 2.2 + r(2) * 5;
+            const y = -6 + r(3) * 4 + lift * (0.5 + r(4) * 0.8);
+            const kind = i % 3;
+            return (
+              <group key={i} position={[Math.cos(ang) * rad, y, Math.sin(ang) * rad]} rotation={[lift * 0.2 * r(5), lift * 0.3 * r(6), 0]}>
+                {kind === 0 ? <mesh geometry={box} material={M.ledge} scale={[0.9, 0.18, 0.35]} /> : kind === 1 ? <mesh geometry={box} material={M.bldg} scale={[0.6, 0.45, 0.6]} /> : <mesh geometry={box} material={M.ledge} scale={[0.3, 0.14, 0.14]} />}
+              </group>
+            );
+          })
+        : null}
     </>
   );
 };
@@ -194,27 +239,33 @@ const Sparks: React.FC<{ t: number; at: number; until: number; x: number; y: num
   );
 };
 
-export const Chorus: React.FC<{ t: number; a: Assets | null; bare?: boolean }> = ({ t, a, bare }) => {
+export const Chorus: React.FC<{ t: number; a: Assets | null; bare?: boolean; id?: string }> = ({ t, a, bare, id = "chorus1" }) => {
+  const D = chData(id);
+  const CH = D.lines;
   const outs = CH.map((l, i) => lineOut(l, CH[i + 1], 1.6));
-  const flash = Math.max(0, 0.9 * Math.exp(-(t - CH_SEC.start) / 0.14));
+  const kick = kickEnv(t, 0.12);
+  const flash = Math.max(0, 0.9 * Math.exp(-(t - D.sec.start) / 0.14)) + (D.mood === "final" ? kick * 0.12 : 0);
   return (
     <AbsoluteFill style={{ background: "#000" }}>
+      {D.mood === "sunrise" ? (
+        <AbsoluteFill style={{ background: "linear-gradient(180deg, #121212 0%, #2a2928 45%, #8d8a85 72%, #d9d6d0 82%, #1a1a1a 100%)" }} />
+      ) : null}
       {a ? (
-        <ThreeCanvas width={W} height={H} style={{ position: "absolute", inset: 0 }} gl={{ antialias: true }}>
-          <RoofScene t={t} a={a} />
+        <ThreeCanvas width={W} height={H} style={{ position: "absolute", inset: 0 }} gl={{ antialias: true, alpha: true }}>
+          <RoofScene t={t} a={a} id={id} />
         </ThreeCanvas>
       ) : null}
       <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 40%)" }} />
       {bare
         ? null
         : CH.map((l, i) => <LyricLine key={l.id} line={l} t={t} top={250} out={outs[i]} maxSize={130} align="center" />)}
-      {CH.filter((l) => /grinding/i.test(l.text)).map((l, i) => (
+      {CH.filter((l) => /grinding/i.test(l.text) || D.mood === "final").map((l, i) => (
         <React.Fragment key={l.id}>
           <Sparks t={t} at={l.start} until={l.end} x={SAFE.left + 40} y={640} dir={Math.PI * 0.85} seed={i * 7 + 1} />
           <Sparks t={t} at={l.start} until={l.end} x={SAFE.right - 40} y={640} dir={Math.PI * 0.15} seed={i * 7 + 2} />
         </React.Fragment>
       ))}
-      {bare ? null : <div style={{ position: "absolute", left: SAFE.left, top: 170, ...mono(20, STONE) }}>04 / CHORUS — the roof</div>}
+      {bare ? null : <div style={{ position: "absolute", left: SAFE.left, top: 170, ...mono(20, STONE) }}>{id === "chorus2" ? "08 / CHORUS — sunrise" : id === "chorus3" ? "11 / FINAL CHORUS — everything lifts" : "04 / CHORUS — the roof"}</div>}
       {flash > 0.01 ? <AbsoluteFill style={{ background: `rgba(255,255,255,${flash})` }} /> : null}
     </AbsoluteFill>
   );
@@ -222,29 +273,25 @@ export const Chorus: React.FC<{ t: number; a: Assets | null; bare?: boolean }> =
 
 // =============================================================================================
 // POST-CHORUS: shouted lines stamped full-width; then a strobe through the grind on the beat.
-const STAMP_UNTIL = POST[POST.length - 1].end + 0.6;
-const MONTAGE = [31.4, 35.0, 53.6, 44.8, 63.5, 40.1, 47.3, 56.5, 70.0, 33.9, 66.0, 49.2];
-
-export const PostChorus: React.FC<{ t: number; a: Assets | null }> = ({ t, a }) => {
+export const PostChorus: React.FC<{ t: number; a: Assets | null; id?: string; montage: number[]; renderAt: (src: number) => React.ReactNode }> = ({ t, a, id = "postchorus1", montage, renderAt }) => {
+  const sec = sectionById(id);
+  const POST = linesOf(id);
+  const stampUntil = POST[POST.length - 1].end + 0.6;
   const outs = POST.map((l, i) => lineOut(l, POST[i + 1], 0.8));
-  const beats = T.beats.filter((b) => b >= STAMP_UNTIL && b < POST_SEC.end);
+  const beats = T.beats.filter((b) => b >= stampUntil && b < sec.end);
   const bi = beats.filter((b) => b <= t).length - 1;
-  const inMontage = t >= STAMP_UNTIL && bi >= 0;
-  const src = inMontage ? MONTAGE[bi % MONTAGE.length] + (t - beats[bi]) : t;
+  const inMontage = t >= stampUntil && bi >= 0;
+  const src = inMontage ? montage[bi % montage.length] + (t - beats[bi]) : t;
   const beatFlash = inMontage ? Math.exp(-(t - beats[bi]) / 0.06) * 0.5 : 0;
+  const roofId = id === "postchorus2" ? "chorus3" : "chorus1";
+  const roof = chData(roofId);
   return (
     <AbsoluteFill style={{ background: "#000" }}>
       {inMontage ? (
-        src < 29.2 ? null : src < 49.7 ? (
-          <Verse1 t={src} assets={a} bare />
-        ) : src < 58.27 ? (
-          <PreChorus t={src} a={a} bare />
-        ) : (
-          <Chorus t={src} a={a} bare />
-        )
+        renderAt(src)
       ) : a ? (
         <ThreeCanvas width={W} height={H} style={{ position: "absolute", inset: 0 }} gl={{ antialias: true }}>
-          <RoofScene t={CH_SEC.end - 2 + (t - POST_SEC.start) * 0.4} a={a} />
+          <RoofScene t={roof.sec.end - 2 + (t - sec.start) * 0.4} a={a} id={roofId} />
         </ThreeCanvas>
       ) : null}
       {!inMontage ? (
@@ -256,8 +303,7 @@ export const PostChorus: React.FC<{ t: number; a: Assets | null }> = ({ t, a }) 
         </>
       ) : null}
       {beatFlash > 0.01 ? <AbsoluteFill style={{ background: `rgba(255,255,255,${beatFlash})` }} /> : null}
-      <div style={{ position: "absolute", left: SAFE.left, top: 170, ...mono(20, STONE) }}>05 / POST-CHORUS — still climbing</div>
+      <div style={{ position: "absolute", left: SAFE.left, top: 170, ...mono(20, STONE) }}>{id === "postchorus2" ? "12 / POST-CHORUS — the whole climb" : "05 / POST-CHORUS — still climbing"}</div>
     </AbsoluteFill>
   );
 };
-
