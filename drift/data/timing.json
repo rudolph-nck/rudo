@@ -2755,38 +2755,38 @@
 {
 "w": "Yeah...",
 "i": 0,
-"s": 4.2,
-"src": "suno",
-"e": 6.0,
+"s": 4.25,
+"src": "manual",
+"e": 6.05,
 "env": [
-0.4,
-0.45,
-0.62,
-0.34,
-0.41,
-0.34,
-0.0,
-0.02,
-0.0,
-0.15,
-0.04,
+0.43,
+0.59,
+0.53,
+0.39,
+0.39,
 0.14,
-0.04,
+0.01,
+0.0,
+0.12,
+0.09,
+0.12,
+0.11,
 0.0,
 0.0,
 0.0,
-0.04,
+0.05,
+0.02,
 0.0
 ],
-"peak": 0.62,
+"peak": 0.59,
 "dur": 1.8,
 "held": true,
 "kick": false,
 "beat": false
 }
 ],
-"start": 4.2,
-"end": 6.0,
+"start": 4.25,
+"end": 6.05,
 "anchored": 1.0
 },
 {
@@ -2798,15 +2798,15 @@
 {
 "w": "You",
 "i": 1,
-"s": 6.0,
+"s": 6.05,
 "src": "manual",
-"e": 6.2,
+"e": 6.25,
 "env": [
-0.0,
-0.52,
-0.58
+0.24,
+0.61,
+0.67
 ],
-"peak": 0.58,
+"peak": 0.67,
 "dur": 0.2,
 "held": false,
 "kick": false,
@@ -2816,16 +2816,15 @@
 "w": "ever",
 "i": 2,
 "s": 6.2,
-"src": "interp",
-"e": 6.6,
+"src": "manual",
+"e": 6.4,
 "env": [
 0.58,
 0.7,
-0.36,
-0.85
+0.36
 ],
-"peak": 0.85,
-"dur": 0.4,
+"peak": 0.7,
+"dur": 0.2,
 "held": false,
 "kick": false,
 "beat": false
@@ -2833,15 +2832,15 @@
 {
 "w": "get",
 "i": 3,
-"s": 6.6,
-"src": "interp",
-"e": 6.8,
+"s": 6.35,
+"src": "manual",
+"e": 6.55,
 "env": [
-0.6,
-0.35,
-0.63
+0.45,
+0.78,
+0.8
 ],
-"peak": 0.63,
+"peak": 0.8,
 "dur": 0.2,
 "held": false,
 "kick": false,
@@ -2850,19 +2849,19 @@
 {
 "w": "so",
 "i": 4,
-"s": 6.8,
-"src": "interp",
-"e": 7.0,
+"s": 6.55,
+"src": "manual",
+"e": 6.85,
 "env": [
-0.63,
-0.58,
-0.35
+0.8,
+0.35,
+0.45
 ],
-"peak": 0.63,
-"dur": 0.2,
+"peak": 0.8,
+"dur": 0.3,
 "held": false,
 "kick": false,
-"beat": true
+"beat": false
 },
 {
 "w": "tired",
@@ -2890,9 +2889,9 @@
 "beat": true
 }
 ],
-"start": 6.0,
+"start": 6.05,
 "end": 7.9,
-"anchored": 0.4
+"anchored": 1.0
 },
 {
 "id": "L002",
@@ -2903,50 +2902,49 @@
 {
 "w": "You",
 "i": 6,
-"s": 8.5,
+"s": 8.45,
 "src": "manual",
-"e": 8.75,
+"e": 8.65,
 "env": [
 0.0,
 0.0,
 0.0
 ],
 "peak": 0.0,
-"dur": 0.25,
-"held": false,
-"kick": false,
-"beat": true
-},
-{
-"w": "don't",
-"i": 7,
-"s": 8.75,
-"src": "interp",
-"e": 9.0,
-"env": [
-0.01,
-0.0,
-0.46
-],
-"peak": 0.46,
-"dur": 0.25,
+"dur": 0.2,
 "held": false,
 "kick": false,
 "beat": false
 },
 {
+"w": "don't",
+"i": 7,
+"s": 8.58,
+"src": "manual",
+"e": 8.78,
+"env": [
+0.0,
+0.0
+],
+"peak": 0.0,
+"dur": 0.2,
+"held": false,
+"kick": false,
+"beat": true
+},
+{
 "w": "want",
 "i": 8,
-"s": 9.0,
-"src": "interp",
-"e": 9.25,
+"s": 8.7,
+"src": "manual",
+"e": 8.9,
 "env": [
-0.63,
-0.23,
-0.1
+0.0,
+0.0,
+0.0
 ],
-"peak": 0.63,
-"dur": 0.25,
+"peak": 0.0,
+"dur": 0.2,
 "held": false,
 "kick": false,
 "beat": false
@@ -2954,14 +2952,15 @@
 {
 "w": "to",
 "i": 9,
-"s": 9.25,
-"src": "interp",
-"e": 9.45,
+"s": 8.85,
+"src": "manual",
+"e": 9.05,
 "env": [
-0.07,
-0.0
+0.0,
+0.46,
+0.6
 ],
-"peak": 0.07,
+"peak": 0.6,
 "dur": 0.2,
 "held": false,
 "kick": false,
@@ -2992,9 +2991,9 @@
 "beat": false
 }
 ],
-"start": 8.5,
+"start": 8.45,
 "end": 10.0,
-"anchored": 0.4
+"anchored": 1.0
 },
 {
 "id": "L003",
@@ -3007,15 +3006,14 @@
 "i": 11,
 "s": 10.0,
 "src": "manual",
-"e": 10.32,
+"e": 10.25,
 "env": [
 0.14,
-0.0,
 0.0,
 0.0
 ],
 "peak": 0.14,
-"dur": 0.32,
+"dur": 0.25,
 "held": false,
 "kick": false,
 "beat": false
@@ -3023,64 +3021,64 @@
 {
 "w": "don't",
 "i": 12,
-"s": 10.32,
-"src": "interp",
-"e": 10.64,
+"s": 10.25,
+"src": "manual",
+"e": 10.5,
 "env": [
-0.0,
 0.0,
 0.0,
 0.0
 ],
 "peak": 0.0,
-"dur": 0.32,
+"dur": 0.25,
 "held": false,
 "kick": false,
-"beat": true
+"beat": false
 },
 {
 "w": "want",
 "i": 13,
-"s": 10.64,
-"src": "interp",
-"e": 10.96,
+"s": 10.5,
+"src": "manual",
+"e": 10.75,
 "env": [
-0.0,
 0.0,
 0.0,
 0.0
 ],
 "peak": 0.0,
-"dur": 0.32,
+"dur": 0.25,
 "held": false,
 "kick": false,
-"beat": true
+"beat": false
 },
 {
 "w": "to",
 "i": 14,
-"s": 10.96,
-"src": "interp",
-"e": 11.3,
+"s": 10.75,
+"src": "manual",
+"e": 11.0,
 "env": [
 0.0,
-0.18,
 0.0,
 0.0
 ],
-"peak": 0.18,
-"dur": 0.34,
+"peak": 0.0,
+"dur": 0.25,
 "held": false,
 "kick": false,
-"beat": true
+"beat": false
 },
 {
 "w": "disappear",
 "i": 15,
-"s": 11.3,
+"s": 11.0,
 "src": "manual",
 "e": 13.2,
 "env": [
+0.09,
+0.15,
+0.0,
 0.0,
 0.34,
 0.3,
@@ -3102,15 +3100,15 @@
 0.38
 ],
 "peak": 0.66,
-"dur": 1.9,
-"held": false,
+"dur": 2.2,
+"held": true,
 "kick": false,
-"beat": false
+"beat": true
 }
 ],
 "start": 10.0,
 "end": 13.2,
-"anchored": 0.4
+"anchored": 1.0
 },
 {
 "id": "L004",
@@ -3122,8 +3120,8 @@
 "w": "You",
 "i": 16,
 "s": 13.6,
-"src": "suno",
-"e": 13.92,
+"src": "manual",
+"e": 13.9,
 "env": [
 0.0,
 0.0,
@@ -3131,7 +3129,7 @@
 0.0
 ],
 "peak": 0.0,
-"dur": 0.32,
+"dur": 0.3,
 "held": false,
 "kick": false,
 "beat": false
@@ -3139,17 +3137,16 @@
 {
 "w": "just",
 "i": 17,
-"s": 13.92,
-"src": "interp",
-"e": 14.24,
+"s": 13.9,
+"src": "manual",
+"e": 14.2,
 "env": [
 0.0,
 0.0,
-0.11,
-0.36
+0.0
 ],
-"peak": 0.36,
-"dur": 0.32,
+"peak": 0.0,
+"dur": 0.3,
 "held": false,
 "kick": false,
 "beat": false
@@ -3157,51 +3154,51 @@
 {
 "w": "want",
 "i": 18,
-"s": 14.24,
-"src": "interp",
-"e": 14.56,
+"s": 14.2,
+"src": "manual",
+"e": 14.6,
 "env": [
-0.31,
+0.37,
+0.07,
 0.0,
-0.0,
-0.17
+0.2,
+0.0
 ],
-"peak": 0.31,
-"dur": 0.32,
+"peak": 0.37,
+"dur": 0.4,
 "held": false,
 "kick": false,
-"beat": false
+"beat": true
 },
 {
 "w": "everything",
 "i": 19,
-"s": 14.56,
-"src": "interp",
+"s": 14.6,
+"src": "manual",
 "e": 16.2,
 "env": [
-0.12,
 0.0,
 0.0,
-0.08,
+0.0,
+0.05,
 0.0,
 0.0,
-0.31,
-0.41,
-0.28,
-0.13,
-0.48,
-0.46,
-0.28,
-0.28,
-0.41,
-0.45,
-0.32
+0.44,
+0.37,
+0.18,
+0.19,
+0.51,
+0.43,
+0.14,
+0.43,
+0.4,
+0.38
 ],
-"peak": 0.48,
-"dur": 1.64,
+"peak": 0.51,
+"dur": 1.6,
 "held": false,
 "kick": false,
-"beat": true
+"beat": false
 },
 {
 "w": "to",
@@ -3244,7 +3241,7 @@
 ],
 "start": 13.6,
 "end": 18.95,
-"anchored": 0.5
+"anchored": 1.0
 },
 {
 "id": "L005",
@@ -3256,14 +3253,15 @@
 "w": "For",
 "i": 22,
 "s": 19.4,
-"src": "suno",
-"e": 19.587,
+"src": "manual",
+"e": 19.6,
 "env": [
 0.22,
-0.29
+0.29,
+0.27
 ],
 "peak": 0.29,
-"dur": 0.19,
+"dur": 0.2,
 "held": false,
 "kick": false,
 "beat": true
@@ -3271,15 +3269,15 @@
 {
 "w": "a",
 "i": 23,
-"s": 19.587,
-"src": "interp",
-"e": 19.775,
+"s": 19.55,
+"src": "manual",
+"e": 19.75,
 "env": [
-0.28,
-0.06
+0.31,
+0.18
 ],
-"peak": 0.28,
-"dur": 0.19,
+"peak": 0.31,
+"dur": 0.2,
 "held": false,
 "kick": false,
 "beat": false
@@ -3287,24 +3285,36 @@
 {
 "w": "minute",
 "i": 24,
-"s": 19.775,
-"src": "interp",
-"e": 20.05,
+"s": 19.75,
+"src": "manual",
+"e": 21.2,
 "env": [
-0.52,
-0.66,
-0.0
+0.29,
+0.68,
+0.31,
+0.0,
+0.0,
+0.0,
+0.0,
+0.0,
+0.0,
+0.0,
+0.0,
+0.0,
+0.0,
+0.0,
+0.28
 ],
-"peak": 0.66,
-"dur": 0.28,
+"peak": 0.68,
+"dur": 1.45,
 "held": false,
 "kick": false,
 "beat": true
 }
 ],
 "start": 19.4,
-"end": 20.05,
-"anchored": 0.33
+"end": 21.2,
+"anchored": 1.0
 },
 {
 "id": "L006",
@@ -3316,22 +3326,17 @@
 "w": "Another",
 "i": 25,
 "s": 21.2,
-"src": "suno",
-"e": 22.16,
+"src": "manual",
+"e": 21.7,
 "env": [
 0.4,
 0.55,
 0.39,
 0.53,
-0.28,
-0.0,
-0.0,
-0.0,
-0.0,
-0.0
+0.28
 ],
 "peak": 0.55,
-"dur": 0.96,
+"dur": 0.5,
 "held": false,
 "kick": false,
 "beat": true
@@ -3339,28 +3344,20 @@
 {
 "w": "morning,",
 "i": 26,
-"s": 22.16,
-"src": "interp",
+"s": 22.95,
+"src": "manual",
 "e": 23.6,
 "env": [
-0.0,
-0.0,
-0.0,
-0.0,
-0.0,
-0.0,
-0.0,
-0.0,
 0.37,
-0.02,
-0.49,
-0.57,
-0.65,
+0.07,
+0.48,
+0.53,
+0.67,
 0.55,
 0.47
 ],
-"peak": 0.65,
-"dur": 1.44,
+"peak": 0.67,
+"dur": 0.65,
 "held": false,
 "kick": false,
 "beat": true
@@ -3369,14 +3366,14 @@
 "w": "same",
 "i": 27,
 "s": 23.6,
-"src": "suno",
-"e": 23.767,
+"src": "manual",
+"e": 23.8,
 "env": [
 0.5,
 0.55
 ],
 "peak": 0.55,
-"dur": 0.17,
+"dur": 0.2,
 "held": false,
 "kick": false,
 "beat": true
@@ -3384,16 +3381,16 @@
 {
 "w": "ceiling",
 "i": 28,
-"s": 23.767,
-"src": "interp",
+"s": 23.75,
+"src": "manual",
 "e": 24.0,
 "env": [
-0.47,
-0.34,
-0.39
+0.5,
+0.38,
+0.24
 ],
-"peak": 0.47,
-"dur": 0.23,
+"peak": 0.5,
+"dur": 0.25,
 "held": false,
 "kick": false,
 "beat": false
@@ -3401,7 +3398,7 @@
 ],
 "start": 21.2,
 "end": 24.0,
-"anchored": 0.5
+"anchored": 1.0
 },
 {
 "id": "L007",
@@ -3413,8 +3410,8 @@
 "w": "Same",
 "i": 29,
 "s": 24.0,
-"src": "suno",
-"e": 24.32,
+"src": "manual",
+"e": 24.3,
 "env": [
 0.54,
 0.42,
@@ -3422,7 +3419,7 @@
 0.21
 ],
 "peak": 0.54,
-"dur": 0.32,
+"dur": 0.3,
 "held": false,
 "kick": false,
 "beat": true
@@ -3430,20 +3427,19 @@
 {
 "w": "pressure",
 "i": 30,
-"s": 24.32,
-"src": "interp",
-"e": 24.96,
+"s": 24.3,
+"src": "manual",
+"e": 24.85,
 "env": [
-0.23,
-0.73,
-0.68,
-0.24,
-0.61,
-0.65,
-0.33
+0.21,
+0.69,
+0.72,
+0.32,
+0.4,
+0.7
 ],
-"peak": 0.73,
-"dur": 0.64,
+"peak": 0.72,
+"dur": 0.55,
 "held": false,
 "kick": true,
 "beat": true
@@ -3451,61 +3447,62 @@
 {
 "w": "on",
 "i": 31,
-"s": 24.96,
-"src": "interp",
-"e": 25.28,
+"s": 24.85,
+"src": "manual",
+"e": 25.1,
 "env": [
+0.54,
 0.15,
-0.6,
-0.47,
-0.52
+0.58
 ],
-"peak": 0.6,
-"dur": 0.32,
+"peak": 0.58,
+"dur": 0.25,
 "held": false,
 "kick": false,
-"beat": true
+"beat": false
 },
 {
 "w": "my",
 "i": 32,
-"s": 25.28,
-"src": "interp",
-"e": 25.6,
+"s": 25.1,
+"src": "manual",
+"e": 25.35,
 "env": [
-0.54,
-0.46,
-0.5,
-0.32
+0.61,
+0.35,
+0.55
 ],
-"peak": 0.54,
-"dur": 0.32,
+"peak": 0.61,
+"dur": 0.25,
 "held": false,
-"kick": true,
+"kick": false,
 "beat": false
 },
 {
 "w": "chest",
 "i": 33,
-"s": 25.6,
-"src": "interp",
+"s": 25.35,
+"src": "manual",
 "e": 26.0,
 "env": [
-0.27,
-0.34,
-0.56,
-0.23
+0.47,
+0.51,
+0.38,
+0.15,
+0.49,
+0.52,
+0.3
 ],
-"peak": 0.56,
-"dur": 0.4,
+"peak": 0.52,
+"dur": 0.65,
 "held": false,
-"kick": false,
-"beat": false
+"kick": true,
+"beat": true
 }
 ],
 "start": 24.0,
 "end": 26.0,
-"anchored": 0.2
+"anchored": 1.0
 },
 {
 "id": "L008",
@@ -3516,51 +3513,49 @@
 {
 "w": "Same",
 "i": 34,
-"s": 26.2,
-"src": "suno",
-"e": 26.367,
+"s": 26.0,
+"src": "manual",
+"e": 26.2,
 "env": [
-0.47,
-0.0
+0.35,
+0.3
 ],
-"peak": 0.47,
-"dur": 0.17,
-"held": false,
-"kick": false,
-"beat": false
-},
-{
-"w": "people",
-"i": 35,
-"s": 26.367,
-"src": "interp",
-"e": 26.7,
-"env": [
-0.03,
-0.63,
-0.29,
-0.2
-],
-"peak": 0.63,
-"dur": 0.33,
+"peak": 0.35,
+"dur": 0.2,
 "held": false,
 "kick": false,
 "beat": true
 },
 {
+"w": "people",
+"i": 35,
+"s": 26.2,
+"src": "manual",
+"e": 26.45,
+"env": [
+0.47,
+0.0,
+0.44
+],
+"peak": 0.47,
+"dur": 0.25,
+"held": false,
+"kick": false,
+"beat": false
+},
+{
 "w": "telling",
 "i": 36,
-"s": 26.7,
-"src": "interp",
-"e": 27.033,
+"s": 26.45,
+"src": "manual",
+"e": 26.7,
 "env": [
-0.05,
-0.56,
-0.57,
-0.34
+0.62,
+0.35,
+0.27
 ],
-"peak": 0.57,
-"dur": 0.33,
+"peak": 0.62,
+"dur": 0.25,
 "held": false,
 "kick": false,
 "beat": true
@@ -3568,32 +3563,31 @@
 {
 "w": "me",
 "i": 37,
-"s": 27.033,
-"src": "interp",
-"e": 27.233,
+"s": 26.7,
+"src": "manual",
+"e": 26.9,
 "env": [
-0.31,
-0.53
-],
-"peak": 0.53,
-"dur": 0.2,
-"held": false,
-"kick": false,
-"beat": false
-},
-{
-"w": "I'm",
-"i": 38,
-"s": 26.6,
-"src": "suno",
-"e": 26.867,
-"env": [
-0.28,
 0.05,
 0.56
 ],
 "peak": 0.56,
-"dur": 0.27,
+"dur": 0.2,
+"held": false,
+"kick": false,
+"beat": true
+},
+{
+"w": "I'm",
+"i": 38,
+"s": 26.85,
+"src": "manual",
+"e": 27.05,
+"env": [
+0.64,
+0.42
+],
+"peak": 0.64,
+"dur": 0.2,
 "held": false,
 "kick": false,
 "beat": false
@@ -3601,27 +3595,25 @@
 {
 "w": "blessed",
 "i": 39,
-"s": 26.867,
-"src": "interp",
+"s": 27.0,
+"src": "manual",
 "e": 27.4,
 "env": [
-0.63,
-0.39,
 0.34,
-0.65,
-0.59,
-0.54
+0.41,
+0.67,
+0.55
 ],
-"peak": 0.65,
-"dur": 0.53,
+"peak": 0.67,
+"dur": 0.4,
 "held": false,
 "kick": false,
 "beat": false
 }
 ],
-"start": 26.2,
+"start": 26.0,
 "end": 27.4,
-"anchored": 0.33
+"anchored": 1.0
 },
 {
 "id": "L009",
@@ -3633,18 +3625,15 @@
 "w": "While",
 "i": 40,
 "s": 27.4,
-"src": "suno",
-"e": 27.986,
+"src": "manual",
+"e": 27.65,
 "env": [
 0.5,
 0.77,
-0.74,
-0.3,
-0.38,
-0.18
+0.74
 ],
 "peak": 0.77,
-"dur": 0.59,
+"dur": 0.25,
 "held": false,
 "kick": false,
 "beat": false
@@ -3652,16 +3641,16 @@
 {
 "w": "I'm",
 "i": 41,
-"s": 27.986,
-"src": "interp",
-"e": 28.279,
+"s": 27.65,
+"src": "manual",
+"e": 27.85,
 "env": [
-0.32,
-0.39,
-0.65
+0.53,
+0.37,
+0.32
 ],
-"peak": 0.65,
-"dur": 0.29,
+"peak": 0.53,
+"dur": 0.2,
 "held": false,
 "kick": false,
 "beat": false
@@ -3669,61 +3658,66 @@
 {
 "w": "struggling",
 "i": 42,
-"s": 28.279,
-"src": "interp",
-"e": 28.864,
+"s": 27.85,
+"src": "manual",
+"e": 28.35,
 "env": [
-0.6,
-0.5,
+0.32,
+0.23,
 0.43,
-0.7,
-0.67,
-0.64
+0.4,
+0.67
 ],
-"peak": 0.7,
-"dur": 0.59,
+"peak": 0.67,
+"dur": 0.5,
+"held": false,
+"kick": false,
+"beat": true
+},
+{
+"w": "to",
+"i": 43,
+"s": 28.35,
+"src": "manual",
+"e": 28.55,
+"env": [
+0.51,
+0.47
+],
+"peak": 0.51,
+"dur": 0.2,
 "held": false,
 "kick": false,
 "beat": false
 },
 {
-"w": "to",
-"i": 43,
-"s": 28.864,
-"src": "interp",
-"e": 29.157,
-"env": [
-0.52,
-0.45,
-0.46
-],
-"peak": 0.52,
-"dur": 0.29,
-"held": false,
-"kick": true,
-"beat": true
-},
-{
 "w": "rest",
 "i": 44,
-"s": 29.157,
-"src": "interp",
+"s": 28.5,
+"src": "manual",
 "e": 29.45,
 "env": [
-0.57,
+0.46,
+0.72,
+0.67,
 0.62,
-0.25
+0.43,
+0.44,
+0.5,
+0.62,
+0.56,
+0.0
 ],
-"peak": 0.62,
-"dur": 0.29,
-"held": false,
+"peak": 0.72,
+"dur": 0.95,
+"held": true,
 "kick": false,
 "beat": true
 }
 ],
 "start": 27.4,
 "end": 29.45,
-"anchored": 0.2
+"anchored": 1.0
 },
 {
 "id": "L010",
@@ -3735,19 +3729,16 @@
 "w": "Everybody",
 "i": 45,
 "s": 29.8,
-"src": "suno",
-"e": 30.425,
+"src": "manual",
+"e": 30.15,
 "env": [
 0.58,
 0.41,
 0.82,
-0.5,
-0.45,
-0.52,
-0.34
+0.5
 ],
 "peak": 0.82,
-"dur": 0.62,
+"dur": 0.35,
 "held": false,
 "kick": false,
 "beat": false
@@ -3755,15 +3746,16 @@
 {
 "w": "needs",
 "i": 46,
-"s": 30.425,
-"src": "interp",
-"e": 30.55,
+"s": 30.15,
+"src": "manual",
+"e": 30.35,
 "env": [
-0.27,
-0.0
+0.38,
+0.5,
+0.48
 ],
-"peak": 0.27,
-"dur": 0.12,
+"peak": 0.5,
+"dur": 0.2,
 "held": false,
 "kick": false,
 "beat": false
@@ -3771,15 +3763,15 @@
 {
 "w": "a",
 "i": 47,
-"s": 30.55,
-"src": "interp",
-"e": 30.675,
+"s": 30.28,
+"src": "manual",
+"e": 30.48,
 "env": [
-0.12,
-0.68
+0.51,
+0.4
 ],
-"peak": 0.68,
-"dur": 0.12,
+"peak": 0.51,
+"dur": 0.2,
 "held": false,
 "kick": false,
 "beat": true
@@ -3787,14 +3779,14 @@
 {
 "w": "piece",
 "i": 48,
-"s": 30.675,
-"src": "interp",
-"e": 30.875,
+"s": 30.38,
+"src": "manual",
+"e": 30.58,
 "env": [
-0.67,
-0.33
+0.4,
+0.12
 ],
-"peak": 0.67,
+"peak": 0.4,
 "dur": 0.2,
 "held": false,
 "kick": false,
@@ -3803,41 +3795,40 @@
 {
 "w": "of",
 "i": 49,
-"s": 30.4,
-"src": "suno",
-"e": 30.65,
+"s": 30.58,
+"src": "manual",
+"e": 30.78,
 "env": [
-0.34,
-0.0,
-0.58
+0.46,
+0.66,
+0.26
 ],
-"peak": 0.58,
-"dur": 0.25,
-"held": false,
-"kick": false,
-"beat": false
-},
-{
-"w": "me",
-"i": 50,
-"s": 30.65,
-"src": "interp",
-"e": 30.85,
-"env": [
-0.68,
-0.43,
-0.25
-],
-"peak": 0.68,
+"peak": 0.66,
 "dur": 0.2,
 "held": false,
 "kick": false,
 "beat": true
+},
+{
+"w": "me",
+"i": 50,
+"s": 30.68,
+"src": "manual",
+"e": 30.88,
+"env": [
+0.66,
+0.26
+],
+"peak": 0.66,
+"dur": 0.2,
+"held": false,
+"kick": false,
+"beat": false
 }
 ],
 "start": 29.8,
-"end": 30.85,
-"anchored": 0.33
+"end": 30.88,
+"anchored": 1.0
 },
 {
 "id": "L011",
@@ -3848,21 +3839,18 @@
 {
 "w": "Everybody",
 "i": 51,
-"s": 30.8,
-"src": "suno",
-"e": 31.581,
+"s": 30.85,
+"src": "manual",
+"e": 31.35,
 "env": [
-0.16,
-0.38,
-0.46,
-0.38,
+0.25,
+0.37,
+0.52,
 0.0,
-0.2,
-0.66,
-0.6
+0.0
 ],
-"peak": 0.66,
-"dur": 0.78,
+"peak": 0.52,
+"dur": 0.5,
 "held": false,
 "kick": false,
 "beat": false
@@ -3870,56 +3858,57 @@
 {
 "w": "wants",
 "i": 52,
-"s": 31.581,
-"src": "interp",
-"e": 31.737,
+"s": 31.35,
+"src": "manual",
+"e": 31.55,
 "env": [
-0.53,
-0.77
+0.64,
+0.46
 ],
-"peak": 0.77,
-"dur": 0.16,
-"held": false,
-"kick": false,
-"beat": false
-},
-{
-"w": "my",
-"i": 53,
-"s": 31.737,
-"src": "interp",
-"e": 31.894,
-"env": [
-0.78,
-0.62
-],
-"peak": 0.78,
-"dur": 0.16,
+"peak": 0.64,
+"dur": 0.2,
 "held": false,
 "kick": false,
 "beat": true
 },
 {
-"w": "time",
-"i": 54,
-"s": 31.894,
-"src": "interp",
-"e": 32.094,
+"w": "my",
+"i": 53,
+"s": 31.55,
+"src": "manual",
+"e": 31.75,
 "env": [
-0.61,
-0.66,
-0.52
+0.63,
+0.63
 ],
-"peak": 0.66,
+"peak": 0.63,
 "dur": 0.2,
 "held": false,
 "kick": false,
 "beat": false
+},
+{
+"w": "time",
+"i": 54,
+"s": 31.7,
+"src": "manual",
+"e": 32.05,
+"env": [
+0.79,
+0.66,
+0.6,
+0.67
+],
+"peak": 0.79,
+"dur": 0.35,
+"held": false,
+"kick": false,
+"beat": true
 }
 ],
-"start": 30.8,
-"end": 32.094,
-"anchored": 0.25
+"start": 30.85,
+"end": 32.05,
+"anchored": 1.0
 },
 {
 "id": "L012",

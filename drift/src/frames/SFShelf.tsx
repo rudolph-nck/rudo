@@ -106,10 +106,7 @@ const ballistic = (dt: number, p0: THREE.Vector3, v0: THREE.Vector3, floorY: num
   return { p: q, landed: true, tc };
 };
 
-export const SFShelf: React.FC<{ t: number }> = ({ t }) => {
-  const a = useAssets();
-  const words = LINES[LI].words;
-  const wW = words[4];
+export const useShelfKit = (a: ReturnType<typeof useAssets>) => {
   const mats = useMemo(() => {
     if (!a) return null;
     return {
@@ -139,7 +136,15 @@ export const SFShelf: React.FC<{ t: number }> = ({ t }) => {
     const r = rng(29);
     return Array.from({ length: 22 }, () => ({ l: 0.04 + r() * 0.16, v: new THREE.Vector3((r() - 0.5) * 2.4, 0.4 + r() * 1.8, (r() - 0.2) * 1.6), spin: (r() - 0.5) * 30 }));
   }, []);
-  if (!a || !mats) return <Full>{null}</Full>;
+  return a && mats ? { mats, halves, chunks, splinters } : null;
+};
+
+export type ShelfKit = NonNullable<ReturnType<typeof useShelfKit>>;
+/** The shelf moment at song time t: scene nodes plus where the camera wants to be. */
+export const shelfFrame = (a: NonNullable<ReturnType<typeof useAssets>>, kit: ShelfKit, t: number, room = true) => {
+  const { mats, halves, chunks, splinters } = kit;
+  const words = LINES[LI].words;
+  const wW = words[4];
 
   // ---------- layout on the plank ----------
   const gap = 0.045;
@@ -280,14 +285,16 @@ export const SFShelf: React.FC<{ t: number }> = ({ t }) => {
   ];
   const crackR = slam ? cubicOut(clamp01(dS / 0.14)) : 0;
 
-  return (
-    <Full>
-      <Stage cam={{ pos: cam, look: [lookX, lookY, PZ], fov: 42, roll: slam ? (noise1(t * 20, 4) - 0.5) * 0.02 * Math.exp(-dS * 5) : 0 }}
-        look={{ exposure: 1.05, env: 0.12, bloom: { strength: 0.3, radius: 0.6, threshold: 0.88 }, bg: "#040404", dof: { focus: mix(camD, 5.4, follow), aperture: 0.0015, maxblur: 0.005 } }}>
+  const nodes = (
+    <>
+        {room ? (
+          <>
         <spotLight position={[0.4, 5.6, 2.4]} angle={0.55} penumbra={0.8} intensity={380} decay={2} color="#fff1df" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0003} target-position={[0.2, 1.0, -0.3]} />
         <pointLight position={[-2.5, 1.8, 2]} intensity={5} color="#8fa0b0" decay={2} />
         <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow material={mats.floor}><planeGeometry args={[30, 30]} /></mesh>
         <mesh position={[0, 6, WALL_Z]} receiveShadow material={mats.wall}><planeGeometry args={[30, 14]} /></mesh>
+          </>
+        ) : null}
         {/* brackets */}
         {[-BRK, BRK].map((x, i) => (
           <group key={i} position={[x, SHELF_Y - PLANK_T / 2, WALL_Z]}>
@@ -336,6 +343,21 @@ export const SFShelf: React.FC<{ t: number }> = ({ t }) => {
         ) : null}
         <group position={[wX, 0, PZ + 0.15]}><Dust t={t} t0={SLAM} /></group>
         <Motes t={t} />
+    </>
+  );
+  return { nodes, cam, look: [lookX, lookY, PZ] as [number, number, number], focus: mix(camD, 5.4, follow), roll: slam ? (noise1(t * 20, 4) - 0.5) * 0.02 * Math.exp(-dS * 5) : 0 };
+};
+
+export const SFShelf: React.FC<{ t: number }> = ({ t }) => {
+  const a = useAssets();
+  const kit = useShelfKit(a);
+  if (!a || !kit) return <Full>{null}</Full>;
+  const f = shelfFrame(a, kit, t);
+  return (
+    <Full>
+      <Stage cam={{ pos: f.cam, look: f.look, fov: 42, roll: f.roll }}
+        look={{ exposure: 1.05, env: 0.12, bloom: { strength: 0.3, radius: 0.6, threshold: 0.88 }, bg: "#040404", dof: { focus: f.focus, aperture: 0.0015, maxblur: 0.005 } }}>
+        {f.nodes}
       </Stage>
       <Finish />
     </Full>
