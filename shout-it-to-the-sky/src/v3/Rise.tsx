@@ -132,9 +132,16 @@ const buildCh = (id: string) => {
   const cam = makeCam([
     // opens exactly where the pre-chorus flight landed: in front of him on the roof
     { t: sec.start, p: [0.0, 1.25, -2.9], l: [0, 0.7, 0], fov: 40 },
-    { t: sec.start + 0.9, p: [1.6, 1.3, -2.2], l: [0, 0.6, 0], fov: 38 },
-    { t: sec.start + 2.4, p: [2.4, 1.2, 1.6], l: [0, 0.55, 0], fov: 36 },
-    { t: 64 + d, p: [2.6, 1.3, 2.6], l: [0, 0.6, 0], fov: 36 },
+    // SHOUT: hold on him through the blast, then tilt up into the sky after the words
+    { t: lines[0].words[1].s, p: [0.0, 1.25, -2.9], l: [0, 0.7, 0], fov: 40 },
+    { t: lines[0].words[1].s + 0.35, p: [0.15, 1.15, -3.3], l: [0, 1.0, 0], fov: 42 },
+    { t: lines[0].end, p: [0.2, 0.9, -3.6], l: [0, 6, -1.4], fov: 58 },
+    // scars and stars overhead, drifting
+    { t: lines[1].end, p: [0.1, 0.9, -3.6], l: [0.8, 6.2, -1.2], fov: 60 },
+    // came up from the floor: dive back down onto him
+    { t: lines[2].start + 0.7, p: [2.0, 1.4, -3.4], l: [0, 0.8, 0], fov: 44 },
+    { t: lines[2].start + 1.1, p: [2.2, 1.35, -3.2], l: [0, 0.75, 0], fov: 43 },
+    { t: lines[2].end, p: [2.8, 1.2, -2.7], l: [0, 0.7, 0], fov: 42 },
     { t: 69.5 + d, p: [2.9, 0.75, -1.4], l: [0, 0.55, 0], fov: 38 },
     { t: 73.5 + d, p: [0.6, 2.0, -3.4], l: [0, 0.2, 3], fov: 40 },
     { t: uni.start, p: [-0.4, 1.2, -2.6], l: [0, 1.0, 2], fov: 42 },
