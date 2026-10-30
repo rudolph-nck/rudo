@@ -74,10 +74,12 @@ const String3: React.FC<{ a: THREE.Vector3; b: THREE.Vector3; sag: number; draw:
 };
 const NoSign: React.FC<{ r: number; draw: number; slash: number; o: number }> = ({ r, draw, slash, o }) => {
   const circ = useMemo(() => Array.from({ length: 97 }, (_, i) => { const q = Math.PI * 0.75 - (i / 96) * Math.PI * 2; return new THREE.Vector3(Math.cos(q), Math.sin(q), 0); }), []);
-  const obj = useMemo(() => ({ ring: mkLine(97, 2.6), slash: mkLine(2, 2.6) }), []);
-  const k = Math.max(2, Math.round(96 * draw) + 1);
-  obj.ring.g.setPositions(circ.slice(0, k).flatMap((p) => [p.x * r, p.y * r, 0.01]));
-  obj.ring.g.instanceCount = k - 1;
+  const obj = useMemo(() => {
+    const ring = mkLine(97, 2.6);
+    ring.g.setPositions(circ.flatMap((p) => [p.x * r, p.y * r, 0.01]));
+    return { ring, slash: mkLine(2, 2.6) };
+  }, [circ, r]);
+  obj.ring.g.instanceCount = Math.max(1, Math.round(96 * draw));
   const s0 = new THREE.Vector3(-r * 0.707, r * 0.707, 0.01), s1 = new THREE.Vector3(r * 0.707, -r * 0.707, 0.01);
   const se = s0.clone().lerp(s1, slash);
   obj.slash.g.setPositions([s0.x, s0.y, s0.z, se.x, se.y, se.z]);
