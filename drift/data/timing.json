@@ -4025,13 +4025,13 @@
 "i": 60,
 "s": 34.1,
 "src": "manual",
-"e": 34.243,
+"e": 34.3,
 "env": [
 0.7,
 0.76
 ],
 "peak": 0.76,
-"dur": 0.14,
+"dur": 0.2,
 "held": false,
 "kick": false,
 "beat": true
@@ -4039,16 +4039,16 @@
 {
 "w": "forgot",
 "i": 61,
-"s": 34.243,
-"src": "interp",
-"e": 34.529,
+"s": 34.25,
+"src": "manual",
+"e": 34.5,
 "env": [
 0.69,
 0.05,
 0.23
 ],
 "peak": 0.69,
-"dur": 0.29,
+"dur": 0.25,
 "held": false,
 "kick": false,
 "beat": false
@@ -4056,32 +4056,34 @@
 {
 "w": "what's",
 "i": 62,
-"s": 34.529,
-"src": "interp",
-"e": 34.671,
+"s": 34.5,
+"src": "manual",
+"e": 34.7,
 "env": [
-0.12,
-0.31
+0.2,
+0.0,
+0.47
 ],
-"peak": 0.31,
-"dur": 0.14,
+"peak": 0.47,
+"dur": 0.2,
 "held": false,
 "kick": true,
-"beat": false
+"beat": true
 },
 {
 "w": "actually",
 "i": 63,
-"s": 34.671,
-"src": "interp",
-"e": 34.871,
+"s": 34.68,
+"src": "manual",
+"e": 35.0,
 "env": [
 0.48,
 0.47,
-0.72
+0.72,
+0.61
 ],
 "peak": 0.72,
-"dur": 0.2,
+"dur": 0.32,
 "held": false,
 "kick": false,
 "beat": false
@@ -4089,14 +4091,10 @@
 {
 "w": "mine",
 "i": 64,
-"s": 34.6,
-"src": "suno",
+"s": 35.0,
+"src": "manual",
 "e": 36.2,
 "env": [
-0.0,
-0.47,
-0.55,
-0.74,
 0.56,
 0.64,
 0.64,
@@ -4112,15 +4110,15 @@
 0.55
 ],
 "peak": 0.83,
-"dur": 1.6,
+"dur": 1.2,
 "held": true,
-"kick": false,
+"kick": true,
 "beat": false
 }
 ],
 "start": 34.1,
 "end": 36.2,
-"anchored": 0.4
+"anchored": 1.0
 },
 {
 "id": "L014",

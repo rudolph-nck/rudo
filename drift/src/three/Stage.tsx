@@ -10,7 +10,7 @@ import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { W, H } from "../theme";
 
-export type Cam = { pos: [number, number, number]; look: [number, number, number]; fov?: number; roll?: number };
+export type Cam = { pos: [number, number, number]; look: [number, number, number]; fov?: number; roll?: number; up?: [number, number, number] };
 export type Look = {
   exposure?: number;
   env?: number; // studio reflections strength
@@ -58,7 +58,8 @@ const Rig: React.FC<{ cam: Cam; look: Look }> = ({ cam, look }) => {
     pc.near = 0.05;
     pc.far = 400;
     pc.position.set(...cam.pos);
-    pc.up.set(Math.sin(cam.roll ?? 0), Math.cos(cam.roll ?? 0), 0);
+    if (cam.up) pc.up.set(...cam.up);
+    else pc.up.set(Math.sin(cam.roll ?? 0), Math.cos(cam.roll ?? 0), 0);
     pc.lookAt(...cam.look);
     pc.updateProjectionMatrix();
   });

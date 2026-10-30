@@ -110,8 +110,8 @@ export const useShelfKit = (a: ReturnType<typeof useAssets>) => {
   const mats = useMemo(() => {
     if (!a) return null;
     return {
-      words: SPECS.map((s, i) => stoneMat(a, s.tint, 1.4, 0.4 + i * 0.25)),
-      weight: stoneMat(a, "#c4b6a2", 1.6, 0.7),
+      words: SPECS.map((s) => new THREE.MeshStandardMaterial({ color: s.tint, roughness: 0.82 })),
+      weight: new THREE.MeshStandardMaterial({ color: "#c4b6a2", roughness: 0.8 }),
       floor: stoneMat(a, "#6d6862", 0.5, 1.5),
       wall: stoneMat(a, "#5f5a54", 0.4, 1.5),
       wood: woodMat(),
@@ -321,13 +321,13 @@ export const shelfFrame = (a: NonNullable<ReturnType<typeof useAssets>>, kit: Sh
           if (!x) return null;
           return (
             <group key={i} position={x.p} rotation={x.r}>
-              <Letters font={a.bebas} family="bebas" text={s.text} size={s.size} depth={0.06 + i * 0.03} material={mats.words[i]} tracking={0.03} bevel={0.02} />
+              <Letters font={a.bebas} family="bebas" text={s.text} size={s.size} depth={0.06 + i * 0.03} material={mats.words[i]} tracking={0.03} bevel={0} />
             </group>
           );
         })}
         {wy < 50 ? (
           <group position={[wX, wy, PZ + (broke ? 0.15 * clamp01(dB / 0.4) : 0)]} rotation={[0, 0, wrz]}>
-            <Letters font={a.bebas} family="bebas" text="WEIGHT" size={W_SIZE} depth={0.26} material={mats.weight} tracking={0.03} bevel={0.025} />
+            <Letters font={a.bebas} family="bebas" text="WEIGHT" size={W_SIZE} depth={0.26} material={mats.weight} tracking={0.03} bevel={0} />
           </group>
         ) : null}
         {/* the slam: cracked concrete, chunks, dust */}
@@ -345,7 +345,7 @@ export const shelfFrame = (a: NonNullable<ReturnType<typeof useAssets>>, kit: Sh
         <Motes t={t} />
     </>
   );
-  return { nodes, cam, look: [lookX, lookY, PZ] as [number, number, number], focus: mix(camD, 5.4, follow), roll: slam ? (noise1(t * 20, 4) - 0.5) * 0.02 * Math.exp(-dS * 5) : 0 };
+  return { wX, nodes, cam, look: [lookX, lookY, PZ] as [number, number, number], focus: mix(camD, 5.4, follow), roll: slam ? (noise1(t * 20, 4) - 0.5) * 0.02 * Math.exp(-dS * 5) : 0 };
 };
 
 export const SFShelf: React.FC<{ t: number }> = ({ t }) => {
