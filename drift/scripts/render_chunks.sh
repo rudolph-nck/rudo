@@ -10,7 +10,7 @@ for ((a=0; a<N; a+=C)); do
   b=$((a+C-1)); [ $b -ge $N ] && b=$((N-1))
   f="$DIR/part_$(printf %05d $a).mp4"
   if [ ! -s "$f" ]; then
-    npx remotion render src/index.ts "$COMP" "$DIR/tmp.mp4" --frames=$a-$b --props='{"muted":true}' --gl=swangle --concurrency=4 --log=error --timeout=240000
+    npx remotion render src/index.ts "$COMP" "$DIR/tmp.mp4" --frames=$a-$b --props='{"muted":true}' --gl=swangle --concurrency=4 --log=error --timeout=240000 ${SCALE:+--scale=$SCALE}
     mv "$DIR/tmp.mp4" "$f"
     echo "done $a-$b $(date +%T)"
   fi
