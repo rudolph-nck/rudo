@@ -29,7 +29,7 @@ import { continueRender, delayRender } from "remotion";
  *           small, in the rubble.
  * Type is always crisp and flat: no bevel, no texture, no glow.
  */
-export const S1_END = 36.3;
+export const S1_END = 36.6;
 const L = (li: number) => LINES[li].words;
 const INK = "#f1eee8";
 const STONE = "#c9bca9";
@@ -162,6 +162,14 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   const time = useTiles(a, "TIME", 0.24, 2400, 72);
   const sil = useMemo(() => (cut ? new THREE.MeshBasicMaterial({ map: cut, color: "#000000", transparent: true, alphaTest: 0.5 }) : null), [cut]);
   const blinds = useMemo(() => Array.from({ length: 9 }, (_, i) => i), []);
+  const voidDust = useMemo(() => {
+    const r = rng(91), n = 900;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3).map((_, i) => (i % 3 === 1 ? -0.4 - r() * 14 : (r() - 0.5) * 2.4)), 3));
+    g.setAttribute("seed", new THREE.BufferAttribute(new Float32Array(n).map(() => r()), 1));
+    g.setAttribute("bright", new THREE.BufferAttribute(new Float32Array(n).map(() => 0.05 + Math.pow(r(), 4) * 0.5), 1));
+    return g;
+  }, []);
   if (!a || !kit || !me || !time || !sil) return <Full>{null}</Full>;
 
   // flat materials: sky words are unlit (crisp, even), room words are lit matte
@@ -238,7 +246,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
         xf = (i, x) => ({ p: [x * (1 + u * 0.15), Math.sin(i * 1.7) * u * 0.08, 0], r: [0, 0, (i - (n - 1) / 2) * u * 0.05] });
       }
       if (r.li === 3 && r.hero) { // DISAPPEAR fades into the night, letter by letter
-        const u = clamp01((t - (w.s + 0.35)) / 1.3);
+        const u = clamp01((t - (w.s + 0.35)) / Math.max(1.3, L(4)[0].s - w.s - 0.45)); // fades right up to the next line
         xf = (i, x) => ({ p: [x, 0, -Math.max(0, u * (n + 2) - i) * 0.15], r: [0, 0, 0] });
         const lettersGone = (i: number) => clamp01(u * (n + 2) - i);
         // per-letter opacity via separate materials
@@ -378,11 +386,27 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   // MINE: find it in the rubble
   const mineW = L(13)[4];
   const mineP = new THREE.Vector3(sh.wX - 0.62, 0.002, -0.62 + 0.36 / 2 + 0.005 + 0.6).add(SH);
-  const find = cubicInOut(clamp01((t - (mineW.s - 0.35)) / 0.7));
+  const find = cubicInOut(clamp01((t - (mineW.s - 0.35)) / 0.6));
   if (find > 0) {
     pos = pos.clone().lerp(mineP.clone().add(new THREE.Vector3(0.08, 0.42, 0.48)), find);
     look = look.clone().lerp(mineP, find);
     up = up.clone().lerp(new THREE.Vector3(0, 1, 0), find).normalize(); fov = mix(fov, 36, find);
+  }
+  // the crack opens under it; MINE tips in and falls; the camera goes down after it
+  const SLAM = 34.447;
+  const crackW = t < SLAM ? 0 : 0.035 * cubicOut(clamp01((t - SLAM) / 0.25)) + 0.15 * cubicInOut(clamp01((t - (mineW.s + 0.1)) / 0.45));
+  const tFall = mineW.s + 0.42;
+  const fdt = Math.max(0, t - tFall);
+  const vT = 2.2, tv = vT / 9; // falls, then drifts down at a steady speed
+  const fallY = fdt < tv ? 0.5 * 9 * fdt * fdt : 0.5 * 9 * tv * tv + vT * (fdt - tv);
+  const tip = cubicInOut(clamp01(fdt / 0.35));
+  const mineNow = mineP.clone().add(new THREE.Vector3(0, -fallY, -0.05 * tip));
+  const over = cubicInOut(clamp01((t - (tFall - 0.25)) / 0.4));
+  (kit.mats.crack as THREE.MeshStandardMaterial).opacity = 1 - find;
+  if (over > 0) {
+    pos = pos.clone().lerp(mineNow.clone().add(new THREE.Vector3(0, 0.62, 0.1)), over);
+    look = look.clone().lerp(mineNow, over);
+    up = up.clone().lerp(new THREE.Vector3(0, 0, -1), over).normalize(); fov = mix(fov, 40, over);
   }
 
   // ---------- eyelids ----------
@@ -442,7 +466,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
             ))}
             <group position={[0, CY, 0]} rotation={[Math.PI / 2, 0, 0]}>
               {/* the ceiling: plain, flat plaster */}
-              <mesh position={[0, 0, ceilZ - 0.0]} receiveShadow><planeGeometry args={[8, 8]} /><meshStandardMaterial color="#d8d1c6" roughness={0.95} /></mesh>
+              <mesh position={[0, 0, ceilZ - 0.0]} receiveShadow><planeGeometry args={[8, 8]} /><meshStandardMaterial color={new THREE.Color("#d8d1c6").lerp(new THREE.Color("#1c1a18"), toShelf)} roughness={0.95} /></mesh>
               <group position={[0, 0, ceilZ + 0.25]}>{room}</group>
               {meVis ? <primitive object={me.mesh} /> : null}
               {meVis ? strings(meHooks, meO, yank, 1.4) : null}
@@ -451,9 +475,10 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
             </group>
             {/* the wall you sit up to face, with the shelf */}
             <group position={SH.toArray() as [number, number, number]}>
-              <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[14, 12]} /><meshStandardMaterial color="#6a655f" roughness={0.92} /></mesh>
-              <mesh position={[0, 3, -0.62]} receiveShadow><planeGeometry args={[14, 8]} /><meshStandardMaterial color="#cfc7bb" roughness={0.95} /></mesh>
-              <spotLight position={[0.4, 3.0, 2.2]} angle={0.62} penumbra={0.85} intensity={60 * toShelf} decay={2} color="#fff1df" castShadow shadow-mapSize={[1024, 1024]} />
+              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.25, 0]} receiveShadow geometry={floorGeo(crackW, mineP.x - SH.x, mineP.z - SH.z, sh.wX)}><meshStandardMaterial color="#34312d" roughness={0.92} /></mesh>
+              <mesh position={[0, 3, -0.62]} receiveShadow><planeGeometry args={[14, 8]} /><meshStandardMaterial color="#2c2a27" roughness={0.95} /></mesh>
+              <spotLight position={[0.4, 3.0, 2.2]} angle={0.62} penumbra={0.85} intensity={70 * toShelf} decay={2} color="#fff1df" castShadow shadow-mapSize={[1024, 1024]} />
+              <ambientLight intensity={0.0} />
               {toShelf > 0 ? sh.nodes : null}
               {/* I FORGOT WHAT'S ACTUALLY ... MINE, among the rubble */}
               {L(13).map((w, i) => {
@@ -462,15 +487,16 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
                 const isMine = i === 4;
                 const size = isMine ? 0.06 : 0.09;
                 const fx = [-0.95, -0.55, -0.15, 0.2, 0][i], fz = [0.25, 0.42, 0.3, 0.5, 0][i];
-                const pp = isMine ? mineP.clone().sub(SH) : new THREE.Vector3(sh.wX + fx, 0, -0.62 + 0.6 + fz);
+                const pp = isMine ? mineNow.clone().sub(SH).add(new THREE.Vector3(0, 0, 0.09 * (1 - tip))) : new THREE.Vector3(sh.wX + fx, 0, -0.62 + 0.6 + fz);
                 const drop = (1 - u) * 0.6;
                 return (
-                  <group key={i} position={[pp.x, pp.y + 0.003 + drop, pp.z]} rotation={[-Math.PI / 2, 0, isMine ? 0.15 : (i - 1.5) * 0.12]}>
-                    <Letters font={a.bebas} family="bebas" text={w.w.toUpperCase()} size={size} depth={0.006} material={flat(`mine${i}`, isMine ? "#d9cfc0" : "#7d766d", 1, true)} tracking={0.04} bevel={0} shadows={false} />
+                  <group key={i} position={[pp.x, pp.y + 0.003 + drop, pp.z]} rotation={[-Math.PI / 2 - (isMine ? tip * 0.9 + fdt * 0.25 : 0), isMine ? fdt * 0.18 : 0, isMine ? 0.15 + fdt * 0.1 : (i - 1.5) * 0.12]}>
+                    <Letters font={a.bebas} family="bebas" text={w.w.toUpperCase()} size={size} depth={0.006} material={flat(`mine${i}`, isMine ? "#bfb4a4" : "#5e5850", 1, true)} tracking={0.04} bevel={0} shadows={false} />
                   </group>
                 );
               })}
-              {find > 0 ? <pointLight position={[mineP.x - SH.x + 0.1, 0.35, mineP.z - SH.z + 0.1]} intensity={0.2 * find} distance={1.2} decay={2} color="#ffe2bf" /> : null}
+              {find > 0 ? <pointLight position={[mineNow.x - SH.x + 0.05, mineNow.y - SH.y + 0.4, mineNow.z - SH.z + 0.08]} intensity={0.12 * find} distance={1.4} decay={2} color="#ffe2bf" /> : null}
+              {fdt > 0 ? <Glow geo={voidDust} size={6} gain={0.6} color="#e9e3d8" twinkle={0.3} time={t} position={[mineP.x - SH.x, 0, mineP.z - SH.z]} /> : null}
             </group>
           </>
         ) : null}
@@ -486,6 +512,30 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
       <Finish grain={0.06} vignette={0.55} />
     </Full>
   );
+};
+
+/** The floor as a slab with a jagged crack through it (the crack's width animates). */
+const floorCache = new Map<string, THREE.BufferGeometry>();
+const floorGeo = (w: number, cx: number, cz: number, wX: number) => {
+  const key = `${Math.round(w * 400)}|${cx.toFixed(3)}|${cz.toFixed(3)}`;
+  let g = floorCache.get(key);
+  if (!g) {
+    const shape = new THREE.Shape([new THREE.Vector2(-7, -6), new THREE.Vector2(7, -6), new THREE.Vector2(7, 6), new THREE.Vector2(-7, 6)]);
+    if (w > 0.002) {
+      const r = rng(19), x0 = cx - 0.42, x1 = Math.min(wX - 0.1, cx + 0.55), n = 22;
+      const top: THREE.Vector2[] = [], bot: THREE.Vector2[] = [];
+      for (let i = 0; i <= n; i++) {
+        const u = i / n, x = mix(x0, x1, u), taper = Math.sin(u * Math.PI) ** 0.6, j = (r() - 0.5) * 0.03;
+        const zc = cz + Math.sin(u * 7.3) * 0.02 + j;
+        top.push(new THREE.Vector2(x, -(zc - (w / 2) * taper - 0.004)));
+        bot.push(new THREE.Vector2(x, -(zc + (w / 2) * taper + 0.004 + (r() - 0.5) * 0.01)));
+      }
+      shape.holes.push(new THREE.Path([...top, ...bot.reverse()]));
+    }
+    g = new THREE.ExtrudeGeometry(shape, { depth: 0.25, bevelEnabled: false });
+    floorCache.set(key, g);
+  }
+  return g;
 };
 
 export const AudioTrack: React.FC = () => <Audio src={staticFile("audio/drift.m4a")} />;
