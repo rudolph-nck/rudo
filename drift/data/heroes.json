@@ -61,7 +61,7 @@
   "role": "struggle",
   "fx": "PRESS",
   "motif": "weight",
-  "note": "Verse world opens: the cover's concrete room from below, the ceiling drawn as a contour plane that lowers a little on each kick."
+  "note": "Verse world opens: the cover's concrete room from below, empty, the ceiling drawn as a contour plane that lowers a little on each kick."
  },
  "7": {
   "hero": "pressure",
@@ -295,7 +295,7 @@
   "role": "turn",
   "fx": "FLOAT",
   "motif": "die/drift",
-  "note": "Held 1.1 s high note. He steps off the globe: the contour RUDO floats up off the world for exactly the held note."
+  "note": "Held 1.1 s high note. The letters B-I-T lift off the globe and float up for exactly the held note."
  },
  "33": {
   "hero": "die",
@@ -376,7 +376,7 @@
   "role": "struggle",
   "fx": "MULTIPLY",
   "motif": "everybody",
-  "note": "'Everybody' repeat 3: silhouettes multiply on the beat (1, 2, 4, 16, 64), the Morph grid."
+  "note": "'Everybody' repeat 3: the word EVERYBODY multiplies on the beat (1, 2, 4, 16, 64), the Morph grid."
  },
  "42": {
   "hero": "apart",
@@ -385,7 +385,7 @@
   "role": "struggle",
   "fx": "DRIFT (cold)",
   "motif": "distance",
-  "note": "The crowd field slides apart to both edges; RUDO alone in the centre gap. Reprises 'disconnected'."
+  "note": "The EVERYBODY field slides apart to both edges; APART is left alone in the centre gap. Reprises 'disconnected'."
  },
  "43": {
   "hero": "haunt",
@@ -556,7 +556,7 @@
   "role": "turn",
   "fx": "FLOAT",
   "motif": "die/drift",
-  "note": "Held 1.3 s arc. He floats higher than last time."
+  "note": "Held 1.3 s arc. B-I-T float higher than last time."
  },
  "62": {
   "hero": "die",
@@ -583,7 +583,7 @@
   "role": "struggle",
   "fx": "HEAVY (carried)",
   "motif": "weight",
-  "note": "Weight motif repeat 2: the contour RUDO carries the stone block. Bridge world: half-tempo, quieter, nearly monochrome."
+  "note": "Weight motif repeat 2: the word CARRYING bears the stone block on its letters, bowing under it. Bridge world: half-time, quieter, nearly monochrome."
  },
  "65": {
   "hero": "see",
@@ -826,7 +826,7 @@
   "role": "win",
   "fx": "HEAVY (shouldered)",
   "motif": "weight",
-  "note": "Weight motif repeat 3, final evolution: he picks it up by choice. Same stone letters as verse 1, now balanced."
+  "note": "Weight motif repeat 3, final evolution: KEEP stands up under the same stone block from verse 1 and lifts it by choice."
  },
  "92": {
   "hero": "tonight",
@@ -844,7 +844,8 @@
   "role": "win",
   "fx": "DRIFT (dissolve)",
   "motif": "die/drift",
-  "note": "The last DRIFT: the letters drift until they're indistinguishable from the stars; near-silence 238\u2013249 s (just a breath at 242); the beat returns at 249 s and a single hot point redraws RUDO + title card over the instrumental tail. He comes back."
+  "note": "The last DRIFT: the letters drift until they're indistinguishable from the stars; near-silence 238\u2013249 s (just a breath at 242); the beat returns at 249 s and a single hot point redraws the RUDO wordmark + title card over the instrumental tail."
  },
- "_approved": "Step 1 approved by RUDO: all 94 hero words KEEP (2026-10-30)."
+ "_approved": "Step 1 approved by RUDO: all 94 hero words KEEP (2026-10-30).",
+ "_no_figure": "RUDO direction 2026-10-30: no person figure anywhere; the words carry the story (contour RUDO dropped)."
 }

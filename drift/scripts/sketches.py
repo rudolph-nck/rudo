@@ -99,8 +99,8 @@ def frames():
     for i in range(14): f.line(0, 10 + i * 10, 270, 10 + i * 10, STONE, 0.7, 0.35)
     f.line(0, 150, 270, 150, HOT, 2).hot(30, 150, 10)
     for i, o in enumerate((0.5, 0.32, 0.18)): f.text(60 + i * 75, 40 + i * 4, "SAME", 26, INK, o=o)
-    f.text(135, 192, "PRESSURE", 54, STONE, sx=1.3, sy=0.55).floor(300, 10, 0.18).figure(135, 360, 0.42, "sit", 0.8)
-    out.append(("0:24.4", "Verse 1", "SAME · PRESSURE", "The cover's room seen from the floor. The ceiling is a stone contour slab that lowers on each kick. SAME stamps, greyer each time; PRESSURE is squashed flat, bulging sideways.", f))
+    f.text(135, 192, "PRESSURE", 54, STONE, sx=1.3, sy=0.55).floor(300, 10, 0.18).text(135, 236, "ON MY CHEST", 22, INK, sx=1.4, sy=0.5, o=0.55)
+    out.append(("0:24.4", "Verse 1", "SAME · PRESSURE", "The cover's room seen from the floor, empty. The ceiling is a stone contour slab that lowers on each kick. SAME stamps, greyer each time; PRESSURE is squashed flat, bulging sideways.", f))
     # 5 WEIGHT
     f = F("f5").floor(330, 10, 0.2)
     f.add(f'<g transform="rotate(-3 135 260)"><rect x="40" y="200" width="190" height="120" fill="#2b2722" stroke="{STONE}" stroke-width="1"/>')
@@ -132,8 +132,11 @@ def frames():
         r = random.Random(k)
         for _ in range(26):
             f.add(f'<circle cx="{40 + k * 46 + r.uniform(-14, 14):.1f}" cy="{120 + r.uniform(-30, 30):.1f}" r="{r.uniform(.6, 1.8):.1f}" fill="{HOT}" opacity="{r.uniform(.5, 1):.2f}"/>')
-    f.text(135, 140, "STARS", 90, HOT, o=0.25).figure(135, 300, 0.75, "float", 0.9).cap("Float somewhere between the stars", 440)
-    out.append(("1:01.8", "Chorus 1", "STARS", "No gravity. The contour RUDO floats. Each letter of STARS is a cluster of points that ignite with his voice. Kicks light new stars instead of shaking the frame.", f))
+    f.text(135, 140, "STARS", 90, HOT, o=0.25)
+    for w_, x_, y_, r_, sz in (("FLOAT", 90, 300, -8, 64), ("somewhere", 182, 262, 10, 20), ("between", 70, 360, 6, 22), ("the", 200, 340, -16, 18)):
+        f.text(x_, y_, w_, sz, DRIFT if w_ == "FLOAT" else INK, rot=r_, o=0.95 if w_ == "FLOAT" else 0.55, font="display" if w_ == "FLOAT" else "body")
+    f.cap("Float somewhere between the stars", 440)
+    out.append(("1:01.8", "Chorus 1", "STARS", "No gravity. FLOAT and the words around it hang loose in space. Each letter of STARS is a cluster of points that ignite with his voice. Kicks light new stars instead of shaking the frame.", f))
     # 9 NO DEADLINES
     f = F("f9").stars(60, 9, o=0.4)
     for r_ in range(5):
@@ -143,9 +146,9 @@ def frames():
     f.hot(140, 260, 18).text(135, 120, "NO", 60, HOT).text(135, 380, "DEADLINES", 58, INK, o=0.8).cap("hot point runs backwards and unwrites", 430)
     out.append(("1:06.7", "Chorus 1", "NO DEADLINES", "NO is the eraser: a calendar drawn in light is unwritten by the hot point running back along its own path. Then the BLESSED crowd, then the VOICES.", f))
     # 10 WORLD → BIT
-    f = F("f10").stars(90, 10).globe(135, 380, 110, INK, 0.8).figure(135, 200, 0.5, "float", 0.95).hot(135, 268, 12, 0.7)
+    f = F("f10").stars(90, 10).globe(135, 380, 110, INK, 0.8).text(112, 236, "B", 64, DRIFT, rot=-6).text(136, 206, "I", 64, DRIFT, rot=4).text(162, 180, "T", 64, DRIFT, rot=12).hot(135, 268, 12, 0.7)
     f.text(135, 70, "WORLD", 60, INK, o=0.8).cap("I just wanna leave it for a bit", 108, 12)
-    out.append(("1:14 → 1:18", "Chorus 1", "WORLD · BIT", "The contour globe turns under him. On the held high 'bit' he steps off and floats up for exactly the length of the note.", f))
+    out.append(("1:14 → 1:18", "Chorus 1", "WORLD · BIT", "The contour globe turns. On the held high 'bit' the letters B-I-T lift off its surface and float up for exactly the length of the note.", f))
     # 11 DRIFT
     f = F("f11").stars(120, 11)
     for k, (ch, dx, dy, r) in enumerate(zip("DRIFT", (-90, -50, -12, 34, 86), (0, -6, -26, -40, -78), (0, -4, -10, 14, 28))):
@@ -162,12 +165,11 @@ def frames():
     out.append(("1:30.4", "Verse 2", "DESTINATION · NOISE", "Night road drawn by the hot point, rushing at camera. DESTINATION streaks past unreadable. NOISE is static type chasing the car; on 'sticks around' it sticks to the glass and drips.", f))
     # 13 EVERYBODY / APART
     f = F("f13")
-    for r_ in range(6):
-        for c_ in range(8):
-            x = 12 + c_ * 34 + (-30 if c_ < 4 else 30)
-            f.figure(x, 120 + r_ * 55, 0.16, "stand", 0.45, 8)
-    f.figure(135, 300, 0.42, "stand", 1, 18, STONE).text(135, 460, "APART", 40, DRIFT)
-    out.append(("1:43.8 → 1:45.8", "Verse 2", "EVERYBODY · APART", "Silhouettes multiply on the beat (1, 2, 4, 16, 64) into a field. On 'miles apart' the field slides to both edges and he stands alone in the gap.", f))
+    for r_ in range(16):
+        for c_ in range(2):
+            x = (6 if c_ == 0 else 264) ; f.text(x, 70 + r_ * 22, "EVERYBODY", 15, INK, anchor="start" if c_ == 0 else "end", o=0.25 + 0.3 * (r_ % 3 == 0))
+    f.line(135, 60, 135, 400, MUTED, 0.6, 0.4, "2 4").text(135, 250, "APART", 64, DRIFT).cap("surrounded by everybody · miles apart", 450, 11)
+    out.append(("1:43.8 → 1:45.8", "Verse 2", "EVERYBODY · APART", "EVERYBODY multiplies on the beat (1, 2, 4, 16, 64) into a field of words. On 'miles apart' the field slides to both edges and APART is left alone in the gap.", f))
     # 14 FATHER
     f = F("f14").floor(340, 8, 0.12)
     f.text(135, 220, "father", 84, STONE, font="hand").hot(214, 205, 10)
@@ -180,24 +182,24 @@ def frames():
     out.append(("2:07.0", "Pre-Chorus 2", "FOREVER · BREATHE", "Beat gone. FOREVER stretches toward the horizon for the held note and is cut off when the note ends. Then the whole frame breathes with his voice into chorus 2.", f))
     # 16 CARRYING (bridge)
     f = F("f16").stars(50, 16, 0, 0, 270, 200, 0.6).floor(320, 9, 0.22)
-    f.add(f'<rect x="88" y="168" width="94" height="50" fill="none" stroke="{STONE}" stroke-width="1.2"/>')
-    for i in range(4): f.line(88, 176 + i * 11, 182, 176 + i * 11, STONE, 0.5, 0.4)
-    f.figure(135, 290, 0.6, "carry", 0.95).text(135, 120, "CARRYING", 50, STONE, o=0.85).cap("Maybe I'm tired of carrying", 450)
-    out.append(("2:48.6", "Bridge", "CARRYING · SEE", "Half-time, nearly monochrome. He carries the verse-1 stone block across a contour plain. On 'nobody else can see' the block turns to clear glass, so only the refraction shows it's there.", f))
+    f.add(f'<rect x="60" y="186" width="150" height="76" fill="#2b2722" stroke="{STONE}" stroke-width="1.2"/>')
+    for i in range(7): f.line(60, 196 + i * 10, 210, 196 + i * 10, STONE, 0.5, 0.4)
+    f.text(135, 318, "CARRYING", 74, INK, sy=0.8).cap("Maybe I'm tired of carrying", 450)
+    out.append(("2:48.6", "Bridge", "CARRYING · SEE", "Half-time, nearly monochrome. The word CARRYING bears the verse-1 stone block on its letters, bowing under it as it moves along a contour plain. On 'nobody else can see' the block turns to clear glass, so only the refraction shows it's there.", f))
     # 17 SILENCE
     f = F("f17").hot(135, 250, 5, 0.9).text(135, 300, "just silence", 11, MUTED, font="body")
     out.append(("3:18.6", "Breakdown", "SILENCE", "After five NOs, each faster (phone, badges, ceiling slab, trophy wall, mask), everything has been erased. One point and the smallest type in the film. On 'breathing' the point breathes and grows.", f))
     # 18 HEAR
-    f = F("f18").stars(70, 18, o=0.6).ripples(135, 210, 7, 12, 16, HOT, 0.8).figure(135, 230, 0.35, "float", 0.8)
+    f = F("f18").stars(70, 18, o=0.6).ripples(135, 230, 7, 12, 16, HOT, 0.8).text(135, 238, "MYSELF AGAIN", 18, INK, font="display", ls=2)
     f.text(135, 90, "HEAR", 80, HOT).text(135, 452, "underneath the noise", 13, MUTED, font="mono", o=0.5)
     for i in range(10): f.line(20 + i * 23, 460, 34 + i * 23, 460, MUTED, 1, 0.4)
-    out.append(("3:32.0", "Final Chorus", "HEAR MYSELF AGAIN", "The beat drops out and the camera itself drifts. The melisma on 'hear myself again' sends one clean ring per note. When the beat returns, NOISE is small static at the bottom, underneath him.", f))
+    out.append(("3:32.0", "Final Chorus", "HEAR MYSELF AGAIN", "The beat drops out and the camera itself drifts. HEAR sends one clean ring per note of the 'hear myself again' melisma. When the beat returns, NOISE is small static at the very bottom, underneath everything.", f))
     # 19 TOMORROW / BUILDING / WEIGHT
     f = F("f19").line(0, 330, 270, 330, HOT, 1.5).hot(135, 330, 30, 0.5)
-    for i in range(7): f.add(f'<rect x="{150 + (i % 2) * 4}" y="{300 - i * 22}" width="56" height="22" fill="none" stroke="{STONE}" stroke-width="1" opacity="{0.4 + i * 0.08:.2f}"/>')
-    f.figure(80, 270, 0.5, "carry", 1, 22, INK).text(80, 140, "WEIGHT", 34, STONE).text(178, 130, "BUILDING", 30, INK)
+    for i in range(7): f.add(f'<rect x="{186 + (i % 2) * 4}" y="{300 - i * 22}" width="56" height="22" fill="none" stroke="{STONE}" stroke-width="1" opacity="{0.4 + i * 0.08:.2f}"/>')
+    f.add(f'<rect x="28" y="190" width="112" height="58" fill="#2b2722" stroke="{STONE}" stroke-width="1"/>').text(84, 234, "WEIGHT", 40, STONE).text(84, 318, "KEEP", 92, INK, sy=1.15).text(214, 130, "BUILDING", 30, INK)
     f.text(135, 400, "TOMORROW", 50, INK, o=0.6).cap("Tomorrow I'll keep carrying the weight", 450)
-    out.append(("3:44.8 → 3:53", "Outro", "FIGHTING · BUILDING · WEIGHT", "A horizon line like dawn. FIGHTING hits out, BUILDING assembles into a tower, and he picks up the same stone block from verse 1, by choice this time.", f))
+    out.append(("3:44.8 → 3:53", "Outro", "FIGHTING · BUILDING · WEIGHT", "A horizon line like dawn. FIGHTING hits out, BUILDING assembles into a tower, and KEEP stands up under the same stone block from verse 1, lifting it by choice this time.", f))
     # 20 LET ME DRIFT → return
     f = F("f20").stars(200, 20)
     for k, ch in enumerate("DRIFT"):
@@ -205,7 +207,7 @@ def frames():
         for _ in range(14):
             f.add(f'<circle cx="{60 + k * 38 + r.uniform(-22, 22):.1f}" cy="{150 - k * 8 + r.uniform(-28, 28):.1f}" r="{r.uniform(.5, 1.6):.1f}" fill="{DRIFT}" opacity="{r.uniform(.4, .9):.2f}"/>')
     f.line(0, 250, 270, 250, MUTED, 0.5, 0.4).text(135, 270, "4:09 · beat returns", 10, MUTED, font="mono")
-    f.figure(135, 380, 0.42, "stand", 0.7, 14, HOT).hot(152, 402, 12)
-    f.text(135, 470, "DRIFT", 22, INK, ls=6)
-    out.append(("3:57 → 4:24", "Outro", "LET ME DRIFT → TOMORROW", "The last DRIFT dissolves into the starfield. Eleven seconds of near-silence (one star pulses on the breath at 4:02). When the beat returns at 4:09, one hot point redraws him and the title.", f))
+    f.text(135, 400, "RUDO", 70, "none", stroke=HOT, sw=1.1, ls=14).text(135, 400, "RU", 70, INK, anchor="end", ls=14, o=0).hot(176, 360, 12)
+    f.text(135, 440, "DRIFT", 20, INK, ls=8)
+    out.append(("3:57 → 4:24", "Outro", "LET ME DRIFT → TOMORROW", "The last DRIFT dissolves into the starfield. Eleven seconds of near-silence (one star pulses on the breath at 4:02). When the beat returns at 4:09, one hot point redraws the RUDO wordmark and the title.", f))
     return out
