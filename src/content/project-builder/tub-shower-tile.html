@@ -113,7 +113,8 @@ header.top h1{font-size:1.6rem}
 /* tabs */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
   padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
-nav.tabs .in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs .in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav.tabs button{font-size:.95rem}
 nav.tabs button{appearance:none;background:none;border:none;color:var(--muted);font:inherit;font-family:var(--f-display);font-weight:700;font-size:1.05rem;letter-spacing:.04em;text-transform:uppercase;padding:10px 4px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;border-top:3px solid transparent}
 nav.tabs button .n{font-family:var(--f-mono);font-size:.68rem;font-weight:500;letter-spacing:0;text-transform:none}
 nav.tabs button[aria-selected="true"]{color:var(--accent);border-top-color:var(--accent)}
@@ -266,6 +267,39 @@ dl.gloss dt{font-weight:700} dl.gloss dd{margin:0;color:var(--muted)}
 .sheet-in{background:var(--bg);width:100%;max-width:720px;max-height:86vh;overflow:auto;border-radius:16px 16px 0 0;padding-block:14px calc(18px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .sheet-hd{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:-14px;background:var(--bg);padding-block:4px 6px;z-index:1}
 
+
+/* designer */
+.d3wrap{background:var(--sunk)}
+.d3 polygon{stroke:var(--grout);stroke-width:.25;stroke-linejoin:round}
+.d3 .d3wall{fill:var(--surface);stroke:var(--line)}
+.d3 .d3side{fill:var(--sunk)}
+.d3 .d3tile{fill:var(--tile)}
+.d3 .d3cut{fill:var(--warn-soft)}
+.d3 .d3sh{filter:brightness(.93)}
+.d3 .d3dark{fill:var(--line)}
+.d3 .d3mos{fill:var(--niche)}
+.d3 .d3metal{fill:var(--muted);stroke:var(--ink);stroke-width:.2}
+.d3 .d3tub{fill:var(--tub);stroke:var(--ink);stroke-width:.3}
+.d3 .d3rim{fill:var(--surface)}
+.d3 .d3basin{fill:var(--tub)}
+.d3 .d3floor{fill:var(--line);stroke:none}
+.flat .fwall{fill:var(--surface);stroke:var(--line);stroke-width:.25}
+.flat .ftile{fill:var(--tile);stroke:var(--grout);stroke-width:.2}
+.flat .fcut{fill:var(--warn-soft);stroke:var(--grout);stroke-width:.2}
+.flat .ftub{fill:var(--tub);stroke:var(--ink);stroke-width:.25}
+.flat .fniche{fill:var(--niche)}
+.flat .fmos{fill:var(--niche)}
+.flat .fnicheo{fill:none;stroke:var(--accent);stroke-width:.35}
+.flat .fmetal{fill:var(--muted);stroke:var(--ink);stroke-width:.2}
+.flat .fdash{stroke:var(--accent);stroke-width:.3;stroke-dasharray:1 .8}
+.flat .fledger{stroke:var(--tape);stroke-width:.8}
+.flat .fdim{stroke:var(--accent);stroke-width:.3}
+.flat text{font-family:var(--f-mono);fill:var(--muted)}
+.flat text.fk{fill:var(--ink);font-weight:600}
+.flat text.fa{fill:var(--accent);font-weight:600}
+.flat text.fm{fill:var(--muted)}
+.flat{min-width:560px}
+.dlist{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
 /* jobsite layer */
 .timerbar{max-width:720px;margin:8px auto 0;display:flex;flex-direction:column;gap:6px}
 .tm{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;background:var(--accent-soft);border-radius:8px;padding:6px 6px 6px 12px}
@@ -380,6 +414,14 @@ body.jobsite .pnav .btn{min-height:64px}
       <div class="q"><label for="bayW">Space between the two studs</label><div class="num"><input id="bayW" type="number" inputmode="decimal" step="0.125"><span>in</span></div><div class="hint">Studs 16" apart leave 14 1/2". Measure yours.</div></div>
       <div class="q"><span class="ql">Niche height</span><div class="chips" data-key="nicheRows" id="nicheRowChips"></div></div>
     </div>
+    <div class="q" id="nicheSpanQ"><span class="ql">How wide?</span>
+      <div class="chips" data-key="nicheSpan"><button class="chip" data-v="one">One stud bay</button><button class="chip" data-v="two">Two bays <small>cut the middle stud</small></button></div>
+      <div class="hint">Two bays only on a wall that isn't load-bearing. With two bays, "center of your stud bay" means the middle stud you'll cut.</div></div>
+    <div class="q" id="nicheFitQ"><span class="ql">Niche size</span>
+      <div class="chips" data-key="nicheFit"><button class="chip" data-v="auto">Fill the framing</button><button class="chip" data-v="tile">Match one tile <small>seamless</small></button></div>
+      <div class="hint">"Match one tile" makes the opening exactly one tile wide and lines its sides up with grout joints, so the wall pattern runs right into it.</div></div>
+    <div class="q" id="nicheEdgeQ"><span class="ql">Niche edges</span>
+      <div class="chips" data-key="nicheEdge"><button class="chip" data-v="miter">Mitered <small>no trim, seamless</small></button><button class="chip" data-v="metal">Metal trim</button><button class="chip" data-v="bullnose">Bullnose</button></div></div>
     <div class="q" id="nicheBackQ"><span class="ql">Back of the niche (your backsplash)</span>
       <div class="chips" data-key="nicheBack"><button class="chip" data-v="mosaic">Mosaic sheet <small>easiest accent</small></button><button class="chip" data-v="accent">Small accent tile <small>e.g. 2×8, 3×6</small></button><button class="chip" data-v="same">Same as walls</button></div></div>
   </div>
@@ -427,6 +469,29 @@ body.jobsite .pnav .btn{min-height:64px}
   </div>
 </section>
 
+<!-- ============ DESIGN ============ -->
+<section id="v-design" data-view="design" class="wrap" hidden style="padding-top:14px">
+  <div class="card flat intro"><p>Your finished shower, drawn from your Plan answers: every tile, cut, the niche, the valve and how far the tile runs past the tub. Change anything here or in the Plan tab and the drawings update.</p></div>
+  <div class="card"><div class="eyebrow">3D view</div><div class="preview d3wrap" id="d3view"></div>
+    <div class="legend"><span><i style="background:var(--tile)"></i>Full tile</span><span><i style="background:var(--warn-soft)"></i>Cut tile</span><span><i style="background:var(--niche)"></i>Niche back</span></div></div>
+  <div class="card"><div class="eyebrow">All three walls, unfolded</div><div class="preview" id="dflat"></div><p class="small muted">Standing in the tub looking at the back wall: the left wall is drawn with its open front edge on the left, the right wall with its front edge on the right.</p></div>
+  <div class="card" id="dnotes"></div>
+  <div class="card">
+    <div class="eyebrow">Your room</div>
+    <div class="row2">
+      <div class="q"><label for="extPast">Tile past the front of the tub</label><div class="num"><input id="extPast" type="number" inputmode="decimal" step="0.5" min="0"><span>in</span></div><div class="hint">0 stops tile at the tub's front edge. 2–6" wraps it onto the wall beside the tub.</div></div>
+      <div class="q"><span class="ql">That extra strip goes down to</span><div class="chips" data-key="extDown"><button class="chip" data-v="rim">Tub rim height</button><button class="chip" data-v="floor">The floor</button></div></div>
+      <div class="q"><label for="tubFloorH">Tub rim above the floor</label><div class="num"><input id="tubFloorH" type="number" inputmode="decimal" step="0.25"><span>in</span></div><div class="hint">Usually 14–16". Check your new tub's spec sheet.</div></div>
+      <div class="q"><label for="ceilH">Ceiling above the tub rim</label><div class="num"><input id="ceilH" type="number" inputmode="decimal" step="0.5"><span>in</span></div></div>
+      <div class="q"><span class="ql">Plumbing (valve) wall</span><div class="chips" data-key="plumbWall"><button class="chip" data-v="left">Left</button><button class="chip" data-v="right">Right</button></div></div>
+      <div class="q"><label for="valveFromBack">Valve center from the back wall</label><div class="num"><input id="valveFromBack" type="number" inputmode="decimal" step="0.25"><span>in</span></div></div>
+      <div class="q"><label for="valveH">Valve center above the rim</label><div class="num"><input id="valveH" type="number" inputmode="decimal" step="0.25"><span>in</span></div></div>
+      <div class="q"><label for="headH">Shower arm above the rim</label><div class="num"><input id="headH" type="number" inputmode="decimal" step="0.5"><span>in</span></div></div>
+      <div class="q"><span class="ql">A wall that keeps an existing layer</span><div class="chips" data-key="sideLayer"><button class="chip" data-v="none">None</button><button class="chip" data-v="left">Left</button><button class="chip" data-v="right">Right</button></div><div class="hint">Like a sound board on a shared wall.</div></div>
+    </div>
+  </div>
+</section>
+
 <!-- ============ NICHE ============ -->
 <section id="v-niche" data-view="niche" class="wrap" hidden style="padding-top:14px">
   <div class="card flat intro"><p>A niche between two studs is a box: two wood blocks across the bay (bottom and top), a wood strip at the back, then cement board lining all five inside faces. These numbers come from your Plan answers. Change the thicknesses below if your products differ.</p></div>
@@ -451,6 +516,7 @@ body.jobsite .pnav .btn{min-height:64px}
 
 <nav class="tabs" role="tablist" aria-label="Sections"><div class="in">
   <button role="tab" data-tab="plan">Plan<span class="n" id="nPlan">sizes</span></button>
+  <button role="tab" data-tab="design">Design<span class="n">3D view</span></button>
   <button role="tab" data-tab="tools">Tools<span class="n" id="nTools">0 to buy</span></button>
   <button role="tab" data-tab="steps">Steps<span class="n" id="nSteps">0%</span></button>
   <button role="tab" data-tab="niche">Niche<span class="n">cut list</span></button>
@@ -461,8 +527,8 @@ body.jobsite .pnav .btn{min-height:64px}
 "use strict";
 var KEY="tubTileBuild.v1";
 var DEF={backW:60,sideD:30,tileH:72,toCeiling:false,tile:"12x24",orient:"h",pattern:"third",grout:0.125,
-  nicheWall:"back",nicheX:30,nicheSill:36,bayW:14.5,nicheRows:1,nicheBack:"mosaic",wp:"redgard",edge:"metal",groutType:"premix",viewWall:"back",
-  studDepth:3.5,cleat:0.75,board:0.5,setBed:0.25,tileThk:0.375,backThk:0.25,tools:{},done:{},skipped:{},cur:null,stepMode:"index",lastAt:null,timers:[],bigMode:false,listMode:"steps",tab:"plan",quizSkip:{}};
+  nicheWall:"back",nicheX:30,nicheSill:36,bayW:14.5,nicheRows:1,nicheSpan:"one",nicheFit:"auto",nicheEdge:"miter",extPast:0,extDown:"rim",tubFloorH:15,ceilH:80,plumbWall:"right",valveH:14,valveFromBack:15,headH:62,sideLayer:"none",nicheBack:"mosaic",wp:"redgard",edge:"metal",groutType:"premix",viewWall:"back",
+  studDepth:3.5,cleat:0.5,board:0.5,setBed:0.25,tileThk:0.375,backThk:0.25,tools:{},done:{},skipped:{},cur:null,stepMode:"index",lastAt:null,timers:[],bigMode:false,listMode:"steps",tab:"plan",quizSkip:{}};
 var S;
 try{S=Object.assign({},DEF,JSON.parse(localStorage.getItem(KEY)||"{}"));}catch(e){S=Object.assign({},DEF);}
 S.tools=S.tools||{};S.done=S.done||{};S.skipped=S.skipped||{};S.quizSkip=S.quizSkip||{};
@@ -508,15 +574,18 @@ function endCuts(list){if(!list.length) return 0; var ends=[list[0],list[list.le
 function geo(){ // finished niche sizes
   var T=TILES[S.tile];
   var wallLayer=S.board+S.setBed+S.tileThk;
-  var finW=S.bayW-2*wallLayer;
+  var avail=S.nicheSpan==="two"?2*S.bayW+1.5:S.bayW; // framed width available
+  var tileFit=S.nicheFit==="tile"&&S.orient==="h";
+  var finW=tileFit?T.b:avail-2*wallLayer;
+  var rough=finW+2*wallLayer;
   var inner=S.studDepth-S.cleat-S.board; // stud face to back board face
   var finD=inner-S.setBed-(S.nicheBack==="same"?S.tileThk:S.backThk)+wallLayer;
-  return {wallLayer:wallLayer,finW:finW,finD:finD,inner:inner,sideDepth:S.studDepth-S.cleat-S.board+S.board};
+  return {wallLayer:wallLayer,finW:finW,finD:finD,inner:inner,sideDepth:S.studDepth-S.cleat-S.board+S.board,avail:avail,rough:rough,tileFit:tileFit,fits:rough<=avail+0.01,maxW:avail-2*wallLayer};
 }
 
-function layoutFor(wallKind){
+function layoutFor(wallKind,Wover){
   var T=TILES[S.tile], g=+S.grout;
-  var W=wallKind==="back"?S.backW:S.sideD, H=S.tileH, gap=0.125;
+  var W=Wover||(wallKind==="back"?S.backW:S.sideD), H=S.tileH, gap=0.125;
   var tw=S.orient==="h"?T.b:T.a, th=S.orient==="h"?T.a:T.b; // tw along x, th along y
   var p=tw+g, q=th+g, of=offsetFrac(), n=cycle();
   var res={W:W,H:H,tw:tw,th:th,g:g,gap:gap,wall:wallKind};
@@ -586,7 +655,14 @@ function layoutFor(wallKind){
     joints.forEach(function(y,ix){ if(ix+S.nicheRows<joints.length){var d=Math.abs(y-S.nicheSill); if(!best2||d<best2.d) best2={d:d,y:y,ix:ix};}});
     if(best2){
       var sill=best2.y+g/2, head=joints[best2.ix+S.nicheRows]-g/2; // finished opening between tile edges
-      res.niche={x:S.nicheX-G.finW/2,w:G.finW,sill:sill,h:head-sill};
+      var nx=S.nicheX-G.finW/2;
+      if(G.tileFit&&G.fits){ // line the niche sides up with the joints of its row, inside the framing
+        var jr=best2.ix, off=(((jr%n)+n)%n)*of*p, base=res.sx+off, aL=S.nicheX-G.avail/2, choice=null;
+        for(var kk=-60;kk<=60;kk++){var cx=base+kk*p, fl=(cx-G.wallLayer)-aL, fr=(aL+G.avail)-(cx+G.finW+G.wallLayer);
+          if(fl>=-0.01&&fr>=-0.01){var dd=Math.abs(cx-nx);if(!choice||dd<choice.d) choice={d:dd,x:cx,fl:fl,fr:fr};}}
+        if(choice){nx=choice.x;res.nicheFit="Sides line up with the grout joints of the niche row. Narrow the framed opening with "+frac(Math.max(0,choice.fl))+" of added framing on the left and "+frac(Math.max(0,choice.fr))+" on the right.";res.nicheFill={l:Math.max(0,choice.fl),r:Math.max(0,choice.fr)};}
+      }
+      res.niche={x:nx,w:G.finW,sill:sill,h:head-sill,row:best2.ix};
     }
   }
   return res;
@@ -646,7 +722,8 @@ function wallSVG(L){
 /* ---------- quantities ---------- */
 function qty(){
   var T=TILES[S.tile], G=geo(), H=S.tileH;
-  var wallIn=S.backW*H+2*S.sideD*H;
+  var ext=Math.max(0,+S.extPast||0);
+  var wallIn=S.backW*H+2*S.sideD*H+2*ext*H+(S.extDown==="floor"?2*ext*(+S.tubFloorH||15):0);
   var Lb=layoutFor("back"), Ls=layoutFor("side");
   var N=(Lb.niche||Ls.niche);
   var nOpen=0,nLineMain=0,nBack=0;
@@ -726,7 +803,7 @@ function catalog(){
    {c:"Mixing & setting",id:"sponge",n:"Grout sponges (2–3)",must:1,w:"Cleaning thinset off faces and grout haze.",q:"grout sponge"},
    {c:"Mixing & setting",id:"suction",n:"Suction cup tile lifter",must:0,w:"Lets you hold, place and adjust big tiles without a fingertip under the edge.",q:"tile suction cup lifter"},
    {c:"Cutting tile",id:"cutter",n:"Manual tile cutter, 24\"+ capacity (36\" best)",must:1,w:"Fast, clean, dust-free straight cuts on porcelain. Must be longer than the tile.",q:"manual tile cutter 36 inch porcelain"},
-   {c:"Cutting tile",id:"wetsaw",n:"Wet tile saw (buy or rent)",must:1,w:"Notches, L-cuts and thin strips. Lowe's and Home Depot rent these by the day.",q:"wet tile saw",rent:1},
+   {c:"Cutting tile",id:"wetsaw",n:"Wet tile saw (buy or rent)"+(S.nicheEdge==="miter"?", with a tilting head for 45° cuts":""),must:1,w:"Notches, L-cuts and thin strips"+(S.nicheEdge==="miter"?", and the 45° miters for a trimless niche":"")+". Lowe's and Home Depot rent these by the day.",q:"wet tile saw",rent:1},
    {c:"Cutting tile",id:"grinder",n:"4-1/2\" angle grinder + diamond tile blade",must:1,w:"Cuts holes for the valve, notches, and touch-ups in place.",q:"angle grinder 4-1/2 diamond tile blade"},
    {c:"Cutting tile",id:"core",n:"Diamond core bits, 1\" and 1-1/4\"",must:1,w:"Clean round holes in porcelain for the shower arm and tub spout pipes.",q:"diamond core drill bit tile 1-1/4"},
    {c:"Cutting tile",id:"rub",n:"Diamond hand pad / rubbing stone",must:1,w:"Smooths sharp cut edges.",q:"diamond hand polishing pad tile"},
@@ -776,9 +853,10 @@ function steps(){
     var roughH=N.h+2*G.wallLayer, blockTop=N.sill-G.wallLayer;
     nicheSteps=[
      {id:"c1",t:"Mark the niche on the studs",time:"20 min",b:"<ol><li>Use your marked low spot on the tub rim as zero.</li><li>On both studs of the bay, mark the top of the bottom block at "+m(blockTop)+" above the tub rim.</li><li>Mark the bottom of the top block at "+m(blockTop+roughH)+".</li><li>Check the marks are level across the bay.</li></ol>"+note("info","Why these numbers","The niche shelf and top line up with grout lines on the "+(S.nicheWall==="back"?"back":"side")+" wall, so you won't need thin slivers of tile above or below it. The Niche tab has the full cut list.")},
-     {id:"c2",t:"Install the bottom and top blocks",time:"45 min",b:"<ol><li>Cut two 2×4 blocks to "+m(S.bayW)+" (measure the bay at the top and bottom; cut each block to fit its spot).</li><li>Lay them flat (the 3 1/2\" face up and down) so they fill the full stud depth.</li><li>Drive two 3\" screws through each stud into each block end. With the wall open you can reach from the next bay.</li><li>Check the bottom block is level, then the top block.</li></ol>"},
+     {id:"c1b",t:"Cut out the middle stud",time:"30 min",when:S.nicheSpan==="two",b:"<ol><li>Confirm the wall is not load-bearing: ceiling joists run parallel to it and nothing above rests on it. Not sure? Stop and ask a builder.</li><li>Mark the middle stud 1-1/2\" below the bottom block line and 3\" above the top block line (room for a doubled top block).</li><li>Cut it square at both marks with a reciprocating saw or handsaw, and knock the piece out. Check for wires or pipes first.</li><li>The cut ends stay; the blocks you add next carry them.</li></ol>"},
+     {id:"c2",t:"Install the bottom and top blocks",time:"45 min",b:"<ol><li>Cut two 2×4 blocks to "+m(G.avail)+" (measure the opening at the top and bottom; cut each block to fit its spot)."+(S.nicheSpan==="two"?" Double the top block (two blocks stacked).":"")+"</li>"+(S.nicheSpan==="two"?"<li>Screw down through the bottom block into the cut stud below, and up through the top block into the cut stud above.</li>":"")+""+(Lb.nicheFill&&(Lb.nicheFill.l>0.05||Lb.nicheFill.r>0.05)?"<li>Add filler framing between the blocks: "+m(Lb.nicheFill.l)+" on the left side and "+m(Lb.nicheFill.r)+" on the right, so the opening is exactly "+m(G.rough)+" and lines up with the tile joints. Use 2×4s laid flat or ripped strips, screwed to the studs and blocks.</li>":"")+"<li>Lay them flat (the 3 1/2\" face up and down) so they fill the full stud depth.</li><li>Drive two 3\" screws through each stud into each block end. With the wall open you can reach from the next bay.</li><li>Check the bottom block is level, then the top block.</li></ol>"},
      {id:"c3",t:"Add the back cleats",time:"20 min",b:"<ol><li>Cut 1×2 strips to fit up both studs and across the blocks, at the very back of the bay.</li><li>Screw or glue them flush with the back edge of the studs. The back panel of the niche screws to these.</li></ol>"+note("warn","Check","Behind this niche must be an interior wall. If you see outside sheathing or insulation, move the niche.")}
-    ];
+    ].filter(function(x){return x.when!==false;});
   }
 
   var wpPoly=S.wp==="poly";
@@ -821,9 +899,9 @@ function steps(){
    {id:"g3",t:"Set the first full row on the ledger (back wall)",time:"2 hr",b:"<ol><li>Start at your plumb line on the back wall. Set the first full tile on the ledger with its edge on the line.</li><li>"+(T.clips?"Slide leveling clips under the edges every 8–12\" (about 2 per short side, 3 per long side), and set the wedges or caps loosely.":"Put spacers between tiles.")+"</li><li>Work outward to both corners. Cut end pieces to leave a "+frac(0.125)+" gap at the corners (it gets silicone later).</li><li>Check the row with the level after every 2–3 tiles.</li></ol>"},
    {id:"g4",t:"Work up the wall row by row",time:"1–2 days",b:"<ol><li>Spread thinset for only 2–3 tiles at a time. If you touch the thinset and nothing sticks to your finger, it has skinned over. Scrape it off and re-spread.</li><li>Shift each row by your offset mark.</li><li>"+(T.clips?"Tighten the leveling wedges/caps after each tile until the faces are flush.":"Check the faces are flush with a straight edge.")+"</li><li>Every few tiles, run a toothpick or margin trowel through the joints to remove squeezed-out thinset before it hardens.</li><li>Wipe thinset off tile faces with a damp sponge as you go.</li><li>Before you leave for the day, scrape off thinset smears at the edge of where you stopped.</li></ol>"},
    {id:"g5",t:"Cut tiles straight, notched and with holes",time:"as needed",b:"<ol><li><b>Straight cuts:</b> mark with marker, score once with the manual cutter firmly (one pass only), then press the breaker. Clean the edge with the rubbing pad.</li><li><b>Notches and L-cuts:</b> cut the two sides on the wet saw, stopping at the corner. Finish the corner with the grinder or snap it out.</li><li><b>Pipe holes:</b> hold the tile in place and mark where the pipe hits (or use the lipstick trick again). Drill with a diamond core bit: start at an angle to cut a crescent, then tilt up straight. Keep it wet with a spray bottle. Go slow; let the bit do the work.</li><li><b>Valve opening:</b> if the trim plate is large, cut the hole in two tiles at a joint, or plunge-cut the outline with the grinder. The trim plate hides the edges.</li><li><b>Thin strips:</b> under 1\" wide, cut them on the wet saw, not the manual cutter.</li></ol>"},
-   {id:"g6",t:"Tile the side walls",time:"1 day",b:"<ol><li>Start with a full tile at the front edge of each side wall, sitting on the ledger.</li><li>Cut pieces go into the back corner. Keep a "+frac(0.125)+" gap at the corner.</li><li>"+(S.edge==="metal"?"Before the front-edge tile, press the metal trim's flange into thinset along the front edge, then set the tile tight against it.":"Use bullnose pieces on the front edge.")+"</li>"+(S.toCeiling?"":"<li>Finish the top edge the same way with "+(S.edge==="metal"?"metal trim":"bullnose")+".</li>")+"</ol>"}
+   {id:"g6",t:"Tile the side walls",time:"1 day",b:"<ol><li>Start with a full tile at the front edge of each side wall, sitting on the ledger.</li><li>Cut pieces go into the back corner. Keep a "+frac(0.125)+" gap at the corner.</li>"+(+S.extPast>0?"<li>Carry the tile "+m(+S.extPast)+" past the front of the tub, "+(S.extDown==="floor"?"all the way down to the floor":"down to the height of the tub rim")+". The Design tab shows exactly where.</li>":"")+"<li>"+(S.edge==="metal"?"Before the front-edge tile, press the metal trim's flange into thinset along the front edge, then set the tile tight against it.":"Use bullnose pieces on the front edge.")+"</li>"+(S.toCeiling?"":"<li>Finish the top edge the same way with "+(S.edge==="metal"?"metal trim":"bullnose")+".</li>")+"</ol>"}
   ];
-  if(N) setSteps.push({id:"g7",t:"Tile the niche",time:"½ day",b:"<ol><li><b>Back first:</b> set the "+(S.nicheBack==="mosaic"?"mosaic sheet":S.nicheBack==="accent"?"accent tile":"tile")+" on the back panel with the "+(S.nicheBack==="same"?T.trowel:"3/16\" V-notch")+" trowel. Press sheets flat with a block of wood.</li><li><b>Wall tiles around the niche</b> come next, with their edges lined up to the niche opening. "+(S.edge==="metal"?"Set metal trim around the opening so its edge is flush with the wall tile.":"")+"</li><li><b>Shelf:</b> the slope is already built into the board, so spread an even layer of thinset and the tile follows it. Don't try to create the slope with extra thinset.</li><li>Cut the shelf tile so its front edge comes out to the face of the wall tile below, covering that tile's top edge"+(S.edge==="metal"?", or butting into the metal trim, whose rounded edge becomes the front lip":"")+". Water then runs over the edge and down the wall, never into a joint.</li><li>Check the slope again with the torpedo level: bubble slightly toward the back.</li><li><b>Sides:</b> cut and set both side pieces.</li><li><b>Top:</b> set the top piece last, level, and hold it up with painter\'s tape stretched to the wall above until the thinset sets (overnight).</li><li><b>Joints:</b> the inside corners of the niche (where shelf, sides, back and top meet) get silicone at the end, not grout. Flat joints within the back panel get grout.</li></ol>"+note("info","Look","Factory edges look cleaner than cut edges. Put factory edges at the front of the niche and cut edges against the back.")});
+  if(N) setSteps.push({id:"g7",t:"Tile the niche",time:"½ day",b:"<ol><li><b>Back first:</b> set the "+(S.nicheBack==="mosaic"?"mosaic sheet":S.nicheBack==="accent"?"accent tile":"tile")+" on the back panel with the "+(S.nicheBack==="same"?T.trowel:"3/16\" V-notch")+" trowel. Press sheets flat with a block of wood.</li><li><b>Wall tiles around the niche</b> come next, with their edges lined up to the niche opening. "+(S.nicheEdge==="metal"?"Set metal trim around the opening so its edge is flush with the wall tile.":S.nicheEdge==="miter"?"Cut the edge of each wall tile that meets the opening at 45° (see Mitered edges below), with the long point exactly on the opening edge.":"Use bullnose pieces on the edges that face the opening.")+"</li><li><b>Shelf:</b> the slope is already built into the board, so spread an even layer of thinset and the tile follows it. Don't try to create the slope with extra thinset.</li><li>Cut the shelf tile so its front edge comes out to the face of the wall tile below, covering that tile's top edge"+(S.nicheEdge==="metal"?", or butting into the metal trim, whose rounded edge becomes the front lip":S.nicheEdge==="miter"?" with a 45° front edge that meets the wall tile below in a tight corner":"")+". Water then runs over the edge and down the wall, never into a joint.</li><li>Check the slope again with the torpedo level: bubble slightly toward the back.</li><li><b>Sides:</b> cut and set both side pieces.</li><li><b>Top:</b> set the top piece last, level, and hold it up with painter\'s tape stretched to the wall above until the thinset sets (overnight).</li><li><b>Joints:</b> the inside corners of the niche (where shelf, sides, back and top meet) get silicone at the end, not grout. Flat joints within the back panel get grout.</li></ol>"+(S.nicheEdge==="miter"?"<p><b>Mitered edges (no trim)</b></p><ol><li>Tilt the wet saw head (or use a 45° jig) and cut the edge slowly, face up, in one pass. Leave about 1/16\" of flat at the tip; a knife edge chips.</li><li>Cut and dry-fit every niche piece before mixing thinset: shelf, top, sides and the wall tiles around the opening. The four corners should close to a thin, even line.</li><li>Set the wall tile around the opening first, its long point exactly on the opening edge. Then butter each liner piece and press it in until its miter closes against the wall tile's miter. Check with a straightedge that the corner isn't proud.</li><li>Smooth any sharp spot with the diamond hand pad, very lightly.</li><li>Fill the mitered outside corners with grout like any joint (only inside corners get silicone).</li></ol>"+note("info","Glaze check","Mitering exposes the inside of the tile. If your tile's body is a different color from its face, the corner shows a thin line of it. Look at a cut piece first; grout that matches the face hides it best."):"")+note("info","Look","Factory edges look cleaner than cut edges. Put factory edges at the front of the niche and cut edges against the back.")});
   setSteps.push({id:"g8",t:(L.ledgerTop?"Next day: pull the ledger and set the bottom row":"Next day: check the bottom row"),time:"2 hr",b:(L.ledgerTop?"<ol><li>Wait at least 24 hours, then unscrew the ledger and seal the screw holes.</li><li>Measure each bottom tile separately at both ends. The tub isn't level, so pieces vary. Your planned cut is about "+m(L.bottom)+".</li><li>Set "+frac(0.125)+" spacers on the tub rim and set each cut piece on them, cut edge down.</li><li>Pull the spacers after the thinset firms up. Leave that gap empty; it gets silicone.</li></ol>":"<ol><li>Make sure the "+frac(0.125)+" gap at the tub is clear of thinset.</li></ol>")});
   setSteps.push({id:"g9",t:"Remove leveling clips",time:"30 min",b:"<ol><li>After 24 hours, knock off each clip with the rubber mallet, striking along the grout line (not across it) so it snaps cleanly at the base.</li><li>Clean any remaining thinset out of the joints. Joints must be at least two-thirds clean in depth for the grout.</li></ol>"});
   P("Setting tile",setSteps);
@@ -866,7 +944,7 @@ function renderPlan(){
   else if(S.pattern==="third") pn=note("ok","Good","1/3 offset is the standard for long tile. It hides small bows and looks modern.");
   else if(S.pattern==="stack") pn=note("info","Note","Stacked shows every crooked line, so keep your plumb lines perfect. It's the easiest pattern to plan cuts for.");
   $("#patNote").innerHTML=pn;
-  $("#nicheQs").hidden=S.nicheWall==="none"; $("#nicheBackQ").hidden=S.nicheWall==="none";
+  $("#nicheQs").hidden=S.nicheWall==="none"; $("#nicheBackQ").hidden=S.nicheWall==="none"; ["#nicheSpanQ","#nicheFitQ","#nicheEdgeQ"].forEach(function(q){$(q).hidden=S.nicheWall==="none";});
   if(S.nicheWall==="side"&&S.viewWall!=="side"){} // user chooses view
   var L=layoutFor(S.viewWall);
   $("#preview").innerHTML=wallSVG(L);
@@ -1839,24 +1917,148 @@ function renderNiche(){
   out.innerHTML='<div class="eyebrow">Your niche</div><h2>'+frac(N.w)+' wide × '+frac(N.h)+' tall × '+frac(G.finD)+' deep</h2><p class="muted">Finished inside size after board, membrane and tile. Shelf sits '+m(N.sill)+' above the tub rim, on a grout line.</p>'+
    (G.finD<3?note("warn","Shallow","Under 3\" deep. Bottles may not fit. Use thinner cleats, or glue the back board straight to the drywall behind (no cleats).")
    :note("ok","Fits","Deep enough for standard shampoo bottles."))+
+   note("info","Biggest niche here","Your framing ("+(S.nicheSpan==="two"?"two bays":"one bay")+", "+frac(G.avail)+" wide) allows up to "+frac(G.maxW)+" finished width. Height can be any number of tile rows; 1 row ("+frac(L.th)+") or 2 rows with a shelf are the usual choices. Depth is set by the wall: a 2×4 wall gives about 3\", a 2×6 about 5\". Measure your stud's depth and enter it below.")+
+   (G.tileFit&&!G.fits?note("warn","Too narrow","A one-tile niche needs a "+frac(G.rough)+" framed opening. Choose two bays in the Plan tab."):"")+
+   (S.nicheSpan==="two"?note("warn","Before you cut a stud","Only cut the middle stud if this wall is not load-bearing (ceiling joists run parallel to it and nothing rests on it). If you're not sure, ask a builder; a load-bearing wall needs a sized header."):"")+
    '<h3>Framing</h3><div class="tbl"><table><thead><tr><th>Part</th><th>Size</th><th>Where</th></tr></thead><tbody>'+
-   '<tr><td>Bottom block (2×4 laid flat)</td><td class="r">'+frac(S.bayW)+'</td><td>Top face at '+frac(blockTop)+' above rim</td></tr>'+
-   '<tr><td>Top block (2×4 laid flat)</td><td class="r">'+frac(S.bayW)+'</td><td>Bottom face at '+frac(blockTop+roughH)+' above rim</td></tr>'+
-   '<tr><td>Framed opening</td><td class="r">'+frac(S.bayW)+' × '+frac(roughH)+'</td><td>Between studs and blocks</td></tr>'+
+   (S.nicheSpan==="two"?'<tr><td>Middle stud</td><td class="r">cut out</td><td>From '+frac(blockTop-1.5)+' to '+frac(blockTop+roughH+3)+' above rim, then the blocks hold its cut ends</td></tr>':'')+
+   '<tr><td>Bottom block (2×4 laid flat)</td><td class="r">'+frac(G.avail)+'</td><td>Top face at '+frac(blockTop)+' above rim</td></tr>'+
+   '<tr><td>Top block (2×4 laid flat'+(S.nicheSpan==="two"?', doubled':'')+')</td><td class="r">'+frac(G.avail)+'</td><td>Bottom face at '+frac(blockTop+roughH)+' above rim</td></tr>'+
+   (L.nicheFill&&(L.nicheFill.l>0.05||L.nicheFill.r>0.05)?'<tr><td>Filler framing</td><td class="r">'+frac(L.nicheFill.l)+' left · '+frac(L.nicheFill.r)+' right</td><td>Studs or ripped strips between the blocks, so the opening lines up with the tile joints</td></tr>':'')+
+   '<tr><td>Framed opening</td><td class="r">'+frac(G.rough)+' × '+frac(roughH)+'</td><td>Between the framing and blocks</td></tr>'+
    '<tr><td>Back cleats (1×2)</td><td class="r">2 × '+frac(roughH)+'</td><td>Back edge of each stud, inside the opening</td></tr>'+
    '</tbody></table></div>'+
    '<h3>Cement board pieces</h3><div class="tbl"><table><thead><tr><th>Piece</th><th>Cut size</th><th>Order</th></tr></thead><tbody>'+
-   '<tr><td>Back</td><td class="r">'+frac(S.bayW-0.125)+' × '+frac(roughH-0.125)+'</td><td>1st, screws to cleats</td></tr>'+
-   '<tr><td>Shelf</td><td class="r">'+frac(S.bayW-0.125)+' × '+frac(sideD)+'</td><td>2nd, shim back edge '+frac(0.125)+' for slope</td></tr>'+
-   '<tr><td>Top</td><td class="r">'+frac(S.bayW-0.125)+' × '+frac(sideD)+'</td><td>3rd</td></tr>'+
+   '<tr><td>Back</td><td class="r">'+frac(G.rough-0.125)+' × '+frac(roughH-0.125)+'</td><td>1st, screws to cleats</td></tr>'+
+   '<tr><td>Shelf</td><td class="r">'+frac(G.rough-0.125)+' × '+frac(sideD)+'</td><td>2nd, shim back edge '+frac(0.125)+' for slope</td></tr>'+
+   '<tr><td>Top</td><td class="r">'+frac(G.rough-0.125)+' × '+frac(sideD)+'</td><td>3rd</td></tr>'+
    '<tr><td>Sides (2)</td><td class="r">'+frac(roughH-2*b-0.125)+' × '+frac(sideD)+'</td><td>Last, between shelf and top</td></tr>'+
    '</tbody></table></div><p class="small muted">Sizes include a '+frac(0.125)+' fitting allowance. Shelf, top and sides run from the back panel out to the face of the wall board, so they cover the wall board\'s cut edges.</p>'+
    '<h3>Tile pieces</h3><div class="tbl"><table><thead><tr><th>Piece</th><th>Cut size</th></tr></thead><tbody>'+
    '<tr><td>Back ('+(S.nicheBack==="mosaic"?"mosaic":S.nicheBack==="accent"?"accent tile":"wall tile")+')</td><td class="r">'+frac(N.w+2*(S.setBed+S.tileThk))+' × '+frac(N.h+2*(S.setBed+S.tileThk))+' area</td></tr>'+
-   '<tr><td>Shelf and top</td><td class="r">'+frac(N.w)+' × '+frac(G.finD-(S.edge==="metal"?0:0))+'</td></tr>'+
+   '<tr><td>Shelf and top</td><td class="r">'+frac(N.w)+' × '+frac(G.finD)+(S.nicheEdge==="miter"?' (to the long point of a 45° front edge)':'')+'</td></tr>'+
    '<tr><td>Sides</td><td class="r">'+frac(N.h-2*S.tileThk)+' × '+frac(G.finD)+'</td></tr>'+
    '</tbody></table></div><p class="small muted">Measure the actual opening after the board and membrane are on, and cut tile to that. These are starting numbers.</p>'+
-   note("info","Easier option","Prefab foam niches (Schluter Kerdi-Board, Wedi, Goof Proof) come pre-waterproofed in sizes like 12×24. You still frame the bay, but you skip lining it with board. Check the outside size fits your "+frac(S.bayW)+" bay.");
+   note("info","Easier option","Prefab foam niches (Schluter Kerdi-Board, Wedi, Goof Proof) come pre-waterproofed in sizes like 12×24. You still frame the bay, but you skip lining it with board. Check the outside size fits your "+frac(G.rough)+" opening.");
+}
+
+/* ---------- designer: 3D view + flat walls from the plan ---------- */
+function tileRectsFor(L,Ww,regions){ // tiles in wall coords (x along wall, z up from rim), clipped to regions
+  var g=L.g,tw=L.tw,th=L.th,p=tw+g,q=th+g,of=offsetFrac(),n=cycle(),out=[];
+  var zmin=Math.min.apply(null,regions.map(function(r){return r[2];})),zmax=Math.max.apply(null,regions.map(function(r){return r[3];}));
+  var j0=Math.floor((zmin-L.rowsStart)/q)-1,j1=Math.ceil((zmax-L.rowsStart)/q)+1;
+  for(var j=j0;j<=j1;j++){
+    var zb=L.rowsStart+j*q,zt=zb+th,off=S.orient==="h"?(((j%n)+n)%n)*of*p:0;
+    var x=L.sx+off-Math.ceil((L.sx+off+tw)/p)*p;
+    for(;x<Ww;x+=p){
+      regions.forEach(function(r){
+        var a=Math.max(x,r[0]),b=Math.min(x+tw,r[1]),c=Math.max(zb,r[2]),d=Math.min(zt,r[3]);
+        if(b-a>0.05&&d-c>0.05) out.push({x:a,w:b-a,z:c,h:d-c,cut:(b-a)<tw-0.02||(d-c)<th-0.02});
+      });
+    }
+  }
+  return out;
+}
+function designModel(){
+  var ext=Math.max(0,+S.extPast||0), Ws=S.sideD+ext, H=S.tileH, gap=0.125;
+  var Lb=layoutFor("back"), Ls=layoutFor("side",Ws);
+  var floorZ=-(+S.tubFloorH||15), extZ=S.extDown==="floor"?floorZ:0;
+  var back=tileRectsFor(Lb,S.backW,[[0,S.backW,gap,H]]);
+  var sideRegions=[[0,Ws,gap,H]]; if(ext>0) sideRegions.push([0,ext,extZ,gap]);
+  var side=tileRectsFor(Ls,Ws,sideRegions);
+  return {ext:ext,Ws:Ws,H:H,Lb:Lb,Ls:Ls,floorZ:floorZ,back:back,side:side,G:geo()};
+}
+function design3D(M){
+  var W=S.backW,D=S.sideD,Ws=M.Ws,H=M.H,ceil=Math.max(H,+S.ceilH||H)+0,eyeX=W*0.68,eyeY=Ws+48,eyeZ=34,F=60;
+  function P(x,y,z){var dz=eyeY-y;return [(x-eyeX)*F/dz,-(z-eyeZ)*F/dz];}
+  var polys=[],xs=[],ys=[];
+  function poly(pts,cls,extra){var pp=pts.map(function(p){return P(p[0],p[1],p[2]);});pp.forEach(function(q){xs.push(q[0]);ys.push(q[1]);});polys.push('<polygon class="'+cls+'" points="'+pp.map(function(q){return q[0].toFixed(2)+","+q[1].toFixed(2);}).join(" ")+'"'+(extra||"")+'/>');}
+  var top=Math.max(ceil,H+6);
+  // wall faces (paint) behind tile
+  poly([[0,0,M.floorZ],[W,0,M.floorZ],[W,0,top],[0,0,top]],"d3wall");
+  poly([[0,0,M.floorZ],[0,Ws,M.floorZ],[0,Ws,top],[0,0,top]],"d3wall d3side");
+  poly([[W,0,M.floorZ],[W,Ws,M.floorZ],[W,Ws,top],[W,0,top]],"d3wall d3side");
+  // tiles
+  M.back.forEach(function(t){poly([[t.x,0,t.z],[t.x+t.w,0,t.z],[t.x+t.w,0,t.z+t.h],[t.x,0,t.z+t.h]],t.cut?"d3cut":"d3tile");});
+  M.side.forEach(function(t){var y0=Ws-t.x,y1=Ws-t.x-t.w;
+    poly([[0,y0,t.z],[0,y1,t.z],[0,y1,t.z+t.h],[0,y0,t.z+t.h]],(t.cut?"d3cut":"d3tile")+" d3sh");
+    poly([[W,y0,t.z],[W,y1,t.z],[W,y1,t.z+t.h],[W,y0,t.z+t.h]],(t.cut?"d3cut":"d3tile")+" d3sh");});
+  // niche recess
+  var N=M.Lb.niche;
+  if(N){var d=M.G.finD,x0=N.x,x1=N.x+N.w,z0=N.sill,z1=N.sill+N.h;
+    poly([[x0,0,z0],[x1,0,z0],[x1,-d,z0],[x0,-d,z0]],"d3tile");
+    poly([[x0,0,z1],[x1,0,z1],[x1,-d,z1],[x0,-d,z1]],"d3tile d3dark");
+    poly([[x0,0,z0],[x0,-d,z0],[x0,-d,z1],[x0,0,z1]],"d3tile d3sh");
+    poly([[x1,0,z0],[x1,-d,z0],[x1,-d,z1],[x1,0,z1]],"d3tile d3sh");
+    poly([[x0,-d,z0],[x1,-d,z0],[x1,-d,z1],[x0,-d,z1]],S.nicheBack==="same"?"d3tile":"d3mos");}
+  // plumbing
+  var px=S.plumbWall==="left"?0:W,vy=+S.valveFromBack||15;
+  function disk(y,z,r,cls){var pts=[];for(var a=0;a<16;a++){var an=a/16*Math.PI*2;pts.push([px,y+Math.cos(an)*r,z+Math.sin(an)*r]);}poly(pts,cls);}
+  disk(vy,+S.valveH||14,3.6,"d3metal");disk(vy,+S.valveH||14,1.2,"d3dark");
+  disk(vy,+S.headH||62,1.6,"d3metal");
+  var sx2=px===0?3:W-3;poly([[px,vy-0.6,3],[px,vy+0.6,3],[sx2,vy+0.6,3.6],[sx2,vy-0.6,3.6]],"d3metal");
+  // tub
+  var fz=M.floorZ;
+  poly([[0,D,fz],[W,D,fz],[W,D,0],[0,D,0]],"d3tub");
+  poly([[0,0,0],[W,0,0],[W,D,0],[0,D,0]],"d3tub d3rim");
+  poly([[3,3,0],[W-3,3,0],[W-3,D-3,0],[3,D-3,0]],"d3tub d3basin");
+  if(M.ext>0) poly([[-2,D,fz],[W+2,D,fz],[W+2,Ws+2,fz],[-2,Ws+2,fz]],"d3floor");
+  var x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs),y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys),pad=2;
+  return '<svg viewBox="'+[x0-pad,y0-pad,x1-x0+2*pad,y1-y0+2*pad].map(function(v){return v.toFixed(1);}).join(" ")+'" class="d3" role="img" aria-label="3D view of the finished shower">'+polys.join("")+'</svg>';
+}
+function designFlat(M){
+  var W=S.backW,Ws=M.Ws,H=M.H,gapX=8,fz=M.floorZ,topZ=H+4;
+  var x0L=0,x0B=Ws+gapX,x0R=Ws+gapX+W+gapX,TW=x0R+Ws;
+  function Y(z){return topZ-z;}
+  var s=[],fs=2.1;
+  function txt(x,y,t,cls,anchor){s.push('<text x="'+x.toFixed(2)+'" y="'+y.toFixed(2)+'" font-size="'+fs+'" class="'+(cls||"")+'"'+(anchor?' text-anchor="'+anchor+'"':'')+'>'+t+'</text>');}
+  function rect(x,y,w,h,cls,extra){s.push('<rect x="'+x.toFixed(2)+'" y="'+y.toFixed(2)+'" width="'+w.toFixed(2)+'" height="'+h.toFixed(2)+'" class="'+cls+'"'+(extra||'')+'/>');}
+  function wall(x0,wallW,tiles,mirror,label){
+    rect(x0,Y(H+3),wallW,H+3-fz,"fwall");
+    tiles.forEach(function(t){var x=mirror?x0+wallW-t.x-t.w:x0+t.x;rect(x,Y(t.z+t.h),t.w,t.h,t.cut?"fcut":"ftile");});
+    txt(x0+wallW/2,Y(fz)+4.2,label,"fk","middle");
+  }
+  // walls: left (front at left), back, right (front at right)
+  wall(x0L,Ws,M.side,false,"Left wall · "+frac(Ws).replace(/"/g,'&quot;'));
+  wall(x0B,W,M.back,false,"Back wall · "+frac(W).replace(/"/g,'&quot;'));
+  wall(x0R,Ws,M.side,true,"Right wall · "+frac(Ws).replace(/"/g,'&quot;'));
+  // tub
+  rect(x0B,Y(0),W,-fz,"ftub");rect(x0L+M.ext,Y(0),S.sideD,-fz,"ftub");rect(x0R,Y(0),S.sideD,-fz,"ftub");
+  txt(x0B+W/2,Y(fz/2)+0.8,"TUB","fm","middle");
+  if(M.ext>0){[x0L+M.ext,x0R+S.sideD].forEach(function(x){s.push('<line x1="'+x+'" y1="'+Y(H)+'" x2="'+x+'" y2="'+Y(fz)+'" class="fdash"/>');});
+    txt(x0L+M.ext/2,Y(H)-1,"+"+frac(M.ext).replace(/"/g,'&quot;'),"fa","middle");txt(x0R+S.sideD+M.ext/2,Y(H)-1,"+"+frac(M.ext).replace(/"/g,'&quot;'),"fa","middle");}
+  // ledger
+  if(M.Lb.ledgerTop){[[x0L,Ws],[x0B,W],[x0R,Ws]].forEach(function(w){s.push('<line x1="'+w[0]+'" y1="'+Y(M.Lb.ledgerTop)+'" x2="'+(w[0]+w[1])+'" y2="'+Y(M.Lb.ledgerTop)+'" class="fledger"/>');});
+    txt(x0B-1,Y(M.Lb.ledgerTop)+0.7,"ledger "+frac(M.Lb.ledgerTop).replace(/"/g,'&quot;'),"fa","end");}
+  // niche
+  var N=M.Lb.niche;
+  if(N){rect(x0B+N.x,Y(N.sill+N.h),N.w,N.h,S.nicheBack==="same"?"fniche":"fmos");
+    s.push('<rect x="'+(x0B+N.x).toFixed(2)+'" y="'+Y(N.sill+N.h).toFixed(2)+'" width="'+N.w.toFixed(2)+'" height="'+N.h.toFixed(2)+'" class="fnicheo"/>');
+    txt(x0B+N.x+N.w/2,Y(N.sill+N.h)-1,"niche "+frac(N.w).replace(/"/g,'&quot;')+" × "+frac(N.h).replace(/"/g,'&quot;'),"fa","middle");
+    txt(x0B+N.x+N.w/2,Y(N.sill)+3,"shelf "+frac(N.sill).replace(/"/g,'&quot;')+" above rim","fa","middle");}
+  // plumbing on the chosen wall (shown on its elevation)
+  var pw=S.plumbWall==="left"?x0L:x0R, vy=+S.valveFromBack||15, vx=S.plumbWall==="left"?pw+Ws-vy:pw+vy;
+  s.push('<circle cx="'+vx+'" cy="'+Y(+S.valveH||14)+'" r="3.6" class="fmetal"/><circle cx="'+vx+'" cy="'+Y(+S.headH||62)+'" r="1.6" class="fmetal"/><rect x="'+(vx-0.7)+'" y="'+Y(4)+'" width="1.4" height="1" class="fmetal"/>');
+  txt(vx,Y(+S.valveH||14)+6,"valve","fm","middle");txt(vx,Y(+S.headH||62)-2.4,"head","fm","middle");
+  // tile height
+  s.push('<line x1="'+(TW+2)+'" y1="'+Y(0)+'" x2="'+(TW+2)+'" y2="'+Y(H)+'" class="fdim"/>');txt(TW+3,Y(H/2),frac(H).replace(/"/g,'&quot;'),"fa");
+  return '<svg viewBox="-2 -2 '+(TW+14)+' '+(topZ-fz+9)+'" class="flat" role="img" aria-label="Unfolded walls with tile layout">'+s.join("")+'</svg>';
+}
+function renderDesign(){
+  if(!$("#v-design")) return;
+  ["extPast","tubFloorH","valveH","valveFromBack","headH","ceilH"].forEach(function(id){var el=document.getElementById(id);if(el&&document.activeElement!==el) el.value=S[id];});
+  $$("#v-design [data-key]").forEach(function(grp){var k=grp.getAttribute("data-key");$$(".chip",grp).forEach(function(b){b.setAttribute("aria-pressed",String(String(S[k])===b.getAttribute("data-v")));});});
+  var M=designModel(),N=M.Lb.niche,G=M.G;
+  $("#d3view").innerHTML=design3D(M);
+  $("#dflat").innerHTML=designFlat(M);
+  var cutB=M.back.filter(function(t){return t.cut;}).length,cutS=M.side.filter(function(t){return t.cut;}).length;
+  var notes=[];
+  notes.push('<li>Back wall: '+M.back.length+' pieces, '+cutB+' cut. Each side wall: '+M.side.length+' pieces, '+cutS+' cut.</li>');
+  notes.push('<li>Side walls tile '+m(M.Ws)+' wide: '+frac(S.sideD)+' over the tub'+(M.ext>0?' + '+frac(M.ext)+' past it, down to '+(S.extDown==="floor"?"the floor":"the tub rim height"):'')+'.</li>');
+  if(M.Lb.ledgerTop) notes.push('<li>Ledger top '+m(M.Lb.ledgerTop)+' above the tub\'s low point; bottom cut row about '+m(M.Lb.bottom)+'.</li>');
+  if(N){notes.push('<li>Niche '+m(N.w)+' × '+m(N.h)+' × '+m(G.finD)+' deep, shelf at '+m(N.sill)+' above the rim'+(S.nicheEdge==="miter"?', mitered edges (no trim)':'')+'.</li>');
+    if(M.Lb.nicheFit) notes.push('<li>'+M.Lb.nicheFit+'</li>');}
+  $("#dnotes").innerHTML='<ul class="dlist">'+notes.join("")+'</ul>'+(S.sideLayer!=="none"?note("info","Existing wall layer","The "+S.sideLayer+" wall keeps its existing layer. Measure its width and depth from the face of that layer, not the studs, and enter those numbers in the Plan tab."):"")+(G.tileFit&&!G.fits?note("warn","Won't fit",'A tile-sized niche needs a '+frac(G.rough)+' framed opening, but your framing gives '+frac(G.avail)+'. Span two stud bays in the Plan tab.'):"");
 }
 
 /* ---------- tabs ---------- */
@@ -1864,10 +2066,10 @@ function show(tab){
   S.tab=tab; save();
   $$("section[data-view]").forEach(function(s){s.hidden=s.getAttribute("data-view")!==tab;});
   $$("nav.tabs button").forEach(function(b){b.setAttribute("aria-selected",String(b.getAttribute("data-tab")===tab));});
-  stopSpeaking(); if(tab==="tools") renderTools(); if(tab==="steps") renderSteps(); syncWake(); if(tab==="niche") renderNiche(); if(tab==="plan") renderPlan();
+  stopSpeaking(); if(tab==="tools") renderTools(); if(tab==="steps") renderSteps(); syncWake(); if(tab==="niche") renderNiche(); if(tab==="plan") renderPlan(); if(tab==="design") renderDesign();
   window.scrollTo(0,0);
 }
-function renderAll(){renderPlan();renderSteps();renderTools();renderNiche();}
+function renderAll(){renderPlan();renderSteps();renderTools();renderNiche();renderDesign();}
 
 /* ---------- events ---------- */
 document.addEventListener("click",function(e){
@@ -1880,7 +2082,7 @@ document.addEventListener("click",function(e){
     S[k]=(v==="true"||v==="false")?v==="true":(isNaN(+v)?v:+v);
     if(k==="tile") S.tileThk=TILES[v].thk;
     if(k==="nicheWall" && v!=="none") S.viewWall=v;
-    save(); renderPlan(); return;
+    save(); renderPlan(); if(S.tab==="design") renderDesign(); return;
   }
   if(t.hasAttribute("data-tab")){show(t.getAttribute("data-tab"));return;}
   if(t.hasAttribute("data-q")){
@@ -1923,11 +2125,11 @@ document.addEventListener("input",function(e){
   var el=e.target; if(!el.id||!(el.id in DEF)||el.type!=="number") return;
   var v=parseFloat(el.value); if(!isFinite(v)) return;
   S[el.id]=v; save();
-  if(el.closest("#v-niche")) renderNiche(); else renderPlan();
+  if(el.closest("#v-niche")) renderNiche(); else if(el.closest("#v-design")) renderDesign(); else renderPlan();
 });
 
 var start=(location.hash||"").replace("#","");
-if(["plan","tools","steps","niche"].indexOf(start)<0) start=S.tab||"plan";
+if(["plan","design","tools","steps","niche"].indexOf(start)<0) start=S.tab||"plan";
 applyBigMode(); renderTimers(); renderAll(); show(start);
 })();
 </script>
