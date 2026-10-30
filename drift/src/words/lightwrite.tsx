@@ -37,7 +37,7 @@ export const writeWord = (font: Font, text: string, size: number, tracking = 0.0
       const raw = c.getPoints(24);
       let len = 0;
       for (let i = 1; i < raw.length; i++) len += raw[i].distanceTo(raw[i - 1]);
-      const n = Math.max(8, Math.ceil(len / (size * 0.012)));
+      const n = Math.max(8, Math.ceil(len / (size * 0.045)));
       const sp = (c as THREE.Path).getSpacedPoints(n);
       // letter-local: centred on the letter's advance box, so each letter can turn about itself
       const pts = sp.map((p) => new THREE.Vector3(p.x - L.adv / 2, p.y - cap / 2, 0));
@@ -45,7 +45,7 @@ export const writeWord = (font: Font, text: string, size: number, tracking = 0.0
       const g = new LineGeometry();
       g.setPositions(pts.flatMap((p) => [p.x, p.y, p.z]));
       const line = new Line2(g, undefined as unknown as LineMaterial);
-      line.frustumCulled = false;
+      g.computeBoundingSphere();
       return { pts, len, line };
     });
     const len = strokes.reduce((a, s) => a + s.len, 0);
