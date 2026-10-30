@@ -6,7 +6,8 @@ import { useIntroAssets } from "../intro/Scene3D";
 import { Verse1 } from "./Verse1";
 import { Verse1M } from "../v4/Verse1M";
 import { PreChorusM } from "../v4/PreM";
-import { Chorus, PostChorus } from "./Rise";
+import { ChorusM } from "../v4/ChorusM";
+import { PostChorus } from "./Rise";
 import { Verse2 } from "./Flip";
 import { Bridge, Outro, Verse3 } from "./Night";
 
@@ -38,7 +39,7 @@ const renderBare = (src: number, a: Assets): React.ReactNode => {
   const id = sectionFor(src);
   if (id === "verse1") return <Verse1M t={src} assets={a} bare />;
   if (id.startsWith("prechorus")) return <PreChorusM t={src} id={id} bare />;
-  if (id.startsWith("chorus")) return <Chorus t={src} a={a} id={id} bare />;
+  if (id.startsWith("chorus")) return <ChorusM t={src} a={a} id={id} bare />;
   if (id === "verse2") return <Verse2 t={src} bare />;
   if (id === "verse3") return <Verse3 t={src} a={a} bare />;
   if (id === "bridge") return <Bridge t={src} a={a} bare />;
@@ -55,7 +56,7 @@ export const Song: React.FC<{ muted?: boolean }> = ({ muted }) => {
       {id === "intro" ? <Intro muted /> : null}
       {id === "verse1" ? <Verse1M t={t} assets={a} /> : null}
       {id === "prechorus1" || id === "prechorus2" ? <PreChorusM t={t} id={id} /> : null}
-      {id === "chorus1" || id === "chorus2" || id === "chorus3" ? <Chorus t={t} a={a} id={id} /> : null}
+      {id === "chorus1" || id === "chorus2" || id === "chorus3" ? <ChorusM t={t} a={a} id={id} /> : null}
       {id === "postchorus1" ? <PostChorus t={t} a={a} id={id} montage={POST1_MONTAGE} renderAt={at} /> : null}
       {id === "postchorus2" ? <PostChorus t={t} a={a} id={id} montage={POST2_MONTAGE} renderAt={at} /> : null}
       {id === "verse2" ? <Verse2 t={t} /> : null}

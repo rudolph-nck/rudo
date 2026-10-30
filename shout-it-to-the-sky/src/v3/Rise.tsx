@@ -145,7 +145,7 @@ const chData = (id: string) => {
   return chCache.get(id)!;
 };
 
-const RoofScene: React.FC<{ t: number; a: Assets; id?: string }> = ({ t, a, id = "chorus1" }) => {
+export const RoofScene: React.FC<{ t: number; a: Assets; id?: string }> = ({ t, a, id = "chorus1" }) => {
   const D = chData(id);
   const { camera, gl } = useThree();
   const M = useMemo(
