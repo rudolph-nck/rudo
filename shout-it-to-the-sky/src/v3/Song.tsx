@@ -7,7 +7,7 @@ import { Verse1 } from "./Verse1";
 import { Verse1M } from "../v4/Verse1M";
 import { PreChorusM } from "../v4/PreM";
 import { ChorusM } from "../v4/ChorusM";
-import { PostChorus } from "./Rise";
+import { PostChorusM } from "../v4/PostM";
 import { Verse2 } from "./Flip";
 import { Bridge, Outro, Verse3 } from "./Night";
 
@@ -57,8 +57,8 @@ export const Song: React.FC<{ muted?: boolean }> = ({ muted }) => {
       {id === "verse1" ? <Verse1M t={t} assets={a} /> : null}
       {id === "prechorus1" || id === "prechorus2" ? <PreChorusM t={t} id={id} a={a} /> : null}
       {id === "chorus1" || id === "chorus2" || id === "chorus3" ? <ChorusM t={t} a={a} id={id} /> : null}
-      {id === "postchorus1" ? <PostChorus t={t} a={a} id={id} montage={POST1_MONTAGE} renderAt={at} /> : null}
-      {id === "postchorus2" ? <PostChorus t={t} a={a} id={id} montage={POST2_MONTAGE} renderAt={at} /> : null}
+      {id === "postchorus1" ? <PostChorusM t={t} a={a} id={id} montage={POST1_MONTAGE} renderAt={at} /> : null}
+      {id === "postchorus2" ? <PostChorusM t={t} a={a} id={id} montage={POST2_MONTAGE} renderAt={at} /> : null}
       {id === "verse2" ? <Verse2 t={t} /> : null}
       {id === "verse3" ? <Verse3 t={t} a={a} renderAt={at} /> : null}
       {id === "bridge" ? <Bridge t={t} a={a} /> : null}
