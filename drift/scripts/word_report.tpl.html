@@ -1,0 +1,240 @@
+<title>Drift Word Analysis</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one dark column like the video frame; a wide scrolling song map; hero cards in a 2-up grid; a fixed marking bar. Single dark theme on purpose: it is the video's palette. */
+:root {
+  --bg: #0b0a09; --panel: #151310; --line: #2a2723; --ink: #efede9; --muted: #8d877e;
+  --stone: #c4b6a2; --hot: #fff4e6; --drift: #a9b7c4; --red: #e5483b;
+  --band1: #11100e; --band2: #161411; --band3: #1d1a16; --energy: rgba(196,182,162,0.16);
+  --display: "Bebas Neue", "Oswald", "Arial Narrow", sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body); margin: 0; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 140px; display: grid; gap: 56px; }
+h1, h2, h3, h4 { font-family: var(--display); font-weight: 400; letter-spacing: 0.02em; margin: 0; text-wrap: balance; }
+h2 { font-size: 44px; line-height: 1; }
+h3 { font-size: 30px; display: flex; gap: 12px; align-items: baseline; }
+h3 span, summary span { font: 13px var(--mono); color: var(--muted); }
+h4 { font-size: 22px; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font: 500 12px var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--stone); }
+code { font: 12px var(--mono); color: var(--muted); }
+section > .lead { color: var(--muted); margin-top: 8px; }
+.stack { display: grid; gap: 14px; }
+
+/* hero */
+.top { display: grid; gap: 18px; }
+.title { padding-top: 64px; font-family: var(--display); font-size: clamp(120px, 30vw, 300px); line-height: 0.8; display: flex; letter-spacing: 0.01em; }
+.title span { display: inline-block; transform: translate(var(--x), var(--y)) rotate(var(--r)); }
+.title span:nth-child(1) { --x: 0px; --y: 0px; --r: 0deg; }
+.title span:nth-child(2) { --x: 4px; --y: -6px; --r: -2deg; }
+.title span:nth-child(3) { --x: 14px; --y: -16px; --r: 4deg; opacity: 0.9; }
+.title span:nth-child(4) { --x: 30px; --y: -34px; --r: -7deg; opacity: 0.75; color: var(--drift); }
+.title span:nth-child(5) { --x: 56px; --y: -62px; --r: 12deg; opacity: 0.5; color: var(--drift); }
+@media (prefers-reduced-motion: no-preference) {
+  .title span:nth-child(n+3) { animation: drift 9s ease-in-out infinite alternate; }
+  @keyframes drift { to { transform: translate(calc(var(--x) * 1.5), calc(var(--y) * 1.4)) rotate(calc(var(--r) * 1.6)); } }
+}
+.thesis { font-size: 20px; line-height: 1.45; max-width: 46ch; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 24px; font: 13px var(--mono); color: var(--muted); }
+
+.calls { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.calls div { background: var(--bg); padding: 18px; display: grid; gap: 6px; align-content: start; }
+.calls h4 { color: var(--stone); }
+
+.notice { border-left: 2px solid var(--stone); padding: 4px 0 4px 16px; display: grid; gap: 8px; color: #d6d2cb; }
+
+.mapbox { overflow-x: auto; border: 1px solid var(--line); background: var(--band1); }
+.map { display: block; }
+.map .ml { font: 500 10px var(--mono); fill: var(--muted); letter-spacing: 0.1em; }
+.map .mt { font: 10px var(--mono); fill: var(--muted); }
+.map .mw { font: 15px var(--display); letter-spacing: 0.04em; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 12px var(--mono); color: var(--muted); margin-top: 10px; }
+.legend i { display: inline-block; width: 18px; height: 5px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+
+.tw { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font: 13px var(--mono); font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--muted); font-weight: 400; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+tr.hr td { color: var(--hot); }
+tr.hr td:first-child { font-weight: 500; }
+.bar { display: inline-block; height: 6px; width: calc(var(--v) * 90px); background: var(--stone); margin-right: 8px; vertical-align: middle; border-radius: 1px; }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.mo, .fxc { border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 6px; align-content: start; }
+.mo .occ, .fxc .used { font: 12px var(--mono); color: var(--muted); }
+.fxc small { font: 11px var(--mono); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-left: 6px; }
+.c-stone { color: var(--stone); } .c-hot { color: var(--hot); } .c-drift { color: var(--drift); } .c-ink { color: var(--ink); }
+.sw { display: flex; gap: 14px; align-items: flex-start; }
+.chip { flex: none; width: 44px; height: 44px; border-radius: 2px; border: 1px solid var(--line); }
+
+/* hero cards */
+.sec { display: grid; gap: 12px; }
+.sec h3 { position: sticky; top: env(safe-area-inset-top, 0px); background: var(--bg); padding: 10px 0; z-index: 2; border-bottom: 1px solid var(--line); }
+.sec { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.sec h3 { grid-column: 1 / -1; }
+.hero { background: var(--panel); border: 1px solid var(--line); padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.hero.marked-keep { border-color: #4b5a45; } .hero.marked-change { border-color: #7a6a45; } .hero.marked-idea { border-color: var(--drift); }
+.hw { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.hw h4 { font-size: 40px; line-height: 0.9; }
+.hw .t { font: 12px var(--mono); color: var(--muted); }
+.hw .fx { margin-left: auto; font: 500 11px var(--mono); letter-spacing: 0.08em; color: var(--bg); background: var(--stone); padding: 3px 7px; border-radius: 2px; }
+.m-weight, .m-got-list, .m-father, .m-tomorrow { color: var(--stone); }
+.m-die-drift { color: var(--drift); } .m-stars, .m-breath, .m-tonight { color: var(--hot); }
+.line { color: var(--muted); }
+.line b { color: var(--ink); font-weight: 600; }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; margin: 0; font: 12px var(--mono); }
+.facts div { min-width: 0; }
+.facts dt { color: var(--muted); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+.facts dd { margin: 0; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.facts em { color: var(--hot); font-style: normal; }
+.sp { color: var(--stone); }
+.role { padding: 0 5px; border-radius: 2px; border: 1px solid var(--line); }
+.r-struggle { color: var(--stone); } .r-turn { color: var(--drift); } .r-win { color: var(--hot); }
+.note { font-size: 14px; color: #d6d2cb; }
+.mark { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border-top: 1px solid var(--line); padding-top: 10px; }
+.mark label { font: 13px var(--body); display: flex; gap: 5px; align-items: center; padding: 4px 9px; border: 1px solid var(--line); border-radius: 2px; cursor: pointer; }
+.mark label:has(input:checked) { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.mark input[type=radio] { accent-color: var(--stone); margin: 0; }
+.mark input[type=text] { flex: 1 1 100%; background: var(--bg); color: var(--ink); border: 1px solid var(--line); padding: 7px 9px; font: 14px var(--body); border-radius: 2px; }
+:focus-visible { outline: 2px solid var(--stone); outline-offset: 2px; }
+
+details { border-top: 1px solid var(--line); }
+summary { cursor: pointer; padding: 12px 0; font: 22px var(--display); letter-spacing: 0.03em; display: flex; gap: 12px; align-items: baseline; }
+
+.bar-fixed { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(11,10,9,0.94); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); z-index: 5; backdrop-filter: blur(6px); }
+.bar-in { max-width: 1120px; margin: 0 auto; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding-block: 12px; }
+.bar-in .count { font: 13px var(--mono); color: var(--muted); margin-right: auto; }
+@media (max-width: 520px) { .bar-in .count { flex-basis: 100%; } .bar-in { padding-block: 8px 10px; gap: 8px; } }
+button { font: 500 14px var(--body); background: var(--ink); color: var(--bg); border: 0; padding: 9px 14px; border-radius: 2px; cursor: pointer; }
+button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+#out { width: 100%; min-height: 120px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); font: 12px var(--mono); padding: 10px; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">RUDO · Drift · Step 1 of 5 · Word analysis</span>
+    <div class="title" aria-label="DRIFT"><span>D</span><span>R</span><span>I</span><span>F</span><span>T</span></div>
+    <p class="thesis">Gravity is the story. Verse words are stone and push down. Chorus words lose their weight and drift up into stars. The song ends with him choosing to pick the weight up again.</p>
+    <div class="meta"><span>4:24 · 1080×1920 · 30 fps</span><span>{{NLINES}} lines · {{NWORDS}} words</span><span>~86 BPM half-time (172 detected)</span><span>one hero word per line</span></div>
+  </header>
+
+  <section class="stack">
+    <h2>Four director's calls</h2>
+    <div class="calls">
+      <div><h4>Weight vs drift</h4><p>Every effect sits on one axis: heavy (stone, press, carve) or weightless (drift, float, stars). Each section's place on that axis comes from its energy and its words.</p></div>
+      <div><h4>DIE is never an effect</h4><p>The song says "I don't wanna die" five times and means it. DIE stays a small, still caption every time. The hero of that couplet is always DRIFT.</p></div>
+      <div><h4>NO is an eraser</h4><p>Each NO runs the hot point backwards and unmakes something we've already seen. The breakdown erases faster and faster until only SILENCE is left.</p></div>
+      <div><h4>The silence at the end</h4><p>After "Let me drift" there are 11 seconds of near-silence (just a breath at 4:02). Then the beat comes back at 4:09. That's tomorrow: one hot point redraws him and the title.</p></div>
+    </div>
+  </section>
+
+  <section class="notice">
+    <span class="eyebrow">How the timing was measured</span>
+    <p>This environment can't reach the speech-recognition and vocal-separation models we used for <em>Shout It to the Sky</em> (GitHub releases, Hugging Face and the model hosts are blocked). So the timing comes from three things: the lines Suno highlights in your export video (read frame by frame), a voice-isolation filter, and my hand-check of the spectrogram at every chorus, the intro and the outro. Line starts are good to about ±0.2 s. Words inside a line marked "est." are spread by syllables, and I hand-sync them per section during the build.</p>
+    <p><strong>One thing would make this exact:</strong> the vocal stem from Suno (Get Stems → Vocals, as WAV). With it I can measure every word and held note directly.</p>
+  </section>
+
+  <section class="stack">
+    <h2>Song map</h2>
+    <p class="lead">Energy (shaded), kicks (ticks at the bottom), and every hero word with its sung length. Scroll sideways.</p>
+    <div class="mapbox">{{MAP}}</div>
+    <div class="legend"><span><i style="background:var(--stone)"></i>weight / stone family</span><span><i style="background:var(--drift)"></i>drift / float</span><span><i style="background:var(--hot)"></i>light, breath, erase</span><span><i style="background:var(--ink)"></i>other heroes</span><span><i style="background:var(--muted)"></i>quiet caption (DIE)</span></div>
+  </section>
+
+  <section class="stack">
+    <h2>Energy curve by section</h2>
+    <p class="lead">Energy is the mix loudness. Voice is the average vocal level on its words. The two pre-choruses and the final chorus drop out, which are the quiet doorways.</p>
+    <div class="tw"><table><thead><tr><th>section</th><th>starts</th><th>length</th><th>energy</th><th>voice</th><th>kicks</th><th>held notes</th></tr></thead><tbody>{{STATS}}</tbody></table></div>
+  </section>
+
+  <section class="stack">
+    <h2>Recurring motifs</h2>
+    <p class="lead">Repeated words multiply and evolve every time they come back. These are the throughlines for the storyboard.</p>
+    <div class="grid2">{{MOTIFS}}</div>
+  </section>
+
+  <section class="stack">
+    <h2>Accent colours by word family</h2>
+    <div class="grid2">{{COLORS}}</div>
+  </section>
+
+  <section class="stack">
+    <h2>Word-effect library</h2>
+    <p class="lead">Every effect takes a word and its timing (start, end, held length, voice-volume curve) and plugs into any line. Held notes stretch the effect for exactly as long as the note lasts.</p>
+    <div class="grid2">{{FX}}</div>
+  </section>
+
+  <section class="stack">
+    <h2>Hero words</h2>
+    <p class="lead">One per line. Mark each one Keep, Change or My idea, then use <strong>Copy my notes</strong> at the bottom and paste the result back to me. Your marks are saved in this browser.</p>
+    {{HEROES}}
+  </section>
+
+  <section class="stack">
+    <h2>Every word</h2>
+    <p class="lead">The full table: timing, voice level, kick/beat landings, repeats and role. The hero word is highlighted.</p>
+    {{WORDS}}
+  </section>
+
+  <section class="stack" id="export" hidden>
+    <h2>Your notes</h2>
+    <textarea id="out" readonly aria-label="Your notes as text"></textarea>
+  </section>
+</div>
+
+<div class="bar-fixed"><div class="bar-in">
+  <span class="count" id="count">0 of {{NLINES}} marked</span>
+  <button class="ghost" id="rest" type="button">Mark the rest Keep</button>
+  <button id="copy" type="button">Copy my notes</button>
+</div></div>
+
+<script>
+(function () {
+  const KEY = "drift-step1-marks";
+  let st = {};
+  try { st = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+  const cards = [...document.querySelectorAll(".hero")];
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+  const paint = () => {
+    let n = 0;
+    cards.forEach((c) => {
+      const s = st[c.dataset.li] || {};
+      c.classList.remove("marked-keep", "marked-change", "marked-idea");
+      if (s.m) { c.classList.add("marked-" + s.m); n++; }
+    });
+    document.getElementById("count").textContent = n + " of " + cards.length + " marked";
+  };
+  cards.forEach((c) => {
+    const li = c.dataset.li, s = st[li] || {};
+    if (s.m) { const r = c.querySelector(`input[value="${s.m}"]`); if (r) r.checked = true; }
+    const note = c.querySelector("input[type=text]"); if (s.n) note.value = s.n;
+    c.querySelectorAll("input[type=radio]").forEach((r) => r.addEventListener("change", () => { st[li] = { ...(st[li] || {}), m: r.value }; save(); paint(); }));
+    note.addEventListener("input", () => { st[li] = { ...(st[li] || {}), n: note.value }; if (!st[li].m && note.value) { st[li].m = "idea"; c.querySelector('input[value="idea"]').checked = true; } save(); paint(); });
+  });
+  document.getElementById("rest").addEventListener("click", () => {
+    cards.forEach((c) => { const li = c.dataset.li; if (!(st[li] && st[li].m)) { st[li] = { ...(st[li] || {}), m: "keep" }; c.querySelector('input[value="keep"]').checked = true; } });
+    save(); paint();
+  });
+  document.getElementById("copy").addEventListener("click", (ev) => {
+    const lines = cards.map((c) => {
+      const s = st[c.dataset.li] || {};
+      const label = { keep: "KEEP", change: "CHANGE", idea: "MY IDEA" }[s.m] || "unmarked";
+      return `L${c.dataset.li} ${c.dataset.word.toUpperCase()} (${c.dataset.fx}): ${label}${s.n ? " — " + s.n : ""}`;
+    });
+    const text = "Drift step 1 notes\n" + lines.join("\n");
+    const out = document.getElementById("out"); out.value = text; document.getElementById("export").hidden = false;
+    const btn = ev.currentTarget;
+    const done = (msg) => { btn.textContent = msg; setTimeout(() => (btn.textContent = "Copy my notes"), 2200); };
+    try {
+      navigator.clipboard.writeText(text).then(() => done("Copied"), () => { out.select(); done("Select and copy below"); });
+    } catch (e) { out.select(); done("Select and copy below"); }
+  });
+  paint();
+})();
+</script>

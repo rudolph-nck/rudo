@@ -1,0 +1,884 @@
+[
+{
+"t": 4.2,
+"text": "[Intro] Yeah...",
+"key": "yeah",
+"w0": 0,
+"exact": true
+},
+{
+"t": 5.6,
+"text": "You ever get so tired",
+"key": "youevergetsotired",
+"w0": 1,
+"exact": true
+},
+{
+"t": 6.2,
+"text": "You don't want to quit",
+"key": "youdontwanttoquit",
+"w0": 6,
+"exact": true
+},
+{
+"t": 9.2,
+"text": "You don't want to disappear",
+"key": "youdontwanttodisappear",
+"w0": 11,
+"exact": true
+},
+{
+"t": 13.6,
+"text": "You just want everything",
+"key": "youjustwanteverything",
+"w0": 16,
+"exact": true
+},
+{
+"t": 18.0,
+"text": "to stop",
+"key": "tostop",
+"w0": 20,
+"exact": true
+},
+{
+"t": 19.4,
+"text": "For a minute",
+"key": "foraminute",
+"w0": 22,
+"exact": true
+},
+{
+"t": 21.2,
+"text": "[Verse 1] Another morning",
+"key": "anothermorning",
+"w0": 25,
+"exact": true
+},
+{
+"t": 23.6,
+"text": ", same ceiling",
+"key": "sameceiling",
+"w0": 27,
+"exact": true
+},
+{
+"t": 24.0,
+"text": "Same pressure on my chest",
+"key": "samepressureonmychest",
+"w0": 29,
+"exact": true
+},
+{
+"t": 26.2,
+"text": "Same people telling me I",
+"key": "samepeopletellingmei",
+"w0": 34,
+"exact": true
+},
+{
+"t": 26.6,
+"text": "'m blessed",
+"key": "mblessed",
+"w0": 38,
+"exact": true
+},
+{
+"t": 27.4,
+"text": "While I'm struggling to rest",
+"key": "whileimstrugglingtorest",
+"w0": 40,
+"exact": true
+},
+{
+"t": 29.8,
+"text": "Everybody needs a piece",
+"key": "everybodyneedsapiece",
+"w0": 45,
+"exact": true
+},
+{
+"t": 30.4,
+"text": "of me",
+"key": "ofme",
+"w0": 49,
+"exact": true
+},
+{
+"t": 30.8,
+"text": "Everybody wants my time",
+"key": "everybodywantsmytime",
+"w0": 51,
+"exact": true
+},
+{
+"t": 32.0,
+"text": "I'm carrying so much weight",
+"key": "imcarryingsomuchweight",
+"w0": 55,
+"exact": true
+},
+{
+"t": 34.4,
+"text": "I forgot what's actually",
+"key": "iforgotwhatsactually",
+"w0": 60,
+"exact": true
+},
+{
+"t": 34.6,
+"text": "mine",
+"key": "mine",
+"w0": 64,
+"exact": true
+},
+{
+"t": 36.2,
+"text": "Built a life that people",
+"key": "builtalifethatpeople",
+"w0": 65,
+"exact": true
+},
+{
+"t": 37.6,
+"text": "envy",
+"key": "envy",
+"w0": 70,
+"exact": true
+},
+{
+"t": 38.4,
+"text": "Built a name they all respect",
+"key": "builtanametheyallrespect",
+"w0": 71,
+"exact": true
+},
+{
+"t": 40.2,
+"text": "Funny how success can leave",
+"key": "funnyhowsuccesscanleave",
+"w0": 77,
+"exact": true
+},
+{
+"t": 40.4,
+"text": "you",
+"key": "you",
+"w0": 82,
+"exact": true
+},
+{
+"t": 42.0,
+"text": "Feeling more disconnected",
+"key": "feelingmoredisconnected",
+"w0": 83,
+"exact": true
+},
+{
+"t": 46.0,
+"text": "Got accomplishments on paper",
+"key": "gotaccomplishmentsonpaper",
+"w0": 86,
+"exact": true
+},
+{
+"t": 47.8,
+"text": "Got achievementsonthe wall",
+"key": "gotachievementsonthewall",
+"w0": 90,
+"exact": true
+},
+{
+"t": 49.2,
+"text": "But none of that gets quiet",
+"key": "butnoneofthatgetsquiet",
+"w0": 95,
+"exact": true
+},
+{
+"t": 50.6,
+"text": "When the darkness starts",
+"key": "whenthedarknessstarts",
+"w0": 101,
+"exact": true
+},
+{
+"t": 50.8,
+"text": "to call",
+"key": "tocall",
+"w0": 105,
+"exact": true
+},
+{
+"t": 52.0,
+"text": "[Pre-Chorus] And I'm not",
+"key": "andimnot",
+"w0": 107,
+"exact": true
+},
+{
+"t": 53.4,
+"text": "looking for an ending",
+"key": "lookingforanending",
+"w0": 110,
+"exact": true
+},
+{
+"t": 53.8,
+"text": "I'm just looking for a break",
+"key": "imjustlookingforabreak",
+"w0": 114,
+"exact": true
+},
+{
+"t": 57.0,
+"text": "[Chorus] I don't wanna die",
+"key": "idontwannadie",
+"w0": 120,
+"exact": true
+},
+{
+"t": 58.4,
+"text": "I just wanna drift",
+"key": "ijustwannadrift",
+"w0": 124,
+"exact": true
+},
+{
+"t": 59.4,
+"text": "Float somewhere between the",
+"key": "floatsomewherebetweenthe",
+"w0": 128,
+"exact": true
+},
+{
+"t": 61.8,
+"text": "stars",
+"key": "stars",
+"w0": 132,
+"exact": true
+},
+{
+"t": 63.2,
+"text": "And forget about all this",
+"key": "andforgetaboutallthis",
+"w0": 133,
+"exact": true
+},
+{
+"t": 66.4,
+"text": "No deadlines",
+"key": "nodeadlines",
+"w0": 138,
+"exact": true
+},
+{
+"t": 68.4,
+"text": "No expectations",
+"key": "noexpectations",
+"w0": 140,
+"exact": true
+},
+{
+"t": 69.6,
+"text": "No voices in my head",
+"key": "novoicesinmyhead",
+"w0": 142,
+"exact": true
+},
+{
+"t": 71.6,
+"text": "I don't wanna leave this",
+"key": "idontwannaleavethis",
+"w0": 147,
+"exact": true
+},
+{
+"t": 75.2,
+"text": "world",
+"key": "world",
+"w0": 152,
+"exact": true
+},
+{
+"t": 76.4,
+"text": "I just wanna leave it for",
+"key": "ijustwannaleaveitfor",
+"w0": 153,
+"exact": true
+},
+{
+"t": 77.6,
+"text": "a bit",
+"key": "abit",
+"w0": 159,
+"exact": true
+},
+{
+"t": 79.8,
+"text": "I don't wanna die",
+"key": "idontwannadie",
+"w0": 161,
+"exact": true
+},
+{
+"t": 84.8,
+"text": "I just wanna drift",
+"key": "ijustwannadrift",
+"w0": 165,
+"exact": true
+},
+{
+"t": 90.4,
+"text": "[Verse 2] Sometimes I drive",
+"key": "sometimesidrive",
+"w0": 169,
+"exact": true
+},
+{
+"t": 92.0,
+"text": "with no destination",
+"key": "withnodestination",
+"w0": 172,
+"exact": true
+},
+{
+"t": 92.4,
+"text": "Radio low, windows down",
+"key": "radiolowwindowsdown",
+"w0": 175,
+"exact": true
+},
+{
+"t": 94.0,
+"text": "Trying to outrun the noise",
+"key": "tryingtooutrunthenoise",
+"w0": 179,
+"exact": true
+},
+{
+"t": 96.8,
+"text": "That somehow always stick",
+"key": "thatsomehowalwaysstick",
+"w0": 184,
+"exact": true
+},
+{
+"t": 98.0,
+"text": "s around",
+"key": "saround",
+"w0": 187,
+"exact": true
+},
+{
+"t": 99.4,
+"text": "People think I'm doing great",
+"key": "peoplethinkimdoinggreat",
+"w0": 189,
+"exact": true
+},
+{
+"t": 102.8,
+"text": "Maybe that's the hardest",
+"key": "maybethatsthehardest",
+"w0": 194,
+"exact": true
+},
+{
+"t": 103.2,
+"text": "part",
+"key": "part",
+"w0": 198,
+"exact": true
+},
+{
+"t": 103.8,
+"text": "Being surrounded by everybody",
+"key": "beingsurroundedbyeverybody",
+"w0": 199,
+"exact": true
+},
+{
+"t": 105.8,
+"text": "While feeling miles apart",
+"key": "whilefeelingmilesapart",
+"w0": 203,
+"exact": true
+},
+{
+"t": 108.0,
+"text": "Got memories that haunt",
+"key": "gotmemoriesthathaunt",
+"w0": 207,
+"exact": true
+},
+{
+"t": 108.2,
+"text": "me",
+"key": "me",
+"w0": 211,
+"exact": true
+},
+{
+"t": 109.4,
+"text": "Got questions with no rep",
+"key": "gotquestionswithnorep",
+"w0": 212,
+"exact": true
+},
+{
+"t": 110.0,
+"text": "lies",
+"key": "lies",
+"w0": 216,
+"exact": true
+},
+{
+"t": 111.0,
+"text": "Got a father that I miss",
+"key": "gotafatherthatimiss",
+"w0": 217,
+"exact": true
+},
+{
+"t": 114.2,
+"text": "And oldvoicemails Istill",
+"key": "andoldvoicemailsistill",
+"w0": 223,
+"exact": true
+},
+{
+"t": 114.2,
+"text": "play sometimes",
+"key": "playsometimes",
+"w0": 228,
+"exact": true
+},
+{
+"t": 116.0,
+"text": "Got dreams that keep me",
+"key": "gotdreamsthatkeepme",
+"w0": 230,
+"exact": true
+},
+{
+"t": 118.6,
+"text": "moving",
+"key": "moving",
+"w0": 235,
+"exact": true
+},
+{
+"t": 119.4,
+"text": "And scars that keep me real",
+"key": "andscarsthatkeepmereal",
+"w0": 236,
+"exact": true
+},
+{
+"t": 121.2,
+"text": "Most days I'm strong enough",
+"key": "mostdaysimstrongenough",
+"w0": 242,
+"exact": true
+},
+{
+"t": 123.4,
+"text": "Some days I just wanna feel",
+"key": "somedaysijustwannafeel",
+"w0": 247,
+"exact": true
+},
+{
+"t": 124.4,
+"text": "nothing",
+"key": "nothing",
+"w0": 253,
+"exact": true
+},
+{
+"t": 127.0,
+"text": "[Pre-Chorus] Not forever",
+"key": "notforever",
+"w0": 254,
+"exact": true
+},
+{
+"t": 131.0,
+"text": "Just long enough to breath",
+"key": "justlongenoughtobreath",
+"w0": 256,
+"exact": true
+},
+{
+"t": 134.6,
+"text": "[Chorus] I don't wanna d",
+"key": "idontwannad",
+"w0": 261,
+"exact": true
+},
+{
+"t": 135.8,
+"text": "ie",
+"key": "ie",
+"w0": 264,
+"exact": true
+},
+{
+"t": 136.4,
+"text": "I just wanna drift",
+"key": "ijustwannadrift",
+"w0": 265,
+"exact": true
+},
+{
+"t": 137.8,
+"text": "Float somewhere between the",
+"key": "floatsomewherebetweenthe",
+"w0": 269,
+"exact": true
+},
+{
+"t": 140.2,
+"text": "stars",
+"key": "stars",
+"w0": 273,
+"exact": true
+},
+{
+"t": 141.6,
+"text": "And forget about all this",
+"key": "andforgetaboutallthis",
+"w0": 274,
+"exact": true
+},
+{
+"t": 144.8,
+"text": "No deadlines",
+"key": "nodeadlines",
+"w0": 279,
+"exact": true
+},
+{
+"t": 146.8,
+"text": "No expectations",
+"key": "noexpectations",
+"w0": 281,
+"exact": true
+},
+{
+"t": 148.0,
+"text": "No voices in my head",
+"key": "novoicesinmyhead",
+"w0": 283,
+"exact": true
+},
+{
+"t": 150.0,
+"text": "I don't wanna leave this",
+"key": "idontwannaleavethis",
+"w0": 288,
+"exact": true
+},
+{
+"t": 153.6,
+"text": "world",
+"key": "world",
+"w0": 293,
+"exact": true
+},
+{
+"t": 154.8,
+"text": "I just wanna leave it for",
+"key": "ijustwannaleaveitfor",
+"w0": 294,
+"exact": true
+},
+{
+"t": 156.0,
+"text": "a bit",
+"key": "abit",
+"w0": 300,
+"exact": true
+},
+{
+"t": 158.2,
+"text": "I don't wanna die",
+"key": "idontwannadie",
+"w0": 302,
+"exact": true
+},
+{
+"t": 158.6,
+"text": "I just wanna drift",
+"key": "ijustwannadrift",
+"w0": 306,
+"exact": true
+},
+{
+"t": 168.6,
+"text": "[Bridge] Maybe I'm tired",
+"key": "maybeimtired",
+"w0": 310,
+"exact": true
+},
+{
+"t": 170.6,
+"text": "of carrying",
+"key": "ofcarrying",
+"w0": 313,
+"exact": true
+},
+{
+"t": 171.4,
+"text": "Things nobody else can see",
+"key": "thingsnobodyelsecansee",
+"w0": 315,
+"exact": true
+},
+{
+"t": 175.2,
+"text": "Maybe I'm tired of being",
+"key": "maybeimtiredofbeing",
+"w0": 320,
+"exact": true
+},
+{
+"t": 178.2,
+"text": "Everything everybody needs",
+"key": "everythingeverybodyneeds",
+"w0": 325,
+"exact": true
+},
+{
+"t": 180.8,
+"text": "Maybe I don't need fixing",
+"key": "maybeidontneedfixing",
+"w0": 328,
+"exact": true
+},
+{
+"t": 183.0,
+"text": "Maybe I just need peace",
+"key": "maybeijustneedpeace",
+"w0": 333,
+"exact": true
+},
+{
+"t": 184.2,
+"text": "Maybe I just need one night",
+"key": "maybeijustneedonenight",
+"w0": 338,
+"exact": true
+},
+{
+"t": 188.8,
+"text": "Where the world doesn't ask",
+"key": "wheretheworlddoesntask",
+"w0": 344,
+"exact": true
+},
+{
+"t": 189.2,
+"text": "forme",
+"key": "forme",
+"w0": 349,
+"exact": true
+},
+{
+"t": 191.0,
+"text": "[Breakdown] No phone ringing",
+"key": "nophoneringing",
+"w0": 351,
+"exact": true
+},
+{
+"t": 194.0,
+"text": "No notifications",
+"key": "nonotifications",
+"w0": 354,
+"exact": true
+},
+{
+"t": 194.4,
+"text": "No pressure",
+"key": "nopressure",
+"w0": 356,
+"exact": true
+},
+{
+"t": 196.2,
+"text": "No proving myself",
+"key": "noprovingmyself",
+"w0": 358,
+"exact": true
+},
+{
+"t": 197.2,
+"text": "No pretending",
+"key": "nopretending",
+"w0": 361,
+"exact": true
+},
+{
+"t": 198.6,
+"text": "Just silence",
+"key": "justsilence",
+"w0": 363,
+"exact": true
+},
+{
+"t": 200.0,
+"text": "Just breathing",
+"key": "justbreathing",
+"w0": 365,
+"exact": true
+},
+{
+"t": 201.4,
+"text": "[Final Chorus] I don't wann",
+"key": "idontwann",
+"w0": 367,
+"exact": true
+},
+{
+"t": 203.0,
+"text": "a die",
+"key": "adie",
+"w0": 369,
+"exact": true
+},
+{
+"t": 203.4,
+"text": "I just wanna drift",
+"key": "ijustwannadrift",
+"w0": 371,
+"exact": true
+},
+{
+"t": 205.0,
+"text": "Somewhere the guilt can",
+"key": "somewheretheguiltcan",
+"w0": 375,
+"exact": true
+},
+{
+"t": 207.6,
+"text": "'t find me",
+"key": "tfindme",
+"w0": 378,
+"exact": true
+},
+{
+"t": 208.2,
+"text": "Somewhere the past can't",
+"key": "somewherethepastcant",
+"w0": 381,
+"exact": true
+},
+{
+"t": 210.4,
+"text": "reach",
+"key": "reach",
+"w0": 385,
+"exact": true
+},
+{
+"t": 211.4,
+"text": "Somewhere I can hear myself",
+"key": "somewhereicanhearmyself",
+"w0": 386,
+"exact": true
+},
+{
+"t": 213.0,
+"text": "again",
+"key": "again",
+"w0": 391,
+"exact": true
+},
+{
+"t": 214.4,
+"text": "Underneath the noise",
+"key": "underneaththenoise",
+"w0": 392,
+"exact": true
+},
+{
+"t": 215.8,
+"text": "And when I'm ready",
+"key": "andwhenimready",
+"w0": 395,
+"exact": true
+},
+{
+"t": 216.6,
+"text": "I'll come back stronger",
+"key": "illcomebackstronger",
+"w0": 399,
+"exact": true
+},
+{
+"t": 218.0,
+"text": "But tonight",
+"key": "buttonight",
+"w0": 403,
+"exact": true
+},
+{
+"t": 221.6,
+"text": "I just wanna drift",
+"key": "ijustwannadrift",
+"w0": 405,
+"exact": true
+},
+{
+"t": 224.8,
+"text": "[Outro] Tomorrow I'll keep",
+"key": "tomorrowillkeep",
+"w0": 409,
+"exact": true
+},
+{
+"t": 227.8,
+"text": "fighting",
+"key": "fighting",
+"w0": 412,
+"exact": true
+},
+{
+"t": 228.4,
+"text": "Tomorrow I'll keep building",
+"key": "tomorrowillkeepbuilding",
+"w0": 413,
+"exact": true
+},
+{
+"t": 232.0,
+"text": "Tomorrow I'll keep carry",
+"key": "tomorrowillkeepcarry",
+"w0": 417,
+"exact": true
+},
+{
+"t": 233.4,
+"text": "ing the weight",
+"key": "ingtheweight",
+"w0": 420,
+"exact": true
+},
+{
+"t": 234.4,
+"text": "But tonight...",
+"key": "buttonight",
+"w0": 423,
+"exact": true
+},
+{
+"t": 237.0,
+"text": "Let me drift",
+"key": "letmedrift",
+"w0": 425,
+"exact": true
+}
+]
