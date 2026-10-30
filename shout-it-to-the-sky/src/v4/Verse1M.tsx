@@ -300,7 +300,7 @@ const Network: React.FC<{ t: number }> = ({ t }) => {
 const Earned: React.FC<{ t: number }> = ({ t }) => {
   if (t < 49.0) return null;
   const l = L[11];
-  const squash = 50.95;
+  const squash = 50.45;
   const strike = clamp01((t - wd(11, 2)) / 0.2);
   const hl = clamp01((t - squash - 0.18) / 0.1) * (1 - clamp01((t - squash - 0.6) / 0.3));
   return (
