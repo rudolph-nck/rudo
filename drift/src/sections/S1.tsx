@@ -373,7 +373,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   if (!inRoom) {
     // POV: turn from line to line across the sky
     let dir = skyDir(0);
-    for (let k = 1; k <= 6; k++) { const u = cubicInOut(clamp01((t - (L(k)[0].s + (k === 3 ? 0.08 : -0.12))) / 0.5)); if (u > 0) dir = dir.clone().lerp(skyDir(k), u).normalize(); }
+    for (let k = 1; k <= 6; k++) { const u = cubicInOut(clamp01((t - (L(k)[0].s - (k <= 5 ? 0.42 : 0.12))) / (k <= 5 ? 0.4 : 0.5))); /* turn during the breath before the line */ if (u > 0) dir = dir.clone().lerp(skyDir(k), u).normalize(); }
     const breathe = new THREE.Vector3((noise1(t * 0.25, 1) - 0.5) * 0.02, (noise1(t * 0.21, 2) - 0.5) * 0.02, 0);
     pos = O.clone(); look = O.clone().addScaledVector(dir.add(breathe), 5);
     // STOP: out of your eyes — the silhouette on the building edge, the sky of lines above
