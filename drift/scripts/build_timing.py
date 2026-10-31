@@ -131,11 +131,40 @@ if ONS:
             if len(seg) < 3: w["e"] = round(max(w["s"] + 0.15, nxt - 0.02), 3); continue
             pk = seg[: max(3, int(0.4 / HOP))].max(); thr = max(-42, pk - 18)
             end = i1
-            for k in range(int(0.12 / HOP), len(seg) - int(0.1 / HOP)):
-                if (seg[k: k + int(0.1 / HOP)] < thr).all(): end = i0 + k; break
+            for k in range(int(0.12 / HOP), len(seg) - int(0.28 / HOP)):
+                if (seg[k: k + int(0.28 / HOP)] < thr).all(): end = i0 + k; break  # a real stop, not a breath-dip
             w["e"] = round(max(w["s"] + 0.15, end * HOP), 3)
 
-# ---- per-word sung features ----
+# ---- syllables: each word split (dis-ap-pear) and each syllable placed on the voice ----
+import pyphen
+_hy = pyphen.Pyphen(lang="en_US")
+ONS_ALL = np.array([o["t"] for o in voc.get("onsets", [])]) if voc.get("onsets") else np.array([])
+for li, ln in enumerate(lines):
+    for q, w in enumerate(ln["words"]):
+        letters = re.sub(r"[.,!?]", "", w["w"])
+        parts = _hy.inserted(letters).split("-") if len(letters) > 3 else [letters]
+        s0, e0 = w["s"], w["e"]
+        n = len(parts)
+        # even split weighted by letters, then nudged onto real onsets inside the word
+        lens = np.array([max(1, len(p)) for p in parts], float)
+        cuts = list(s0 + (e0 - s0) * np.cumsum(lens)[:-1] / lens.sum()) if n > 1 else []
+        if n > 1 and len(ONS_ALL):
+            inside = ONS_ALL[(ONS_ALL > s0 + 0.05) & (ONS_ALL < e0 - 0.05)]
+            used = set()
+            for k, c in enumerate(cuts):
+                if len(inside):
+                    j = int(np.argmin(np.abs(inside - c)))
+                    if abs(inside[j] - c) < 0.25 and j not in used and (k == 0 or inside[j] > cuts[k - 1]): cuts[k] = float(inside[j]); used.add(j)
+        bounds = [s0] + sorted(cuts) + [e0]
+        # a syllable is held when the voice stays on it; the last syllable of a word that ends a phrase
+        # holds until the voice actually stops (w["e"] already measures that for line-final words)
+        w["syl"] = [{"t": parts[k], "s": round(float(bounds[k]), 3), "e": round(float(bounds[k + 1]), 3)} for k in range(n)]
+        man = anchors.get("_syl", {}).get(str(w["i"]))
+        if man and len(man) == n + 1:  # hand-set syllable times (start of each syllable + end of the note)
+            w["syl"] = [{"t": parts[k], "s": man[k], "e": man[k + 1]} for k in range(n)]
+            w["e"] = max(w["e"], man[-1])
+
+
 kicks = [k["t"] for k in beats["kicks"]]
 bt = beats["beats"]
 for w in words:

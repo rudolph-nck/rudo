@@ -6,6 +6,7 @@ import { clamp01 } from "./utils/ease";
 export type Word = {
   w: string; s: number; e: number; src: string; i: number;
   env: number[]; peak: number; dur: number; held: boolean; kick: boolean; beat: boolean;
+  syl?: { t: string; s: number; e: number }[];
 };
 export type Line = { id: string; section: string; text: string; style: string; words: Word[]; start: number; end: number; anchored: number };
 export type Section = { id: string; kind: string; tag: string; label: string; lines: string[]; start: number; end: number };
@@ -66,3 +67,50 @@ export const pulse = (t: number, events: number[], decay = 0.12, weights?: numbe
   return v;
 };
 export const kickEnv = (t: number, decay = 0.11) => Math.min(1.2, pulse(t, KT, decay, KV) * 1.6);
+
+// ---------------------------------------------------------------------------------------------
+/**
+ * The word as it is being sung at time t: syllables appear as the voice reaches them; on a held
+ * syllable its vowel keeps repeating (FAAAA) and the final consonants land only when the note ends
+ * (FAAAAR). After it lands the stretch eases back to the plain spelling.
+ */
+const VOWEL = /[AEIOUY]/;
+export const sungText = (w: Word, t: number) => {
+  const syl = w.syl && w.syl.length ? w.syl : [{ t: w.w, s: w.s, e: w.e }];
+  let out = "";
+  for (const sy of syl) {
+    if (t < sy.s - 0.03) break;
+    const txt = sy.t.toUpperCase().replace(/[.,!?]/g, "");
+    const dur = sy.e - sy.s;
+    // the sung vowel: the syllable's first vowel group (TIIIRED, not TIREEED); in EA/OA-type pairs
+    // the voice sits on the second letter (PEAAAR)
+    let vi = -1;
+    const m = /[AEIOU]+/.exec(txt) ?? /Y/.exec(txt);
+    if (m) vi = m.index + (m[0].length > 1 && /[AO]$/.test(m[0]) ? m[0].length - 1 : 0);
+    if (dur < 0.42 || vi < 0) { out += txt; continue; }
+    const per = 0.16, maxX = 5;
+    if (t < sy.e - 0.06) { // still holding: add vowels, no landing yet
+      out += txt.slice(0, vi + 1) + txt[vi].repeat(Math.max(0, Math.min(maxX, Math.floor((t - sy.s - 0.12) / per))));
+      return out;
+    }
+    const full = Math.max(0, Math.min(maxX, Math.floor((dur - 0.18) / per)));
+    const ease = Math.min(1, Math.max(0, (t - sy.e - 0.35) / 0.45));
+    out += txt.slice(0, vi + 1) + txt[vi].repeat(Math.round(full * (1 - ease))) + txt.slice(vi + 1);
+  }
+  return out;
+};
+
+import bassData from "../data/bass.json";
+const BASS = bassData as unknown as { hop: number; level: number[]; hit: number[] };
+/** Bass level 0..1 (low end of the mix) at t. */
+export const bassLevel = (t: number) => BASS.level[Math.max(0, Math.min(BASS.level.length - 1, Math.round(t / BASS.hop)))] ?? 0;
+/** Bass hits: each low-end attack as a quick pulse that decays (for pushing objects around). */
+export const bassHit = (t: number, decay = 0.09) => {
+  let v = 0;
+  const i0 = Math.round(t / BASS.hop);
+  for (let k = 0; k < Math.round((decay * 5) / BASS.hop); k++) {
+    const h = BASS.hit[i0 - k];
+    if (h) v = Math.max(v, h * Math.exp(-(k * BASS.hop) / decay));
+  }
+  return Math.min(1, v);
+};

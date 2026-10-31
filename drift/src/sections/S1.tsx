@@ -6,7 +6,7 @@ import { LineGeometry } from "three/examples/jsm/lines/LineGeometry.js";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import { loadTex, useAssets } from "../three/assets";
 import { Stage } from "../three/Stage";
-import { LINES, T, vol } from "../data";
+import { LINES, T, bassHit, bassLevel, sungText, vol } from "../data";
 import { clamp01, cubicIn, cubicInOut, cubicOut, mix } from "../utils/ease";
 import { noise1, rng } from "../utils/random";
 import { capHeight, layout, wordPoints } from "../words/glyphs";
@@ -211,19 +211,27 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   };
   const cap = (s: number) => capHeight(a.bebas, s);
   type Row = { li: number; wi: number; text: string; size: number; x: number; y: number; hero: boolean; color: string };
-  const rows: Row[] = [];
+  const rows: Row[] = []; // the words as sung right now (stretching, laid out every frame)
+  const staticRows: Row[] = []; // the words in full (for placing things like the no-sign)
   const row = (li: number, wis: number[], y: number, size: number, hero = false, maxW = 2.2, color0 = INK) => {
     const inSky = li < 6 || (li === 6 && wis[0] <= 1);
     const color = !inSky ? (color0 === STONE ? "#6f604e" : "#262421") : color0;
-    const texts = wis.map((wi) => L(li)[wi].w.toUpperCase().replace(/[.,]/g, ""));
-    const s0 = Math.min(size, size * (maxW / layout(a.bebas, texts.join(" "), size, 0.04).width));
-    const lay = layout(a.bebas, texts.join(" "), s0, 0.04);
-    let ci = 0;
-    texts.forEach((tx, k) => {
-      const f = lay.letters[ci], l = lay.letters[ci + tx.length - 1];
-      rows.push({ li, wi: wis[k], text: tx, size: s0, x: (f.x - f.adv / 2 + l.x + l.adv / 2) / 2, y, hero, color });
-      ci += tx.length + 1;
-    });
+    const full = wis.map((wi) => L(li)[wi].w.toUpperCase().replace(/[.,]/g, ""));
+    const s0 = Math.min(size, size * (maxW / layout(a.bebas, full.join(" "), size, 0.04).width));
+    const place = (texts: string[], into: Row[]) => {
+      const vis = texts.map((tx, k) => ({ tx, k })).filter((v) => v.tx.length);
+      if (!vis.length) return;
+      const lay = layout(a.bebas, vis.map((v) => v.tx).join(" "), s0, 0.04);
+      let ci = 0;
+      vis.forEach(({ tx, k }) => {
+        const f = lay.letters[ci], l = lay.letters[ci + tx.length - 1];
+        into.push({ li, wi: wis[k], text: tx, size: s0, x: (f.x - f.adv / 2 + l.x + l.adv / 2) / 2, y, hero, color });
+        ci += tx.length + 1;
+      });
+    };
+    place(full, staticRows);
+    // each word is spelled as it's sung: syllable by syllable, held vowels stretching until the note lands
+    place(wis.map((wi) => sungText(L(li)[wi], t)), rows);
   };
   // night (sky) — sizes for D = 7 m
   row(0, [0], 0, 0.5);
@@ -278,11 +286,10 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
       if (r.li === 3 && r.hero) { // DISAPPEAR: the whole word drifts away into the abyss
         const u = cubicInOut(clamp01((t - (w.s + 0.35)) / Math.max(1.4, L(4)[0].s - 0.1 - w.s - 0.35)));
         dist = D + u * 16; o *= 1 - u; rot = [0, 0, u * 0.12];
-        // sung Dis-aa-pearrr: the word arrives syllable by syllable
-        const syl = [w.s, w.s + 0.27, w.s + 0.55];
-        xf = (i, x) => ({ p: [x, 0, 0], hide: t < syl[i < 3 ? 0 : i < 5 ? 1 : 2] - 0.03 });
       }
       if (r.li === 4 && r.wi === 5) { const u = clamp01((t - stopT) / 0.07); o = u * (lineNow > 4 ? mix(0.3, 0.9, zoom) : 1); scl = [1, mix(1.2, 1, u), 1]; }
+      const bh = r.li === lineNow || (r.li === 6 && lineNow >= 6) ? bassHit(t) : 0; // the bass pushes the line you're on
+      scl = [scl[0] * (1 + 0.035 * bh), scl[1] * (1 + 0.035 * bh), 1];
       const dir = skyDir(r.li), C = O.clone().addScaledVector(dir, dist);
       sky.push(
         <group key={key} position={C.toArray() as [number, number, number]} ref={(g) => { if (g) g.lookAt(O); }}>
@@ -332,6 +339,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
       const tt = t - w.s;
       xf = (i, x) => { const rr = rng(i * 7 + 3); const k = 1 - (0.55 + 0.45 * Math.abs(Math.sin(tt * 2.6 + i * 0.7))); return { p: [x + (rr() - 0.5) * 0.05 * k, (rr() - 0.5) * 0.06 * k, (rr() - 0.5) * 0.04 * k], r: [0, 0, (rr() - 0.5) * 0.9 * k] }; };
     }
+    p = [p[0], p[1], p[2] + bassHit(t) * (r.hero ? 0.012 : 0.007)]; // each bass hit nudges the words toward you
     room.push(
       <group key={key} position={p} rotation={rot} scale={scl}>
         <Letters font={a.bebas} family="bebas" text={r.text} size={r.size} depth={0.004} material={flat(key, r.color, o, true)} tracking={0.04} bevel={0} shadows xf={xf} />
@@ -341,7 +349,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
 
   // QUIT no-sign (in the sky, around QUIT)
   const qW = L(2)[4];
-  const qRow = rows.find((r) => r.li === 2 && r.hero)!;
+  const qRow = staticRows.find((r) => r.li === 2 && r.hero)!;
   const qR = Math.max(layout(a.bebas, "QUIT", qRow.size, 0.04).width * 0.62, cap(qRow.size) * 0.85);
   const qDraw = cubicInOut(clamp01((t - (qW.s + 0.06)) / 0.28)), qSlash = cubicInOut(clamp01((t - (qW.s + 0.36)) / 0.12));
   const qC = O.clone().addScaledVector(skyDir(2), D);
@@ -449,7 +457,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
     </div>
   ) : null;
 
-  const starGain = (1 - dawn) * 0.85;
+  const starGain = (1 - dawn) * (0.8 + 0.25 * bassLevel(t));
   return (
     <Full bg="#030304">
       <Stage cam={{ pos: pos.toArray() as [number, number, number], look: look.toArray() as [number, number, number], fov, up: up.toArray() as [number, number, number] }}
