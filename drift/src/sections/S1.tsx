@@ -38,8 +38,8 @@ const SHELF_K = 12;
 // ---- world anchors ----
 const O = new THREE.Vector3(0, 0.25, 0.25); // your eyes on the rooftop
 const D = 7; // sky words distance
-const YAW = [0.0, -0.46, 0.42, -0.44, 0.4, -0.38, 0.02];
-const PITCH = [0.82, 1.0, 1.04, 0.62, 0.6, 0.34, 0.24];
+const YAW = [0.0, -0.46, 0.42, -0.44, -0.44, 0.42, -0.02];
+const PITCH = [0.82, 1.0, 1.04, 0.62, 0.37, 0.42, 0.16];
 const skyDir = (k: number) => new THREE.Vector3(Math.cos(PITCH[k]) * Math.sin(YAW[k]), Math.sin(PITCH[k]), -Math.cos(PITCH[k]) * Math.cos(YAW[k]));
 const FLOOR_Y = 100; // the bedroom
 const CY = 102.6; // ceiling height
@@ -276,7 +276,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
         xf = (i, x) => ({ p: [x * (1 + u * 0.15), Math.sin(i * 1.7) * u * 0.08, 0], r: [0, 0, (i - (n - 1) / 2) * u * 0.05] });
       }
       if (r.li === 3 && r.hero) { // DISAPPEAR: the whole word drifts away into the abyss
-        const u = cubicIn(clamp01((t - (w.s + 0.3)) / Math.max(1.4, L(4)[0].s - w.s - 0.35)));
+        const u = cubicInOut(clamp01((t - (w.s + 0.35)) / Math.max(1.4, L(4)[4].s - 0.2 - w.s - 0.35)));
         dist = D + u * 16; o *= 1 - u; rot = [0, 0, u * 0.12];
       }
       if (r.li === 4 && r.wi === 5) { const u = clamp01((t - stopT) / 0.07); o = u * (lineNow > 4 ? mix(0.3, 0.9, zoom) : 1); scl = [1, mix(1.2, 1, u), 1]; }
@@ -373,7 +373,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   if (!inRoom) {
     // POV: turn from line to line across the sky
     let dir = skyDir(0);
-    for (let k = 1; k <= 6; k++) { const u = cubicInOut(clamp01((t - (L(k)[0].s - (k <= 5 ? 0.42 : 0.12))) / (k <= 5 ? 0.4 : 0.5))); /* turn during the breath before the line */ if (u > 0) dir = dir.clone().lerp(skyDir(k), u).normalize(); }
+    for (let k = 1; k <= 6; k++) { const u = cubicInOut(clamp01((t - (L(k)[0].s - (k <= 5 ? 0.42 : 0.12))) / (k <= 5 ? 0.4 : 0.5))); /* turn during the breath before the line */ if (u > 0) dir = dir.clone().lerp(k === 4 ? skyDir(3).add(skyDir(4)).normalize() : skyDir(k), u).normalize(); }
     const breathe = new THREE.Vector3((noise1(t * 0.25, 1) - 0.5) * 0.02, (noise1(t * 0.21, 2) - 0.5) * 0.02, 0);
     pos = O.clone(); look = O.clone().addScaledVector(dir.add(breathe), 5);
     // STOP: out of your eyes — the silhouette on the building edge, the sky of lines above
