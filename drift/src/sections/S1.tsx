@@ -278,6 +278,9 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
       if (r.li === 3 && r.hero) { // DISAPPEAR: the whole word drifts away into the abyss
         const u = cubicInOut(clamp01((t - (w.s + 0.35)) / Math.max(1.4, L(4)[0].s - 0.1 - w.s - 0.35)));
         dist = D + u * 16; o *= 1 - u; rot = [0, 0, u * 0.12];
+        // sung Dis-aa-pearrr: the word arrives syllable by syllable
+        const syl = [w.s, w.s + 0.27, w.s + 0.55];
+        xf = (i, x) => ({ p: [x, 0, 0], hide: t < syl[i < 3 ? 0 : i < 5 ? 1 : 2] - 0.03 });
       }
       if (r.li === 4 && r.wi === 5) { const u = clamp01((t - stopT) / 0.07); o = u * (lineNow > 4 ? mix(0.3, 0.9, zoom) : 1); scl = [1, mix(1.2, 1, u), 1]; }
       const dir = skyDir(r.li), C = O.clone().addScaledVector(dir, dist);
