@@ -33,3 +33,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+drift/creative/tap/*.mp3

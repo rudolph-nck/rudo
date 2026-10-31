@@ -214,7 +214,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   const rows: Row[] = []; // the words as sung right now (stretching, laid out every frame)
   const staticRows: Row[] = []; // the words in full (for placing things like the no-sign)
   const row = (li: number, wis: number[], y: number, size: number, hero = false, maxW = 2.2, color0 = INK) => {
-    const inSky = li < 6 || (li === 6 && wis[0] <= 1);
+    const inSky = li < 6;
     const color = !inSky ? (color0 === STONE ? "#6f604e" : "#262421") : color0;
     const full = wis.map((wi) => L(li)[wi].w.toUpperCase().replace(/[.,]/g, ""));
     const s0 = Math.min(size, size * (maxW / layout(a.bebas, full.join(" "), size, 0.04).width));
@@ -241,7 +241,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   row(4, [0, 1, 2], 0.95, 0.26); row(4, [3], 0.48, 0.55, true); row(4, [4], 0.05, 0.22); row(4, [5], -0.55, 1.05, true, 2.0, STONE);
   row(5, [0, 1], 0.42, 0.3); row(5, [2], -0.15, 0.7, true);
   // ceiling — sizes for 2 m away
-  row(6, [0], 0.45, 0.3); row(6, [1], -0.2, 0.95, true, 2.0, STONE); row(6, [2], 0.1, 0.07); row(6, [3], -0.06, 0.15, true);
+  row(6, [0], 0.3, 0.07); row(6, [1], 0.16, 0.16, true, 0.62, STONE); row(6, [2], 0.0, 0.06); row(6, [3], -0.14, 0.13, true);
   row(7, [0], 0.3, 0.06); row(7, [1], 0.15, 0.17, true, 0.62, STONE); row(7, [2, 3], -0.03, 0.06); row(7, [4], -0.16, 0.12, true);
   row(8, [0, 1, 2], 0.26, 0.06); row(8, [3, 4], 0.15, 0.06); row(8, [5], 0.0, 0.16, true, 0.6, STONE);
   row(9, [0, 1], 0.3, 0.06); row(9, [2], 0.16, 0.13, true, 0.62); row(9, [3], 0.03, 0.05); row(9, [4], -0.12, 0.15, true, 0.6, STONE);
@@ -253,7 +253,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   const zoom = cubicInOut(clamp01((t - (stopT + 0.1)) / 0.45)) * (1 - cubicInOut(clamp01((t - (L(5)[0].s - 0.4)) / 0.4)));
   const mW = L(6)[1];
   const dawn = cubicInOut(clamp01((t - L(5)[2].e) / 1.5));
-  const blinkC = L(6)[3].s - 0.12; // the blink that turns sky into ceiling
+  const blinkC = L(6)[0].s - 0.14; // waking up: the blink that turns the sky into the ceiling
   const inRoom = t >= blinkC;
   const lineNow = (() => { let k = 0; for (let li = 0; li <= 11; li++) if (t >= L(li)[0].s - 0.05) k = li; return k; })();
   const shelfT = L(SHELF_K)[0].s;
@@ -272,7 +272,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
     let scl: [number, number, number] = [1, 1, 1];
     let xf: ((i: number, x: number) => { p: [number, number, number]; r?: [number, number, number] }) | undefined;
     const n = r.text.length;
-    if (r.li < 6 || (r.li === 6 && r.wi <= 1)) {
+    if (r.li < 6) {
       // ----- night sky -----
       const past = lineNow > r.li && r.li < 5;
       if (past) o *= mix(0.3, 0.9, zoom);
@@ -384,7 +384,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   if (!inRoom) {
     // POV: turn from line to line across the sky
     let dir = skyDir(0);
-    for (let k = 1; k <= 6; k++) { const u = cubicInOut(clamp01((t - (L(k)[0].s - (k <= 5 ? 0.42 : 0.12))) / (k <= 5 ? 0.4 : 0.5))); /* turn during the breath before the line */ if (u > 0) dir = dir.clone().lerp(k === 4 ? skyDir(3).add(skyDir(4)).normalize() : skyDir(k), u).normalize(); }
+    for (let k = 1; k <= 5; k++) { const u = cubicInOut(clamp01((t - (L(k)[0].s - (k <= 5 ? 0.42 : 0.12))) / (k <= 5 ? 0.4 : 0.5))); /* turn during the breath before the line */ if (u > 0) dir = dir.clone().lerp(k === 4 ? skyDir(3).add(skyDir(4)).normalize() : skyDir(k), u).normalize(); }
     const breathe = new THREE.Vector3((noise1(t * 0.25, 1) - 0.5) * 0.02, (noise1(t * 0.21, 2) - 0.5) * 0.02, 0);
     pos = O.clone(); look = O.clone().addScaledVector(dir.add(breathe), 5);
     // STOP: out of your eyes — the silhouette on the building edge, the sky of lines above
@@ -493,7 +493,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
           <>
             <ambientLight intensity={0.16} color="#e9e1d6" />
             {/* morning sun through the blinds, low across the ceiling */}
-            <directionalLight position={[2.2, CY - 1.4, 1.6]} target-position={[0, CY, 0]} intensity={3.4} color="#ffe6c8" castShadow
+            <directionalLight position={[2.2, CY - 1.4, 1.6]} target-position={[0, CY, 0]} intensity={mix(0.6, 3.4, cubicInOut(clamp01((t - L(6)[0].s) / 1.2)))} color="#ffe6c8" castShadow
               shadow-mapSize={[2048, 2048]} shadow-camera-left={-3} shadow-camera-right={3} shadow-camera-top={3} shadow-camera-bottom={-3} shadow-camera-near={0.1} shadow-camera-far={10} shadow-bias={-0.0004} />
             {blinds.map((i) => (
               <mesh key={i} position={[1.55, CY - 1.0, 1.05 - i * 0.075]} rotation={[0.35, 0, 0]} castShadow><boxGeometry args={[0.02, 0.6, 0.035]} /><meshBasicMaterial colorWrite={false} depthWrite={false} /></mesh>
@@ -502,6 +502,18 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
               {/* the ceiling: plain, flat plaster */}
               <mesh position={[0, 0, ceilZ - 0.0]} receiveShadow><planeGeometry args={[8, 8]} /><meshStandardMaterial color={new THREE.Color("#d8d1c6").lerp(new THREE.Color("#1c1a18"), toShelf)} roughness={0.95} /></mesh>
               <group position={[0, 0, ceilZ + 0.25]}>{room}</group>
+              {/* a slow ceiling fan, top corner; its blades sweep shadows through the morning light */}
+              <group position={[0.43, 0.72, ceilZ]}>
+                <mesh position={[0, 0, 0.05]} rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.01, 0.01, 0.1, 12]} /><meshStandardMaterial color="#2c2926" roughness={0.6} /></mesh>
+                <group position={[0, 0, 0.11]} rotation={[0, 0, t * 0.9 + bassLevel(t) * 0.02]}>
+                  <mesh rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.05, 0.05, 0.04, 24]} /><meshStandardMaterial color="#2c2926" roughness={0.55} /></mesh>
+                  {[0, 1, 2, 3].map((k) => (
+                    <group key={k} rotation={[0, 0, (k * Math.PI) / 2]}>
+                      <mesh position={[0.21, 0, 0.005]} rotation={[0.12, 0, 0]} castShadow><boxGeometry args={[0.32, 0.075, 0.006]} /><meshStandardMaterial color="#3a3632" roughness={0.75} /></mesh>
+                    </group>
+                  ))}
+                </group>
+              </group>
               {meVis ? <primitive object={me.mesh} /> : null}
               {meVis ? strings(meHooks, meO, yank, 1.4) : null}
               {timeVis ? <primitive object={time.mesh} /> : null}

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Drift Tap Timing</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one column like a phone video frame — controls up top, the line being sung in the middle, a big tap pad at the bottom. Dark only: it's the video's palette. */
+:root { --bg:#0b0a09; --panel:#151310; --line:#2a2723; --ink:#efede9; --muted:#8d877e; --stone:#c4b6a2; --hot:#fff4e6;
+  --display:"Bebas Neue","Oswald","Arial Narrow",sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace; color-scheme:dark; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body { height:100%; }
+body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 var(--body); }
+.app { height:100%; padding-top:env(safe-area-inset-top,0px); display:grid; grid-template-rows:auto 1fr auto; grid-template-columns:minmax(0,1fr); max-width:560px; margin:0 auto; padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); }
+header { padding-block:14px 8px; display:grid; gap:10px; grid-template-columns:minmax(0,1fr); min-width:0; }
+main { min-width:0; }
+.title { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+h1 { font:400 30px/1 var(--display); letter-spacing:.03em; margin:0; }
+.count { font:12px var(--mono); color:var(--muted); }
+.controls { display:flex; flex-wrap:wrap; gap:8px; }
+[hidden] { display:none !important; }
+select { flex:1 1 100%; min-width:0; max-width:100%; }
+button, select { font:500 14px var(--body); color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:9px 12px; }
+button.primary { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+button:focus-visible, select:focus-visible { outline:2px solid var(--stone); outline-offset:2px; }
+.seg { display:inline-flex; border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+.seg button { border:0; border-radius:0; padding:9px 10px; }
+.seg button[aria-pressed="true"] { background:var(--stone); color:var(--bg); }
+.help { font-size:13px; color:var(--muted); }
+main { overflow:hidden; display:grid; align-content:center; gap:18px; padding-block:10px; }
+.sec { font:500 11px var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--stone); }
+.lyric { display:flex; flex-wrap:wrap; gap:6px 12px; font:400 44px/1.02 var(--display); letter-spacing:.02em; }
+.lyric.next { font-size:22px; color:var(--muted); opacity:.7; }
+.word { display:inline-flex; gap:2px; }
+.syl { padding:0 2px; border-radius:4px; color:rgba(239,237,233,.28); transition:color .08s; }
+.syl.done { color:var(--ink); }
+.syl.held { color:var(--stone); }
+.syl.target { color:var(--bg); background:var(--hot); }
+.syl.live { color:var(--hot); }
+.time { font:12px var(--mono); color:var(--muted); }
+.pad { margin-block:8px max(14px, env(safe-area-inset-bottom,0px)); height:min(30vh,220px); border-radius:14px; border:1px solid var(--line); background:var(--panel); display:grid; place-items:center; text-align:center; user-select:none; touch-action:none; cursor:pointer; }
+.pad.down { background:#2a2622; border-color:var(--stone); }
+.pad strong { font:400 40px/1 var(--display); letter-spacing:.04em; display:block; }
+.pad span { font-size:13px; color:var(--muted); }
+.out { display:grid; gap:8px; padding-block:6px; }
+.out textarea { width:100%; height:110px; background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:6px; font:11px var(--mono); padding:8px; }
+@media (prefers-reduced-motion: reduce) { .syl { transition:none; } }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="title"><h1>Drift · tap timing</h1><span class="count" id="count">0 / 0</span></div>
+    <div class="controls">
+      <button class="primary" id="play" type="button">Play</button>
+      <button id="back" type="button">Back a line</button>
+      <select id="start" aria-label="Start from line"></select>
+      <div class="seg" role="group" aria-label="Speed"><button type="button" data-rate="1" aria-pressed="false">1×</button><button type="button" data-rate="0.75" aria-pressed="true">¾×</button><button type="button" data-rate="0.5" aria-pressed="false">½×</button></div>
+      <div class="seg" role="group" aria-label="Track"><button type="button" data-track="vocals" aria-pressed="true">Vocal</button><button type="button" data-track="song" aria-pressed="false">Song</button></div>
+      <button id="copy" type="button">Copy my timing</button>
+    </div>
+    <p class="help">Press the pad the moment each highlighted syllable starts. On a held note, keep holding until the note ends. Made a mistake? Tap “Back a line”. Your taps save in this browser.</p>
+  </header>
+  <main>
+    <div class="sec" id="sec"></div>
+    <div class="lyric" id="cur"></div>
+    <div class="lyric next" id="nxt"></div>
+    <div class="time" id="time">0:00.0</div>
+    <div class="out" id="outBox" hidden><textarea id="out" readonly aria-label="Your timing as text"></textarea></div>
+  </main>
+  <div class="pad" id="pad" role="button" tabindex="0" aria-label="Tap pad: press when the syllable starts, release when it ends"><div><strong id="padWord">TAP</strong><span>press on the syllable · hold on long notes</span></div></div>
+</div>
+<audio id="vocals" src="vocals.mp3" preload="auto"></audio>
+<audio id="song" src="song.mp3" preload="auto"></audio>
+<script>
+const LINES = [{"sec":"Intro","w":[[["YEAH",4.31]]]},{"sec":"Intro","w":[[["YOU",6.07]],[["EV",6.26],["ER",6.34]],[["GET",6.43]],[["SO",6.61]],[["TIRED",6.79]]]},{"sec":"Intro","w":[[["YOU",8.92]],[["DON'T",9.28]],[["WANT",9.71]],[["TO",9.91]],[["QUIT",10.13]]]},{"sec":"Intro","w":[[["YOU",11.36]],[["DON'T",11.55]],[["WANT",11.79]],[["TO",11.98]],[["DIS",12.25],["AP",12.45],["PEAR",12.8]]]},{"sec":"Intro","w":[[["YOU",18.85]],[["JUST",19.0]],[["WANT",19.19]],[["EV",19.35],["ERY",19.48],["THING",19.48]],[["TO",19.6]],[["STOP",19.73]]]},{"sec":"Intro","w":[[["FOR",21.15]],[["A",21.35]],[["MINUTE",21.5]]]},{"sec":"Verse 1","w":[[["AN",22.85],["OTH",22.92],["ER",23.03]],[["MORN",23.1],["ING",23.28]],[["SAME",23.44]],[["CEIL",23.64],["ING",23.82]]]},{"sec":"Verse 1","w":[[["SAME",23.98]],[["PRES",24.18],["SURE",24.46]],[["ON",24.72]],[["MY",25.14]],[["CHEST",25.26]]]},{"sec":"Verse 1","w":[[["SAME",25.94]],[["PEO",26.1],["PLE",26.25]],[["TELLING",26.4]],[["ME",26.71]],[["I'M",26.79]],[["BLESSED",27.09]]]},{"sec":"Verse 1","w":[[["WHILE",27.47]],[["I'M",27.73]],[["STRUG",27.95],["GLING",28.18]],[["TO",28.39]],[["REST",28.52]]]},{"sec":"Verse 1","w":[[["EV",29.75],["ERY",29.78],["BODY",29.83]],[["NEEDS",29.89]],[["A",30.28]],[["PIECE",30.45]],[["OF",30.59]],[["ME",30.74]]]},{"sec":"Verse 1","w":[[["EV",30.83],["ERY",31.11],["BODY",31.16]],[["WANTS",31.34]],[["MY",31.5]],[["TIME",31.67]]]},{"sec":"Verse 1","w":[[["I'M",32.09]],[["CAR",32.3],["RY",32.58],["ING",32.85]],[["SO",33.02]],[["MUCH",33.15]],[["WEIGHT",33.49]]]},{"sec":"Verse 1","w":[[["I",34.15]],[["FOR",34.45],["GOT",34.5]],[["WHAT'S",34.55]],[["AC",34.63],["TU",34.8],["AL",34.92],["LY",35.06]],[["MINE",35.2]]]},{"sec":"Verse 1","w":[[["BUILT",36.21]],[["A",36.44]],[["LIFE",36.68]],[["THAT",36.92]],[["PEO",37.23],["PLE",37.33]],[["EN",37.41],["VY",37.93]]]},{"sec":"Verse 1","w":[[["BUILT",38.5]],[["A",38.64]],[["NAME",38.82]],[["THEY",39.19]],[["ALL",39.53]],[["RE",39.71],["SPECT",40.0]]]},{"sec":"Verse 1","w":[[["FUN",40.12],["NY",40.51]],[["HOW",40.61]],[["SUC",40.68],["CESS",40.73]],[["CAN",40.81]],[["LEAVE",40.87]],[["YOU",40.94]]]},{"sec":"Verse 1","w":[[["FEEL",42.22],["ING",42.53]],[["MORE",42.76]],[["DIS",43.06],["CON",43.9],["NECT",44.4],["ED",45.67]]]},{"sec":"Verse 1","w":[[["GOT",45.98]],[["AC",46.3],["COM",46.41],["PLISH",46.55],["MENTS",46.84]],[["ON",47.05]],[["PA",47.38],["PER",47.6]]]},{"sec":"Verse 1","w":[[["GOT",47.74]],[["ACHIEVE",48.04],["MENTS",48.3]],[["ON",48.46]],[["THE",48.8]],[["WALL",49.15]]]},{"sec":"Verse 1","w":[[["BUT",49.34]],[["NONE",49.44]],[["OF",49.62]],[["THAT",49.98]],[["GETS",50.16]],[["QUI",50.38],["ET",50.58]]]},{"sec":"Verse 1","w":[[["WHEN",50.74]],[["THE",50.89]],[["DARK",51.03],["NESS",51.24]],[["STARTS",51.38]],[["TO",51.49]],[["CALL",51.61]]]},{"sec":"Pre-Chorus","w":[[["AND",51.94]],[["I'M",52.42]],[["NOT",52.96]],[["LOOK",53.5],["ING",53.6]],[["FOR",53.67]],[["AN",53.85]],[["END",54.05],["ING",54.14]]]},{"sec":"Pre-Chorus","w":[[["I'M",54.25]],[["JUST",54.41]],[["LOOK",54.57],["ING",54.76]],[["FOR",55.24]],[["A",55.41]],[["BREAK",55.78]]]},{"sec":"Chorus","w":[[["I",56.88]],[["DON'T",57.35]],[["WAN",57.57],["NA",57.69]],[["DIE",57.91]]]},{"sec":"Chorus","w":[[["I",58.59]],[["JUST",58.84]],[["WAN",59.09],["NA",59.18]],[["DRIFT",59.24]]]},{"sec":"Chorus","w":[[["FLOAT",59.48]],[["SOME",59.62],["WHERE",59.82]],[["BE",60.5],["TWEEN",60.75]],[["THE",61.38]],[["STARS",61.77]]]},{"sec":"Chorus","w":[[["AND",63.15]],[["FOR",63.7],["GET",63.95]],[["ABOUT",64.19]],[["ALL",64.88]],[["THIS",65.24]]]},{"sec":"Chorus","w":[[["NO",66.13]],[["DEAD",66.43],["LINES",67.44]]]},{"sec":"Chorus","w":[[["NO",68.41]],[["EX",68.52],["PEC",68.68],["TA",68.91],["TIONS",69.27]]]},{"sec":"Chorus","w":[[["NO",69.46]],[["VOIC",69.8],["ES",70.41]],[["IN",70.72]],[["MY",70.87]],[["HEAD",71.2]]]},{"sec":"Chorus","w":[[["I",71.56]],[["DON'T",72.1]],[["WAN",72.27],["NA",72.58]],[["LEAVE",72.95]],[["THIS",73.14]],[["WORLD",75.22]]]},{"sec":"Chorus","w":[[["I",76.29]],[["JUST",76.58]],[["WAN",76.87],["NA",77.05]],[["LEAVE",77.16]],[["IT",77.45]],[["FOR",77.68]],[["A",77.84]],[["BIT",78.37]]]},{"sec":"Chorus","w":[[["I",79.57]],[["DON'T",80.09]],[["WAN",80.39],["NA",80.57]],[["DIE",80.69]]]},{"sec":"Chorus","w":[[["I",84.64]],[["JUST",85.09]],[["WAN",85.55],["NA",85.69]],[["DRIFT",86.09]]]},{"sec":"Verse 2","w":[[["SOME",90.43],["TIMES",91.1]],[["I",91.61]],[["DRIVE",91.8]],[["WITH",92.0]],[["NO",92.14]],[["DES",92.41],["TI",92.48],["NA",92.53],["TION",92.58]]]},{"sec":"Verse 2","w":[[["RA",92.7],["DIO",92.82]],[["LOW",92.93]],[["WIN",93.19],["DOWS",93.29]],[["DOWN",93.42]]]},{"sec":"Verse 2","w":[[["TRY",94.02],["ING",94.14]],[["TO",94.27]],[["OUT",94.64],["RUN",95.0]],[["THE",95.32]],[["NOISE",95.65]]]},{"sec":"Verse 2","w":[[["THAT",97.1]],[["SOME",97.35],["HOW",97.41]],[["AL",97.6],["WAYS",97.66]],[["STICKS",97.77]],[["AROUND",98.3]]]},{"sec":"Verse 2","w":[[["PEO",99.39],["PLE",99.52]],[["THINK",99.78]],[["I'M",100.17]],[["DO",100.56],["ING",100.71]],[["GREAT",100.94]]]},{"sec":"Verse 2","w":[[["MAYBE",102.69]],[["THAT'S",102.88]],[["THE",103.2]],[["HARD",103.53],["EST",103.6]],[["PART",103.66]]]},{"sec":"Verse 2","w":[[["BE",103.71],["ING",103.85]],[["SUR",104.05],["ROUND",104.23],["ED",104.43]],[["BY",104.59]],[["EV",104.94],["ERY",105.22],["BODY",105.22]]]},{"sec":"Verse 2","w":[[["WHILE",105.47]],[["FEEL",106.52],["ING",106.68]],[["MILES",107.02]],[["APART",107.38]]]},{"sec":"Verse 2","w":[[["GOT",107.92]],[["MEM",108.4],["O",108.48],["RIES",108.5]],[["THAT",108.6]],[["HAUNT",108.73]],[["ME",108.77]]]},{"sec":"Verse 2","w":[[["GOT",109.3]],[["QUES",109.64],["TIONS",109.83]],[["WITH",109.99]],[["NO",110.23]],[["REPLIES",110.42]]]},{"sec":"Verse 2","w":[[["GOT",111.03]],[["A",111.57]],[["FA",111.75],["THER",111.87]],[["THAT",112.12]],[["I",112.46]],[["MISS",112.8]]]},{"sec":"Verse 2","w":[[["AND",114.08]],[["OLD",114.33]],[["VOICE",114.57],["MAILS",114.85]],[["I",114.94]],[["STILL",114.98]],[["PLAY",115.03]],[["SOME",115.08],["TIMES",115.41]]]},{"sec":"Verse 2","w":[[["GOT",115.91]],[["DREAMS",116.33]],[["THAT",116.61]],[["KEEP",117.17]],[["ME",117.38]],[["MOV",118.53],["ING",119.04]]]},{"sec":"Verse 2","w":[[["AND",119.58]],[["SCARS",119.75]],[["THAT",119.97]],[["KEEP",120.35]],[["ME",120.47]],[["RE",121.03],["AL",121.1]]]},{"sec":"Verse 2","w":[[["MOST",121.19]],[["DAYS",121.54]],[["I'M",121.91]],[["STRONG",122.25]],[["ENOUGH",122.39]]]},{"sec":"Verse 2","w":[[["SOME",123.4]],[["DAYS",123.65]],[["I",123.87]],[["JUST",124.01]],[["WAN",124.31],["NA",124.49]],[["FEEL",124.65]],[["NOTH",124.82],["ING",125.79]]]},{"sec":"Pre-Chorus","w":[[["NOT",126.77]],[["FOR",127.19],["EV",127.94],["ER",128.43]]]},{"sec":"Pre-Chorus","w":[[["JUST",130.97]],[["LONG",131.43]],[["ENOUGH",131.9]],[["TO",132.36]],[["BREATHE",132.55]]]},{"sec":"Chorus","w":[[["I",134.52]],[["DON'T",134.82]],[["WAN",135.45],["NA",135.83]],[["DIE",136.08]]]},{"sec":"Chorus","w":[[["I",136.24]],[["JUST",136.6]],[["WAN",136.96],["NA",137.25]],[["DRIFT",137.45]]]},{"sec":"Chorus","w":[[["FLOAT",137.87]],[["SOME",138.19],["WHERE",138.66]],[["BE",138.94],["TWEEN",139.17]],[["THE",139.73]],[["STARS",140.11]]]},{"sec":"Chorus","w":[[["AND",141.5]],[["FOR",142.03],["GET",142.46]],[["ABOUT",142.9]],[["ALL",143.22]],[["THIS",143.61]]]},{"sec":"Chorus","w":[[["NO",145.22]],[["DEAD",145.47],["LINES",146.05]]]},{"sec":"Chorus","w":[[["NO",146.74]],[["EX",146.94],["PEC",147.13],["TA",147.62],["TIONS",147.63]]]},{"sec":"Chorus","w":[[["NO",148.14]],[["VOIC",148.37],["ES",148.48]],[["IN",148.8]],[["MY",149.23]],[["HEAD",149.56]]]},{"sec":"Chorus","w":[[["I",149.91]],[["DON'T",150.27]],[["WAN",150.63],["NA",151.0]],[["LEAVE",151.26]],[["THIS",151.75]],[["WORLD",153.74]]]},{"sec":"Chorus","w":[[["I",154.74]],[["JUST",154.99]],[["WAN",155.27],["NA",155.44]],[["LEAVE",155.55]],[["IT",155.84]],[["FOR",156.04]],[["A",156.38]],[["BIT",156.71]]]},{"sec":"Chorus","w":[[["I",157.93]],[["DON'T",158.45]],[["WAN",158.75],["NA",158.93]],[["DIE",159.05]]]},{"sec":"Chorus","w":[[["I",162.6]],[["JUST",162.78]],[["WAN",163.53],["NA",163.88]],[["DRIFT",164.03]]]},{"sec":"Bridge","w":[[["MAYBE",168.63]],[["I'M",168.99]],[["TIRED",169.16]],[["OF",170.38]],[["CAR",170.82],["RY",171.1],["ING",171.29]]]},{"sec":"Bridge","w":[[["THINGS",171.59]],[["NO",171.72],["BODY",172.14]],[["ELSE",172.97]],[["CAN",173.04]],[["SEE",173.2]]]},{"sec":"Bridge","w":[[["MAYBE",175.2]],[["I'M",175.45]],[["TIRED",175.76]],[["OF",176.41]],[["BE",176.71],["ING",177.49]]]},{"sec":"Bridge","w":[[["EV",178.22],["ERY",178.38],["THING",178.58]],[["EV",179.23],["ERY",179.62],["BODY",180.06]],[["NEEDS",180.73]]]},{"sec":"Bridge","w":[[["MAYBE",180.86]],[["I",181.17]],[["DON'T",181.41]],[["NEED",181.72]],[["FIX",182.08],["ING",182.43]]]},{"sec":"Bridge","w":[[["MAYBE",182.91]],[["I",183.22]],[["JUST",183.53]],[["NEED",183.81]],[["PEACE",184.22]]]},{"sec":"Bridge","w":[[["MAYBE",184.39]],[["I",184.51]],[["JUST",184.86]],[["NEED",185.15]],[["ONE",185.53]],[["NIGHT",185.92]]]},{"sec":"Bridge","w":[[["WHERE",188.7]],[["THE",188.98]],[["WORLD",189.25]],[["DOES",189.42],["N'T",189.81]],[["ASK",190.11]],[["FOR",190.11]],[["ME",190.12]]]},{"sec":"Breakdown","w":[[["NO",191.36]],[["PHONE",191.61]],[["RING",191.86],["ING",192.9]]]},{"sec":"Breakdown","w":[[["NO",194.07]],[["NO",194.32],["TI",194.47],["FI",194.78],["CA",194.79],["TIONS",194.95]]]},{"sec":"Breakdown","w":[[["NO",195.37]],[["PRES",195.72],["SURE",195.95]]]},{"sec":"Breakdown","w":[[["NO",196.2]],[["PROV",196.58],["ING",196.86]],[["MY",197.07],["SELF",197.17]]]},{"sec":"Breakdown","w":[[["NO",197.4]],[["PRE",197.65],["TEND",197.83],["ING",198.15]]]},{"sec":"Breakdown","w":[[["JUST",198.49]],[["SI",199.04],["LENCE",199.2]]]},{"sec":"Breakdown","w":[[["JUST",199.91]],[["BREATH",200.42],["ING",200.91]]]},{"sec":"Final Chorus","w":[[["I",201.45]],[["DON'T",201.84]],[["WAN",202.86],["NA",203.21]],[["DIE",203.44]]]},{"sec":"Final Chorus","w":[[["I",203.65]],[["JUST",203.82]],[["WAN",203.93],["NA",204.33]],[["DRIFT",204.59]]]},{"sec":"Final Chorus","w":[[["SOME",204.99],["WHERE",205.37]],[["THE",205.86]],[["GUILT",206.31]],[["CAN'T",207.61]],[["FIND",207.9]],[["ME",208.03]]]},{"sec":"Final Chorus","w":[[["SOME",208.55],["WHERE",208.71]],[["THE",208.98]],[["PAST",209.41]],[["CAN'T",209.84]],[["REACH",210.4]]]},{"sec":"Final Chorus","w":[[["SOME",211.55],["WHERE",211.69]],[["I",211.86]],[["CAN",212.24]],[["HEAR",212.62]],[["MY",212.74],["SELF",212.88]],[["AGAIN",213.17]]]},{"sec":"Final Chorus","w":[[["UN",214.42],["DER",214.62],["NEATH",214.88]],[["THE",215.1]],[["NOISE",215.47]]]},{"sec":"Final Chorus","w":[[["AND",215.81]],[["WHEN",216.0]],[["I'M",216.39]],[["READY",216.54]]]},{"sec":"Final Chorus","w":[[["I'LL",216.69]],[["COME",216.88]],[["BACK",217.18]],[["STRONGER",217.48]]]},{"sec":"Final Chorus","w":[[["BUT",217.91]],[["TONIGHT",218.24]]]},{"sec":"Final Chorus","w":[[["I",221.6]],[["JUST",221.77]],[["WAN",222.46],["NA",222.88]],[["DRIFT",223.15]]]},{"sec":"Outro","w":[[["TO",224.8],["MOR",224.93],["ROW",225.13]],[["I'LL",225.69]],[["KEEP",225.8]],[["FIGHT",228.05],["ING",228.26]]]},{"sec":"Outro","w":[[["TO",228.42],["MOR",228.64],["ROW",229.16]],[["I'LL",229.29]],[["KEEP",229.47]],[["BUILD",230.02],["ING",231.22]]]},{"sec":"Outro","w":[[["TO",231.93],["MOR",232.15],["ROW",232.48]],[["I'LL",232.81]],[["KEEP",233.13]],[["CAR",233.64],["RY",233.77],["ING",233.85]],[["THE",233.98]],[["WEIGHT",234.28]]]},{"sec":"Outro","w":[[["BUT",234.66]],[["TONIGHT",234.73]]]},{"sec":"Outro","w":[[["LET",236.8]],[["ME",237.33]],[["DRIFT",237.63]]]}];
+const flat = []; LINES.forEach((l, li) => l.w.forEach((w, wi) => w.forEach((s, si) => flat.push({ li, wi, si, t: s[0], est: s[1] }))));
+const KEY = "drift-taps-v1";
+let taps = {}; try { taps = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(taps)); } catch (e) {} };
+const id = (s) => `${s.li}.${s.wi}.${s.si}`;
+let track = "vocals", rate = 0.75;
+const A = () => document.getElementById(track);
+let target = flat.findIndex((s) => !taps[id(s)]); if (target < 0) target = flat.length;
+let downAt = null;
+const $ = (q) => document.getElementById(q);
+const startSel = $("start");
+LINES.forEach((l, li) => { const o = document.createElement("option"); o.value = li; o.textContent = `${l.sec} · ${l.w.map((w) => w.map((s) => s[0]).join("")).join(" ").slice(0, 34)}`; startSel.appendChild(o); });
+const lineStart = (li) => LINES[li].w[0][0][1];
+const fmt = (x) => `${Math.floor(x / 60)}:${(x % 60).toFixed(1).padStart(4, "0")}`;
+function render() {
+  const cur = flat[Math.min(target, flat.length - 1)], li = cur ? cur.li : 0;
+  $("sec").textContent = LINES[li].sec;
+  const lineHTML = (L, k) => LINES[L].w.map((w, wi) => `<span class="word">${w.map((s, si) => {
+    const sid = `${L}.${wi}.${si}`, tp = taps[sid], isT = flat[target] && flat[target].li === L && flat[target].wi === wi && flat[target].si === si;
+    return `<span class="syl ${isT ? (downAt !== null ? "live" : "target") : tp ? (tp[1] - tp[0] > 0.4 ? "held done" : "done") : ""}">${s[0]}</span>`; }).join("")}</span>`).join("");
+  $("cur").innerHTML = lineHTML(li);
+  $("nxt").innerHTML = li + 1 < LINES.length ? lineHTML(li + 1) : "";
+  $("count").textContent = `${Object.keys(taps).length} / ${flat.length}`;
+  $("padWord").textContent = flat[target] ? flat[target].t : "DONE";
+  startSel.value = li;
+}
+function setTrack(tr) { const t0 = A().currentTime, playing = !A().paused; A().pause(); track = tr; A().currentTime = t0; A().playbackRate = rate; if (playing) A().play(); document.querySelectorAll("[data-track]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.track === tr)); }
+document.querySelectorAll("[data-track]").forEach((b) => b.addEventListener("click", () => setTrack(b.dataset.track)));
+document.querySelectorAll("[data-rate]").forEach((b) => b.addEventListener("click", () => { rate = +b.dataset.rate; A().playbackRate = rate; document.querySelectorAll("[data-rate]").forEach((x) => x.setAttribute("aria-pressed", x === b)); }));
+$("play").addEventListener("click", () => { const a = A(); a.playbackRate = rate; if (a.paused) { if (a.currentTime < 1 && flat[target]) a.currentTime = Math.max(0, lineStart(flat[target].li) - 2.5); a.play(); $("play").textContent = "Pause"; } else { a.pause(); $("play").textContent = "Play"; } });
+function goLine(li) { flat.forEach((s, i) => { if (s.li >= li) delete taps[id(s)]; }); save(); target = flat.findIndex((s) => s.li === li); const a = A(); a.currentTime = Math.max(0, lineStart(li) - 2.5); render(); }
+$("back").addEventListener("click", () => { const li = flat[Math.min(target, flat.length - 1)].li; goLine(Math.max(0, li - (flat[target] && flat[target].si === 0 && flat[target].wi === 0 ? 1 : 0))); });
+startSel.addEventListener("change", () => goLine(+startSel.value));
+function press() { if (!flat[target] || downAt !== null) return; downAt = A().currentTime; $("pad").classList.add("down"); render(); }
+function release() { if (downAt === null) return; const s = flat[target]; taps[id(s)] = [+downAt.toFixed(3), +A().currentTime.toFixed(3)]; save(); downAt = null; target++; $("pad").classList.remove("down"); render(); }
+const pad = $("pad");
+pad.addEventListener("pointerdown", (e) => { e.preventDefault(); pad.setPointerCapture(e.pointerId); press(); });
+pad.addEventListener("pointerup", release); pad.addEventListener("pointercancel", release);
+document.addEventListener("keydown", (e) => { if (e.code === "Space" && !e.repeat) { e.preventDefault(); press(); } });
+document.addEventListener("keyup", (e) => { if (e.code === "Space") { e.preventDefault(); release(); } });
+$("copy").addEventListener("click", (ev) => {
+  const rows = flat.filter((s) => taps[id(s)]).map((s) => `${id(s)} ${taps[id(s)][0]} ${taps[id(s)][1]}`);
+  const text = `DRIFT-TAPS v1 (${rows.length})\n` + rows.join("\n");
+  const out = $("out"); out.value = text; $("outBox").hidden = false;
+  const btn = ev.currentTarget, done = (m) => { btn.textContent = m; setTimeout(() => (btn.textContent = "Copy my timing"), 2200); };
+  try { navigator.clipboard.writeText(text).then(() => done("Copied"), () => { out.select(); done("Select and copy below"); }); } catch (e) { out.select(); done("Select and copy below"); }
+});
+(function tick() { $("time").textContent = fmt(A().currentTime); requestAnimationFrame(tick); })();
+render();
+</script>
+
+</body>
+</html>
