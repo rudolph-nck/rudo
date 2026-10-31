@@ -51,7 +51,7 @@ for raw in open(f"{ROOT}/data/lyrics.txt"):
 # ---- anchors: chunk onsets, then manual overrides (key = global word index) ----
 anc = {c["w0"]: (c["t"], "suno") for c in chunks}
 for k, v in anchors.items():
-    if not k.startswith("_"): anc[int(k)] = (float(v), "manual")
+    if not k.startswith("_") and not isinstance(v, list): anc[int(k)] = (float(v), "manual")
 # every line start without an anchor gets one from the previous chunk + syllable pace later
 idx = sorted(anc)
 for a, b in zip(idx, idx[1:] + [len(words)]):
@@ -78,9 +78,11 @@ ONS = [o for o in voc.get("onsets", []) if o["db"] > -40]
 if ONS:
     ot = np.array([o["t"] for o in ONS]); ov = np.array([o["v"] for o in ONS])
     floor_t = -1.0
+    LOCK = set(anchors.get("_lock", []))
     for li, ln in enumerate(lines):
         ws = ln["words"]
         nxt = lines[li + 1]["words"][0]["s"] if li + 1 < len(lines) else DUR
+        if li in LOCK: floor_t = ws[-1]["s"]; continue  # hand-read off the stem
         lo, hi = max(floor_t + 0.05, ws[0]["s"] - 0.6), min(nxt + 0.25, ws[-1]["s"] + 0.6)
         cand = [j for j in range(len(ot)) if lo <= ot[j] <= hi]
         n, m = len(ws), len(cand)
