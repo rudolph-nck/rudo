@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
 /* Layout: one column like a phone video frame — controls up top, the line being sung in the middle, a big tap pad at the bottom. Dark only: it's the video's palette. */
-:root { --bg:#0b0a09; --panel:#151310; --line:#2a2723; --ink:#efede9; --muted:#8d877e; --stone:#c4b6a2; --hot:#fff4e6;
+:root { --bg:#0b0a09; --panel:#151310; --line:#2a2723; --ink:#efede9; --muted:#8d877e; --stone:#c4b6a2; --hot:#fff4e6; --rec:#e54834;
   --display:"Bebas Neue","Oswald","Arial Narrow",sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace; color-scheme:dark; }
 * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html,body { height:100%; }
@@ -32,19 +32,25 @@ button:focus-visible, select:focus-visible { outline:2px solid var(--stone); out
 .help { font-size:13px; color:var(--muted); }
 main { overflow:hidden; display:grid; align-content:center; gap:18px; padding-block:10px; }
 .sec { font:500 11px var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--stone); }
-.lyric { display:flex; flex-wrap:wrap; gap:6px 12px; font:400 44px/1.02 var(--display); letter-spacing:.02em; }
+.lyric { display:flex; flex-wrap:wrap; gap:8px 12px; padding:6px; font:400 44px/1.02 var(--display); letter-spacing:.02em; }
 .lyric.next { font-size:22px; color:var(--muted); opacity:.7; }
 .word { display:inline-flex; gap:2px; }
 .syl { padding:0 2px; border-radius:4px; color:rgba(239,237,233,.28); transition:color .08s; }
 .syl.done { color:var(--ink); }
 .syl.held { color:var(--stone); }
-.syl.target { color:var(--bg); background:var(--hot); }
-.syl.live { color:var(--hot); }
+/* two states: UP NEXT = waiting for your finger (outlined, nothing recording yet); RECORDING = finger is down (solid red) */
+.syl.target { color:var(--ink); background:transparent; outline:2px dashed var(--muted); outline-offset:1px; }
+.syl.live { color:#fff; background:var(--rec); box-shadow:0 0 0 3px rgba(229,72,52,.35); }
 .time { font:12px var(--mono); color:var(--muted); }
 .pad { margin-block:8px max(14px, env(safe-area-inset-bottom,0px)); height:min(30vh,220px); border-radius:14px; border:1px solid var(--line); background:var(--panel); display:grid; place-items:center; text-align:center; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; touch-action:none; cursor:pointer; }
 .pad * { pointer-events:none; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; }
 body.holding { user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; }
-.pad.down { background:#2a2622; border-color:var(--stone); }
+.pad.down { background:var(--rec); border-color:var(--rec); }
+.pad.down span, .pad.down em { color:#fff; }
+.pad em { display:block; font:500 11px var(--mono); letter-spacing:.16em; text-transform:uppercase; font-style:normal; color:var(--muted); margin-bottom:8px; }
+.dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#fff; margin-right:6px; vertical-align:1px; animation:blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity:.2; } }
+@media (prefers-reduced-motion: reduce) { .dot { animation:none; } }
 .pad strong { font:400 40px/1 var(--display); letter-spacing:.04em; display:block; }
 .pad span { font-size:13px; color:var(--muted); }
 .out { display:grid; gap:8px; padding-block:6px; }
@@ -65,7 +71,7 @@ body.holding { user-select:none; -webkit-user-select:none; -webkit-touch-callout
       <div class="seg" role="group" aria-label="Track"><button type="button" data-track="vocals" aria-pressed="true">Vocal</button><button type="button" data-track="song" aria-pressed="false">Song</button></div>
       <button id="copy" type="button">Copy my timing</button>
     </div>
-    <p class="help">Put your finger down the moment each highlighted syllable starts, and lift it the moment that syllable ends. Long notes: keep holding until the note is done. Made a mistake? Tap “Back a line”. Your taps save in this browser.</p>
+    <p class="help">The dashed box is <b>up next</b>: nothing is recording yet. Put your finger down when it starts singing and the syllable turns <b style="color:#e54834">red</b>: that’s recording. Lift when that syllable ends. Long notes: keep holding until the note is done. Made a mistake? Tap “Back a line”. Your taps save in this browser.</p>
   </header>
   <main>
     <div class="sec" id="sec"></div>
@@ -74,7 +80,7 @@ body.holding { user-select:none; -webkit-user-select:none; -webkit-touch-callout
     <div class="time" id="time">0:00.0</div>
     <div class="out" id="outBox" hidden><textarea id="out" readonly aria-label="Your timing as text"></textarea></div>
   </main>
-  <div class="pad" id="pad" role="button" tabindex="0" aria-label="Tap pad: press when the syllable starts, release when it ends"><div><strong id="padWord">TAP</strong><span id="padHint">finger down on the start · lift on the end</span></div></div>
+  <div class="pad" id="pad" role="button" tabindex="0" aria-label="Tap pad: press when the syllable starts, release when it ends"><div><em id="padState">Up next</em><strong id="padWord">TAP</strong><span id="padHint">finger down on the start · lift on the end</span></div></div>
 </div>
 <audio id="vocals" src="vocals.mp3" preload="auto"></audio>
 <audio id="song" src="song.mp3" preload="auto"></audio>
@@ -104,6 +110,7 @@ function render() {
   $("nxt").innerHTML = li + 1 < LINES.length ? lineHTML(li + 1) : "";
   $("count").textContent = `${Object.keys(taps).length} / ${flat.length}`;
   $("padWord").textContent = flat[target] ? flat[target].t : "DONE";
+  $("padState").innerHTML = !flat[target] ? "All done" : downAt !== null ? '<span class="dot"></span>Recording' : "Up next · not recording";
   startSel.value = li;
 }
 function setTrack(tr) { const t0 = A().currentTime, playing = !A().paused; A().pause(); track = tr; A().currentTime = t0; A().playbackRate = rate; if (playing) A().play(); document.querySelectorAll("[data-track]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.track === tr)); }
