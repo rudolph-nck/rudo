@@ -161,6 +161,8 @@ for li, ln in enumerate(lines):
         w["syl"] = [{"t": parts[k], "s": round(float(bounds[k]), 3), "e": round(float(bounds[k + 1]), 3)} for k in range(n)]
         man = anchors.get("_syl", {}).get(str(w["i"]))
         if man and len(man) == n + 1:  # hand-set syllable times (start of each syllable + end of the note)
+            man = list(man)
+            if man[-1] is None: man[-1] = max(w["e"], man[-2] + 0.12)  # note end measured from the stem
             w["syl"] = [{"t": parts[k], "s": man[k], "e": man[k + 1]} for k in range(n)]
             w["e"] = max(w["e"], man[-1])
 

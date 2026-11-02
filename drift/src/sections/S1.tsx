@@ -29,7 +29,7 @@ import { continueRender, delayRender } from "remotion";
  *           small, in the rubble.
  * Type is always crisp and flat: no bevel, no texture, no glow.
  */
-export const S1_END = 36.6;
+export const S1_END = 37.9;
 const L = (li: number) => LINES[li].words;
 const INK = "#f1eee8";
 const STONE = "#c9bca9";
@@ -420,7 +420,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   // the crack opens under it; MINE tips in and falls; the camera goes down after it
   const SLAM = 34.447;
   const crackW = t < SLAM ? 0 : 0.035 * cubicOut(clamp01((t - SLAM) / 0.25)) + 0.15 * cubicInOut(clamp01((t - (mineW.s + 0.1)) / 0.45));
-  const tFall = mineW.s + 0.42;
+  const tFall = mineW.s + 0.32;
   const fdt = Math.max(0, t - tFall);
   const vT = 2.2, tv = vT / 9; // falls, then drifts down at a steady speed
   const fallY = fdt < tv ? 0.5 * 9 * fdt * fdt : 0.5 * 9 * tv * tv + vT * (fdt - tv);
@@ -503,13 +503,13 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
               <mesh position={[0, 0, ceilZ - 0.0]} receiveShadow><planeGeometry args={[8, 8]} /><meshStandardMaterial color={new THREE.Color("#d8d1c6").lerp(new THREE.Color("#1c1a18"), toShelf)} roughness={0.95} /></mesh>
               <group position={[0, 0, ceilZ + 0.25]}>{room}</group>
               {/* a slow ceiling fan, top corner; its blades sweep shadows through the morning light */}
-              <group position={[0.43, 0.72, ceilZ]}>
-                <mesh position={[0, 0, 0.05]} rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.01, 0.01, 0.1, 12]} /><meshStandardMaterial color="#2c2926" roughness={0.6} /></mesh>
+              <group position={[0.2, 0.6, ceilZ]}>
+                <mesh position={[0, 0, 0.05]} rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.008, 0.008, 0.1, 12]} /><meshStandardMaterial color="#6d655c" roughness={0.6} /></mesh>
                 <group position={[0, 0, 0.11]} rotation={[0, 0, t * 0.9 + bassLevel(t) * 0.02]}>
-                  <mesh rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.05, 0.05, 0.04, 24]} /><meshStandardMaterial color="#2c2926" roughness={0.55} /></mesh>
+                  <mesh rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.035, 0.035, 0.03, 24]} /><meshStandardMaterial color="#6d655c" roughness={0.55} /></mesh>
                   {[0, 1, 2, 3].map((k) => (
                     <group key={k} rotation={[0, 0, (k * Math.PI) / 2]}>
-                      <mesh position={[0.21, 0, 0.005]} rotation={[0.12, 0, 0]} castShadow><boxGeometry args={[0.32, 0.075, 0.006]} /><meshStandardMaterial color="#3a3632" roughness={0.75} /></mesh>
+                      <mesh position={[0.15, 0, 0.005]} rotation={[0.12, 0, 0]} castShadow><boxGeometry args={[0.22, 0.05, 0.005]} /><meshStandardMaterial color="#8c8378" roughness={0.75} /></mesh>
                     </group>
                   ))}
                 </group>
