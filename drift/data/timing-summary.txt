@@ -1,10 +1,10 @@
 [0:00.00 – 0:22.88] Intro
-   0:04.36  Yeah...
-   0:06.01  You ever get so tired~1.62
-   0:09.02  You don't want to quit~1.09
-   0:11.42  You don't want to disappear
-   0:18.09  You just want everything to stop~1.22
-   0:21.21  For a minute
+   0:04.36  Yeah...~1.65
+   0:06.01  You ever get so~1.79 tired
+   0:09.02  You don't want to~1.34 quit
+   0:11.42  You don't want to disappear~5.66
+   0:18.09  You just want everything to~1.32 stop
+   0:21.21  For a~1.17 minute
 [0:22.88 – 0:52.30] Verse 1
    0:23.17  Another morning, same ceiling*
    0:24.92  Same pressure on* my chest
@@ -47,15 +47,15 @@
    1:44.18  Being surrounded by everybody
    1:46.02  While feeling miles* apart
    1:48.18  Got* memories that haunt* me
-   1:49.93  Got questions with no replies~1.83*
+   1:49.93  Got questions with no replies~1.86*
    1:52.86  Got* a father that I miss*
    1:54.15  And old* voicemails I still play sometimes
    1:58.33  Got* dreams* that keep* me moving*
    1:59.83  And scars that keep* me real
    2:01.40  Most days I'm strong~1.21 enough
-   2:04.14  Some days* I just* wanna feel nothing~1.71
+   2:04.14  Some days* I just* wanna feel nothing~1.99
 [2:09.23 – 2:14.87] Pre-Chorus
-   2:09.73  Not forever~2.43
+   2:09.73  Not forever~2.52
    2:12.69  Just long enough to~1.55 breathe
 [2:14.87 – 2:49.83] Chorus
    2:15.68  I don't wanna die*
@@ -71,7 +71,7 @@
    2:48.50  I just* wanna drift*
 [2:49.83 – 3:12.23] Bridge
    2:50.46  Maybe I'm tired of carrying
-   2:53.23  Things nobody else can see
+   2:53.23  Things nobody else can~0.96 see
    2:55.84  Maybe I'm~0.95 tired of being
    2:58.34  Everything everybody needs*
    3:01.29  Maybe I* don't* need fixing
@@ -101,5 +101,5 @@
    3:47.51  Tomorrow I'll keep fighting
    3:50.07  Tomorrow I'll keep* building*
    3:52.84  Tomorrow I'll keep carrying the~1.08* weight*
-   3:56.70  But* tonight...~4.72
-   4:02.24  Let me drift~4.11*
+   3:56.70  But~5.35* tonight...
+   4:02.24  Let me~1.22 drift~3.3

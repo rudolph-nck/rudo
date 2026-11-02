@@ -250,9 +250,9 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
 
   // ---------- timeline ----------
   const stopT = L(4)[5].s;
-  const zoom = cubicInOut(clamp01((t - (stopT + 0.1)) / 0.45)) * (1 - cubicInOut(clamp01((t - (L(5)[0].s - 0.4)) / 0.4)));
+  const zoom = cubicInOut(clamp01((t - (stopT + 0.05)) / 0.45)) * (1 - cubicInOut(clamp01((t - (L(5)[2].s - 0.55)) / 0.45))); // the wide shot holds through FOR A, back in for MINUTE
   const mW = L(6)[1];
-  const dawn = cubicInOut(clamp01((t - L(5)[2].e) / 1.5));
+  const dawn = cubicInOut(clamp01((t - (L(5)[2].s + 0.1)) / 0.5));
   const blinkC = L(6)[0].s - 0.14; // waking up: the blink that turns the sky into the ceiling
   const inRoom = t >= blinkC;
   const lineNow = (() => { let k = 0; for (let li = 0; li <= 11; li++) if (t >= L(li)[0].s - 0.05) k = li; return k; })();
@@ -275,7 +275,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
     if (r.li < 6) {
       // ----- night sky -----
       const past = lineNow > r.li && r.li < 5;
-      if (past) o *= mix(0.3, 0.9, zoom);
+      if (past) o *= mix(1, mix(0.3, 0.9, zoom), clamp01((t - (L(r.li + 1)[0].s + 0.2)) / 0.5));
       if (r.li === 0) o = appear * (t < w.e ? 0.6 : Math.max(0, 1 - (t - w.e) / 1.0)) * (zoom > 0 ? 0 : 1);
       let dist = D;
       if (r.li === 1 && r.hero) { // TIRED sinks away into the sky, falling asleep
@@ -285,7 +285,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
       }
       if (r.li === 3 && r.hero) { // DISAPPEAR: the whole word drifts away into the abyss
         const u = cubicInOut(clamp01((t - (w.s + 0.35)) / Math.max(1.4, L(4)[0].s - 0.1 - w.s - 0.35)));
-        dist = D + u * 16; o *= 1 - u; rot = [0, 0, u * 0.12];
+        dist = D + u * 16; o *= (1 - 0.75 * u) * (1 - clamp01((t - L(4)[0].s) / 0.5)); rot = [0, 0, u * 0.12]; // PEAR lands as it vanishes
       }
       if (r.li === 4 && r.wi === 5) { const u = clamp01((t - stopT) / 0.07); o = u * (lineNow > 4 ? mix(0.3, 0.9, zoom) : 1); scl = [1, mix(1.2, 1, u), 1]; }
       const bh = r.li === lineNow || (r.li === 6 && lineNow >= 6) ? bassHit(t) : 0; // the bass pushes the line you're on
@@ -351,7 +351,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   const qW = L(2)[4];
   const qRow = staticRows.find((r) => r.li === 2 && r.hero)!;
   const qR = Math.max(layout(a.bebas, "QUIT", qRow.size, 0.04).width * 0.62, cap(qRow.size) * 0.85);
-  const qDraw = cubicInOut(clamp01((t - (qW.s + 0.06)) / 0.28)), qSlash = cubicInOut(clamp01((t - (qW.s + 0.36)) / 0.12));
+  const qDraw = cubicInOut(clamp01((t - (qW.s + 0.02)) / 0.18)), qSlash = cubicInOut(clamp01((t - (qW.s + 0.2)) / 0.1));
   const qC = O.clone().addScaledVector(skyDir(2), D);
 
   // ME and TIME pulled apart (ceiling local)
@@ -384,7 +384,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   if (!inRoom) {
     // POV: turn from line to line across the sky
     let dir = skyDir(0);
-    for (let k = 1; k <= 5; k++) { const u = cubicInOut(clamp01((t - (L(k)[0].s - (k <= 5 ? 0.42 : 0.12))) / (k <= 5 ? 0.4 : 0.5))); /* turn during the breath before the line */ if (u > 0) dir = dir.clone().lerp(k === 4 ? skyDir(3).add(skyDir(4)).normalize() : skyDir(k), u).normalize(); }
+    for (let k = 1; k <= 5; k++) { const prevLast = L(k - 1)[L(k - 1).length - 1].s; const u = cubicInOut(clamp01((t - Math.max(L(k)[0].s - 0.42, prevLast + 0.12)) / 0.4)); /* turn during the breath before the line */ if (u > 0) dir = dir.clone().lerp(k === 4 ? skyDir(3).add(skyDir(4)).normalize() : skyDir(k), u).normalize(); }
     const breathe = new THREE.Vector3((noise1(t * 0.25, 1) - 0.5) * 0.02, (noise1(t * 0.21, 2) - 0.5) * 0.02, 0);
     pos = O.clone(); look = O.clone().addScaledVector(dir.add(breathe), 5);
     // STOP: out of your eyes — the silhouette on the building edge, the sky of lines above
@@ -483,7 +483,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
             })()}
             {qDraw > 0 && !inRoom ? (
               <group position={qC.toArray() as [number, number, number]} ref={(g) => { if (g) g.lookAt(O); }}>
-                <group position={[qRow.x, qRow.y, 0]}><NoSign r={qR} draw={qDraw} slash={qSlash} o={lineNow > 2 ? mix(0.0, 0.9, zoom) : 1} /></group>
+                <group position={[qRow.x, qRow.y, 0]}><NoSign r={qR} draw={qDraw} slash={qSlash} o={lineNow > 2 ? Math.max(1 - clamp01((t - (L(3)[0].s + 0.3)) / 0.5), 0.9 * zoom) : 1} /></group>
               </group>
             ) : null}
           </>
