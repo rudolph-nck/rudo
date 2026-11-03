@@ -47,7 +47,7 @@ const LIE = new THREE.Vector3(0, 100.6, 0.0); // lying on the bed, looking up
 const SH = new THREE.Vector3(0, FLOOR_Y, -2.0); // shelf wall origin
 
 // ---------------------------------------------------------------------------------------------
-const mkLine = (n: number, width: number, color = "#f1eee8") => {
+export const mkLine = (n: number, width: number, color = "#f1eee8") => {
   const g = new LineGeometry();
   g.setPositions(new Array(n * 3).fill(0));
   const m = new LineMaterial({ linewidth: width, worldUnits: false, transparent: true });
@@ -72,7 +72,7 @@ const String3: React.FC<{ a: THREE.Vector3; b: THREE.Vector3; sag: number; draw:
   obj.m.opacity = o;
   return <primitive object={obj.l} />;
 };
-const NoSign: React.FC<{ r: number; draw: number; slash: number; o: number }> = ({ r, draw, slash, o }) => {
+export const NoSign: React.FC<{ r: number; draw: number; slash: number; o: number }> = ({ r, draw, slash, o }) => {
   const circ = useMemo(() => Array.from({ length: 97 }, (_, i) => { const q = Math.PI * 0.75 - (i / 96) * Math.PI * 2; return new THREE.Vector3(Math.cos(q), Math.sin(q), 0); }), []);
   const obj = useMemo(() => {
     const ring = mkLine(97, 2.6);
@@ -89,7 +89,7 @@ const NoSign: React.FC<{ r: number; draw: number; slash: number; o: number }> = 
 };
 
 /** A big, quiet clock in the sky behind FOR A MINUTE: thin crisp lines, a ticking second hand. */
-const SkyClock: React.FC<{ r: number; sec: number; o: number }> = ({ r, sec, o }) => {
+export const SkyClock: React.FC<{ r: number; sec: number; o: number }> = ({ r, sec, o }) => {
   const obj = useMemo(() => {
     const ring = mkLine(121, 1.6, "#d8d1c6");
     ring.g.setPositions(Array.from({ length: 121 }, (_, i) => { const q = (i / 120) * Math.PI * 2; return [Math.cos(q) * r, Math.sin(q) * r, 0]; }).flat());
@@ -149,7 +149,7 @@ const pullTiles = (tl: NonNullable<ReturnType<typeof useTiles>>, hooks: Hook[], 
   tl.mesh.instanceMatrix.needsUpdate = true;
 };
 
-const useCutout = () => {
+export const useCutout = () => {
   const [st] = React.useState(() => ({ tex: null as THREE.Texture | null, h: delayRender("cutout") }));
   const [tex, setTex] = React.useState<THREE.Texture | null>(null);
   React.useEffect(() => { loadTex("images/rudo-cutout.png").then((t) => { setTex(t); continueRender(st.h); }); }, [st]);
@@ -157,7 +157,7 @@ const useCutout = () => {
 };
 
 /** Sky: night, warming from the horizon at dawn. */
-const Sky: React.FC<{ dawn: number }> = ({ dawn }) => {
+export const Sky: React.FC<{ dawn: number }> = ({ dawn }) => {
   const mat = useMemo(() => new THREE.ShaderMaterial({
     side: THREE.BackSide, depthWrite: false, fog: false, uniforms: { uD: { value: 0 } },
     vertexShader: `varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }`,
