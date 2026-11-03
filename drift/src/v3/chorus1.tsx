@@ -4,7 +4,8 @@ import { clamp01, cubicIn, cubicInOut, cubicOut, mix } from "../utils/ease";
 import { rng } from "../utils/random";
 import { FF, Finish3, Float, P, Room } from "./kit";
 import { Label, Phone } from "./frames";
-import { W, Sp, big, mono, mixC, pulse, seen, sungC } from "./verse1";
+import { W, Sp, big, mono, mixC, onBeat, pulse, seen, sungC } from "./verse1";
+import { kickEnv } from "../data";
 
 /**
  * Chorus 1 (0:57.2–1:31.8). Gravity switches off for the first time: every object drifts UP into the light and
@@ -14,10 +15,12 @@ export const C1_START = 57.2;
 export const C1_END = 91.8;
 
 /** In the chorus things float: they rise in from below, bob gently, and drift on up and away. */
-const Up: React.FC<{ t: number; s: number; e: number; children: React.ReactNode }> = ({ t, s, e, children }) => {
+let kt = 0; // real time for the kick dip (set by the chorus)
+export const Up: React.FC<{ t: number; s: number; e: number; children: React.ReactNode }> = ({ t, s: s0, e, children }) => {
+  const s = onBeat(s0);
   const i = cubicOut(clamp01((t - (s - 0.35)) / 0.6)), o = cubicIn(clamp01((t - (e - 0.15)) / 0.6));
   if (i <= 0 || o >= 1) return null;
-  const bob = Math.sin((t - s) * 1.3) * 6;
+  const bob = Math.sin((t - s) * 1.3) * 6 + kickEnv(kt) * 5; // floating, with a soft dip on each kick
   return (
     <AbsoluteFill style={{ opacity: i * (1 - o), transform: `translateY(${(1 - i) * 90 - o * 160 + bob}px) rotate(${(1 - i) * 1.5 - o * 2}deg)`, filter: `blur(${(1 - i) * 6 + o * 4}px)` }}>
       {children}
@@ -25,7 +28,7 @@ const Up: React.FC<{ t: number; s: number; e: number; children: React.ReactNode 
   );
 };
 /** The battery gauge: huge thin outlined numbers, charging. */
-const Battery: React.FC<{ pct: number; top: string; sub: React.ReactNode; charging?: boolean }> = ({ pct, top, sub, charging = true }) => (
+export const Battery: React.FC<{ pct: number; top: string; sub: React.ReactNode; charging?: boolean }> = ({ pct, top, sub, charging = true }) => (
   <>
     <div style={{ position: "absolute", left: 260, top: 210, ...mono(22, P.stone, "0.34em") }}>{top}</div>
     <div style={{ position: "absolute", left: 230, top: 210, font: `100 520px/1 ${FF.thin}`, letterSpacing: "-0.03em", color: "transparent", WebkitTextStroke: `2px ${P.bone}` }}>
@@ -37,7 +40,9 @@ const Battery: React.FC<{ pct: number; top: string; sub: React.ReactNode; chargi
   </>
 );
 
-export const Chorus1V3: React.FC<{ t: number }> = ({ t }) => {
+export const Chorus1V3: React.FC<{ t: number; batt?: [number, number, number, number]; end?: "road" | "dim"; real?: number }> = ({ t, batt = [12, 15, 15, 34], end = "road", real }) => {
+  const rt = real ?? t; // real song time (for anything tied to the actual beat)
+  kt = rt;
   const open = cubicOut(clamp01((t - 57.16) / 0.9));
   const light = mix(0.25, 1.15, open) * (t > 84.5 ? mix(1, 0.85, clamp01((t - 84.5) / 4)) : 1);
   const cam: [number, number, number] = [Math.sin(t * 0.11) * 0.25, 1.45 + Math.sin(t * 0.17) * 0.06, 6.0];
@@ -52,7 +57,7 @@ export const Chorus1V3: React.FC<{ t: number }> = ({ t }) => {
 
       {/* 0:57 · I DON'T WANNA DIE — the battery, charging; status: still here */}
       <Up t={t} s={57.2} e={59.24}>
-        <Battery pct={mix(12, 15, clamp01((t - 57.4) / 1.8))} top="I’M RUNNING ON" sub={
+        <Battery pct={mix(batt[0], batt[1], clamp01((t - 57.4) / 1.8))} top={batt[0] < 5 ? "I’M RUNNING ON EMPTY" : "I’M RUNNING ON"} sub={
           <div style={{ ...mono(18, P.paper) }}><Sp t={t} li={24} wi={0} text="I" /> <Sp t={t} li={24} wi={1} text="don't" /> <Sp t={t} li={24} wi={2} text="wanna" /> <Sp t={t} li={24} wi={3} text="die" /> <span style={{ marginLeft: 30, color: P.bone, opacity: seen(24, 3, t) }}>· status: still here</span></div>
         } />
       </Up>
@@ -223,7 +228,7 @@ export const Chorus1V3: React.FC<{ t: number }> = ({ t }) => {
           const air = cubicInOut(clamp01((t - (W(34, 3).s - 0.15)) / 0.3));
           return (
             <>
-              <Battery pct={mix(15, 34, clamp01((t - 84.7) / 5))} top="STILL HERE · CHARGING" sub={
+              <Battery pct={mix(batt[2], batt[3], clamp01((t - 84.7) / 5))} top="STILL HERE · CHARGING" sub={
                 <div style={{ ...mono(18, P.paper) }}><Sp t={t} li={33} wi={0} text="I" /> <Sp t={t} li={33} wi={1} text="don't" /> <Sp t={t} li={33} wi={2} text="wanna" /> <Sp t={t} li={33} wi={3} text="die" /> <span style={{ marginLeft: 26 }}><Sp t={t} li={34} wi={0} text="· I" /> <Sp t={t} li={34} wi={1} text="just" /> <Sp t={t} li={34} wi={2} text="wanna" /> <Sp t={t} li={34} wi={3} text="drift" /></span></div>
               } />
               <div style={{ position: "absolute", right: 120, top: 560, display: "flex", alignItems: "center", gap: 18, opacity: clamp01((t - 89.9) / 0.4) }}>
@@ -236,11 +241,12 @@ export const Chorus1V3: React.FC<{ t: number }> = ({ t }) => {
         })()}
       </Up>
       {/* the hand-off to verse 2: light streaks */}
-      {t > 91.0 ? (
+      {end === "road" && t > 91.0 ? (
         <svg viewBox="0 0 1920 1080" style={{ position: "absolute", inset: 0 }}>
           {Array.from({ length: 40 }, (_, i) => { const r = rng(i + 77); const y = 540 + (r() - 0.5) * 900, k = clamp01((t - 91.0) / 0.8); const len = k * (300 + r() * 900); const x = 960 + (r() - 0.5) * 200; return <line key={i} x1={x - len * (r() > 0.5 ? 1 : -1)} y1={y} x2={x} y2={y + (r() - 0.5) * 20} stroke={P.light} strokeWidth={1 + r() * 2} opacity={0.15 + r() * 0.4} />; })}
         </svg>
       ) : null}
+      {end === "dim" && t > 90.6 ? <AbsoluteFill style={{ background: P.char, opacity: cubicInOut(clamp01((t - 90.6) / 1.2)) }} /> : null}
       {flash > 0 ? <AbsoluteFill style={{ background: `radial-gradient(ellipse 60% 70% at 50% 50%, ${P.light}, rgba(242,227,200,0) 70%)`, opacity: flash * 0.9 }} /> : null}
       <Finish3 />
     </AbsoluteFill>

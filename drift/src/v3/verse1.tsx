@@ -28,7 +28,10 @@ export const beatsIn = (a: number, b: number) => T.beats.filter((x) => x >= a &&
 export const pulse = (t: number, a: number, b: number, d = 0.14) => { let v = 0; for (const x of beatsIn(a, b)) if (t >= x) v = Math.max(v, Math.exp(-(t - x) / d)); return v; };
 
 /** One object's time on screen: rises into the light, holds, sinks back. */
-export const Shot: React.FC<{ t: number; s: number; e: number; children: React.ReactNode }> = ({ t, s, e, children }) => {
+/** The beat nearest to a time (within 0.22 s), so objects land on the beat. */
+export const onBeat = (s: number) => { let b = s, d = 0.22; for (const x of T.beats) { if (Math.abs(x - s) < d) { d = Math.abs(x - s); b = x; } } return b; };
+export const Shot: React.FC<{ t: number; s: number; e: number; children: React.ReactNode }> = ({ t, s: s0, e, children }) => {
+  const s = onBeat(s0);
   const i = cubicOut(clamp01((t - (s - 0.3)) / 0.45)), o = cubicIn(clamp01((t - (e - 0.12)) / 0.38));
   if (i <= 0 || o >= 1) return null;
   return (

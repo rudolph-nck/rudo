@@ -12,6 +12,7 @@ import { Grain, Vignette } from "../fx/Post";
 import { Glow } from "../words/points";
 import { FMT } from "../theme";
 import { rng } from "../utils/random";
+import { T, kickEnv } from "../data";
 
 /** Static & Silence palette (sampled from the cover). */
 export const P = {
@@ -48,7 +49,7 @@ export const Room: React.FC<{ t: number; light?: number; cam?: [number, number, 
       <spotLight position={[0.3, 6.5, 3.2]} target-position={[0, 1.6, -0.4]} angle={0.5} penumbra={0.9} intensity={300 * light} decay={2} color="#f2dcc0" castShadow shadow-mapSize={[1024, 1024]} />
       <mesh position={[0, 3, -0.6]} material={wallMat} receiveShadow><planeGeometry args={[14, 8]} /></mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 2]} receiveShadow><planeGeometry args={[14, 6]} /><meshStandardMaterial color="#151311" roughness={0.35} metalness={0.2} /></mesh>
-      <Glow geo={dust} size={7} gain={0.8 * light} time={t} twinkle={0.3} color="#efe3cf" position={[Math.sin(t * 0.07) * 0.1, t * 0.01, 0]} />
+      <Glow geo={dust} size={7} gain={0.8 * light * (1 + 0.7 * kickEnv(t))} time={t} twinkle={0.3} color="#efe3cf" position={[Math.sin(t * 0.07) * 0.1, t * 0.01, 0]} />
     </Stage>
   );
 };
@@ -67,6 +68,22 @@ export const Float: React.FC<{ x: number; y: number; w: number; h?: number; rx?:
     {children}
   </div>
 );
+
+/** A small bar · beat counter in the corner: four ticks for the bar, the current beat lit. A quiet detail. */
+export const BeatRuler: React.FC<{ t: number; o?: number }> = ({ t, o = 1 }) => {
+  const down = T.downbeats;
+  let bi = -1; for (let i = 0; i < down.length; i++) if (down[i] <= t) bi = i;
+  if (bi < 0) return null;
+  const bars = T.beats.filter((b) => b >= down[bi] - 0.01 && (bi + 1 >= down.length || b < down[bi + 1] - 0.01));
+  let k = 0; bars.forEach((b, i) => { if (b <= t) k = i; });
+  const flash = Math.exp(-(t - (bars[k] ?? t)) / 0.18);
+  return (
+    <div style={{ position: "absolute", left: FMT.W * 0.035, bottom: FMT.H * 0.045, display: "flex", alignItems: "center", gap: 10, opacity: 0.6 * o, font: `500 13px ${FF.mono}`, letterSpacing: "0.22em", color: P.stone }}>
+      <span>BAR {String(bi + 1).padStart(3, "0")}</span>
+      {[0, 1, 2, 3].map((i) => <i key={i} style={{ display: "inline-block", width: 18, height: 3, background: i === k ? P.bone : i < k ? P.stone : "#2e2a26", opacity: i === k ? 0.6 + 0.4 * flash : 1 }} />)}
+    </div>
+  );
+};
 
 /** Small lyric line at the bottom: sung words in stone, the word being sung in bone. */
 export const Lyric: React.FC<{ words: string[]; on: number }> = ({ words, on }) => (
