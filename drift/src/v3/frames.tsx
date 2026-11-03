@@ -110,7 +110,7 @@ export const FVoicemail: React.FC<{ t: number }> = ({ t }) => {
               </div>
               <svg width="100%" height="90" viewBox="0 0 600 90" style={{ marginTop: 24 }}>
                 {wave.map((h, i) => <rect key={i} x={i * 5} y={45 - h} width={2.4} height={h * 2} fill={i < 48 ? P.bone : P.dim} />)}
-                <circle cx={240} cy={45} r={7} fill={P.light} />
+                <circle cx={240} cy={45} r={7} fill={P.ember} />
               </svg>
               <div style={{ display: "flex", justifyContent: "space-between", font: `400 18px ${FF.mono}`, color: P.stone, marginTop: 10 }}><span>▶ playing</span><span>0:17 / 0:43</span></div>
             </div>

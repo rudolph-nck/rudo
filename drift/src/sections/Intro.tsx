@@ -28,7 +28,7 @@ export const INTRO_END = 23.3;
 const L = (li: number) => LINES[li].words;
 // Static & Silence palette: words settle to stone; while sung they lift to bone (the "heat")
 const INK = new THREE.Color("#a89a8a");
-const AMBER = new THREE.Color("#f4ead9");
+const AMBER = new THREE.Color("#f07c4a");
 const SILVER = new THREE.Color("#8d877d");
 const R = 6; // spiral radius
 const K = 0.07; // rise per unit of path
@@ -141,7 +141,7 @@ export const Intro: React.FC<{ t: number }> = ({ t }) => {
     return { g, jit: Array.from({ length: n }, () => new THREE.Vector3(r() - 0.5, r() - 0.5, r() - 0.5)) };
   }, []);
   const fuse = useMemo(() => mkLine(700, 1.7, "#ffffff"), []);
-  const sparkMat = useMemo(() => new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.9, 0.74).multiplyScalar(7), toneMapped: false }), []);
+  const sparkMat = useMemo(() => new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.62, 0.4).multiplyScalar(7), toneMapped: false }), []);
 
   if (!a || !slots) return <Full bg="#030304">{null}</Full>;
 
@@ -366,7 +366,7 @@ export const Intro: React.FC<{ t: number }> = ({ t }) => {
             <mesh position={sparkPos.toArray() as [number, number, number]} material={sparkMat} scale={(0.022 + 0.03 * relight) * sparkOn * (frozen ? 1 : 1 + 0.25 * (noise1(t * 40, 7) - 0.5))}>
               <sphereGeometry args={[1, 16, 12]} />
             </mesh>
-            <Glow geo={embers.g} size={40} gain={1.6 * sparkOn} time={tf} color="#f2dcc0" twinkle={frozen ? 0 : 0.6} />
+            <Glow geo={embers.g} size={40} gain={1.6 * sparkOn} time={tf} color="#f6a27a" twinkle={frozen ? 0 : 0.6} />
           </>
         ) : null}
         {/* FOR A MINUTE, with a clock drawing itself */}
@@ -403,8 +403,8 @@ export const Intro: React.FC<{ t: number }> = ({ t }) => {
         return (
           <div style={{ position: "absolute", right: FMT.W * 0.06, top: FMT.H * 0.07, opacity: o, display: "flex", alignItems: "center", gap: 14, font: "500 20px 'IBM Plex Mono', monospace", letterSpacing: "0.24em", color: "#8e7d6e" }}>
             LOW BATTERY
-            <span style={{ display: "inline-block", width: 54, height: 24, border: "2px solid #8e7d6e", borderRadius: 5, position: "relative" }}><i style={{ position: "absolute", left: 3, top: 3, bottom: 3, width: 4, background: "#ece2d0" }} /></span>
-            <span style={{ color: "#ece2d0", font: "100 44px 'Inter', sans-serif", letterSpacing: 0 }}>3%</span>
+            <span style={{ display: "inline-block", width: 54, height: 24, border: "2px solid #8e7d6e", borderRadius: 5, position: "relative" }}><i style={{ position: "absolute", left: 3, top: 3, bottom: 3, width: 4, background: "#f07c4a" }} /></span>
+            <span style={{ color: "#f07c4a", font: "100 44px 'Inter', sans-serif", letterSpacing: 0 }}>3%</span>
           </div>
         );
       })()}

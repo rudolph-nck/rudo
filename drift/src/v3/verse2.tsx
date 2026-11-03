@@ -40,7 +40,7 @@ export const Verse2V3: React.FC<{ t: number }> = ({ t }) => {
             <svg viewBox="0 0 1180 620" style={{ position: "absolute", inset: 0 }}>
               {[["M-20 520 C200 480 340 560 520 420 S860 180 1200 220", 26], ["M80 -20 C120 200 260 300 300 640", 14], ["M700 -20 C640 160 760 300 720 640", 14], ["M-20 140 C300 160 600 100 1200 120", 10]].map(([d, w], i) => <path key={i} d={d as string} fill="none" stroke="#2c2824" strokeWidth={w as number} strokeLinecap="round" />)}
               <path d="M-20 520 C200 480 340 560 520 420 S860 180 1200 220" fill="none" stroke={P.bone} strokeWidth={5} strokeDasharray="1700" strokeDashoffset={1700 * (1 - clamp01((t - 91.9) / 1.6))} />
-              <circle cx={520} cy={420} r={14} fill={P.light} />
+              <circle cx={520} cy={420} r={14} fill={P.ember} />
             </svg>
             <div style={{ position: "absolute", left: 30, top: 24, width: 470, background: "#171513", borderRadius: 14, padding: "18px 24px", boxShadow: "inset 0 0 0 1px #3a342e" }}>
               <div style={mono(14)}><Sp t={t} li={35} wi={0} text="sometimes" /> <Sp t={t} li={35} wi={1} text="I" /> <Sp t={t} li={35} wi={2} text="drive" /> <Sp t={t} li={35} wi={3} text="with" /> <Sp t={t} li={35} wi={4} text="no" /></div>
@@ -80,7 +80,7 @@ export const Verse2V3: React.FC<{ t: number }> = ({ t }) => {
                 <circle cx={960} cy={520} r={330} fill="#0d0c0b" stroke={P.stone} strokeWidth={2} />
                 {Array.from({ length: 17 }, (_, i) => { const q = (-210 + i * 15) * (Math.PI / 180); return <line key={i} x1={960 + Math.cos(q) * 300} y1={520 + Math.sin(q) * 300} x2={960 + Math.cos(q) * (i % 2 ? 280 : 260)} y2={520 + Math.sin(q) * (i % 2 ? 280 : 260)} stroke={P.paper} strokeWidth={3} />; })}
                 <line x1={960} y1={520} x2={960 + Math.cos(a) * 270} y2={520 + Math.sin(a) * 270} stroke={P.bone} strokeWidth={6} strokeLinecap="round" />
-                <circle cx={960} cy={520} r={18} fill={P.light} />
+                <circle cx={960} cy={520} r={18} fill={P.ember} />
                 <text x={960} y={680} textAnchor="middle" style={{ font: `100 90px ${FF.thin}` }} fill={P.bone}>{Math.round(sp)}</text>
                 <text x={960} y={330} textAnchor="middle" style={{ font: `500 20px ${FF.mono}`, letterSpacing: "0.3em" }} fill={P.stone}><tspan opacity={seen(37, 0, t)}>TRYING </tspan><tspan opacity={seen(37, 1, t)}>TO </tspan><tspan opacity={seen(37, 2, t)} fill={sungC(37, 2, t)}>OUTRUN </tspan><tspan opacity={seen(37, 3, t)}>THE</tspan></text>
               </svg>
@@ -131,7 +131,7 @@ export const Verse2V3: React.FC<{ t: number }> = ({ t }) => {
             <svg viewBox="0 0 1920 1080" style={{ position: "absolute", inset: 0 }}>
               {Array.from({ length: 14 }, (_, i) => <path key={i} d={`M${-50 + i * 160} -20 C${i * 160 + 80} 400 ${i * 160 - 120} 700 ${i * 140 + 60} 1100`} fill="none" stroke="#242120" strokeWidth={3} />)}
               {pins.map((p, i) => { const k = cubicOut(clamp01((t - p.at) / 0.2)); return <g key={i} opacity={k}><circle cx={p.x} cy={p.y - 18 * k} r={9} fill={P.stone} /><line x1={p.x} y1={p.y - 9 - 18 * k + 18} x2={p.x} y2={p.y} stroke={P.stone} strokeWidth={2} /></g>; })}
-              <circle cx={you.x} cy={you.y} r={16} fill={P.light} />
+              <circle cx={you.x} cy={you.y} r={16} fill={P.ember} />
               <text x={you.x} y={you.y + 56} textAnchor="middle" style={{ font: `500 20px ${FF.mono}`, letterSpacing: "0.26em" }} fill={P.paper}>YOU</text>
               {meas > 0 ? <><line x1={you.x + 24} y1={you.y} x2={you.x + 24 + (820 - 24) * meas} y2={you.y - 100 * meas} stroke={P.bone} strokeWidth={2} strokeDasharray="10 8" /><text x={you.x + 420} y={you.y - 80} textAnchor="middle" style={{ font: `100 64px ${FF.thin}` }} fill={P.bone} opacity={meas}>2,431 mi</text></> : null}
               <text x={1200} y={120} textAnchor="middle" style={{ font: `500 22px ${FF.mono}`, letterSpacing: "0.26em" }} fill={P.stone}><tspan opacity={seen(41, 0, t)}>BEING </tspan><tspan opacity={seen(41, 1, t)} fill={sungC(41, 1, t)}>SURROUNDED </tspan><tspan opacity={seen(41, 2, t)}>BY </tspan><tspan opacity={seen(41, 3, t)} fill={sungC(41, 3, t)}>EVERYBODY</tspan></text>
@@ -195,7 +195,7 @@ export const Verse2V3: React.FC<{ t: number }> = ({ t }) => {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><span style={{ ...hand(96), color: P.bone }}>Dad</span><span style={{ font: `400 18px ${FF.mono}`, color: P.stone, letterSpacing: "0.12em" }}>0:43 · MAR 2019</span></div>
                     <svg width="100%" height="90" viewBox="0 0 600 90" style={{ marginTop: 24 }}>
                       {wave.map((h, i) => <rect key={i} x={i * 5} y={45 - h} width={2.4} height={h * 2} fill={i / 120 < pos ? P.bone : P.dim} />)}
-                      <circle cx={pos * 600} cy={45} r={7} fill={P.light} />
+                      <circle cx={pos * 600} cy={45} r={7} fill={P.ember} />
                     </svg>
                     <div style={{ display: "flex", justifyContent: "space-between", font: `400 18px ${FF.mono}`, color: P.stone, marginTop: 10 }}><span>{t >= play ? "▶ playing" : "▶ play"}</span><span>0:{String(Math.floor(pos * 43)).padStart(2, "0")} / 0:43</span></div>
                   </div>

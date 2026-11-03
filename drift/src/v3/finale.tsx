@@ -70,7 +70,7 @@ export const FinaleV3: React.FC<{ t: number }> = ({ t }) => {
           return (
             <Float x={360} y={260} w={1200} h={480} rx={8}>
               <div style={{ width: "100%", height: "100%", background: "rgba(22,20,18,0.96)", borderRadius: 30, boxShadow: "inset 0 0 0 1px #3a342e", position: "relative", padding: "40px 50px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", ...mono(16) }}><span>voice memo · recording</span><span style={{ color: P.bone }}>● {Math.floor(t - 212.6)}s</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", ...mono(16) }}><span>voice memo · recording</span><span style={{ color: P.ember }}>● {Math.floor(t - 212.6)}s</span></div>
                 <svg viewBox="0 0 1100 220" style={{ width: "100%", height: 220, marginTop: 30 }}>{bars.map((v, i) => <rect key={i} x={i * 6.8} y={110 - v * 100} width={3.4} height={Math.max(2, v * 200)} fill={i > N - 4 ? P.light : P.bone} opacity={0.4 + 0.6 * (i / N)} />)}</svg>
                 <div style={{ ...mono(20, P.paper), marginTop: 20 }}><Sp t={t} li={83} wi={0} text="somewhere" /> <Sp t={t} li={83} wi={1} text="I" /> <Sp t={t} li={83} wi={2} text="can" /> <Sp t={t} li={83} wi={3} text="hear" /> <Sp t={t} li={83} wi={4} text="myself" style={{ ...big(48, "0.2em") }} /> <Sp t={t} li={83} wi={5} text="again" /></div>
               </div>
@@ -191,14 +191,14 @@ export const FinaleV3: React.FC<{ t: number }> = ({ t }) => {
               <Float x={760} y={110} w={400} h={790} rx={14} ry={-6} rz={-2}>
                 <Phone w={400} h={790}>
                   <div style={{ position: "absolute", inset: 0, opacity: 1 - off, display: "grid", placeItems: "center", alignContent: "center", gap: 26 }}>
-                    <span style={{ fontSize: 80, color: mixC(P.dim, P.bone, air) }}>✈︎</span>
+                    <span style={{ fontSize: 80, color: mixC(P.dim, P.ember, air) }}>✈︎</span>
                     <div style={mono(16, P.paper)}>airplane mode</div>
-                    <span style={{ width: 120, height: 68, borderRadius: 40, background: mixC("#3a342e", P.bone, air), position: "relative" }}><i style={{ position: "absolute", top: 6, left: 6 + air * 52, width: 56, height: 56, borderRadius: "50%", background: air > 0.5 ? P.char : P.paper }} /></span>
+                    <span style={{ width: 120, height: 68, borderRadius: 40, background: mixC("#3a342e", P.ember, air), position: "relative" }}><i style={{ position: "absolute", top: 6, left: 6 + air * 52, width: 56, height: 56, borderRadius: "50%", background: air > 0.5 ? P.char : P.paper }} /></span>
                     <div style={{ ...big(60, "0.3em"), marginTop: 30 }}><Sp t={t} li={93} wi={0} text="LET" /> <Sp t={t} li={93} wi={1} text="ME" /> <Sp t={t} li={93} wi={2} text="DRIFT" /></div>
                   </div>
                 </Phone>
               </Float>
-              {fly > 0 ? <div style={{ position: "absolute", left: 950 + Math.sin(fly * 0.7) * 120 + fly * 20, top: 480 - fly * 70, width: 18, height: 18, borderRadius: "50%", background: P.light, boxShadow: `0 0 40px 10px rgba(242,227,200,0.5)`, opacity: 1 - clamp01((fly - 5.5) / 1.5) }} /> : null}
+              {fly > 0 ? <div style={{ position: "absolute", left: 950 + Math.sin(fly * 0.7) * 120 + fly * 20, top: 480 - fly * 70, width: 18, height: 18, borderRadius: "50%", background: P.ember, boxShadow: `0 0 40px 10px rgba(240,124,74,0.5)`, opacity: 1 - clamp01((fly - 5.5) / 1.5) }} /> : null}
             </>
           );
         })()}
@@ -212,7 +212,7 @@ export const FinaleV3: React.FC<{ t: number }> = ({ t }) => {
         </AbsoluteFill>
       ) : null}
       {/* the last frames match the first: a spark, about to ignite */}
-      {t > 261.5 ? <div style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, background: "#000", opacity: clamp01((t - 261.5) / 1) }}><div style={{ position: "absolute", left: "38%", top: "62%", width: 10, height: 10, borderRadius: "50%", background: P.light, boxShadow: "0 0 30px 8px rgba(242,227,200,0.6)", opacity: clamp01((t - 262.6) / 1) }} /></div> : null}
+      {t > 261.5 ? <div style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, background: "#000", opacity: clamp01((t - 261.5) / 1) }}><div style={{ position: "absolute", left: "38%", top: "62%", width: 10, height: 10, borderRadius: "50%", background: P.ember, boxShadow: "0 0 30px 8px rgba(240,124,74,0.6)", opacity: clamp01((t - 262.6) / 1) }} /></div> : null}
       <Finish3 />
     </AbsoluteFill>
   );

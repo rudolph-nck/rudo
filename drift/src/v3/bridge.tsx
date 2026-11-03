@@ -44,7 +44,7 @@ export const BridgeV3: React.FC<{ t: number }> = ({ t }) => {
             <Float x={330} y={120} w={1260} h={740} rx={4} ry={-10}>
               <div style={{ width: "100%", height: "100%", background: "#0c0c0b", border: "12px solid #1d1a17", borderRadius: 14, boxShadow: "0 0 0 1px #3a342e", position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", left: 30, top: 22, ...mono(16) }}>security · lane 3 · bag 0042</div>
-                <div style={{ position: "absolute", right: 30, top: 22, ...mono(16, P.bone) }}>● scanning</div>
+                <div style={{ position: "absolute", right: 30, top: 22, ...mono(16, P.ember) }}>● scanning</div>
                 <svg viewBox="0 0 1200 640" style={{ position: "absolute", left: 0, top: 60, width: "100%", height: 600 }}>
                   <rect x="170" y="70" width="860" height="470" rx="40" fill="rgba(189,179,164,0.06)" stroke={P.paper} strokeOpacity="0.5" strokeWidth="3" />
                   <g opacity={item(230)}><circle cx="330" cy="170" r="54" fill="none" stroke={P.paper} strokeWidth="2" /><path d="M330 170 V132 M330 170 L356 182" stroke={P.paper} strokeWidth="2.5" /><text x="330" y="262" textAnchor="middle" fontFamily="Bebas Neue" fontSize="32" letterSpacing="8" fill={P.paper}>TIME</text></g>
@@ -108,7 +108,7 @@ export const BridgeV3: React.FC<{ t: number }> = ({ t }) => {
                   <div style={{ font: `400 26px ${FF.mono}`, opacity: st }}>status: won't fix — working as intended</div>
                 </div>
               </Float>
-              {st > 0 ? <div style={{ position: "absolute", left: 1040, top: 560, padding: "6px 30px", border: "6px solid #1a1714", ...big(96, "0.12em"), color: "#1a1714", transform: `rotate(-10deg) scale(${mix(1.6, 1, st)})`, opacity: st * 0.85 }}>WON'T FIX</div> : null}
+              {st > 0 ? <div style={{ position: "absolute", left: 1040, top: 560, padding: "6px 30px", border: `6px solid ${P.ember}`, ...big(96, "0.12em"), color: P.ember, transform: `rotate(-10deg) scale(${mix(1.6, 1, st)})`, opacity: st * 0.85 }}>WON'T FIX</div> : null}
             </>
           );
         })()}
@@ -159,7 +159,7 @@ export const BridgeV3: React.FC<{ t: number }> = ({ t }) => {
                   <div style={{ position: "absolute", inset: 0, padding: "70px 40px" }}>
                     {cur === 0 ? ["Manager", "Label", "Unknown"].map((n, i) => { const d = clamp01((loc - 0.2 - i * 0.35) / 0.25); return <div key={i} style={{ background: "#211e1b", borderRadius: 22, padding: "24px 28px", marginTop: 18, display: "flex", justifyContent: "space-between", font: `500 30px ${FF.thin}`, color: P.bone, transform: `translateX(${d * 700}px)`, opacity: 1 - d }}><span>{n}</span><span style={{ ...mono(14) }}>calling…</span></div>; }) : null}
                     {cur === 1 ? Array.from({ length: 7 }, (_, i) => { const d = clamp01((loc - 0.15 - i * 0.15) / 0.2); return <div key={i} style={{ background: "#211e1b", borderRadius: 18, padding: "18px 22px", marginTop: 12, font: `400 22px ${FF.thin}`, color: P.paper, transform: `translateX(${-d * 700}px)`, opacity: 1 - d }}>{["3 new emails", "Reminder: deadline", "You were mentioned", "Missed call", "12 likes", "Meeting moved", "Are you there?"][i]}</div>; }) : null}
-                    {cur === 2 ? (() => { const a = mix(70, -90, cubicInOut(clamp01((loc - 0.3) / 1))) * (Math.PI / 180); return <svg viewBox="0 0 520 520" style={{ width: "100%", marginTop: 80 }}><path d="M60 360 A200 200 0 0 1 460 360" fill="none" stroke={P.stone} strokeWidth={6} /><line x1={260} y1={360} x2={260 + Math.sin(a) * 190} y2={360 - Math.cos(a) * 190} stroke={P.bone} strokeWidth={8} strokeLinecap="round" /><circle cx={260} cy={360} r={16} fill={P.light} /><text x={260} y={450} textAnchor="middle" style={{ font: `500 22px ${FF.mono}`, letterSpacing: "0.26em" }} fill={P.stone}>PRESSURE</text></svg>; })() : null}
+                    {cur === 2 ? (() => { const a = mix(70, -90, cubicInOut(clamp01((loc - 0.3) / 1))) * (Math.PI / 180); return <svg viewBox="0 0 520 520" style={{ width: "100%", marginTop: 80 }}><path d="M60 360 A200 200 0 0 1 460 360" fill="none" stroke={P.stone} strokeWidth={6} /><line x1={260} y1={360} x2={260 + Math.sin(a) * 190} y2={360 - Math.cos(a) * 190} stroke={P.bone} strokeWidth={8} strokeLinecap="round" /><circle cx={260} cy={360} r={16} fill={P.ember} /><text x={260} y={450} textAnchor="middle" style={{ font: `500 22px ${FF.mono}`, letterSpacing: "0.26em" }} fill={P.stone}>PRESSURE</text></svg>; })() : null}
                     {cur === 3 ? ["#1  ——", "#2  ——", "#3  you", "#4  ——"].map((r, i) => <div key={i} style={{ font: `400 34px ${FF.mono}`, color: P.paper, marginTop: 26, opacity: 1 - clamp01((loc - 0.3 - i * 0.12) / 0.2) }}>{r}</div>) : null}
                     {cur === 4 ? <div style={{ marginTop: 40, opacity: 1 - clamp01((loc - 0.6) / 0.5) }}><div style={{ width: 160, height: 160, borderRadius: "50%", background: "radial-gradient(circle at 40% 35%, #5a4f44, #1a1714)", margin: "0 auto", clipPath: `inset(0 0 0 ${clamp01((loc - 0.3) / 0.5) * 100}%)` }} /><div style={{ textAlign: "center", font: `600 34px ${FF.thin}`, color: P.bone, marginTop: 20 }}>rudo ✦ living the life</div></div> : null}
                   </div>
@@ -187,7 +187,7 @@ export const BridgeV3: React.FC<{ t: number }> = ({ t }) => {
         return (
           <>
             <div style={{ position: "absolute", left: 960 - r * 3, top: 480 - r * 3, width: r * 6, height: r * 6, borderRadius: "50%", background: `radial-gradient(circle, rgba(242,227,200,${0.35 + 0.25 * ph}), rgba(242,227,200,0) 60%)` }} />
-            <div style={{ position: "absolute", left: 950, top: 470, width: 20, height: 20, borderRadius: "50%", background: P.light, boxShadow: `0 0 ${30 + ph * 40}px ${P.light}` }} />
+            <div style={{ position: "absolute", left: 950, top: 470, width: 20, height: 20, borderRadius: "50%", background: P.ember, boxShadow: `0 0 ${30 + ph * 40}px ${P.ember}` }} />
             <div style={{ position: "absolute", left: 0, right: 0, top: 620, textAlign: "center", ...mono(20, P.paper) }}><Sp t={t} li={78} wi={0} text="just" /> <Sp t={t} li={78} wi={1} text="breathing" /></div>
           </>
         );

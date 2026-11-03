@@ -34,8 +34,8 @@ export const Battery: React.FC<{ pct: number; top: string; sub: React.ReactNode;
     <div style={{ position: "absolute", left: 230, top: 210, font: `100 520px/1 ${FF.thin}`, letterSpacing: "-0.03em", color: "transparent", WebkitTextStroke: `2px ${P.bone}` }}>
       {Math.round(pct)}<span style={{ color: P.bone, WebkitTextStroke: "0px" }}>%</span>
     </div>
-    <div style={{ position: "absolute", left: 260, top: 790, width: 1400, height: 14, border: `1px solid ${P.stone}` }}><div style={{ width: `${pct}%`, height: "100%", background: P.bone }} /></div>
-    {charging ? <><div style={{ position: "absolute", left: 1500, top: 260, font: `400 120px ${FF.thin}`, color: P.light, opacity: 0.85 }}>⚡︎</div><Label x={1520} y={420}>charging</Label></> : null}
+    <div style={{ position: "absolute", left: 260, top: 790, width: 1400, height: 14, border: `1px solid ${P.stone}` }}><div style={{ width: `${pct}%`, height: "100%", background: charging ? P.ember : P.bone }} /></div>
+    {charging ? <><div style={{ position: "absolute", left: 1500, top: 260, font: `400 120px ${FF.thin}`, color: P.ember, opacity: 0.9 }}>⚡︎</div><Label x={1520} y={420}>charging</Label></> : null}
     <div style={{ position: "absolute", left: 260, top: 830 }}>{sub}</div>
   </>
 );
@@ -71,12 +71,12 @@ export const Chorus1V3: React.FC<{ t: number; batt?: [number, number, number, nu
             <>
               <Float x={560} y={420} w={800} h={170} rx={10}>
                 <div style={{ width: "100%", height: "100%", borderRadius: 34, background: "rgba(20,18,16,0.92)", boxShadow: "inset 0 0 0 1px #3a342e", display: "flex", alignItems: "center", padding: "0 50px", gap: 34 }}>
-                  <span style={{ fontSize: 70, color: mixC(P.dim, P.bone, on) }}>☾</span>
+                  <span style={{ fontSize: 70, color: mixC(P.dim, P.ember, on) }}>☾</span>
                   <div style={{ flex: 1 }}>
                     <div style={{ font: `500 40px ${FF.thin}`, color: P.bone }}>Do Not Disturb</div>
                     <div style={{ ...mono(16, P.stone, "0.12em"), textTransform: "none", marginTop: 6 }}><Sp t={t} li={25} wi={0} text="I" /> <Sp t={t} li={25} wi={1} text="just" /> <Sp t={t} li={25} wi={2} text="wanna" /> · {on > 0.5 ? "on until I come back" : "off"}</div>
                   </div>
-                  <span style={{ width: 120, height: 68, borderRadius: 40, background: mixC("#3a342e", P.bone, on), position: "relative" }}><i style={{ position: "absolute", top: 6, left: 6 + on * 52, width: 56, height: 56, borderRadius: "50%", background: on > 0.5 ? P.char : P.paper }} /></span>
+                  <span style={{ width: 120, height: 68, borderRadius: 40, background: mixC("#3a342e", P.ember, on), position: "relative" }}><i style={{ position: "absolute", top: 6, left: 6 + on * 52, width: 56, height: 56, borderRadius: "50%", background: on > 0.5 ? P.char : P.paper }} /></span>
                 </div>
               </Float>
               <div style={{ position: "absolute", left: 0, right: 0, top: 220 - lift * 60, textAlign: "center", ...big(190, "0.22em"), color: sungC(25, 3, t), opacity: seen(25, 3, t), transform: `rotate(${-lift * 3}deg)` }}>DRIFT</div>
@@ -100,7 +100,7 @@ export const Chorus1V3: React.FC<{ t: number; batt?: [number, number, number, nu
                 {lines.map(([a0, b0], k) => { const u = clamp01(draw * lines.length - k); if (u <= 0) return null; const A = stars[a0], B = stars[b0]; return <line key={k} x1={A[0]} y1={A[1]} x2={A[0] + (B[0] - A[0]) * u} y2={A[1] + (B[1] - A[1]) * u} stroke={P.paper} strokeWidth={1} opacity={0.6} />; })}
                 {stars.map(([x, y, r], i) => <circle key={i} cx={x} cy={y} r={r} fill={P.bone} opacity={0.5 + 0.5 * Math.sin(t * 2 + i)} />)}
               </g>
-              <circle cx={1010} cy={520} r={9} fill={P.light} />
+              <circle cx={1010} cy={520} r={9} fill={P.ember} />
               <text x={1034} y={528} style={{ font: `italic 400 34px ${FF.serif}` }} fill={P.paper} opacity={seen(26, 1, t)}>you, somewhere</text>
               <text x={960} y={140} textAnchor="middle" style={{ font: `400 64px ${FF.display}`, letterSpacing: "0.3em" }} fill={sungC(26, 0, t)} opacity={seen(26, 0, t)}>FLOAT</text>
               <text x={960} y={905} textAnchor="middle" style={{ font: `italic 400 44px ${FF.serif}` }} fill={P.paper}><tspan opacity={seen(26, 2, t)} fill={sungC(26, 2, t, P.paper)}>between </tspan><tspan opacity={seen(26, 3, t)}>the </tspan><tspan opacity={seen(26, 4, t)} fill={sungC(26, 4, t, P.paper)} style={{ font: `400 64px ${FF.display}`, letterSpacing: "0.3em" }}>STARS</tspan></text>
@@ -150,7 +150,7 @@ export const Chorus1V3: React.FC<{ t: number; batt?: [number, number, number, nu
                     ))}
                   </div>
                 </Float>
-                {st > 0 ? <div style={{ position: "absolute", left: 1060, top: 170, padding: "6px 34px", border: `6px solid ${P.bone}`, ...big(150, "0.12em"), color: P.bone, transform: `rotate(-12deg) scale(${mix(1.6, 1, st)})`, opacity: st * 0.92 }}>NO</div> : null}
+                {st > 0 ? <div style={{ position: "absolute", left: 1060, top: 170, padding: "6px 34px", border: `6px solid ${P.ember}`, ...big(150, "0.12em"), color: P.ember, transform: `rotate(-12deg) scale(${mix(1.6, 1, st)})`, opacity: st * 0.92 }}>NO</div> : null}
               </>
             );
           })()}
@@ -232,9 +232,9 @@ export const Chorus1V3: React.FC<{ t: number; batt?: [number, number, number, nu
                 <div style={{ ...mono(18, P.paper) }}><Sp t={t} li={33} wi={0} text="I" /> <Sp t={t} li={33} wi={1} text="don't" /> <Sp t={t} li={33} wi={2} text="wanna" /> <Sp t={t} li={33} wi={3} text="die" /> <span style={{ marginLeft: 26 }}><Sp t={t} li={34} wi={0} text="· I" /> <Sp t={t} li={34} wi={1} text="just" /> <Sp t={t} li={34} wi={2} text="wanna" /> <Sp t={t} li={34} wi={3} text="drift" /></span></div>
               } />
               <div style={{ position: "absolute", right: 120, top: 560, display: "flex", alignItems: "center", gap: 18, opacity: clamp01((t - 89.9) / 0.4) }}>
-                <span style={{ fontSize: 46, color: mixC(P.dim, P.bone, air) }}>✈︎</span>
+                <span style={{ fontSize: 46, color: mixC(P.dim, P.ember, air) }}>✈︎</span>
                 <span style={{ ...mono(18, P.paper) }}>airplane mode</span>
-                <span style={{ width: 90, height: 50, borderRadius: 30, background: mixC("#3a342e", P.bone, air), position: "relative" }}><i style={{ position: "absolute", top: 5, left: 5 + air * 40, width: 40, height: 40, borderRadius: "50%", background: air > 0.5 ? P.char : P.paper }} /></span>
+                <span style={{ width: 90, height: 50, borderRadius: 30, background: mixC("#3a342e", P.ember, air), position: "relative" }}><i style={{ position: "absolute", top: 5, left: 5 + air * 40, width: 40, height: 40, borderRadius: "50%", background: air > 0.5 ? P.char : P.paper }} /></span>
               </div>
             </>
           );

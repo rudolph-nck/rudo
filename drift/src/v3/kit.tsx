@@ -16,7 +16,7 @@ import { T, kickEnv } from "../data";
 
 /** Static & Silence palette (sampled from the cover). */
 export const P = {
-  char: "#0d0c0b", wall: "#2b2622", concrete: "#433a30", stone: "#8e7d6e", paper: "#bdb3a4", bone: "#ece2d0", light: "#f2e3c8", dim: "#5f574e",
+  char: "#0d0c0b", wall: "#2b2622", concrete: "#433a30", stone: "#8e7d6e", paper: "#bdb3a4", bone: "#ece2d0", light: "#f2e3c8", dim: "#5f574e", ember: "#f07c4a",
 };
 export const FF = {
   display: "'Bebas Neue', 'Oswald', sans-serif",

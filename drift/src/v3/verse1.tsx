@@ -19,7 +19,7 @@ export const lineStart = (li: number) => LINES[li].words[0].s;
 // colour of a word: hidden before it's sung, bone while sung, settling to stone
 export const hex = (c: string) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
 export const mixC = (a: string, b: string, k: number) => { const A = hex(a), B = hex(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * k)).join(",")})`; };
-export const sungC = (li: number, wi: number, t: number, rest = P.stone) => { const w = W(li, wi); return t < w.e ? P.bone : mixC(P.bone, rest, clamp01((t - w.e) / 0.6)); };
+export const sungC = (li: number, wi: number, t: number, rest = P.stone) => { const w = W(li, wi); return t < w.e ? P.ember : mixC(P.ember, rest, clamp01((t - w.e) / 0.7)); };
 export const seen = (li: number, wi: number, t: number) => clamp01((t - (W(li, wi).s - 0.04)) / 0.12);
 export const Sp: React.FC<{ t: number; li: number; wi: number; text?: string; rest?: string; style?: React.CSSProperties }> = ({ t, li, wi, text, rest, style }) => (
   <span style={{ color: sungC(li, wi, t, rest), opacity: seen(li, wi, t), display: "inline-block", transform: `translateY(${(1 - seen(li, wi, t)) * 8}px)`, ...style }}>{text ?? W(li, wi).w.toUpperCase().replace(/[.,]/g, "")}</span>
@@ -95,7 +95,7 @@ export const Verse1V3: React.FC<{ t: number }> = ({ t }) => {
                   for (const sx of spikes) { const d = x - sx; if (d > -10 && d < 0) y = 120 + d * 1.5; if (d >= 0 && d < 8) y = 40; if (d >= 8 && d < 18) y = 180; if (d >= 18 && d < 26) y = 105; }
                   pts.push(`${x},${y}`);
                 }
-                return <><polyline points={pts.join(" ")} fill="none" stroke={P.bone} strokeWidth={2.5} /><circle cx={head} cy={pts.length ? Number(pts[pts.length - 1].split(",")[1]) : 120} r={6} fill={P.light} /></>;
+                return <><polyline points={pts.join(" ")} fill="none" stroke={P.bone} strokeWidth={2.5} /><circle cx={head} cy={pts.length ? Number(pts[pts.length - 1].split(",")[1]) : 120} r={6} fill={P.ember} /></>;
               })()}
             </svg>
           </div>
@@ -279,7 +279,7 @@ export const Verse1V3: React.FC<{ t: number }> = ({ t }) => {
               <text x={240} y={130} style={{ font: `500 20px ${FF.mono}`, letterSpacing: "0.26em" }} fill={P.stone} opacity={seen(16, 0, t)}>FUNNY HOW</text>
               <text x={300} y={940} style={{ font: `400 90px ${FF.display}`, letterSpacing: "0.16em" }} fill={sungC(16, 2, t)} opacity={seen(16, 2, t)}>SUCCESS</text>
               <polyline points={[...vis, end].map((p) => p.join(",")).join(" ")} fill="none" stroke={P.bone} strokeWidth={3} opacity={1 - leave * 0.6} />
-              <circle cx={960} cy={560} r={9} fill={P.light} opacity={seen(16, 4, t)} />
+              <circle cx={960} cy={560} r={9} fill={P.ember} opacity={seen(16, 4, t)} />
               <text x={990} y={600} style={{ font: `500 22px ${FF.mono}`, letterSpacing: "0.22em" }} fill={P.stone} opacity={seen(16, 3, t)}>CAN LEAVE</text>
               <text x={990} y={660} style={{ font: `400 70px ${FF.display}`, letterSpacing: "0.2em" }} fill={sungC(16, 5, t)} opacity={seen(16, 5, t)}>YOU</text>
             </svg>

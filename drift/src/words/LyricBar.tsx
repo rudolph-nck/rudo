@@ -26,7 +26,7 @@ export const LyricBar: React.FC<{ t: number; hideFrom?: number; hideTo?: number 
           const a = clamp01((t - (w.s - 0.04)) / 0.12);
           const hot = t < w.s ? 0 : t < w.e ? 1 : Math.exp(-(t - w.e) / 0.4);
           // stone, lifting to bone while sung (Static & Silence palette)
-          const c = `rgb(${Math.round(142 + (236 - 142) * hot)}, ${Math.round(125 + (226 - 125) * hot)}, ${Math.round(110 + (208 - 110) * hot)})`;
+          const c = `rgb(${Math.round(142 + (240 - 142) * hot)}, ${Math.round(125 + (124 - 125) * hot)}, ${Math.round(110 + (74 - 110) * hot)})`;
           return (
             <span key={k} style={{ color: c, opacity: a, display: "inline-block", transform: `translateY(${(1 - a) * 6}px)`, marginRight: "0.4em" }}>
               {w.w.toUpperCase()}
