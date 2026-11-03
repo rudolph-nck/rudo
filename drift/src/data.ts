@@ -75,30 +75,16 @@ export const kickEnv = (t: number, decay = 0.11) => Math.min(1.2, pulse(t, KT, d
  * (FAAAAR). After it lands the stretch eases back to the plain spelling.
  */
 const VOWEL = /[AEIOUY]/;
+/** What's on screen for a word at time t: the whole word the moment it's sung (no added letters).
+ *  DISAPPEAR alone builds syllable by syllable (DIS… AP… PEAR), as approved. */
 export const sungText = (w: Word, t: number) => {
-  const syl = w.syl && w.syl.length ? w.syl : [{ t: w.w, s: w.s, e: w.e }];
-  let out = "";
-  for (const sy of syl) {
-    if (t < sy.s - 0.03) break;
-    const txt = sy.t.toUpperCase().replace(/[.,!?]/g, "");
-    const dur = sy.e - sy.s;
-    // the sung vowel: the syllable's first vowel group (TIIIRED, not TIREEED); in EA/OA-type pairs
-    // the voice sits on the second letter (PEAAAR)
-    let vi = -1;
-    const m = /[AEIOU]+/.exec(txt) ?? /Y/.exec(txt);
-    if (m) vi = m.index + (m[0].length > 1 && /[AO]$/.test(m[0]) ? m[0].length - 1 : 0);
-    // a syllable's end is where the voice actually lets go of it (measured on the stem), so a long one is a held note
-    if (dur < 0.42 || vi < 0) { out += txt; continue; }
-    const per = 0.16, maxX = 5;
-    if (t < sy.e - 0.06) { // still holding: add vowels, no landing yet
-      out += txt.slice(0, vi + 1) + txt[vi].repeat(Math.max(0, Math.min(maxX, Math.floor((t - sy.s - 0.12) / per))));
-      return out;
-    }
-    const full = Math.max(0, Math.min(maxX, Math.floor((dur - 0.18) / per)));
-    const ease = Math.min(1, Math.max(0, (t - sy.e - 0.35) / 0.45));
-    out += txt.slice(0, vi + 1) + txt[vi].repeat(Math.round(full * (1 - ease))) + txt.slice(vi + 1);
+  const clean = (x: string) => x.toUpperCase().replace(/[.,!?]/g, "");
+  if (w.i === 15 && w.syl && w.syl.length > 1) {
+    let out = "";
+    for (const sy of w.syl) { if (t < sy.s - 0.03) break; out += clean(sy.t); }
+    return out;
   }
-  return out;
+  return t >= w.s - 0.03 ? clean(w.w) : "";
 };
 
 import bassData from "../data/bass.json";
