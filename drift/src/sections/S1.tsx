@@ -6,7 +6,7 @@ import { LineGeometry } from "three/examples/jsm/lines/LineGeometry.js";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import { loadTex, useAssets } from "../three/assets";
 import { Stage } from "../three/Stage";
-import { LINES, T, bassHit, bassLevel, sungText, vol } from "../data";
+import { LINES, T, bassHit, bassLevel, pulse, sungText, vol } from "../data";
 import { clamp01, cubicIn, cubicInOut, cubicOut, mix } from "../utils/ease";
 import { noise1, rng } from "../utils/random";
 import { capHeight, layout, wordPoints } from "../words/glyphs";
@@ -34,6 +34,7 @@ const L = (li: number) => LINES[li].words;
 const INK = "#f1eee8";
 const STONE = "#c9bca9";
 const SHELF_K = 12;
+const AMBER_C = new THREE.Color("#ff7a2c");
 
 // ---- world anchors ----
 const O = new THREE.Vector3(0, 0.25, 0.25); // your eyes on the rooftop
@@ -192,6 +193,14 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   const time = useTiles(a, "TIME", 0.24, 2400, 72);
   const sil = useMemo(() => (cut ? new THREE.MeshBasicMaterial({ map: cut, color: "#000000", transparent: true, alphaTest: 0.5 }) : null), [cut]);
   const blinds = useMemo(() => Array.from({ length: 9 }, (_, i) => i), []);
+  const roomDust = useMemo(() => {
+    const r = rng(93), n = 260, g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3).map((_, i) => (i % 3 === 0 ? (r() - 0.5) * 1.6 : i % 3 === 1 ? CY - 1.5 + r() * 1.35 : (r() - 0.5) * 2.0)), 3));
+    g.setAttribute("seed", new THREE.BufferAttribute(new Float32Array(n).map(() => r()), 1));
+    g.setAttribute("bright", new THREE.BufferAttribute(new Float32Array(n).map(() => 0.05 + Math.pow(r(), 5) * 0.7), 1));
+    return g;
+  }, []);
+  const moteMat = useMemo(() => new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.55, 0.22).multiplyScalar(7), toneMapped: false }), []);
   const voidDust = useMemo(() => {
     const r = rng(91), n = 900;
     const g = new THREE.BufferGeometry();
@@ -206,7 +215,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   const flat = (key: string, color: string, o: number, lit = false) => {
     let m = matCache.get(key) as THREE.MeshBasicMaterial | THREE.MeshStandardMaterial | undefined;
     if (!m) { m = lit ? new THREE.MeshStandardMaterial({ color, roughness: 0.85 }) : new THREE.MeshBasicMaterial({ color }); m.transparent = true; matCache.set(key, m); }
-    m.opacity = o; m.depthWrite = o > 0.6;
+    m.opacity = o; m.depthWrite = o > 0.6; m.color.set(color);
     return m;
   };
   const cap = (s: number) => capHeight(a.bebas, s);
@@ -342,7 +351,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
     p = [p[0], p[1], p[2] + bassHit(t) * (r.hero ? 0.012 : 0.007)]; // each bass hit nudges the words toward you
     room.push(
       <group key={key} position={p} rotation={rot} scale={scl}>
-        <Letters font={a.bebas} family="bebas" text={r.text} size={r.size} depth={0.004} material={flat(key, r.color, o, true)} tracking={0.04} bevel={0} shadows xf={xf} />
+        <Letters font={a.bebas} family="bebas" text={r.text} size={r.size} depth={0.004} material={flat(key, "#" + new THREE.Color(r.color).lerp(AMBER_C, 0.85 * (t < w.e ? 1 : Math.exp(-(t - w.e) / 0.6))).getHexString(), o, true)} tracking={0.04} bevel={0} shadows xf={xf} />
       </group>,
     );
   });
@@ -399,10 +408,13 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
     look = new THREE.Vector3(lp.x * 0.5, CY, lp.y * 0.5);
     up = new THREE.Vector3(0, 0, 1);
     fov = 34;
+    const m = 1 - cubicInOut(clamp01((t - (blinkC + 0.1)) / 1.7)); // eyes open on the fan, where the clock was
+    if (m > 0) { look = look.lerp(new THREE.Vector3(0, CY, 0.62), m); fov = mix(34, 56, m); }
+    fov -= pulse(t, T.beats, 0.12) * 0.8;
   }
   // sitting up into the shelf
   const sh = shelfFrame(a, kit, t, false);
-  const toShelf = cubicInOut(clamp01((t - (shelfT - 0.2)) / 0.55));
+  const toShelf = cubicInOut(clamp01((t - (shelfT - 0.35)) / 0.85));
   if (toShelf > 0) {
     const sp = new THREE.Vector3(...sh.cam).add(SH), sl = new THREE.Vector3(...sh.look).add(SH);
     pos = pos.clone().lerp(sp, toShelf); look = look.clone().lerp(sl, toShelf);
@@ -498,12 +510,18 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
             {blinds.map((i) => (
               <mesh key={i} position={[1.55, CY - 1.0, 1.05 - i * 0.075]} rotation={[0.35, 0, 0]} castShadow><boxGeometry args={[0.02, 0.6, 0.035]} /><meshBasicMaterial colorWrite={false} depthWrite={false} /></mesh>
             ))}
+            {toShelf < 1 ? (
+              <>
+                <Glow geo={roomDust} size={5} gain={0.9 * (1 - toShelf)} color="#fff1dd" twinkle={0.4} time={t} position={[Math.sin(t * 0.11) * 0.04, (t - 23) * 0.006, Math.cos(t * 0.09) * 0.03]} />
+                <mesh position={[0.32 * Math.sin(t * 0.37 + 1), CY - 0.55 + 0.08 * Math.sin(t * 0.5), 0.05 + 0.26 * Math.cos(t * 0.29)]} material={moteMat} scale={0.0045 * (1 - toShelf) * (1 + 0.35 * pulse(t, T.beats, 0.1))}><sphereGeometry args={[1, 12, 8]} /></mesh>
+              </>
+            ) : null}
             <group position={[0, CY, 0]} rotation={[Math.PI / 2, 0, 0]}>
               {/* the ceiling: plain, flat plaster */}
               <mesh position={[0, 0, ceilZ - 0.0]} receiveShadow><planeGeometry args={[8, 8]} /><meshStandardMaterial color={new THREE.Color("#d8d1c6").lerp(new THREE.Color("#1c1a18"), toShelf)} roughness={0.95} /></mesh>
               <group position={[0, 0, ceilZ + 0.25]}>{room}</group>
               {/* a slow ceiling fan, top corner; its blades sweep shadows through the morning light */}
-              <group position={[0.2, 0.6, ceilZ]}>
+              <group position={[0, 0.62, ceilZ]}>
                 <mesh position={[0, 0, 0.05]} rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.008, 0.008, 0.1, 12]} /><meshStandardMaterial color="#6d655c" roughness={0.6} /></mesh>
                 <group position={[0, 0, 0.11]} rotation={[0, 0, t * 0.9 + bassLevel(t) * 0.02]}>
                   <mesh rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.035, 0.035, 0.03, 24]} /><meshStandardMaterial color="#6d655c" roughness={0.55} /></mesh>
