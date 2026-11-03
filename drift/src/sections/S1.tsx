@@ -410,7 +410,6 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
     fov = 34;
     const m = 1 - cubicInOut(clamp01((t - (blinkC + 0.1)) / 1.7)); // eyes open on the fan, where the clock was
     if (m > 0) { look = look.lerp(new THREE.Vector3(0, CY, 0.62), m); fov = mix(34, 56, m); }
-    fov -= pulse(t, T.beats, 0.12) * 0.8;
   }
   // sitting up into the shelf
   const sh = shelfFrame(a, kit, t, false);
@@ -513,7 +512,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
             {toShelf < 1 ? (
               <>
                 <Glow geo={roomDust} size={5} gain={0.9 * (1 - toShelf)} color="#fff1dd" twinkle={0.4} time={t} position={[Math.sin(t * 0.11) * 0.04, (t - 23) * 0.006, Math.cos(t * 0.09) * 0.03]} />
-                <mesh position={[0.32 * Math.sin(t * 0.37 + 1), CY - 0.55 + 0.08 * Math.sin(t * 0.5), 0.05 + 0.26 * Math.cos(t * 0.29)]} material={moteMat} scale={0.0045 * (1 - toShelf) * (1 + 0.35 * pulse(t, T.beats, 0.1))}><sphereGeometry args={[1, 12, 8]} /></mesh>
+                <mesh position={[0.32 * Math.sin(t * 0.37 + 1), CY - 0.55 + 0.08 * Math.sin(t * 0.5), 0.05 + 0.26 * Math.cos(t * 0.29)]} material={moteMat} scale={0.0045 * (1 - toShelf)}><sphereGeometry args={[1, 12, 8]} /></mesh>
               </>
             ) : null}
             <group position={[0, CY, 0]} rotation={[Math.PI / 2, 0, 0]}>

@@ -330,12 +330,14 @@ export const V1B: React.FC<{ t: number }> = ({ t }) => {
   }
 
   // ---------- camera ----------
-  const c = camAt(t);
-  let pos = c.p.clone(), look = c.l.clone(), fov = c.f;
+  // the spline, averaged over ±0.35 s: every move eases in and out softly
+  const pos = new THREE.Vector3(), look = new THREE.Vector3();
+  let fov = 0;
+  const OFF = [-0.35, -0.23, -0.12, 0, 0.12, 0.23, 0.35], WT = [0.5, 0.8, 1, 1.1, 1, 0.8, 0.5], WS = WT.reduce((x, y) => x + y, 0);
+  OFF.forEach((o, i) => { const c = camAt(Math.min(V1B_END, Math.max(V1B_START, t + o))); pos.addScaledVector(c.p, WT[i] / WS); look.addScaledVector(c.l, WT[i] / WS); fov += (c.f * WT[i]) / WS; });
   const upV = new THREE.Vector3(0, 0, -1).lerp(new THREE.Vector3(0, 1, 0), cubicInOut(clamp01((t - 37.25) / 0.6))).normalize();
-  const sway = new THREE.Vector3(noise1(t * 0.3, 1) - 0.5, noise1(t * 0.27, 2) - 0.5, 0).multiplyScalar(0.06);
+  const sway = new THREE.Vector3(noise1(t * 0.3, 1) - 0.5, noise1(t * 0.27, 2) - 0.5, 0).multiplyScalar(0.035);
   pos.add(sway); look.add(sway.multiplyScalar(0.5));
-  fov -= pulse(t, T.beats, 0.12) * 0.9 + bassHit(t) * 0.5; // the beat breathes in the lens
   const descend = t < 46.3;
   const flash = clamp01((t - (brk.s + 0.02)) / 0.2);
   const spotI = (1 - lightsOut) * (t > 45.6 ? 1 : 0);
@@ -355,7 +357,7 @@ export const V1B: React.FC<{ t: number }> = ({ t }) => {
         {els}
         {sp && sparkOn > 0.01 ? (
           <>
-            <mesh position={(sp as THREE.Vector3).toArray() as V3} material={sparkMat} scale={0.012 * sparkOn * (1 + 0.3 * pulse(t, T.beats, 0.1))}><sphereGeometry args={[1, 14, 10]} /></mesh>
+            <mesh position={(sp as THREE.Vector3).toArray() as V3} material={sparkMat} scale={0.012 * sparkOn}><sphereGeometry args={[1, 14, 10]} /></mesh>
             <Glow geo={embers.g} size={30} gain={1.3 * sparkOn} time={t} color="#ffb47a" twinkle={0.5} />
           </>
         ) : null}

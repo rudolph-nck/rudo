@@ -273,10 +273,10 @@ export const Intro: React.FC<{ t: number }> = ({ t }) => {
   const BACK = [2.0, 1.8, 2.1, 1.9, 1.6], DIST = [1.25, 1.05, 0.95, 1.15, 0.9], HO = [-0.1, 0.25, -0.2, 0.15, -0.05];
   const prm = (arr: number[]) => {
     let v = arr[0];
-    for (let li = 1; li <= 4; li++) v = mix(v, arr[li], cubicInOut(clamp01((t - (lineStart(li) - 0.55)) / 0.5)));
+    for (let li = 1; li <= 4; li++) v = mix(v, arr[li], cubicInOut(clamp01((t - (lineStart(li) - 0.8)) / 0.9)));
     return v;
   };
-  let sc = 0; for (let k = 0; k < 8; k++) sc += frozen ? sSp : sAt(t - k * 0.045); sc /= 8; // the camera trails the spark a touch
+  let sc = 0; for (let k = 0; k < 16; k++) sc += frozen ? sSp : sAt(t - k * 0.05); sc /= 16; // the camera trails the spark softly
   let back = prm(BACK), dist = prm(DIST), ho = prm(HO), fov = 52;
   const race = 1 - cubicInOut(clamp01((t - 3.6) / 0.7)); // racing in: tight on the spark
   back = mix(back, 0.9, race); dist = mix(dist, 0.55, race); ho = mix(ho, -0.08, race); fov = mix(fov, 62, race);
@@ -298,7 +298,7 @@ export const Intro: React.FC<{ t: number }> = ({ t }) => {
     if (!sl.hero || sl.li === 4) return;
     const w = L(sl.li)[sl.wi];
     const outT = lineStart(sl.li + 1) - 0.4;
-    const k = cubicInOut(clamp01((t - (w.s - 0.05)) / 0.28)) * (1 - cubicInOut(clamp01((t - outT) / 0.4)));
+    const k = cubicInOut(clamp01((t - (w.s - 0.12)) / 0.5)) * (1 - cubicInOut(clamp01((t - (outT - 0.1)) / 0.65)));
     if (k <= 0) return;
     const sm = sl.s + sl.w / 2, ch = capHeight(a.bebas, sl.size);
     const drift = sl.li === 1 ? cubicInOut(clamp01((t - w.s - 0.3) / 1.6)) : sl.li === 3 ? cubicInOut(clamp01((t - w.e) / 4)) : 0;
@@ -311,7 +311,7 @@ export const Intro: React.FC<{ t: number }> = ({ t }) => {
   // STOP: freeze, then rip back — the spiral above the figure on the rooftop edge
   const stopSl = slots.find((s) => s.li === 4 && s.wi === 5)!;
   const kick = Math.max(0, 1 - (t - STOP_T) / 0.18) * (t > STOP_T ? 1 : 0);
-  const pb = cubicInOut(clamp01((t - (STOP_T + 0.22)) / 0.95));
+  const pb = cubicInOut(clamp01((t - (STOP_T + 0.22)) / 1.25));
   const yMid = K * (stopSl.s * 0.5);
   const WIDE = new THREE.Vector3(0, -6.5, 0.0), WLOOK = new THREE.Vector3(0, 4, 0.5); // under the spiral, looking straight up
   if (t > STOP_T - 0.05 && pb <= 0) {
@@ -333,8 +333,7 @@ export const Intro: React.FC<{ t: number }> = ({ t }) => {
   const push = cubicInOut(clamp01((t - FOR_T) / (INTRO_END - FOR_T)));
   if (pb > 0) { pos = pos.clone().lerp(clockC, push * 0.32); }
   // shake on STOP, a punch on every beat
-  if (kick > 0) pos = pos.add(new THREE.Vector3(noise1(t * 60, 3) - 0.5, noise1(t * 60, 4) - 0.5, 0).multiplyScalar(0.05 * kick));
-  fov -= frozen ? 0 : beat * 1.6;
+  if (kick > 0) pos = pos.add(new THREE.Vector3(noise1(t * 60, 3) - 0.5, noise1(t * 60, 4) - 0.5, 0).multiplyScalar(0.02 * kick));
 
   const dawn = cubicInOut(clamp01((t - 21.9) / 1.2));
   const blinkT = L(6)[0].s - 0.14;
@@ -359,7 +358,7 @@ export const Intro: React.FC<{ t: number }> = ({ t }) => {
         ) : null}
         {sparkOn > 0.01 ? (
           <>
-            <mesh position={sparkPos.toArray() as [number, number, number]} material={sparkMat} scale={(0.022 + 0.012 * beat + 0.03 * relight) * sparkOn * (frozen ? 1 : 1 + 0.25 * (noise1(t * 40, 7) - 0.5))}>
+            <mesh position={sparkPos.toArray() as [number, number, number]} material={sparkMat} scale={(0.022 + 0.03 * relight) * sparkOn * (frozen ? 1 : 1 + 0.25 * (noise1(t * 40, 7) - 0.5))}>
               <sphereGeometry args={[1, 16, 12]} />
             </mesh>
             <Glow geo={embers.g} size={40} gain={1.6 * sparkOn} time={tf} color="#ffb47a" twinkle={frozen ? 0 : 0.6} />
