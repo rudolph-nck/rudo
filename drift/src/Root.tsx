@@ -1,6 +1,9 @@
 import React from "react";
 import { Composition, useCurrentFrame } from "remotion";
 import { FPS } from "./data";
+import { setFormat } from "./theme";
+import { LyricBar } from "./words/LyricBar";
+import { useVideoConfig } from "remotion";
 import { ensureFonts } from "./utils/fonts";
 import { StyleFrame } from "./frames/Style";
 import { AudioTrack, S1, S1_END } from "./sections/S1";
@@ -22,10 +25,13 @@ const S1Comp: React.FC<{ muted?: boolean }> = ({ muted }) => {
 
 const IntroComp: React.FC<{ muted?: boolean }> = ({ muted }) => {
   const f = useCurrentFrame();
+  const { width, height } = useVideoConfig();
+  setFormat(width, height);
   return (
     <>
       {muted ? null : <AudioTrack />}
       <Intro t={f / FPS} />
+      <LyricBar t={f / FPS} />
     </>
   );
 };
@@ -35,10 +41,13 @@ const V1_START = 23.0;
 const V1Comp: React.FC<{ muted?: boolean }> = ({ muted }) => {
   const f = useCurrentFrame();
   const t = V1_START + f / FPS;
+  const { width, height } = useVideoConfig();
+  setFormat(width, height);
   return (
     <>
       {muted ? null : <Audio src={staticFile("audio/drift.m4a")} startFrom={Math.round(V1_START * FPS)} />}
       {t < V1B_START ? <S1 t={t} /> : <V1B t={t} />}
+      <LyricBar t={t} />
     </>
   );
 };
@@ -46,8 +55,10 @@ const V1Comp: React.FC<{ muted?: boolean }> = ({ muted }) => {
 export const Root: React.FC = () => (
   <>
     <Composition id="Style" component={StyleFrame} durationInFrames={120} fps={FPS} width={1080} height={1920} defaultProps={{ id: "weight" } as { id: string; t0?: number }} />
-    <Composition id="Intro" component={IntroComp} durationInFrames={Math.round(INTRO_END * FPS)} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
-    <Composition id="V1" component={V1Comp} durationInFrames={Math.round((V1B_END - V1_START) * FPS)} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
+    <Composition id="Intro" component={IntroComp} durationInFrames={Math.round(INTRO_END * FPS)} fps={FPS} width={1920} height={1080} defaultProps={{ muted: false }} />
+    <Composition id="V1" component={V1Comp} durationInFrames={Math.round((V1B_END - V1_START) * FPS)} fps={FPS} width={1920} height={1080} defaultProps={{ muted: false }} />
+    <Composition id="IntroVertical" component={IntroComp} durationInFrames={Math.round(INTRO_END * FPS)} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
+    <Composition id="V1Vertical" component={V1Comp} durationInFrames={Math.round((V1B_END - V1_START) * FPS)} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
     <Composition id="S1" component={S1Comp} durationInFrames={Math.round(S1_END * FPS)} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
   </>
 );

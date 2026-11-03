@@ -14,7 +14,7 @@ import { Glow, useStarfield } from "../words/points";
 import { Finish, Full, Letters } from "../frames/kit";
 import { shelfFrame, useShelfKit } from "../frames/SFShelf";
 import { F } from "../utils/fonts";
-import { W, H } from "../theme";
+import { FMT, aspect } from "../theme";
 import { continueRender, delayRender } from "remotion";
 
 /**
@@ -52,7 +52,7 @@ export const mkLine = (n: number, width: number, color = "#f1eee8") => {
   const g = new LineGeometry();
   g.setPositions(new Array(n * 3).fill(0));
   const m = new LineMaterial({ linewidth: width, worldUnits: false, transparent: true });
-  m.resolution.set(W, H);
+  m.resolution.set(FMT.W, FMT.H);
   m.color = new THREE.Color(color);
   const l = new Line2(g, m);
   l.frustumCulled = false;
@@ -193,6 +193,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   const time = useTiles(a, "TIME", 0.24, 2400, 72);
   const sil = useMemo(() => (cut ? new THREE.MeshBasicMaterial({ map: cut, color: "#000000", transparent: true, alphaTest: 0.5 }) : null), [cut]);
   const blinds = useMemo(() => Array.from({ length: 9 }, (_, i) => i), []);
+  const FAN = aspect() > 1 ? { x: 0.62, y: 0.2 } : { x: 0, y: 0.62 };
   const roomDust = useMemo(() => {
     const r = rng(93), n = 260, g = new THREE.BufferGeometry();
     g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3).map((_, i) => (i % 3 === 0 ? (r() - 0.5) * 1.6 : i % 3 === 1 ? CY - 1.5 + r() * 1.35 : (r() - 0.5) * 2.0)), 3));
@@ -409,7 +410,8 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
     up = new THREE.Vector3(0, 0, 1);
     fov = 34;
     const m = 1 - cubicInOut(clamp01((t - (blinkC + 0.1)) / 1.7)); // eyes open on the fan, where the clock was
-    if (m > 0) { look = look.lerp(new THREE.Vector3(0, CY, 0.62), m); fov = mix(34, 56, m); }
+    if (aspect() > 1) fov = 27;
+    if (m > 0) { look = look.lerp(new THREE.Vector3(FAN.x, CY, FAN.y), m); fov = mix(fov, aspect() > 1 ? 44 : 56, m); }
   }
   // sitting up into the shelf
   const sh = shelfFrame(a, kit, t, false);
@@ -520,7 +522,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
               <mesh position={[0, 0, ceilZ - 0.0]} receiveShadow><planeGeometry args={[8, 8]} /><meshStandardMaterial color={new THREE.Color("#d8d1c6").lerp(new THREE.Color("#1c1a18"), toShelf)} roughness={0.95} /></mesh>
               <group position={[0, 0, ceilZ + 0.25]}>{room}</group>
               {/* a slow ceiling fan, top corner; its blades sweep shadows through the morning light */}
-              <group position={[0, 0.62, ceilZ]}>
+              <group position={[FAN.x, FAN.y, ceilZ]}>
                 <mesh position={[0, 0, 0.05]} rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.008, 0.008, 0.1, 12]} /><meshStandardMaterial color="#6d655c" roughness={0.6} /></mesh>
                 <group position={[0, 0, 0.11]} rotation={[0, 0, t * 0.9 + bassLevel(t) * 0.02]}>
                   <mesh rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.035, 0.035, 0.03, 24]} /><meshStandardMaterial color="#6d655c" roughness={0.55} /></mesh>

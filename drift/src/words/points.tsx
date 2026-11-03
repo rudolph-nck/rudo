@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import * as THREE from "three";
+import { FMT } from "../theme";
 import { rng } from "../utils/random";
 
 /**
@@ -20,7 +21,7 @@ export const pointsMat = () =>
       uGain: { value: 1 },
       uTime: { value: 0 },
       uTwinkle: { value: 0.3 },
-      uScale: { value: 1920 / 2 },
+      uScale: { value: 960 },
     },
     vertexShader: /* glsl */ `
       attribute float seed;
@@ -68,6 +69,7 @@ export const Glow: React.FC<{
 }> = ({ geo, size = 6, ignite = 1, gain = 1, time = 0, color = "#fff4e6", twinkle = 0.3, position, rotation, scale }) => {
   const mat = useMemo(() => pointsMat(), []);
   mat.uniforms.uSize.value = size;
+  mat.uniforms.uScale.value = FMT.H / 2;
   mat.uniforms.uIgnite.value = ignite;
   mat.uniforms.uGain.value = gain;
   mat.uniforms.uTime.value = time;

@@ -18,6 +18,10 @@ export const C = {
   red: "#e3352b",
 } as const;
 
+/** The frame this render is for: 16:9 master (1920×1080) or the vertical cut (1080×1920). Set by the composition. */
+export const FMT = { W: 1920, H: 1080 };
+export const setFormat = (w: number, h: number) => { FMT.W = w; FMT.H = h; };
+export const aspect = () => FMT.W / FMT.H;
 export const W = 1080;
 export const H = 1920;
 // TikTok safe area: keep type clear of the bottom 20% and the right-hand UI rail.

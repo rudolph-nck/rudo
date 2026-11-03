@@ -10,6 +10,7 @@ import { capHeight, layout } from "../words/glyphs";
 import { Glow } from "../words/points";
 import { Full, Letters } from "../frames/kit";
 import { NoSign, Sky, SkyClock, mkLine } from "./S1";
+import { FMT, aspect } from "../theme";
 
 /**
  * Intro (0:00–0:23.3), rebuilt to hook from frame 1.
@@ -43,7 +44,9 @@ const TILT = 0.78; // the spiral's text leans back, facing down toward someone l
 const Zf = (s: number) => Nin(s).multiplyScalar(Math.cos(TILT)).add(new THREE.Vector3(0, -Math.sin(TILT), 0)); // text normal
 const Yf = (s: number) => Zf(s).cross(Tan(s)).normalize(); // text up
 const basisQ = (s: number) => new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(Tan(s), Yf(s), Zf(s)));
-const hfov = (fov: number) => 2 * Math.atan(Math.tan((fov * Math.PI) / 360) * (9 / 16));
+const hfov = (fov: number) => 2 * Math.atan(Math.tan((fov * Math.PI) / 360) * aspect());
+// distance that fits a word: by its width and by its height
+const fitD = (w: number, ch: number, k: number) => Math.max((w * k) / Math.tan(hfov(46) / 2), (ch * 1.3) / Math.tan((23 * Math.PI) / 180));
 
 type Slot = { li: number; wi: number; s: number; w: number; size: number; text: string; hero: boolean };
 
@@ -302,7 +305,7 @@ export const Intro: React.FC<{ t: number }> = ({ t }) => {
     if (k <= 0) return;
     const sm = sl.s + sl.w / 2, ch = capHeight(a.bebas, sl.size);
     const drift = sl.li === 1 ? cubicInOut(clamp01((t - w.s - 0.3) / 1.6)) : sl.li === 3 ? cubicInOut(clamp01((t - w.e) / 4)) : 0;
-    const fit = ((sl.w * (sl.li === 2 ? 0.78 : 0.64)) / Math.tan(hfov(46) / 2)); // the whole word in frame
+    const fit = fitD(sl.w, ch * (sl.li === 2 ? 1.5 : 1), sl.li === 2 ? 0.78 : 0.64); // the whole word in frame
     const cp = P(sm).addScaledVector(Zf(sm), fit - drift * 0.6).addScaledVector(Yf(sm), ch * 0.5 + 0.05 - drift * 0.25);
     const cl = P(sm).addScaledVector(Yf(sm), ch * 0.5 - drift * 0.3).addScaledVector(Zf(sm), -drift * 4);
     pos = pos.lerp(cp, k); look = look.lerp(cl, k); fov = mix(fov, 46, k);
@@ -317,15 +320,15 @@ export const Intro: React.FC<{ t: number }> = ({ t }) => {
   if (t > STOP_T - 0.05 && pb <= 0) {
     const sm = stopSl.s + stopSl.w / 2, ch = capHeight(a.bebas, stopSl.size);
     const k = cubicOut(clamp01((t - (STOP_T - 0.05)) / 0.12));
-    const fit = (stopSl.w * 0.66) / Math.tan(hfov(46) / 2);
+    const fit = fitD(stopSl.w, ch, 0.66);
     pos = pos.lerp(P(sm).addScaledVector(Zf(sm), fit).addScaledVector(Yf(sm), ch * 0.5), k);
     look = look.lerp(P(sm).addScaledVector(Yf(sm), ch * 0.5), k); up = up.lerp(Yf(sm), k).normalize(); fov = mix(fov, 46, k);
   }
   if (pb > 0) {
     const sm = stopSl.s + stopSl.w / 2, ch = capHeight(a.bebas, stopSl.size);
-    const fit = (stopSl.w * 0.66) / Math.tan(hfov(46) / 2);
+    const fit = fitD(stopSl.w, ch, 0.66);
     const from = P(sm).addScaledVector(Zf(sm), fit).addScaledVector(Yf(sm), ch * 0.5);
-    pos = from.lerp(WIDE, pb); look = P(sm).addScaledVector(Yf(sm), ch * 0.5).lerp(WLOOK, pb); fov = mix(46, 104, pb);
+    pos = from.lerp(WIDE, pb); look = P(sm).addScaledVector(Yf(sm), ch * 0.5).lerp(WLOOK, pb); fov = mix(46, aspect() > 1 ? 80 : 104, pb);
     up = Yf(sm).lerp(new THREE.Vector3(0, 0, 1), pb).normalize();
   }
   // FOR A MINUTE: the clock in front of the wide view; push in slowly
@@ -385,15 +388,15 @@ export const Intro: React.FC<{ t: number }> = ({ t }) => {
       {/* the figure on the rooftop edge, seen in the pull-back */}
       {silO > 0.01 ? (
         <AbsoluteFill style={{ opacity: silO * (1 - push * 0.6) }}>
-          <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 250, background: "linear-gradient(#000 0%, #000 100%)" }} />
-          <Img src={staticFile("images/rudo-cutout.png")} style={{ position: "absolute", left: 1080 / 2 - 140, bottom: 238, width: 280, filter: "brightness(0)" }} />
+          <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: FMT.H * 0.13, background: "#000" }} />
+          <Img src={staticFile("images/rudo-cutout.png")} style={{ position: "absolute", left: FMT.W / 2 - FMT.H * 0.075, bottom: FMT.H * 0.13 - 12, width: FMT.H * 0.15, filter: "brightness(0)" }} />
         </AbsoluteFill>
       ) : null}
       {/* the blink into morning */}
       {lid > 0 ? (
         <>
-          <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 960 * lid, background: "#000" }} />
-          <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 960 * lid, background: "#000" }} />
+          <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: (FMT.H / 2) * lid, background: "#000" }} />
+          <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: (FMT.H / 2) * lid, background: "#000" }} />
         </>
       ) : null}
     </AbsoluteFill>

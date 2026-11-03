@@ -8,7 +8,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
-import { W, H } from "../theme";
+import { FMT } from "../theme";
 
 export type Cam = { pos: [number, number, number]; look: [number, number, number]; fov?: number; roll?: number; up?: [number, number, number] };
 export type Look = {
@@ -70,7 +70,7 @@ const Rig: React.FC<{ cam: Cam; look: Look }> = ({ cam, look }) => {
 };
 
 export const Stage: React.FC<{ cam: Cam; look?: Look; children: React.ReactNode }> = ({ cam, look = {}, children }) => (
-  <ThreeCanvas width={W} height={H} gl={{ antialias: true, preserveDrawingBuffer: true }} shadows>
+  <ThreeCanvas width={FMT.W} height={FMT.H} gl={{ antialias: true, preserveDrawingBuffer: true }} shadows>
     <Rig cam={cam} look={look} />
     {children}
   </ThreeCanvas>
