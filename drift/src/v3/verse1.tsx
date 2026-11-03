@@ -13,22 +13,22 @@ import { Label, Phone } from "./frames";
  */
 export const V1V3_START = 23.0;
 export const V1V3_END = 57.4;
-const W = (li: number, wi: number) => LINES[li].words[wi];
-const lineStart = (li: number) => LINES[li].words[0].s;
+export const W = (li: number, wi: number) => LINES[li].words[wi];
+export const lineStart = (li: number) => LINES[li].words[0].s;
 
 // colour of a word: hidden before it's sung, bone while sung, settling to stone
-const hex = (c: string) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
-const mixC = (a: string, b: string, k: number) => { const A = hex(a), B = hex(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * k)).join(",")})`; };
-const sungC = (li: number, wi: number, t: number, rest = P.stone) => { const w = W(li, wi); return t < w.e ? P.bone : mixC(P.bone, rest, clamp01((t - w.e) / 0.6)); };
-const seen = (li: number, wi: number, t: number) => clamp01((t - (W(li, wi).s - 0.04)) / 0.12);
-const Sp: React.FC<{ t: number; li: number; wi: number; text?: string; rest?: string; style?: React.CSSProperties }> = ({ t, li, wi, text, rest, style }) => (
+export const hex = (c: string) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+export const mixC = (a: string, b: string, k: number) => { const A = hex(a), B = hex(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * k)).join(",")})`; };
+export const sungC = (li: number, wi: number, t: number, rest = P.stone) => { const w = W(li, wi); return t < w.e ? P.bone : mixC(P.bone, rest, clamp01((t - w.e) / 0.6)); };
+export const seen = (li: number, wi: number, t: number) => clamp01((t - (W(li, wi).s - 0.04)) / 0.12);
+export const Sp: React.FC<{ t: number; li: number; wi: number; text?: string; rest?: string; style?: React.CSSProperties }> = ({ t, li, wi, text, rest, style }) => (
   <span style={{ color: sungC(li, wi, t, rest), opacity: seen(li, wi, t), display: "inline-block", transform: `translateY(${(1 - seen(li, wi, t)) * 8}px)`, ...style }}>{text ?? W(li, wi).w.toUpperCase().replace(/[.,]/g, "")}</span>
 );
-const beatsIn = (a: number, b: number) => T.beats.filter((x) => x >= a && x < b);
-const pulse = (t: number, a: number, b: number, d = 0.14) => { let v = 0; for (const x of beatsIn(a, b)) if (t >= x) v = Math.max(v, Math.exp(-(t - x) / d)); return v; };
+export const beatsIn = (a: number, b: number) => T.beats.filter((x) => x >= a && x < b);
+export const pulse = (t: number, a: number, b: number, d = 0.14) => { let v = 0; for (const x of beatsIn(a, b)) if (t >= x) v = Math.max(v, Math.exp(-(t - x) / d)); return v; };
 
 /** One object's time on screen: rises into the light, holds, sinks back. */
-const Shot: React.FC<{ t: number; s: number; e: number; children: React.ReactNode }> = ({ t, s, e, children }) => {
+export const Shot: React.FC<{ t: number; s: number; e: number; children: React.ReactNode }> = ({ t, s, e, children }) => {
   const i = cubicOut(clamp01((t - (s - 0.3)) / 0.45)), o = cubicIn(clamp01((t - (e - 0.12)) / 0.38));
   if (i <= 0 || o >= 1) return null;
   return (
@@ -37,8 +37,8 @@ const Shot: React.FC<{ t: number; s: number; e: number; children: React.ReactNod
     </AbsoluteFill>
   );
 };
-const big = (size: number, ls = "0.14em"): React.CSSProperties => ({ font: `400 ${size}px/1 ${FF.display}`, letterSpacing: ls });
-const mono = (size: number, c = P.stone, ls = "0.24em"): React.CSSProperties => ({ font: `500 ${size}px ${FF.mono}`, letterSpacing: ls, color: c, textTransform: "uppercase" });
+export const big = (size: number, ls = "0.14em"): React.CSSProperties => ({ font: `400 ${size}px/1 ${FF.display}`, letterSpacing: ls });
+export const mono = (size: number, c = P.stone, ls = "0.24em"): React.CSSProperties => ({ font: `500 ${size}px ${FF.mono}`, letterSpacing: ls, color: c, textTransform: "uppercase" });
 
 export const Verse1V3: React.FC<{ t: number }> = ({ t }) => {
   // the light: brighter in the morning, dimming as the darkness calls, gone before BREAK
