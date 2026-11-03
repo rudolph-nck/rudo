@@ -125,7 +125,7 @@ const FullComp: React.FC<{ muted?: boolean }> = ({ muted }) => {
         const o = k > 0 && prev ? Math.min(1, Math.max(0, (t - s.from) / Math.max(0.05, prev.to - s.from))) : 1;
         return <AbsoluteFill key={s.i} style={{ opacity: o }}><s.C t={t} /></AbsoluteFill>;
       })}
-      <LyricBar t={t} hideFrom={199.7} hideTo={202.8} />
+      <LyricBar t={t} hideFrom={23.0} hideTo={999} />
       <BeatRuler t={t} o={t < 6 || (t > 199.6 && t < 202.6) || t > 249 ? 0 : 1} />
     </>
   );

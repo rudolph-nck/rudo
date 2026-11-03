@@ -3,6 +3,7 @@ import { AbsoluteFill } from "remotion";
 import { bassLevel } from "../data";
 import { clamp01, cubicInOut, cubicOut, mix } from "../utils/ease";
 import { rng } from "../utils/random";
+import { Lyrics, V2_SPECS } from "./kinetic";
 import { FF, Finish3, Float, P, Room } from "./kit";
 import { Phone } from "./frames";
 import { Battery } from "./chorus1";
@@ -84,7 +85,7 @@ export const Verse2V3: React.FC<{ t: number }> = ({ t }) => {
                 <text x={960} y={680} textAnchor="middle" style={{ font: `100 90px ${FF.thin}` }} fill={P.bone}>{Math.round(sp)}</text>
                 <text x={960} y={330} textAnchor="middle" style={{ font: `500 20px ${FF.mono}`, letterSpacing: "0.3em" }} fill={P.stone}><tspan opacity={seen(37, 0, t)}>TRYING </tspan><tspan opacity={seen(37, 1, t)}>TO </tspan><tspan opacity={seen(37, 2, t)} fill={sungC(37, 2, t)}>OUTRUN </tspan><tspan opacity={seen(37, 3, t)}>THE</tspan></text>
               </svg>
-              <div style={{ position: "absolute", left: 0, right: 0, top: 760, textAlign: "center", ...big(120, "0.4em"), color: sungC(37, 4, t), opacity: seen(37, 4, t) }}>NOISE</div>
+              <div style={{ position: "absolute", left: 0, right: 0, top: 760, textAlign: "center", ...big(120, "0.4em"), color: sungC(37, 4, t), opacity: 0 }}>NOISE</div>
             </>
           );
         })()}
@@ -135,7 +136,7 @@ export const Verse2V3: React.FC<{ t: number }> = ({ t }) => {
               <text x={you.x} y={you.y + 56} textAnchor="middle" style={{ font: `500 20px ${FF.mono}`, letterSpacing: "0.26em" }} fill={P.paper}>YOU</text>
               {meas > 0 ? <><line x1={you.x + 24} y1={you.y} x2={you.x + 24 + (820 - 24) * meas} y2={you.y - 100 * meas} stroke={P.bone} strokeWidth={2} strokeDasharray="10 8" /><text x={you.x + 420} y={you.y - 80} textAnchor="middle" style={{ font: `100 64px ${FF.thin}` }} fill={P.bone} opacity={meas}>2,431 mi</text></> : null}
               <text x={1200} y={120} textAnchor="middle" style={{ font: `500 22px ${FF.mono}`, letterSpacing: "0.26em" }} fill={P.stone}><tspan opacity={seen(41, 0, t)}>BEING </tspan><tspan opacity={seen(41, 1, t)} fill={sungC(41, 1, t)}>SURROUNDED </tspan><tspan opacity={seen(41, 2, t)}>BY </tspan><tspan opacity={seen(41, 3, t)} fill={sungC(41, 3, t)}>EVERYBODY</tspan></text>
-              <text x={960} y={890} textAnchor="middle" style={{ font: `400 90px ${FF.display}`, letterSpacing: "0.3em" }} fill={P.bone}><tspan opacity={seen(42, 0, t)} fill={sungC(42, 0, t)} style={{ font: `500 24px ${FF.mono}` }}>WHILE </tspan><tspan opacity={seen(42, 1, t)} fill={sungC(42, 1, t)} style={{ font: `500 24px ${FF.mono}` }}>FEELING </tspan><tspan opacity={seen(42, 2, t)} fill={sungC(42, 2, t)}>MILES</tspan><tspan opacity={seen(42, 3, t)} fill={sungC(42, 3, t)} dx={120 * clamp01((t - 107.92) / 0.5)}>APART</tspan></text>
+              <text x={960} y={890} opacity={0} textAnchor="middle" style={{ font: `400 90px ${FF.display}`, letterSpacing: "0.3em" }} fill={P.bone}><tspan opacity={seen(42, 0, t)} fill={sungC(42, 0, t)} style={{ font: `500 24px ${FF.mono}` }}>WHILE </tspan><tspan opacity={seen(42, 1, t)} fill={sungC(42, 1, t)} style={{ font: `500 24px ${FF.mono}` }}>FEELING </tspan><tspan opacity={seen(42, 2, t)} fill={sungC(42, 2, t)}>MILES</tspan><tspan opacity={seen(42, 3, t)} fill={sungC(42, 3, t)} dx={120 * clamp01((t - 107.92) / 0.5)}>APART</tspan></text>
             </svg>
           );
         })()}
@@ -245,7 +246,7 @@ export const Verse2V3: React.FC<{ t: number }> = ({ t }) => {
                 </div>
               } />
               {t < 124.1 ? <div style={{ position: "absolute", right: 260, top: 640, ...big(110, "0.2em") }}><Sp t={t} li={49} wi={3} text="STRONG" /> <Sp t={t} li={49} wi={4} text="ENOUGH" /></div> : null}
-              {t > 127.6 ? <div style={{ position: "absolute", right: 150, top: 300, ...big(110, "0.3em"), color: P.stone, opacity: seen(50, 6, t) * (1 - clamp01((t - 129.3) / 0.5)) * 0.8 }}>NOTHING</div> : null}
+              {t > 127.6 ? <div style={{ position: "absolute", right: 150, top: 300, ...big(110, "0.3em"), color: P.stone, opacity: 0 }}>NOTHING</div> : null}
             </div>
           );
         })()}
@@ -277,6 +278,7 @@ export const Verse2V3: React.FC<{ t: number }> = ({ t }) => {
           );
         })()}
       </Shot>
+      <Lyrics t={t} specs={V2_SPECS} />
       <Finish3 />
     </AbsoluteFill>
   );

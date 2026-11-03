@@ -3,6 +3,7 @@ import { AbsoluteFill } from "remotion";
 import { T } from "../data";
 import { clamp01, cubicIn, cubicInOut, cubicOut, mix } from "../utils/ease";
 import { rng } from "../utils/random";
+import { Lyrics, BR_SPECS } from "./kinetic";
 import { FF, Finish3, Float, P, Room } from "./kit";
 import { Phone } from "./frames";
 import { Shot, Sp, W, beatsIn, big, mixC, mono, seen, sungC } from "./verse1";
@@ -165,7 +166,7 @@ export const BridgeV3: React.FC<{ t: number }> = ({ t }) => {
                   </div>
                 </Phone>
               </Float>
-              <div style={{ position: "absolute", left: 1310, top: 420, width: 580, ...big(84, "0.2em"), lineHeight: 1.05 }}>
+              <div style={{ position: "absolute", left: 1310, top: 420, width: 580, ...big(84, "0.2em"), lineHeight: 1.05, opacity: 0 }}>
                 {L.map((l, i) => i === cur ? <span key={i}><span style={{ color: sungC(l, 0, t), opacity: wipe(i) }}>NO</span><br />{LINE_REST(l, t)}</span> : null)}
               </div>
             </>
@@ -192,6 +193,7 @@ export const BridgeV3: React.FC<{ t: number }> = ({ t }) => {
           </>
         );
       })() : null}
+      <Lyrics t={t} specs={BR_SPECS} />
       <Finish3 />
     </AbsoluteFill>
   );

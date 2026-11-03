@@ -3,6 +3,7 @@ import { AbsoluteFill } from "remotion";
 import { LINES, T } from "../data";
 import { clamp01, cubicIn, cubicInOut, cubicOut, mix } from "../utils/ease";
 import { rng } from "../utils/random";
+import { Lyrics, V1_SPECS } from "./kinetic";
 import { FF, Finish3, Float, P, Room } from "./kit";
 import { Label, Phone } from "./frames";
 
@@ -24,7 +25,7 @@ export const KINETIC = true;
 export const sungC = (li: number, wi: number, t: number, rest = P.stone) => { const w = W(li, wi); if (KINETIC) return rest === P.bone ? P.paper : rest; return t < w.e ? P.ember : mixC(P.ember, rest, clamp01((t - w.e) / 0.7)); };
 export const seen = (li: number, wi: number, t: number) => clamp01((t - (W(li, wi).s - 0.04)) / 0.12);
 export const Sp: React.FC<{ t: number; li: number; wi: number; text?: string; rest?: string; style?: React.CSSProperties }> = ({ t, li, wi, text, rest, style }) => (
-  <span style={{ color: sungC(li, wi, t, rest), opacity: seen(li, wi, t), display: "inline-block", transform: `translateY(${(1 - seen(li, wi, t)) * 8}px)`, ...style }}>{text ?? W(li, wi).w.toUpperCase().replace(/[.,]/g, "")}</span>
+  <span style={{ color: sungC(li, wi, t, rest), opacity: KINETIC ? 0 : seen(li, wi, t), display: "inline-block", transform: `translateY(${(1 - seen(li, wi, t)) * 8}px)`, ...style }}>{text ?? W(li, wi).w.toUpperCase().replace(/[.,]/g, "")}</span>
 );
 export const beatsIn = (a: number, b: number) => T.beats.filter((x) => x >= a && x < b);
 export const pulse = (t: number, a: number, b: number, d = 0.14) => { let v = 0; for (const x of beatsIn(a, b)) if (t >= x) v = Math.max(v, Math.exp(-(t - x) / d)); return v; };
@@ -164,7 +165,7 @@ export const Verse1V3: React.FC<{ t: number }> = ({ t }) => {
                 return el;
               })}
               <circle cx={cx} cy={cy} r={120} fill={P.char} />
-              <text x={cx} y={cy + 52} textAnchor="middle" style={{ font: `400 150px ${FF.display}`, letterSpacing: "0.08em" }} fill={sungC(10, 5, t)} opacity={seen(10, 5, t)}>ME</text>
+              <text x={cx} y={cy + 52} textAnchor="middle" style={{ font: `400 150px ${FF.display}`, letterSpacing: "0.08em" }} fill={sungC(10, 5, t)} opacity={KINETIC ? 0 : seen(10, 5, t)}>ME</text>
               <text x={cx} y={150} textAnchor="middle" style={{ font: `500 22px ${FF.mono}`, letterSpacing: "0.3em" }} fill={P.stone} opacity={seen(10, 0, t)}>EVERYBODY NEEDS A PIECE</text>
             </svg>
           );
@@ -279,11 +280,11 @@ export const Verse1V3: React.FC<{ t: number }> = ({ t }) => {
             <svg viewBox="0 0 1920 1080" style={{ position: "absolute", inset: 0 }}>
               <line x1={240} y1={860} x2={1700} y2={860} stroke={P.dim} strokeWidth={1.5} /><line x1={240} y1={160} x2={240} y2={860} stroke={P.dim} strokeWidth={1.5} />
               <text x={240} y={130} style={{ font: `500 20px ${FF.mono}`, letterSpacing: "0.26em" }} fill={P.stone} opacity={seen(16, 0, t)}>FUNNY HOW</text>
-              <text x={300} y={940} style={{ font: `400 90px ${FF.display}`, letterSpacing: "0.16em" }} fill={sungC(16, 2, t)} opacity={seen(16, 2, t)}>SUCCESS</text>
+              <text x={300} y={940} style={{ font: `400 90px ${FF.display}`, letterSpacing: "0.16em" }} fill={sungC(16, 2, t)} opacity={KINETIC ? 0 : seen(16, 2, t)}>SUCCESS</text>
               <polyline points={[...vis, end].map((p) => p.join(",")).join(" ")} fill="none" stroke={P.bone} strokeWidth={3} opacity={1 - leave * 0.6} />
               <circle cx={960} cy={560} r={9} fill={P.ember} opacity={seen(16, 4, t)} />
               <text x={990} y={600} style={{ font: `500 22px ${FF.mono}`, letterSpacing: "0.22em" }} fill={P.stone} opacity={seen(16, 3, t)}>CAN LEAVE</text>
-              <text x={990} y={660} style={{ font: `400 70px ${FF.display}`, letterSpacing: "0.2em" }} fill={sungC(16, 5, t)} opacity={seen(16, 5, t)}>YOU</text>
+              <text x={990} y={660} style={{ font: `400 70px ${FF.display}`, letterSpacing: "0.2em" }} fill={sungC(16, 5, t)} opacity={KINETIC ? 0 : seen(16, 5, t)}>YOU</text>
             </svg>
           );
         })()}
@@ -303,7 +304,7 @@ export const Verse1V3: React.FC<{ t: number }> = ({ t }) => {
               </div>
               <div style={{ position: "absolute", left: 0, right: 0, top: 420, textAlign: "center", ...mono(24, P.paper) }}><Sp t={t} li={17} wi={0} text="feeling" /> <Sp t={t} li={17} wi={1} text="more" /></div>
               <div style={{ position: "absolute", left: 0, right: 0, top: 500, display: "flex", justifyContent: "center", gap: spread }}>
-                {sy.map((s, k) => <span key={k} style={{ ...big(150, "0.1em"), color: t < s.e ? P.bone : mixC(P.bone, P.stone, clamp01((t - s.e) / 0.6)), opacity: clamp01((t - (s.s - 0.04)) / 0.12), transform: `translateY(${(k % 2 ? 1 : -1) * spread * 0.25}px) rotate(${(k - 1.5) * spread * 0.02}deg)` }}>{s.t.toUpperCase()}</span>)}
+                {sy.map((s, k) => KINETIC ? null : <span key={k} style={{ ...big(150, "0.1em"), color: t < s.e ? P.bone : mixC(P.bone, P.stone, clamp01((t - s.e) / 0.6)), opacity: clamp01((t - (s.s - 0.04)) / 0.12), transform: `translateY(${(k % 2 ? 1 : -1) * spread * 0.25}px) rotate(${(k - 1.5) * spread * 0.02}deg)` }}>{s.t.toUpperCase()}</span>)}
               </div>
             </>
           );
@@ -410,11 +411,12 @@ export const Verse1V3: React.FC<{ t: number }> = ({ t }) => {
             <>
               {tear > 0 ? <div style={{ position: "absolute", left: 960 - 500 * tear, top: 0, width: 1000 * tear, height: 1080, background: `radial-gradient(ellipse 60% 70% at 50% 50%, ${P.light} 0%, rgba(242,227,200,0.5) 35%, rgba(242,227,200,0) 75%)`, opacity: tear }} /> : null}
               {half(-1)}{half(1)}
-              {tear > 0 ? <div style={{ position: "absolute", left: 0, right: 0, top: 400, textAlign: "center", ...big(170, "0.2em"), color: P.char, opacity: tear }}>BREAK</div> : null}
+              {tear > 0 && !KINETIC ? <div style={{ position: "absolute", left: 0, right: 0, top: 400, textAlign: "center", ...big(170, "0.2em"), color: P.char, opacity: tear }}>BREAK</div> : null}
             </>
           );
         })()}
       </Shot>
+      <Lyrics t={t} specs={V1_SPECS} />
       <Finish3 />
     </AbsoluteFill>
   );

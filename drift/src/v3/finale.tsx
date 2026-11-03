@@ -2,6 +2,7 @@ import React from "react";
 import { AbsoluteFill } from "remotion";
 import { clamp01, cubicIn, cubicInOut, cubicOut, mix } from "../utils/ease";
 import { rng } from "../utils/random";
+import { Lyrics, FN_SPECS } from "./kinetic";
 import { FF, Finish3, Float, P, Room } from "./kit";
 import { Phone } from "./frames";
 import { Battery, Up } from "./chorus1";
@@ -42,7 +43,7 @@ export const FinaleV3: React.FC<{ t: number }> = ({ t }) => {
               {[120, 220, 320].map((r, i) => <circle key={i} cx={960} cy={500} r={r} fill="none" stroke={P.dim} strokeWidth={1.5} />)}
               <path d={`M960 500 L${960 + Math.cos(sweep) * 330} ${500 + Math.sin(sweep) * 330} A330 330 0 0 0 ${960 + Math.cos(sweep - 0.5) * 330} ${500 + Math.sin(sweep - 0.5) * 330} Z`} fill={P.light} opacity={0.12} />
               <text x={960} y={150} textAnchor="middle" style={{ font: `500 22px ${FF.mono}`, letterSpacing: "0.3em" }} fill={P.stone}><tspan opacity={seen(81, 0, t)}>SOMEWHERE </tspan><tspan opacity={seen(81, 1, t)}>THE</tspan></text>
-              <text x={960} y={520} textAnchor="middle" style={{ font: `400 120px ${FF.display}`, letterSpacing: "0.3em" }} fill={sungC(81, 2, t)} opacity={seen(81, 2, t)}>GUILT</text>
+              <text x={960} y={520} textAnchor="middle" style={{ font: `400 120px ${FF.display}`, letterSpacing: "0.3em" }} fill={sungC(81, 2, t)} opacity={seen(81, 2, t) * 0.35}>GUILT</text>
               <text x={960} y={900} textAnchor="middle" style={{ font: `500 24px ${FF.mono}`, letterSpacing: "0.26em" }} fill={P.paper}><tspan opacity={seen(81, 3, t)}>CAN'T </tspan><tspan opacity={seen(81, 4, t)} fill={sungC(81, 4, t, P.paper)}>FIND </tspan><tspan opacity={seen(81, 5, t)}>ME</tspan><tspan opacity={seen(81, 4, t)} fill={P.dim}> · location unavailable</tspan></text>
             </svg>
           );
@@ -84,7 +85,7 @@ export const FinaleV3: React.FC<{ t: number }> = ({ t }) => {
         <svg viewBox="0 0 1920 1080" style={{ position: "absolute", inset: 0 }}>
           {Array.from({ length: 7 }, (_, k) => { const off = clamp01((t - 215.3 - k * 0.12) / 0.4); return <path key={k} d={Array.from({ length: 120 }, (_, i) => `${i ? "L" : "M"}${i * 16} ${540 + Math.sin(i * (0.3 + k * 0.17) + t * (3 + k)) * (30 + k * 18)}`).join(" ")} fill="none" stroke={k === 0 ? P.bone : P.dim} strokeWidth={k === 0 ? 4 : 2} opacity={k === 0 ? 1 : 0.6 * (1 - off)} transform={`translate(0 ${k === 0 ? 0 : off * (k % 2 ? 300 : -300)})`} />; })}
           <text x={960} y={300} textAnchor="middle" style={{ font: `500 24px ${FF.mono}`, letterSpacing: "0.3em" }} fill={P.stone}><tspan opacity={seen(84, 0, t)} fill={sungC(84, 0, t)}>UNDERNEATH </tspan><tspan opacity={seen(84, 1, t)}>THE</tspan></text>
-          <text x={960} y={820} textAnchor="middle" style={{ font: `400 110px ${FF.display}`, letterSpacing: "0.4em" }} fill={sungC(84, 2, t)} opacity={seen(84, 2, t)}>NOISE</text>
+          <text x={960} y={820} textAnchor="middle" style={{ font: `400 110px ${FF.display}`, letterSpacing: "0.4em" }} fill={sungC(84, 2, t)} opacity={0}>NOISE</text>
         </svg>
       </Up>
 
@@ -102,7 +103,7 @@ export const FinaleV3: React.FC<{ t: number }> = ({ t }) => {
         <Battery pct={Math.min(100, mix(88, 100, clamp01((t - 218.2) / 2.8)))} top="" charging={t < 221.05} sub={
           <div style={{ ...mono(18, P.paper) }}><Sp t={t} li={86} wi={0} text="I'll" /> <Sp t={t} li={86} wi={1} text="come" /> <Sp t={t} li={86} wi={2} text="back" /> · fully charged</div>
         } />
-        <div style={{ position: "absolute", left: 250, top: 40, ...big(150, "0.18em"), color: sungC(86, 3, t, "#b9ab97"), opacity: seen(86, 3, t), transform: `translateY(${(1 - cubicOut(clamp01((t - W(86, 3).s) / 0.18))) * -40}px)` }}>STRONGER</div>
+        <div style={{ position: "absolute", left: 250, top: 40, ...big(150, "0.18em"), color: sungC(86, 3, t, "#b9ab97"), opacity: 0, transform: `translateY(${(1 - cubicOut(clamp01((t - W(86, 3).s) / 0.18))) * -40}px)` }}>STRONGER</div>
       </Up>
 
       {/* 3:41 · BUT TONIGHT — 11:59 */}
@@ -123,7 +124,7 @@ export const FinaleV3: React.FC<{ t: number }> = ({ t }) => {
             <>
               {all.map((g, i) => { const r = rng(i + 222); return <div key={i} style={{ position: "absolute", left: 120 + r() * 1600, top: 900 - (t - 224.6) * (90 + r() * 160) - r() * 300, ...big(30 + r() * 46, "0.16em"), color: P.stone, opacity: 0.35 * clamp01((t - 224.7 - i * 0.05) / 0.5), filter: `blur(${r() * 2}px)`, transform: `rotate(${(r() - 0.5) * 20}deg)` }}>{g}</div>; })}
               <div style={{ position: "absolute", left: 0, right: 0, top: 380 - lift * 40, textAlign: "center", ...mono(22, P.paper) }}><Sp t={t} li={88} wi={0} text="I" /> <Sp t={t} li={88} wi={1} text="just" /> <Sp t={t} li={88} wi={2} text="wanna" /></div>
-              <div style={{ position: "absolute", left: 0, right: 0, top: 430 - lift * 40, textAlign: "center", ...big(220, "0.3em"), color: sungC(88, 3, t), opacity: seen(88, 3, t), transform: `rotate(${-lift * 1.5}deg)` }}>DRIFT</div>
+              <div style={{ position: "absolute", left: 0, right: 0, top: 430 - lift * 40, textAlign: "center", ...big(220, "0.3em"), color: sungC(88, 3, t), opacity: 0, transform: `rotate(${-lift * 1.5}deg)` }}>DRIFT</div>
             </>
           );
         })()}
@@ -213,6 +214,7 @@ export const FinaleV3: React.FC<{ t: number }> = ({ t }) => {
       ) : null}
       {/* the last frames match the first: a spark, about to ignite */}
       {t > 261.5 ? <div style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, background: "#000", opacity: clamp01((t - 261.5) / 1) }}><div style={{ position: "absolute", left: "38%", top: "62%", width: 10, height: 10, borderRadius: "50%", background: P.ember, boxShadow: "0 0 30px 8px rgba(240,124,74,0.6)", opacity: clamp01((t - 262.6) / 1) }} /></div> : null}
+      <Lyrics t={t} specs={FN_SPECS} />
       <Finish3 />
     </AbsoluteFill>
   );

@@ -103,8 +103,8 @@ export const Chorus1V3: React.FC<{ t: number; batt?: [number, number, number, nu
               </g>
               <circle cx={1010} cy={520} r={9} fill={P.ember} />
               <text x={1034} y={528} style={{ font: `italic 400 34px ${FF.serif}` }} fill={P.paper} opacity={seen(26, 1, t)}>you, somewhere</text>
-              <text x={960} y={140} textAnchor="middle" style={{ font: `400 64px ${FF.display}`, letterSpacing: "0.3em" }} fill={sungC(26, 0, t)} opacity={seen(26, 0, t)}>FLOAT</text>
-              <text x={960} y={905} textAnchor="middle" style={{ font: `italic 400 44px ${FF.serif}` }} fill={P.paper}><tspan opacity={seen(26, 2, t)} fill={sungC(26, 2, t, P.paper)}>between </tspan><tspan opacity={seen(26, 3, t)}>the </tspan><tspan opacity={seen(26, 4, t)} fill={sungC(26, 4, t, P.paper)} style={{ font: `400 64px ${FF.display}`, letterSpacing: "0.3em" }}>STARS</tspan></text>
+              <text x={960} y={140} textAnchor="middle" style={{ font: `400 64px ${FF.display}`, letterSpacing: "0.3em" }} fill={sungC(26, 0, t)} opacity={0}>FLOAT</text>
+              <text x={960} y={905} opacity={0} textAnchor="middle" style={{ font: `italic 400 44px ${FF.serif}` }} fill={P.paper}><tspan opacity={seen(26, 2, t)} fill={sungC(26, 2, t, P.paper)}>between </tspan><tspan opacity={seen(26, 3, t)}>the </tspan><tspan opacity={seen(26, 4, t)} fill={sungC(26, 4, t, P.paper)} style={{ font: `400 64px ${FF.display}`, letterSpacing: "0.3em" }}>STARS</tspan></text>
             </svg>
           );
         })()}
@@ -191,7 +191,7 @@ export const Chorus1V3: React.FC<{ t: number; batt?: [number, number, number, nu
               {Array.from({ length: 12 }, (_, k) => { const a = ((k / 12) * Math.PI + rot) % Math.PI; const rx = Math.abs(Math.cos(a)) * R; return <ellipse key={k} cx={cx} cy={cy} rx={rx} ry={R} fill="none" stroke={P.dim} strokeWidth={1} opacity={0.8} />; })}
               {[-0.66, -0.33, 0, 0.33, 0.66].map((f, k) => <ellipse key={k} cx={cx} cy={cy + f * R} rx={Math.sqrt(1 - f * f) * R} ry={Math.sqrt(1 - f * f) * R * 0.12} fill="none" stroke={P.dim} strokeWidth={1} />)}
               <rect x={cx - R - 30} y={cy - 40} width={2 * R + 60} height={80} fill={P.char} stroke={P.stone} strokeWidth={1.5} />
-              <text x={cx} y={cy + 24} textAnchor="middle" style={{ font: `400 70px ${FF.display}`, letterSpacing: "0.5em" }} fill={sungC(31, 5, t)} opacity={seen(31, 5, t)}>WORLD</text>
+              <text x={cx} y={cy + 24} textAnchor="middle" style={{ font: `400 70px ${FF.display}`, letterSpacing: "0.5em" }} fill={sungC(31, 5, t)} opacity={seen(31, 5, t) * 0.5}>WORLD</text>
               <text x={cx} y={cy - R - 50} textAnchor="middle" style={{ font: `500 22px ${FF.mono}`, letterSpacing: "0.26em" }} fill={P.stone}><tspan opacity={seen(31, 0, t)}>I </tspan><tspan opacity={seen(31, 1, t)}>DON'T </tspan><tspan opacity={seen(31, 2, t)}>WANNA </tspan><tspan opacity={seen(31, 3, t)} fill={sungC(31, 3, t)}>LEAVE </tspan><tspan opacity={seen(31, 4, t)}>THIS</tspan></text>
             </svg>
           );

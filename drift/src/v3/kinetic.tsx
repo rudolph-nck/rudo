@@ -68,7 +68,7 @@ export const KLine: React.FC<{ t: number; spec: KSpec; next?: number }> = ({ t, 
   });
   const lh = (s: number) => s * 0.98;
   const totalH = rows.reduce((s, r) => s + lh(r.size), 0);
-  let yCursor = cy - totalH / 2;
+  let yCursor = Math.max(70, Math.min(cy - totalH / 2, 640 - totalH)); // the block stays inside the frame
   const els: React.ReactNode[] = [];
   rows.forEach((row, ri) => {
     const y = yCursor + lh(row.size) / 2;
@@ -113,8 +113,9 @@ export const KLine: React.FC<{ t: number; spec: KSpec; next?: number }> = ({ t, 
         if (beh === "sag") { const k = cubicInOut(clamp01((u - 0.3) / 1.4)); dy += k * size * 0.2 * Math.sin(Math.PI * (i + 0.5) / n) + k * size * 0.04; rot += k * ci * -5; dx += k * ci * size * 0.05; }
         if (beh === "float") {
           const v = Math.max(0, t - (w.s + 0.28 + i * 0.16)); // D, then R, then I… lift off one by one
-          dy -= 26 * v + 16 * v * v; dx += Math.sin(v * 1.1 + i * 1.7) * 18 * Math.min(1, v); rot += Math.sin(v * 0.8 + i) * 14 * Math.min(1, v);
-          op *= 1 - clamp01((v - 2.4) / 1.6);
+          const gone = Math.max(0, t - (end - 0.2)); // after the line is over, the letters rise away quickly
+          dy -= 26 * v + 16 * v * v + 1400 * gone * gone + 700 * gone; dx += Math.sin(v * 1.1 + i * 1.7) * 18 * Math.min(1, v); rot += Math.sin(v * 0.8 + i) * 14 * Math.min(1, v);
+          op *= (1 - clamp01((v - 2.4) / 1.6)) * (1 - clamp01(gone / 0.28));
         }
         if (beh === "split") { const k = cubicInOut(clamp01(u / Math.max(0.6, hold))); dx += ci * size * 0.32 * k; dy += (i % 2 ? 1 : -1) * size * 0.05 * k; rot += ci * 2 * k; }
         if (beh === "stretch") { const k = cubicInOut(clamp01(u / hold)) * (1 - cubicInOut(clamp01(after / 0.5))); dx += ci * size * 0.22 * k; if (n === 1) sc *= 1 + 0.6 * k; }
@@ -161,3 +162,86 @@ export const CHORUS_SPECS: KSpec[] = [
   { li: 33, rows: [[0, 1, 2], [3]], sizes: [120, 300], beh: { 2: "stretch", 3: "rise" } },
   { li: 34, rows: [[0, 1, 2], [3]], sizes: [110, 340], beh: { 3: "float" }, until: 92.2 },
 ];
+
+/** Verse 1 + pre-chorus. */
+export const V1_SPECS: KSpec[] = [
+  { li: 6, rows: [[0], [1], [2, 3]], sizes: [120, 240, 120], beh: { 1: "rise" } },
+  { li: 7, rows: [[0, 1], [2, 3, 4]], sizes: [200, 150], beh: { 1: "squeeze", 4: "beat" } },
+  { li: 8, rows: [[0, 1, 2], [3, 4, 5]], sizes: [110, 190], beh: { 5: "echo" } },
+  { li: 9, rows: [[0, 1], [2], [3, 4]], sizes: [100, 220, 140], beh: { 2: "jitter", 4: "sag" } },
+  { li: 10, rows: [[0], [1, 2, 3, 4], [5]], sizes: [170, 100, 300], beh: { 5: "split" } },
+  { li: 11, rows: [[0, 1], [2, 3]], sizes: [130, 240], beh: { 3: "split" } },
+  { li: 12, rows: [[0, 1], [2, 3], [4]], sizes: [90, 130, 300], beh: { 1: "tilt", 4: "fall" } },
+  { li: 13, rows: [[0, 1, 2, 3], [4]], sizes: [100, 230], beh: { 1: "dissolve", 4: "fall" }, exit: "down" },
+  { li: 14, rows: [[0, 1, 2], [3, 4, 5]], sizes: [200, 120], beh: { 2: "rise" } },
+  { li: 15, rows: [[0, 1, 2], [3, 4, 5]], sizes: [200, 120], beh: { 2: "rise", 5: "type" } },
+  { li: 16, rows: [[0, 1], [2], [3, 4, 5]], sizes: [100, 230, 120], beh: { 2: "rise", 4: "float" } },
+  { li: 17, rows: [[0, 1], [2]], sizes: [120, 200], beh: { 2: "split" } },
+  { li: 18, rows: [[0], [1], [2, 3]], sizes: [100, 170, 120], beh: { 1: "type", 3: "type" } },
+  { li: 19, rows: [[0], [1], [2, 3, 4]], sizes: [100, 190, 120], beh: { 1: "rise", 4: "freeze" } },
+  { li: 20, rows: [[0, 1, 2, 3, 4], [5]], sizes: [100, 230], beh: { 5: "dissolve" } },
+  { li: 21, rows: [[0, 1], [2], [3, 4, 5]], sizes: [100, 240, 150], beh: { 2: "tilt", 5: "echo" } },
+  { li: 22, rows: [[0, 1, 2, 3], [4, 5], [6]], sizes: [100, 100, 220], beh: { 6: "dissolve" } },
+  { li: 23, rows: [[0, 1, 2, 3, 4], [5]], sizes: [100, 320], beh: { 5: "shatter" }, until: 57.5 },
+];
+/** Verse 2 + pre-chorus 2. */
+export const V2_SPECS: KSpec[] = [
+  { li: 35, rows: [[0, 1, 2, 3, 4], [5]], sizes: [100, 200], beh: { 2: "tilt", 5: "dissolve" } },
+  { li: 36, rows: [[0, 1], [2, 3]], sizes: [160, 160], beh: { 1: "sag", 3: "fall" } },
+  { li: 37, rows: [[0, 1, 2, 3], [4]], sizes: [110, 280], beh: { 2: "tilt", 4: "jitter" } },
+  { li: 38, rows: [[0, 1, 2], [3, 4]], sizes: [100, 210], beh: { 3: "freeze", 4: "echo" } },
+  { li: 39, rows: [[0, 1, 2, 3], [4]], sizes: [110, 270], beh: { 4: "rise" } },
+  { li: 40, rows: [[0, 1, 2], [3, 4]], sizes: [110, 220], beh: { 3: "squeeze" } },
+  { li: 41, rows: [[0, 1, 2], [3]], sizes: [110, 230], beh: { 3: "echo" } },
+  { li: 42, rows: [[0, 1], [2, 3]], sizes: [110, 240], beh: { 2: "split", 3: "split" } },
+  { li: 43, rows: [[0, 1, 2], [3, 4]], sizes: [120, 240], beh: { 3: "jitter" } },
+  { li: 44, rows: [[0, 1], [2, 3, 4]], sizes: [130, 190], beh: { 4: "dissolve" } },
+  { li: 45, rows: [[0, 1, 2], [3, 4, 5]], sizes: [190, 140], beh: { 5: "dissolve" } },
+  { li: 46, rows: [[0, 1, 2], [3, 4, 5, 6]], sizes: [170, 110], beh: { 2: "type", 6: "stretch" } },
+  { li: 47, rows: [[0, 1], [2, 3, 4, 5]], sizes: [190, 130], beh: { 1: "float", 5: "tilt" } },
+  { li: 48, rows: [[0, 1], [2, 3, 4, 5]], sizes: [190, 130], beh: { 1: "split", 5: "freeze" } },
+  { li: 49, rows: [[0, 1, 2], [3, 4]], sizes: [120, 230], beh: { 3: "rise", 4: "rise" } },
+  { li: 50, rows: [[0, 1, 2, 3, 4, 5], [6]], sizes: [100, 270], beh: { 4: "stretch", 6: "dissolve" } },
+  { li: 51, rows: [[0], [1]], sizes: [150, 250], beh: { 1: "stretch" } },
+  { li: 52, rows: [[0, 1, 2, 3], [4]], sizes: [110, 270], beh: { 2: "stretch", 4: "float" }, until: 135.9 },
+];
+/** Bridge + breakdown. */
+export const BR_SPECS: KSpec[] = [
+  { li: 64, rows: [[0, 1, 2, 3], [4]], sizes: [110, 250], beh: { 2: "sag", 4: "tilt" } },
+  { li: 65, rows: [[0, 1], [2, 3, 4]], sizes: [160, 160], beh: { 4: "type" } },
+  { li: 66, rows: [[0, 1, 2, 3], [4]], sizes: [110, 230], beh: { 2: "sag" } },
+  { li: 67, rows: [[0], [1], [2]], sizes: [160, 160, 180], beh: { 0: "echo", 1: "echo" } },
+  { li: 68, rows: [[0, 1, 2, 3], [4]], sizes: [110, 260], beh: { 4: "jitter" } },
+  { li: 69, rows: [[0, 1, 2, 3], [4]], sizes: [100, 300], beh: { 4: "float" } },
+  { li: 70, rows: [[0, 1, 2, 3], [4, 5]], sizes: [100, 260], beh: { 5: "rise" } },
+  { li: 71, rows: [[0, 1, 2], [3, 4, 5, 6]], sizes: [180, 120], beh: { 2: "float" } },
+  { li: 72, rows: [[0], [1, 2]], sizes: [260, 150], beh: { 0: "stamp", 2: "echo" } },
+  { li: 73, rows: [[0], [1]], sizes: [260, 150], beh: { 0: "stamp", 1: "shatter" } },
+  { li: 74, rows: [[0], [1]], sizes: [260, 180], beh: { 0: "stamp", 1: "squeeze" } },
+  { li: 75, rows: [[0], [1, 2]], sizes: [260, 150], beh: { 0: "stamp", 2: "dissolve" } },
+  { li: 76, rows: [[0], [1]], sizes: [260, 180], beh: { 0: "stamp", 1: "shatter" } },
+  { li: 77, rows: [[0], [1]], sizes: [70, 110], beh: { 1: "dissolve" }, y: 470 },
+  { li: 78, rows: [[0], [1]], sizes: [80, 150], beh: { 1: "float" }, y: 300, until: 203.0 },
+];
+/** Final chorus + outro. */
+export const FN_SPECS: KSpec[] = [
+  { li: 79, rows: [[0, 1, 2], [3]], sizes: [110, 300], beh: { 3: "rise" } },
+  { li: 80, rows: [[0, 1, 2], [3]], sizes: [110, 340], beh: { 2: "stretch", 3: "float" } },
+  { li: 81, rows: [[0, 1], [2], [3, 4, 5]], sizes: [110, 240, 130], beh: { 2: "dissolve", 4: "stretch" } },
+  { li: 82, rows: [[0, 1], [2], [3, 4]], sizes: [110, 240, 150], beh: { 2: "tilt", 3: "stretch" } },
+  { li: 83, rows: [[0, 1, 2, 3], [4], [5]], sizes: [100, 240, 140], beh: { 4: "echo" } },
+  { li: 84, rows: [[0, 1], [2]], sizes: [130, 270], beh: { 2: "jitter" } },
+  { li: 85, rows: [[0, 1, 2], [3]], sizes: [120, 270], beh: { 2: "stretch", 3: "rise" } },
+  { li: 86, rows: [[0, 1, 2], [3]], sizes: [120, 320], beh: { 2: "stretch", 3: "fall" } },
+  { li: 87, rows: [[0], [1]], sizes: [150, 310], beh: { 0: "stretch", 1: "rise" } },
+  { li: 88, rows: [[0, 1, 2], [3]], sizes: [110, 360], beh: { 3: "float" } },
+  { li: 89, rows: [[0], [1, 2, 3]], sizes: [200, 140], beh: { 3: "jitter" } },
+  { li: 90, rows: [[0], [1, 2, 3]], sizes: [200, 140], beh: { 3: "rise" } },
+  { li: 91, rows: [[0], [1, 2, 3, 4], [5]], sizes: [180, 110, 260], beh: { 5: "fall" } },
+  { li: 92, rows: [[0], [1]], sizes: [150, 300], beh: { 1: "stretch" }, until: 242.0 },
+  { li: 93, rows: [[0, 1], [2]], sizes: [150, 380], beh: { 1: "stretch", 2: "float" }, until: 249.5 },
+];
+
+// verses fade out in place; the choruses keep floating up and away
+for (const list of [V1_SPECS, V2_SPECS, BR_SPECS]) for (const sp of list) if (!sp.exit) sp.exit = "fade";
+for (const sp of FN_SPECS) if (!sp.exit && sp.li >= 89) sp.exit = "fade";
