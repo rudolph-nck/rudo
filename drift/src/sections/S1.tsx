@@ -252,7 +252,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
   const stopT = L(4)[5].s;
   const zoom = cubicInOut(clamp01((t - (stopT + 0.05)) / 0.45)) * (1 - cubicInOut(clamp01((t - (L(5)[2].s - 0.55)) / 0.45))); // the wide shot holds through FOR A, back in for MINUTE
   const mW = L(6)[1];
-  const dawn = cubicInOut(clamp01((t - (L(5)[2].s + 0.1)) / 0.5));
+  const dawn = cubicInOut(clamp01((t - (L(5)[2].s + 0.3)) / 1.2));
   const blinkC = L(6)[0].s - 0.14; // waking up: the blink that turns the sky into the ceiling
   const inRoom = t >= blinkC;
   const lineNow = (() => { let k = 0; for (let li = 0; li <= 11; li++) if (t >= L(li)[0].s - 0.05) k = li; return k; })();
@@ -285,7 +285,7 @@ export const S1: React.FC<{ t: number }> = ({ t }) => {
       }
       if (r.li === 3 && r.hero) { // DISAPPEAR: the whole word drifts away into the abyss
         const u = cubicInOut(clamp01((t - (w.s + 0.35)) / Math.max(1.4, L(4)[0].s - 0.1 - w.s - 0.35)));
-        dist = D + u * 16; o *= (1 - 0.75 * u) * (1 - clamp01((t - L(4)[0].s) / 0.5)); rot = [0, 0, u * 0.12]; // PEAR lands as it vanishes
+        dist = D + u * 16; o *= 1 - u; rot = [0, 0, u * 0.12];
       }
       if (r.li === 4 && r.wi === 5) { const u = clamp01((t - stopT) / 0.07); o = u * (lineNow > 4 ? mix(0.3, 0.9, zoom) : 1); scl = [1, mix(1.2, 1, u), 1]; }
       const bh = r.li === lineNow || (r.li === 6 && lineNow >= 6) ? bassHit(t) : 0; // the bass pushes the line you're on

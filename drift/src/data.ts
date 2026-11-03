@@ -87,9 +87,8 @@ export const sungText = (w: Word, t: number) => {
     let vi = -1;
     const m = /[AEIOU]+/.exec(txt) ?? /Y/.exec(txt);
     if (m) vi = m.index + (m[0].length > 1 && /[AO]$/.test(m[0]) ? m[0].length - 1 : 0);
-    // only a syllable followed by another tapped syllable of the same word has a known hold (DIS-AAAA-PEAR);
-    // a word's last syllable just appears on its tap
-    if (dur < 0.42 || vi < 0 || sy === syl[syl.length - 1]) { out += txt; continue; }
+    // a syllable's end is where the voice actually lets go of it (measured on the stem), so a long one is a held note
+    if (dur < 0.42 || vi < 0) { out += txt; continue; }
     const per = 0.16, maxX = 5;
     if (t < sy.e - 0.06) { // still holding: add vowels, no landing yet
       out += txt.slice(0, vi + 1) + txt[vi].repeat(Math.max(0, Math.min(maxX, Math.floor((t - sy.s - 0.12) / per))));
