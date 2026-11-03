@@ -19,7 +19,9 @@ export const lineStart = (li: number) => LINES[li].words[0].s;
 // colour of a word: hidden before it's sung, bone while sung, settling to stone
 export const hex = (c: string) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
 export const mixC = (a: string, b: string, k: number) => { const A = hex(a), B = hex(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * k)).join(",")})`; };
-export const sungC = (li: number, wi: number, t: number, rest = P.stone) => { const w = W(li, wi); return t < w.e ? P.ember : mixC(P.ember, rest, clamp01((t - w.e) / 0.7)); };
+/** The big kinetic lyrics carry the sung word now; text on the objects stays quiet stone. */
+export const KINETIC = true;
+export const sungC = (li: number, wi: number, t: number, rest = P.stone) => { const w = W(li, wi); if (KINETIC) return rest === P.bone ? P.paper : rest; return t < w.e ? P.ember : mixC(P.ember, rest, clamp01((t - w.e) / 0.7)); };
 export const seen = (li: number, wi: number, t: number) => clamp01((t - (W(li, wi).s - 0.04)) / 0.12);
 export const Sp: React.FC<{ t: number; li: number; wi: number; text?: string; rest?: string; style?: React.CSSProperties }> = ({ t, li, wi, text, rest, style }) => (
   <span style={{ color: sungC(li, wi, t, rest), opacity: seen(li, wi, t), display: "inline-block", transform: `translateY(${(1 - seen(li, wi, t)) * 8}px)`, ...style }}>{text ?? W(li, wi).w.toUpperCase().replace(/[.,]/g, "")}</span>
@@ -35,7 +37,7 @@ export const Shot: React.FC<{ t: number; s: number; e: number; children: React.R
   const i = cubicOut(clamp01((t - (s - 0.3)) / 0.45)), o = cubicIn(clamp01((t - (e - 0.12)) / 0.38));
   if (i <= 0 || o >= 1) return null;
   return (
-    <AbsoluteFill style={{ opacity: i * (1 - o), transform: `translateY(${(1 - i) * 46 - o * 26}px) scale(${1 - o * 0.05 + (1 - i) * 0.03})`, filter: `blur(${(1 - i) * 7 + o * 6}px)` }}>
+    <AbsoluteFill style={{ opacity: i * (1 - o), transform: `translateY(${(1 - i) * 46 - o * 26 + (KINETIC ? 190 : 0)}px) scale(${(1 - o * 0.05 + (1 - i) * 0.03) * (KINETIC ? 0.76 : 1)})`, filter: `blur(${(1 - i) * 7 + o * 6}px)` }}>
       {children}
     </AbsoluteFill>
   );

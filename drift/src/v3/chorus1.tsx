@@ -6,6 +6,7 @@ import { FF, Finish3, Float, P, Room } from "./kit";
 import { Label, Phone } from "./frames";
 import { W, Sp, big, mono, mixC, onBeat, pulse, seen, sungC } from "./verse1";
 import { kickEnv } from "../data";
+import { CHORUS_SPECS, Lyrics } from "./kinetic";
 
 /**
  * Chorus 1 (0:57.2–1:31.8). Gravity switches off for the first time: every object drifts UP into the light and
@@ -16,13 +17,13 @@ export const C1_END = 91.8;
 
 /** In the chorus things float: they rise in from below, bob gently, and drift on up and away. */
 let kt = 0; // real time for the kick dip (set by the chorus)
-export const Up: React.FC<{ t: number; s: number; e: number; children: React.ReactNode }> = ({ t, s: s0, e, children }) => {
+export const Up: React.FC<{ t: number; s: number; e: number; children: React.ReactNode; back?: boolean }> = ({ t, s: s0, e, children, back = true }) => {
   const s = onBeat(s0);
   const i = cubicOut(clamp01((t - (s - 0.35)) / 0.6)), o = cubicIn(clamp01((t - (e - 0.15)) / 0.6));
   if (i <= 0 || o >= 1) return null;
   const bob = Math.sin((t - s) * 1.3) * 6 + kickEnv(kt) * 5; // floating, with a soft dip on each kick
   return (
-    <AbsoluteFill style={{ opacity: i * (1 - o), transform: `translateY(${(1 - i) * 90 - o * 160 + bob}px) rotate(${(1 - i) * 1.5 - o * 2}deg)`, filter: `blur(${(1 - i) * 6 + o * 4}px)` }}>
+    <AbsoluteFill style={{ opacity: i * (1 - o), transform: `translateY(${(1 - i) * 90 - o * 160 + bob + (back ? 190 : 0)}px) rotate(${(1 - i) * 1.5 - o * 2}deg) scale(${back ? 0.76 : 1})`, filter: `blur(${(1 - i) * 6 + o * 4}px)` }}>
       {children}
     </AbsoluteFill>
   );
@@ -79,7 +80,7 @@ export const Chorus1V3: React.FC<{ t: number; batt?: [number, number, number, nu
                   <span style={{ width: 120, height: 68, borderRadius: 40, background: mixC("#3a342e", P.ember, on), position: "relative" }}><i style={{ position: "absolute", top: 6, left: 6 + on * 52, width: 56, height: 56, borderRadius: "50%", background: on > 0.5 ? P.char : P.paper }} /></span>
                 </div>
               </Float>
-              <div style={{ position: "absolute", left: 0, right: 0, top: 220 - lift * 60, textAlign: "center", ...big(190, "0.22em"), color: sungC(25, 3, t), opacity: seen(25, 3, t), transform: `rotate(${-lift * 3}deg)` }}>DRIFT</div>
+              
             </>
           );
         })()}
@@ -150,7 +151,7 @@ export const Chorus1V3: React.FC<{ t: number; batt?: [number, number, number, nu
                     ))}
                   </div>
                 </Float>
-                {st > 0 ? <div style={{ position: "absolute", left: 1060, top: 170, padding: "6px 34px", border: `6px solid ${P.ember}`, ...big(150, "0.12em"), color: P.ember, transform: `rotate(-12deg) scale(${mix(1.6, 1, st)})`, opacity: st * 0.92 }}>NO</div> : null}
+                
               </>
             );
           })()}
@@ -247,6 +248,7 @@ export const Chorus1V3: React.FC<{ t: number; batt?: [number, number, number, nu
         </svg>
       ) : null}
       {end === "dim" && t > 90.6 ? <AbsoluteFill style={{ background: P.char, opacity: cubicInOut(clamp01((t - 90.6) / 1.2)) }} /> : null}
+      <Lyrics t={t} specs={CHORUS_SPECS} />
       {flash > 0 ? <AbsoluteFill style={{ background: `radial-gradient(ellipse 60% 70% at 50% 50%, ${P.light}, rgba(242,227,200,0) 70%)`, opacity: flash * 0.9 }} /> : null}
       <Finish3 />
     </AbsoluteFill>
