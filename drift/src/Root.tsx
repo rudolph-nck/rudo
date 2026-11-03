@@ -4,6 +4,7 @@ import { FPS } from "./data";
 import { setFormat } from "./theme";
 import { LyricBar } from "./words/LyricBar";
 import { FRAMES } from "./v3/frames";
+import { Verse1V3, V1V3_START, V1V3_END } from "./v3/verse1";
 import { useVideoConfig } from "remotion";
 import { ensureFonts } from "./utils/fonts";
 import { StyleFrame } from "./frames/Style";
@@ -63,6 +64,20 @@ const V3Frames: React.FC = () => {
   return <C t={(f % 30) / 30} />;
 };
 
+const V1V3Comp: React.FC<{ muted?: boolean }> = ({ muted }) => {
+  const f = useCurrentFrame();
+  const t = V1V3_START + f / FPS;
+  const { width, height } = useVideoConfig();
+  setFormat(width, height);
+  return (
+    <>
+      {muted ? null : <Audio src={staticFile("audio/drift.m4a")} startFrom={Math.round(V1V3_START * FPS)} />}
+      <Verse1V3 t={t} />
+      <LyricBar t={t} />
+    </>
+  );
+};
+
 export const Root: React.FC = () => (
   <>
     <Composition id="Style" component={StyleFrame} durationInFrames={120} fps={FPS} width={1080} height={1920} defaultProps={{ id: "weight" } as { id: string; t0?: number }} />
@@ -70,6 +85,7 @@ export const Root: React.FC = () => (
     <Composition id="V1" component={V1Comp} durationInFrames={Math.round((V1B_END - V1_START) * FPS)} fps={FPS} width={1920} height={1080} defaultProps={{ muted: false }} />
     <Composition id="IntroVertical" component={IntroComp} durationInFrames={Math.round(INTRO_END * FPS)} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
     <Composition id="V1Vertical" component={V1Comp} durationInFrames={Math.round((V1B_END - V1_START) * FPS)} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
+    <Composition id="V1v3" component={V1V3Comp} durationInFrames={Math.round((V1V3_END - V1V3_START) * FPS)} fps={FPS} width={1920} height={1080} defaultProps={{ muted: false }} />
     <Composition id="V3Frames" component={V3Frames} durationInFrames={150} fps={FPS} width={1920} height={1080} />
     <Composition id="S1" component={S1Comp} durationInFrames={Math.round(S1_END * FPS)} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
   </>

@@ -17,17 +17,18 @@ export const LyricBar: React.FC<{ t: number; hideFrom?: number; hideTo?: number 
   const out = Math.min(next - 0.06, Math.max(last.e, last.s + 0.5) + 0.9);
   const o = (1 - clamp01((t - out) / 0.3)) * (t > hideFrom && t < hideTo ? 0 : 1);
   if (o <= 0.01) return null;
-  const size = FMT.W > FMT.H ? 44 : 50;
+  const size = FMT.W > FMT.H ? 40 : 48;
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
-      <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: FMT.H * 0.2, background: "linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.42))", opacity: o }} />
-      <div style={{ position: "absolute", left: FMT.W * 0.08, right: FMT.W * 0.08, bottom: FMT.H * (FMT.W > FMT.H ? 0.065 : 0.17), textAlign: "center", fontFamily: F.display, fontSize: size, letterSpacing: "0.06em", lineHeight: 1.1, opacity: o }}>
+      <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: FMT.H * 0.2, background: "linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.5))", opacity: o }} />
+      <div style={{ position: "absolute", left: FMT.W * 0.08, right: FMT.W * 0.08, bottom: FMT.H * (FMT.W > FMT.H ? 0.065 : 0.17), textAlign: "center", fontFamily: F.display, fontSize: size, letterSpacing: "0.14em", lineHeight: 1.1, opacity: o }}>
         {line.words.map((w, k) => {
           const a = clamp01((t - (w.s - 0.04)) / 0.12);
           const hot = t < w.s ? 0 : t < w.e ? 1 : Math.exp(-(t - w.e) / 0.4);
-          const c = `rgb(${Math.round(241 + (255 - 241) * hot)}, ${Math.round(238 + (122 - 238) * hot)}, ${Math.round(232 + (44 - 232) * hot)})`;
+          // stone, lifting to bone while sung (Static & Silence palette)
+          const c = `rgb(${Math.round(142 + (236 - 142) * hot)}, ${Math.round(125 + (226 - 125) * hot)}, ${Math.round(110 + (208 - 110) * hot)})`;
           return (
-            <span key={k} style={{ color: c, opacity: a, display: "inline-block", transform: `translateY(${(1 - a) * 6}px)`, marginRight: "0.32em" }}>
+            <span key={k} style={{ color: c, opacity: a, display: "inline-block", transform: `translateY(${(1 - a) * 6}px)`, marginRight: "0.4em" }}>
               {w.w.toUpperCase()}
             </span>
           );

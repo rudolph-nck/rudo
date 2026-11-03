@@ -11,6 +11,7 @@ import { Glow } from "../words/points";
 import { Full, Letters } from "../frames/kit";
 import { NoSign, Sky, SkyClock, mkLine } from "./S1";
 import { FMT, aspect } from "../theme";
+import "../v3/kit";
 
 /**
  * Intro (0:00–0:23.3), rebuilt to hook from frame 1.
@@ -25,8 +26,9 @@ import { FMT, aspect } from "../theme";
  */
 export const INTRO_END = 23.3;
 const L = (li: number) => LINES[li].words;
-const INK = new THREE.Color("#f1eee8");
-const AMBER = new THREE.Color("#ff7a2c");
+// Static & Silence palette: words settle to stone; while sung they lift to bone (the "heat")
+const INK = new THREE.Color("#a89a8a");
+const AMBER = new THREE.Color("#f4ead9");
 const SILVER = new THREE.Color("#8d877d");
 const R = 6; // spiral radius
 const K = 0.07; // rise per unit of path
@@ -139,7 +141,7 @@ export const Intro: React.FC<{ t: number }> = ({ t }) => {
     return { g, jit: Array.from({ length: n }, () => new THREE.Vector3(r() - 0.5, r() - 0.5, r() - 0.5)) };
   }, []);
   const fuse = useMemo(() => mkLine(700, 1.7, "#ffffff"), []);
-  const sparkMat = useMemo(() => new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.5, 0.18).multiplyScalar(9), toneMapped: false }), []);
+  const sparkMat = useMemo(() => new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.9, 0.74).multiplyScalar(7), toneMapped: false }), []);
 
   if (!a || !slots) return <Full bg="#030304">{null}</Full>;
 
@@ -351,7 +353,7 @@ export const Intro: React.FC<{ t: number }> = ({ t }) => {
         <Sky dawn={dawn} />
         <Glow geo={stars} size={30} gain={starGain} time={tf} twinkle={frozen && t < FOR_T ? 0 : 0.35} />
         {trails.map((tr, i) => (tr.line.m.opacity > 0.01 ? <primitive key={i} object={tr.line.l} /> : null))}
-        <Glow geo={heads} size={60} gain={2.2} time={tf} color="#ffd6b0" twinkle={0.2} />
+        <Glow geo={heads} size={60} gain={2.2} time={tf} color="#efe3cf" twinkle={0.2} />
         <primitive object={fuse.l} />
         {words}
         {quit && qDraw > 0 ? (
@@ -364,7 +366,7 @@ export const Intro: React.FC<{ t: number }> = ({ t }) => {
             <mesh position={sparkPos.toArray() as [number, number, number]} material={sparkMat} scale={(0.022 + 0.03 * relight) * sparkOn * (frozen ? 1 : 1 + 0.25 * (noise1(t * 40, 7) - 0.5))}>
               <sphereGeometry args={[1, 16, 12]} />
             </mesh>
-            <Glow geo={embers.g} size={40} gain={1.6 * sparkOn} time={tf} color="#ffb47a" twinkle={frozen ? 0 : 0.6} />
+            <Glow geo={embers.g} size={40} gain={1.6 * sparkOn} time={tf} color="#f2dcc0" twinkle={frozen ? 0 : 0.6} />
           </>
         ) : null}
         {/* FOR A MINUTE, with a clock drawing itself */}
@@ -393,6 +395,19 @@ export const Intro: React.FC<{ t: number }> = ({ t }) => {
         </AbsoluteFill>
       ) : null}
       {/* the blink into morning */}
+      {/* low battery on TIRED: the gauge's first appearance */}
+      {(() => {
+        const tw = L(1)[4];
+        const o = clamp01((t - (tw.s - 0.05)) / 0.3) * (1 - clamp01((t - (L(2)[0].s - 0.2)) / 0.5));
+        if (o <= 0.01) return null;
+        return (
+          <div style={{ position: "absolute", right: FMT.W * 0.06, top: FMT.H * 0.07, opacity: o, display: "flex", alignItems: "center", gap: 14, font: "500 20px 'IBM Plex Mono', monospace", letterSpacing: "0.24em", color: "#8e7d6e" }}>
+            LOW BATTERY
+            <span style={{ display: "inline-block", width: 54, height: 24, border: "2px solid #8e7d6e", borderRadius: 5, position: "relative" }}><i style={{ position: "absolute", left: 3, top: 3, bottom: 3, width: 4, background: "#ece2d0" }} /></span>
+            <span style={{ color: "#ece2d0", font: "100 44px 'Inter', sans-serif", letterSpacing: 0 }}>3%</span>
+          </div>
+        );
+      })()}
       {lid > 0 ? (
         <>
           <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: (FMT.H / 2) * lid, background: "#000" }} />

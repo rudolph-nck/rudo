@@ -3,7 +3,7 @@ import { AbsoluteFill } from "remotion";
 import { FF, Finish3, Float, Lyric, P, Room } from "./kit";
 
 /** A phone: dark glass in a thin frame, catching the overhead light. */
-const Phone: React.FC<{ w: number; h: number; children: React.ReactNode }> = ({ w, h, children }) => (
+export const Phone: React.FC<{ w: number; h: number; children: React.ReactNode }> = ({ w, h, children }) => (
   <div style={{ width: w, height: h, borderRadius: 54, background: "#0a0908", padding: 14, boxShadow: "inset 0 0 0 2px #3a342e, inset 0 0 0 5px #0d0c0b, 0 0 0 1px #4a433b" }}>
     <div style={{ width: "100%", height: "100%", borderRadius: 42, overflow: "hidden", position: "relative", background: "radial-gradient(120% 80% at 50% 0%, #1d1a17 0%, #0b0a09 60%)" }}>
       {children}
@@ -11,10 +11,10 @@ const Phone: React.FC<{ w: number; h: number; children: React.ReactNode }> = ({ 
     </div>
   </div>
 );
-const Label: React.FC<{ x: number; y: number; children: React.ReactNode; align?: "left" | "right" }> = ({ x, y, children, align = "left" }) => (
+export const Label: React.FC<{ x: number; y: number; children: React.ReactNode; align?: "left" | "right" }> = ({ x, y, children, align = "left" }) => (
   <div style={{ position: "absolute", left: x, top: y, font: `500 15px ${FF.mono}`, letterSpacing: "0.18em", color: P.stone, textTransform: "uppercase", textAlign: align, lineHeight: 1.7 }}>{children}</div>
 );
-const Hair: React.FC<{ x: number; y: number; w: number }> = ({ x, y, w }) => <div style={{ position: "absolute", left: x, top: y, width: w, height: 1, background: P.stone, opacity: 0.5 }} />;
+export const Hair: React.FC<{ x: number; y: number; w: number }> = ({ x, y, w }) => <div style={{ position: "absolute", left: x, top: y, width: w, height: 1, background: P.stone, opacity: 0.5 }} />;
 
 // ---------------- 0:23 · Another morning, same ceiling ----------------
 export const FAlarm: React.FC<{ t: number }> = ({ t }) => (
