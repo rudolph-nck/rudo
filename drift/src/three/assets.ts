@@ -9,6 +9,9 @@ export type Assets = {
   oswald: Font;
   inter: Font;
   caveat: Font;
+  mono: Font;
+  mono4: Font;
+  serif: Font;
   concrete: THREE.Texture;
   concreteBump: THREE.Texture;
 };
@@ -130,14 +133,17 @@ const load = () => {
   if (!pending) {
     pending = (async () => {
       await document.fonts.ready;
-      const [bebas, oswald, inter, caveat] = await Promise.all([
+      const [bebas, oswald, inter, caveat, mono, mono4, serif] = await Promise.all([
         loadFont("fonts/bebas.typeface.json"),
         loadFont("fonts/oswald700.typeface.json"),
         loadFont("fonts/inter800.typeface.json"),
         loadFont("fonts/caveat500.typeface.json"),
+        loadFont("fonts/spacemono700.typeface.json"),
+        loadFont("fonts/spacemono400.typeface.json"),
+        loadFont("fonts/instrserif.typeface.json"),
       ]);
       const { tex, btex } = makeConcrete();
-      cache = { bebas, oswald, inter, caveat, concrete: tex, concreteBump: btex };
+      cache = { bebas, oswald, inter, caveat, mono, mono4, serif, concrete: tex, concreteBump: btex };
       return cache;
     })();
   }

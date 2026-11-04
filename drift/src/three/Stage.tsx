@@ -10,7 +10,7 @@ import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { FMT } from "../theme";
 
-export type Cam = { pos: [number, number, number]; look: [number, number, number]; fov?: number; roll?: number; up?: [number, number, number] };
+export type Cam = { pos: [number, number, number]; look: [number, number, number]; fov?: number; roll?: number; up?: [number, number, number]; near?: number; far?: number };
 export type Look = {
   exposure?: number;
   env?: number; // studio reflections strength
@@ -55,8 +55,8 @@ const Rig: React.FC<{ cam: Cam; look: Look }> = ({ cam, look }) => {
     scene.fog = look.fog ? new THREE.Fog(look.fog.color, look.fog.near, look.fog.far) : null;
     const pc = camera as THREE.PerspectiveCamera;
     pc.fov = cam.fov ?? 35;
-    pc.near = 0.05;
-    pc.far = 400;
+    pc.near = cam.near ?? 0.05;
+    pc.far = cam.far ?? 400;
     pc.position.set(...cam.pos);
     if (cam.up) pc.up.set(...cam.up);
     else pc.up.set(Math.sin(cam.roll ?? 0), Math.cos(cam.roll ?? 0), 0);
