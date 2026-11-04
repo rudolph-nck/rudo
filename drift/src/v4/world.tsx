@@ -14,22 +14,80 @@ export const C = {
 // ---------------------------------------------------------------------------------------------
 // Words as solid objects
 export type WStyle = "city" | "drift" | "serif" | "steel";
-const matCache = new Map<string, THREE.MeshStandardMaterial>();
-/** A letter's material: body + an emission that is hot while the word is sung, cooling after. */
-export const letterMat = (style: WStyle, h: number, o: number) => {
-  const hq = Math.round(h * 10), oq = Math.round(o * 12);
-  const key = `${style}|${hq}|${oq}`;
+/**
+ * Surface micro-detail for the letters: brushed grain, fine pitting, a few hairline scratches and smudges.
+ * Used as roughness + bump map so moving light catches imperfections. Glyph UVs are in metres, so repeat ~4/m.
+ */
+export const surfaceTex = (() => {
+  let tx: THREE.CanvasTexture | null = null;
+  return () => {
+    if (tx) return tx;
+    const N = 512, c = document.createElement("canvas"); c.width = c.height = N;
+    const g = c.getContext("2d")!, r = rng(808);
+    const img = g.createImageData(N, N);
+    // brushed: per-row streak value + per-pixel grain
+    const rowv = Array.from({ length: N }, () => r());
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      const k = (y * N + x) * 4;
+      const streak = rowv[y] * 0.5 + rowv[(y + 1) % N] * 0.3 + rowv[(y + 3) % N] * 0.2;
+      const v = 118 + (streak - 0.5) * 46 + (r() - 0.5) * 30;
+      img.data[k] = img.data[k + 1] = img.data[k + 2] = v; img.data[k + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+    // smudges (rougher patches)
+    for (let i = 0; i < 26; i++) { const x = r() * N, y = r() * N, rad = 20 + r() * 70; const gr = g.createRadialGradient(x, y, 0, x, y, rad); gr.addColorStop(0, `rgba(${r() < 0.5 ? "200,200,200" : "60,60,60"},${0.12 + r() * 0.14})`); gr.addColorStop(1, "rgba(128,128,128,0)"); g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2); }
+    // hairline scratches
+    for (let i = 0; i < 70; i++) { g.strokeStyle = `rgba(${r() < 0.6 ? 230 : 40},${r() < 0.6 ? 230 : 40},${r() < 0.6 ? 230 : 40},${0.15 + r() * 0.3})`; g.lineWidth = 0.5 + r() * 0.8; g.beginPath(); const x = r() * N, y = r() * N, a = (r() - 0.5) * 0.5 + (r() < 0.3 ? Math.PI / 2 : 0), L = 20 + r() * 140; g.moveTo(x, y); g.lineTo(x + Math.cos(a) * L, y + Math.sin(a) * L); g.stroke(); }
+    // pitting
+    for (let i = 0; i < 900; i++) { g.fillStyle = `rgba(30,30,30,${0.2 + r() * 0.4})`; g.fillRect(r() * N, r() * N, 1 + r() * 1.5, 1 + r() * 1.5); }
+    tx = new THREE.CanvasTexture(c); tx.wrapS = tx.wrapT = THREE.RepeatWrapping; tx.repeat.set(4, 4); tx.colorSpace = THREE.NoColorSpace; tx.anisotropy = 4;
+    return tx;
+  };
+})();
+
+/** Rim (side-wall) emission colour per style: the backlight of the letters. */
+const RIM: Record<WStyle, THREE.Color> = { city: new THREE.Color("#cfdcf2"), steel: new THREE.Color("#ffb066"), serif: new THREE.Color("#ece2d0"), drift: new THREE.Color("#ffb066") };
+const matCache = new Map<string, THREE.MeshStandardMaterial[]>();
+/**
+ * A letter's materials: [face, side]. Faces are tangible (anodized brushed metal in the city, matte ceramic /
+ * satin bone above); the side walls and bevels carry the emission, so a sung word is backlit along its edges.
+ */
+export const letterMat = (style: WStyle, h: number, o: number, alarm = 0) => {
+  const hq = Math.round(h * 10), oq = Math.round(o * 12), aq = Math.round(alarm * 4);
+  const key = `${style}|${hq}|${oq}|${aq}`;
   let m = matCache.get(key);
   if (!m) {
-    const k = hq / 10;
-    if (style === "city") m = new THREE.MeshStandardMaterial({ color: "#9e9890", roughness: 0.55, metalness: 0.25, emissive: C.blue.clone().multiplyScalar(0.05).lerp(C.red.clone().multiplyScalar(0.6), k) });
-    else if (style === "steel") m = new THREE.MeshStandardMaterial({ color: "#b9b2a8", roughness: 0.32, metalness: 0.8, emissive: C.amber.clone().multiplyScalar(0.9 * k) });
-    else if (style === "serif") m = new THREE.MeshStandardMaterial({ color: "#f0e6d6", roughness: 0.6, metalness: 0.05, emissive: C.bone.clone().multiplyScalar(0.2 + 0.6 * k) });
-    else m = new THREE.MeshStandardMaterial({ color: "#f6e8d4", roughness: 0.5, metalness: 0.05, emissive: C.amber.clone().multiplyScalar(0.25 + 1.1 * k) });
-    m.transparent = oq < 12; m.opacity = oq / 12; m.depthWrite = oq > 8;
+    const k = hq / 10, st = surfaceTex();
+    let face: THREE.MeshStandardMaterial, side: THREE.MeshStandardMaterial;
+    const rim = RIM[style].clone().lerp(C.red, aq / 4);
+    if (style === "city") {
+      face = new THREE.MeshStandardMaterial({ color: "#8d9098", metalness: 0.78, roughness: 1.0, roughnessMap: st, bumpMap: st, bumpScale: 0.35, envMapIntensity: 0.9, emissive: rim.clone().multiplyScalar(0.02 + 0.05 * k) });
+      side = new THREE.MeshStandardMaterial({ color: "#2a2c31", metalness: 0.6, roughness: 0.4, emissive: rim.clone().multiplyScalar(0.04 + 1.05 * k) });
+    } else if (style === "steel") {
+      face = new THREE.MeshStandardMaterial({ color: "#b9b2a8", metalness: 0.85, roughness: 0.85, roughnessMap: st, bumpMap: st, bumpScale: 0.3, emissive: rim.clone().multiplyScalar(0.25 * k) });
+      side = new THREE.MeshStandardMaterial({ color: "#3a332c", metalness: 0.6, roughness: 0.4, emissive: rim.clone().multiplyScalar(0.1 + 1.8 * k) });
+    } else if (style === "serif") {
+      face = new THREE.MeshStandardMaterial({ color: "#efe5d5", metalness: 0.05, roughness: 1.0, roughnessMap: st, bumpMap: st, bumpScale: 0.2, emissive: C.bone.clone().multiplyScalar(0.18 + 0.45 * k) });
+      side = new THREE.MeshStandardMaterial({ color: "#5a5048", roughness: 0.6, emissive: rim.clone().multiplyScalar(0.15 + 1.2 * k) });
+    } else {
+      face = new THREE.MeshStandardMaterial({ color: "#f3e6d2", metalness: 0.05, roughness: 1.0, roughnessMap: st, bumpMap: st, bumpScale: 0.2, emissive: C.amber.clone().multiplyScalar(0.22 + 0.7 * k) });
+      side = new THREE.MeshStandardMaterial({ color: "#4a3a2a", roughness: 0.5, emissive: rim.clone().multiplyScalar(0.2 + 1.6 * k) });
+    }
+    for (const x of [face, side]) { x.transparent = oq < 12; x.opacity = oq / 12; x.depthWrite = oq > 8; }
+    m = [face, side];
     matCache.set(key, m);
   }
   return m;
+};
+/** A soft additive halo behind a sung word: the light its backlit letters throw onto the air around them. */
+const haloMats = new Map<string, THREE.MeshBasicMaterial>();
+export const Halo: React.FC<{ w: number; h: number; color: THREE.Color; k: number; z?: number }> = ({ w, h, color, k, z = -0.04 }) => {
+  const kq = Math.round(k * 16);
+  if (kq <= 0) return null;
+  const key = `${color.getHexString()}|${kq}`;
+  let m = haloMats.get(key);
+  if (!m) { m = new THREE.MeshBasicMaterial({ map: dot(), color: color.clone().multiplyScalar(0.09 * kq / 16), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }); haloMats.set(key, m); }
+  return <mesh material={m} position={[0, 0, z]}><planeGeometry args={[w, h]} /></mesh>;
 };
 export const fontFor = (a: { inter: Font; mono: Font; serif: Font; bebas: Font }, style: WStyle) => (style === "city" ? a.inter : style === "serif" ? a.serif : style === "steel" ? a.bebas : a.mono);
 
@@ -37,7 +95,7 @@ export const fontFor = (a: { inter: Font; mono: Font; serif: Font; bebas: Font }
  * One sung word as a row of extruded letters, revealed by syllable and moved by its behaviour.
  * Placed at `pos` with rotation `rot` (word centred on 0). Depth gives it mass; long shadows from the lights.
  */
-export const Word3D: React.FC<{ font: Font; li: number; wi: number; t: number; size: number; style: WStyle; beh?: Beh; pos?: [number, number, number]; rot?: [number, number, number]; depth?: number; kickT?: number; fade?: number; text?: string }> = ({ font, li, wi, t, size, style, beh = "pop", pos = [0, 0, 0], rot = [0, 0, 0], depth = 0.22, kickT, fade = 1, text }) => {
+export const Word3D: React.FC<{ font: Font; li: number; wi: number; t: number; size: number; style: WStyle; beh?: Beh; pos?: [number, number, number]; rot?: [number, number, number]; depth?: number; kickT?: number; fade?: number; text?: string; halo?: boolean; alarm?: number }> = ({ font, li, wi, t, size, style, beh = "pop", pos = [0, 0, 0], rot = [0, 0, 0], depth = 0.22, kickT, fade = 1, text, halo = true, alarm = 0 }) => {
   const w = W(li, wi);
   const word = text ?? clean(w.w);
   if (t < w.s - 0.08) return null;
@@ -47,13 +105,14 @@ export const Word3D: React.FC<{ font: Font; li: number; wi: number; t: number; s
   const h = heat(t, w);
   return (
     <group position={pos} rotation={rot}>
+      {halo ? <Halo w={lay.width * 1.25 + size * 0.6} h={size * 2.0} color={RIM[style]} k={h * fade * (t >= w.s ? 1 : 0)} z={-size * depth - 0.01} /> : null}
       {lay.letters.map((L, i) => {
         if (L.ch === " ") return null;
         const x: LX = letterXf(beh, t, w, i, n, L.x / size, starts[i] ?? w.s, li * 31 + wi, kickT);
         const o = x.o * fade;
         if (o <= 0.01) return null;
         return (
-          <mesh key={i} geometry={glyphGeo(font, L.ch, size, size * depth, `v4${style}`, 0.012)} material={letterMat(style, h, o)}
+          <mesh key={i} geometry={glyphGeo(font, L.ch, size, size * depth, `v4${style}`, 0.012)} material={letterMat(style, h, o, alarm)}
             position={[x.p[0] * size, x.p[1] * size, x.p[2] * size]} rotation={x.r} scale={x.s} castShadow receiveShadow />
         );
       })}
@@ -81,30 +140,99 @@ export const layLine = (font: Font, li: number, rows: number[][], sizes: number[
 };
 
 // ---------------------------------------------------------------------------------------------
-// A pop-up window: dark glass slab, a coloured title bar, a close box. The lyric lives inside it.
+// A notification as a glass panel: near-invisible dark glass, hairline edges with a chromatic fringe (red/cyan split),
+// bright corner ticks, a tiny mono caption over a hairline rule. No solid title bars, no opaque slab.
+const panelCache = new Map<string, THREE.Material>();
+const pm = (key: string, make: () => THREE.Material) => { let m = panelCache.get(key); if (!m) { m = make(); panelCache.set(key, m); } return m; };
 export const Popup: React.FC<{ w: number; h: number; tone: "red" | "blue"; title: string; font: Font; flash?: number; o?: number; children?: React.ReactNode }> = ({ w, h, tone, title, font, flash = 0, o = 1, children }) => {
-  const col = tone === "red" ? C.red : C.blue;
-  const bar = useMemo(() => new THREE.MeshStandardMaterial({ color: col, emissive: col.clone().multiplyScalar(0.9), roughness: 0.5, transparent: true }), [tone]);
-  const body = useMemo(() => new THREE.MeshStandardMaterial({ color: "#0d0e12", roughness: 0.25, metalness: 0.4, transparent: true, emissive: new THREE.Color("#000") }), []);
-  const edge = useMemo(() => new THREE.MeshStandardMaterial({ color: col, emissive: col.clone().multiplyScalar(1.4), transparent: true }), [tone]);
-  bar.opacity = o; body.opacity = 0.9 * o; edge.opacity = o;
-  bar.emissive.copy(col).multiplyScalar(0.9 + 1.6 * flash);
-  body.emissive.copy(col).multiplyScalar(0.12 * flash);
-  const tb = Math.min(0.09, h * 0.18);
-  const tl = layout(font, title, tb * 0.45, 0.2);
+  const col = tone === "red" ? C.red : C.coldWhite;
+  const oq = Math.round(o * 10) / 10, fq = Math.round(flash * 8) / 8;
+  const glass = pm(`g|${tone}|${oq}|${fq}`, () => new THREE.MeshPhysicalMaterial({ color: "#07090d", roughness: 0.14, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.4, transparent: true, opacity: (0.62 + 0.08 * fq) * oq, depthWrite: false, emissive: col.clone().multiplyScalar(0.04 * fq) }));
+  const edge = pm(`e|${tone}|${oq}|${fq}`, () => new THREE.MeshBasicMaterial({ color: col.clone().multiplyScalar(0.55 + 1.3 * fq), transparent: true, opacity: 0.85 * oq, depthWrite: false }));
+  const tick = pm(`t|${tone}|${oq}|${fq}`, () => new THREE.MeshBasicMaterial({ color: col.clone().multiplyScalar(1.2 + 1.8 * fq), transparent: true, opacity: oq, depthWrite: false }));
+  const fr = pm(`fr|${oq}`, () => new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.12, 0.08), transparent: true, opacity: 0.45 * oq, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const fb = pm(`fb|${oq}`, () => new THREE.MeshBasicMaterial({ color: new THREE.Color(0.05, 0.45, 1), transparent: true, opacity: 0.45 * oq, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const rule = pm(`r|${tone}|${oq}`, () => new THREE.MeshBasicMaterial({ color: col.clone().multiplyScalar(0.6), transparent: true, opacity: 0.35 * oq, depthWrite: false }));
+  if (oq <= 0) return <group>{children}</group>;
+  const hw = 0.0016, ca = 0.0024, tl = Math.min(w, h) * 0.12, tt = 0.003;
+  const cap = Math.min(0.022, h * 0.09);
+  const tlay = layout(font, title, cap, 0.25);
+  const ty = h / 2 - cap * 1.4;
+  const frame = (mat: THREE.Material, dx: number, dy: number, key: string) => (
+    <group key={key} position={[dx, dy, 0]}>
+      <mesh material={mat} position={[0, h / 2, 0]}><planeGeometry args={[w, hw]} /></mesh>
+      <mesh material={mat} position={[0, -h / 2, 0]}><planeGeometry args={[w, hw]} /></mesh>
+      <mesh material={mat} position={[-w / 2, 0, 0]}><planeGeometry args={[hw, h]} /></mesh>
+      <mesh material={mat} position={[w / 2, 0, 0]}><planeGeometry args={[hw, h]} /></mesh>
+    </group>
+  );
   return (
     <group>
-      <mesh material={body} position={[0, 0, -0.03]} castShadow receiveShadow><boxGeometry args={[w, h, 0.04]} /></mesh>
-      <mesh material={bar} position={[0, h / 2 - tb / 2, 0]}><boxGeometry args={[w, tb, 0.05]} /></mesh>
-      {[[-w / 2, 0, 0.004, h], [w / 2, 0, 0.004, h], [0, -h / 2, w, 0.004]].map(([x, y, ww, hh], i) => <mesh key={i} material={edge} position={[x, y, 0]}><boxGeometry args={[ww || 0.004, hh || 0.004, 0.05]} /></mesh>)}
-      <group position={[-w / 2 + 0.04 + tl.width / 2, h / 2 - tb / 2, 0.03]}>
-        {tl.letters.map((L, i) => (L.ch === " " ? null : <mesh key={i} geometry={glyphGeo(font, L.ch, tb * 0.45, 0.004, "v4ui", 0)} material={edge} position={[L.x, 0, 0]} />))}
+      <mesh material={glass} position={[0, 0, -0.012]}><boxGeometry args={[w, h, 0.006]} /></mesh>
+      {frame(fr, ca, ca * 0.5, "fr")}{frame(fb, -ca, -ca * 0.5, "fb")}{frame(edge, 0, 0, "e")}
+      {[[-1, 1], [1, 1], [-1, -1], [1, -1]].map(([sx, sy], i) => (
+        <group key={i} position={[(sx * w) / 2, (sy * h) / 2, 0.001]}>
+          <mesh material={tick} position={[(-sx * tl) / 2, 0, 0]}><planeGeometry args={[tl, tt]} /></mesh>
+          <mesh material={tick} position={[0, (-sy * tl) / 2, 0]}><planeGeometry args={[tt, tl]} /></mesh>
+        </group>
+      ))}
+      <group position={[-w / 2 + cap * 1.2 + tlay.width / 2, ty, 0.002]}>
+        {tlay.letters.map((L, i) => (L.ch === " " ? null : <mesh key={i} geometry={glyphGeo(font, L.ch, cap, 0.001, "v4cap", 0)} material={edge} position={[L.x, 0, 0]} />))}
       </group>
-      <mesh material={edge} position={[w / 2 - tb * 0.6, h / 2 - tb / 2, 0.03]} rotation={[0, 0, Math.PI / 4]}><boxGeometry args={[tb * 0.5, tb * 0.08, 0.01]} /></mesh>
-      <mesh material={edge} position={[w / 2 - tb * 0.6, h / 2 - tb / 2, 0.03]} rotation={[0, 0, -Math.PI / 4]}><boxGeometry args={[tb * 0.5, tb * 0.08, 0.01]} /></mesh>
+      <mesh material={rule} position={[0, ty - cap * 0.95, 0.001]}><planeGeometry args={[w - cap * 2.4, 0.0012]} /></mesh>
+      {/* a tiny close mark, two hairlines */}
+      {[1, -1].map((s2) => <mesh key={s2} material={edge} position={[w / 2 - cap * 1.4, ty, 0.002]} rotation={[0, 0, (s2 * Math.PI) / 4]}><planeGeometry args={[cap * 0.9, 0.0014]} /></mesh>)}
       {children}
     </group>
   );
+};
+
+// Volumetric light: a cone of lit air from a source to a target. View-dependent falloff (soft at the silhouette),
+// fading along its length, with slow drifting density so it reads as dust in the beam rather than a solid shape.
+export const LightShaft: React.FC<{ from: [number, number, number]; to: [number, number, number]; r0: number; r1: number; color: string; k: number; t: number }> = ({ from, to, r0, r1, color, k, t }) => {
+  const mat = useMemo(() => new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, fog: false,
+    uniforms: { uC: { value: new THREE.Color(color) }, uK: { value: 0 }, uT: { value: 0 } },
+    vertexShader: `varying float vH; varying vec3 vN; varying vec3 vV; varying vec3 vW;
+      void main(){ vH = position.y + 0.5; vec4 mv = modelViewMatrix * vec4(position,1.); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); vW = (modelMatrix * vec4(position,1.)).xyz; gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: `uniform vec3 uC; uniform float uK, uT; varying float vH; varying vec3 vN; varying vec3 vV; varying vec3 vW;
+      float n3(vec3 p){ return fract(sin(dot(floor(p), vec3(12.9898,78.233,37.719))) * 43758.5453); }
+      float vn(vec3 p){ vec3 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
+        return mix(mix(mix(n3(i),n3(i+vec3(1,0,0)),f.x),mix(n3(i+vec3(0,1,0)),n3(i+vec3(1,1,0)),f.x),f.y),mix(mix(n3(i+vec3(0,0,1)),n3(i+vec3(1,0,1)),f.x),mix(n3(i+vec3(0,1,1)),n3(i+vec3(1,1,1)),f.x),f.y),f.z); }
+      void main(){ float edge = pow(abs(dot(vN, vV)), 2.2);
+        float along = smoothstep(0.0, 0.25, vH) * (0.35 + 0.65 * vH);
+        float dens = 0.65 + 0.35 * vn(vW * 3.0 + vec3(0., -uT * 0.08, uT * 0.05));
+        gl_FragColor = vec4(uC * edge * along * dens * uK, 1.0); }`,
+  }), [color]);
+  mat.uniforms.uK.value = k; mat.uniforms.uT.value = t;
+  const a = new THREE.Vector3(...from), b = new THREE.Vector3(...to), len = a.distanceTo(b);
+  const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), a.clone().sub(b).normalize());
+  const mid = a.clone().add(b).multiplyScalar(0.5);
+  return <mesh material={mat} position={mid.toArray() as [number, number, number]} quaternion={q} scale={[1, len, 1]} renderOrder={5}><cylinderGeometry args={[r0, r1, 1, 48, 1, true]} /></mesh>;
+};
+
+/** Air motes: tiny specks hanging in the room, drifting; out of focus they become micro-bokeh. */
+export const Motes: React.FC<{ t: number; o: number }> = ({ t, o }) => {
+  const { geo, base } = useMemo(() => {
+    const r = rng(404), n = 1400, base = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      for (let tries = 0; tries < 20; tries++) {
+      // most in the spot beam above the desk, some through the room
+      if (i < 900) { const h = r(), rad = (0.15 + h * 0.75) * Math.sqrt(r()), a = r() * Math.PI * 2; base.set([0.2 + (-0.2) * h + Math.cos(a) * rad, 2.9 - h * 2.1, -0.5 - 0.9 * h + Math.sin(a) * rad], i * 3); }
+      else base.set([(r() - 0.5) * 6, 0.2 + r() * 2.6, (r() - 0.5) * 6], i * 3);
+      const x = base[i * 3], y = base[i * 3 + 1], z = base[i * 3 + 2];
+      if (!(Math.abs(x) < 0.7 && y > 0.9 && y < 2.0 && z > -1.2 && z < 2.6)) break; // not in the camera's path
+      }
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    return { geo: g, base };
+  }, []);
+  const mat = useMemo(() => new THREE.PointsMaterial({ size: 0.003, map: dot(), color: new THREE.Color("#dfe6f2"), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }), []);
+  mat.opacity = 0.4 * o;
+  const pa = geo.getAttribute("position") as THREE.BufferAttribute, n = base.length / 3;
+  for (let i = 0; i < n; i++) pa.setXYZ(i, base[i * 3] + Math.sin(t * 0.13 + i) * 0.04, base[i * 3 + 1] + Math.sin(t * 0.07 + i * 1.7) * 0.05 - ((t * 0.01 + i * 0.001) % 0.1), base[i * 3 + 2] + Math.cos(t * 0.11 + i * 0.3) * 0.04);
+  pa.needsUpdate = true;
+  return <points geometry={geo} material={mat} frustumCulled={false} />;
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -113,10 +241,10 @@ export const Workshop: React.FC<{ t: number; drop: number; concrete: THREE.Textu
   const wall = useMemo(() => { const m = new THREE.MeshStandardMaterial({ color: "#4a4a50", roughness: 0.95, map: concrete, bumpMap: bump, bumpScale: 0.4 }); concrete.wrapS = concrete.wrapT = THREE.RepeatWrapping; return m; }, [concrete, bump]);
   const dark = useMemo(() => new THREE.MeshStandardMaterial({ color: "#1b1c21", roughness: 0.7, metalness: 0.3 }), []);
   const metal = useMemo(() => new THREE.MeshStandardMaterial({ color: "#5a5d66", roughness: 0.35, metalness: 0.8 }), []);
-  const scr = useMemo(() => new THREE.MeshStandardMaterial({ color: "#000", emissive: C.blue.clone(), roughness: 0.2 }), []);
-  scr.emissive.copy(C.blue).multiplyScalar(0.15 + 0.5 * screen).lerp(C.red.clone().multiplyScalar(0.8), alarm);
+  const scr = useMemo(() => new THREE.MeshStandardMaterial({ color: "#000", emissive: C.blue.clone(), roughness: 0.7 }), []);
+  scr.emissive.copy(C.blue).multiplyScalar(0.03 + 0.12 * screen).lerp(C.red.clone().multiplyScalar(0.8), alarm);
   const boxes = useMemo(() => { const r = rng(5); return Array.from({ length: 34 }, () => ({ x: (r() < 0.5 ? -1 : 1) * (3.2 + r() * 0.5), y: 0.2 + Math.floor(r() * 5) * 0.55, z: -3 + r() * 6, w: 0.25 + r() * 0.5, h: 0.2 + r() * 0.3, d: 0.3 + r() * 0.3 })); }, []);
-  const cables = useMemo(() => { const r = rng(9); return Array.from({ length: 7 }, () => new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3((r() - 0.5) * 2, 0.02, -1.4 + r() * 0.2), new THREE.Vector3((r() - 0.5) * 3, 0.01, (r() - 0.5) * 2), new THREE.Vector3((r() - 0.5) * 6, 0.02, (r() - 0.5) * 6), new THREE.Vector3((r() - 0.5) * 7, 0.6 + r() * 2, r() < 0.5 ? -3.95 : 3.95)]), 40, 0.012 + r() * 0.012, 6)); }, []);
+  const cables = useMemo(() => { const r = rng(9); return Array.from({ length: 7 }, () => new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3((r() - 0.5) * 2, 0.02, -1.4 + r() * 0.2), new THREE.Vector3((r() - 0.5) * 3, 0.01, (r() - 0.5) * 2), new THREE.Vector3((r() - 0.5) * 6, 0.02, (r() - 0.5) * 6), new THREE.Vector3((r() - 0.5) * 7, 0.25 + r() * 0.45, r() < 0.5 ? -3.95 : 3.95)]), 40, 0.012 + r() * 0.012, 6)); }, []);
   const g = 9.8, fall = drop > 0 ? 0.5 * g * drop * drop : 0;
   return (
     <group>

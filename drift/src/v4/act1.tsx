@@ -10,8 +10,8 @@ import { Glow } from "../words/points";
 import { layout } from "../words/glyphs";
 import { useCutout } from "../sections/S1";
 import { FMT } from "../theme";
-import { Beh, CamKey, KICKS, L0, SNARES, W, handheld, lastIn, makeCamera } from "./core";
-import { C, City, Dust, Earth, Pod, Popup, Sky, WStyle, Word3D, Workshop, fontFor, layLine } from "./world";
+import { Beh, CamKey, KICKS, L0, SNARES, W, handheld, heat, lastIn, makeCamera } from "./core";
+import { C, City, Dust, Earth, LightShaft, Motes, Pod, Popup, Sky, WStyle, Word3D, Workshop, fontFor, layLine } from "./world";
 
 /**
  * DRIFT v2 — Act 1 test (0:00–1:31.8).
@@ -70,12 +70,19 @@ const next = (defs: LineDef[], k: number, fallback: number) => (defs[k + 1] ? L0
 // ---- the verse ring: which way the camera faces for each line (a 90° whip on the snare before each new line) ----
 const VTH = VERSE.map((_, k) => k * (Math.PI / 2));
 const whipAt = VERSE.map((d) => { const s = L0(d.li); const sn = SNARES.filter((x) => x <= s && s - x < 0.7); return sn.length ? sn[sn.length - 1] - 0.05 : s - 0.28; });
-const verseYaw = (t: number) => { let th = VTH[0]; for (let k = 1; k < VERSE.length; k++) { const u = cubicInOut(clamp01((t - whipAt[k]) / 0.26)); th = mix(th, VTH[k], u); } return th; };
+const WHIP = 0.72; // slow-in / slow-out: the turn straddles the snare instead of snapping on it
+const verseYaw = (t: number) => { let th = VTH[0]; for (let k = 1; k < VERSE.length; k++) { const u = cubicInOut(clamp01((t - (whipAt[k] - WHIP * 0.45)) / WHIP)); th = mix(th, VTH[k], u); } return th; };
+/** The camera on a tracking rig: slow, weighted drift (two octaves of smooth noise), never jitter. */
+const rig = (t: number, amp: number) => new THREE.Vector3(
+  (noise1(t * 0.17, 41) - 0.5) * amp + (noise1(t * 0.43, 44) - 0.5) * amp * 0.3,
+  (noise1(t * 0.14, 42) - 0.5) * amp * 0.7 + (noise1(t * 0.39, 45) - 0.5) * amp * 0.2,
+  (noise1(t * 0.12, 43) - 0.5) * amp * 0.8);
+const lineHeat = (li: number, t: number) => LINES[li].words.reduce((m, w) => Math.max(m, heat(t, w)), 0);
 // where each window sits: in front of you on its yaw; older windows pushed back when a new one lands on the same side
 const slot = (k: number, t: number) => {
   const pushes = VERSE.filter((d, j) => j > k && j % 4 === k % 4 && t >= L0(d.li) - 0.1).length;
   const r = rng(k + 3);
-  const rad = 0.92 + pushes * 0.42, up = (r() - 0.5) * 0.22 + pushes * (k % 2 ? 0.16 : -0.14), side = (r() - 0.5) * 0.25 + pushes * (r() - 0.5) * 0.5;
+  const rad = 0.92 + pushes * 0.7, up = (r() - 0.5) * 0.22 + pushes * (k % 2 ? 0.16 : -0.14), side = (r() - 0.5) * 0.25 + pushes * (r() - 0.5) * 0.5;
   const d = dirY(VTH[k]), sd = new THREE.Vector3(-d.z, 0, d.x);
   return { pos: VC.clone().addScaledVector(d, rad).addScaledVector(sd, side).add(new THREE.Vector3(0, up, 0)), rotY: -VTH[k] + (r() - 0.5) * 0.18, tilt: (r() - 0.5) * 0.06, dim: pushes };
 };
@@ -137,6 +144,8 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
 
   // ---------- words ----------
   const els: React.ReactNode[] = [];
+  // what the lens is focused on: every line registers its centre when it starts; focus racks between them
+  const foci: { t0: number; p: THREE.Vector3; li: number }[] = [];
   const lineWords = (d: LineDef, origin: THREE.Vector3, rotY: number, fade: number, keyp: string, billboardTo?: THREE.Vector3) => {
     const font = fontFor(a, d.style);
     const lay = layLine(font, d.li, d.rows, d.sizes);
@@ -164,6 +173,7 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
       const fade = d.li === 3 ? 1 : 1 - clamp01((t - end) / 0.35);
       if (t < L0(d.li) - 0.1 || fade <= 0) return;
       const origin = new THREE.Vector3(...d.at);
+      foci.push({ t0: L0(d.li), p: origin, li: d.li });
       if (d.li === 2) els.push(
         <group key="quitbox" position={[0.42, 1.27, -1.03]} rotation={[0, -0.3, 0]} scale={cubicOut(clamp01((t - (W(2, 4).s - 0.08)) / 0.14))}>
           <Popup w={0.62} h={0.36} tone="red" title="ERROR · CANNOT QUIT" font={a.mono} flash={Math.max(0, Math.sin((t - 10) * 9)) * (t > W(2, 4).s ? 1 : 0)} o={fade} />
@@ -178,17 +188,18 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
     VERSE.forEach((d, k) => {
       if (t < L0(d.li) - 0.12) return;
       const sl = slot(k, t);
-      const pop = cubicOut(clamp01((t - (L0(d.li) - 0.12)) / 0.16));
+      const pop = cubicOut(clamp01((t - (L0(d.li) - 0.12)) / 0.38));
+      foci.push({ t0: L0(d.li), p: sl.pos, li: d.li });
       const gone = 1 - clamp01((t - (L0(22) + 0.2)) / 0.6);
       const font = fontFor(a, d.style);
       const lay = layLine(font, d.li, d.rows, d.sizes);
       const w = lay.width + 0.14, h = lay.height + 0.16;
       const flash = Math.max(alarm * (d.tone === "red" ? 1 : 0.5), k === VERSE.length - 1 ? 0 : 0) + (t - L0(d.li) < 0.25 ? 1 - (t - L0(d.li)) / 0.25 : 0) * 0.6;
-      const o = (sl.dim ? Math.max(0.35, 1 - sl.dim * 0.3) : 1) * gone;
+      const o = (sl.dim ? Math.max(0.06, 1 - sl.dim * 0.7) : 1) * gone * pop;
       // WEIGHT drops its window; ME / TIME tear
       const wy = d.li === 12 && t > W(12, 4).s - 0.05 ? -0.05 * Math.exp(-(t - W(12, 4).s) / 0.12) * Math.sin((t - W(12, 4).s) * 60) : 0;
       els.push(
-        <group key={`v${k}`} position={sl.pos.clone().add(new THREE.Vector3(0, wy, 0)).toArray() as [number, number, number]} rotation={[sl.tilt, sl.rotY, sl.tilt * 0.5]} scale={[pop, pop, pop]}>
+        <group key={`v${k}`} position={sl.pos.clone().add(new THREE.Vector3(0, wy, 0)).toArray() as [number, number, number]} rotation={[sl.tilt, sl.rotY, sl.tilt * 0.5]} scale={0.88 + 0.12 * pop}>
           <Popup w={w} h={h} tone={d.tone ?? "blue"} title={d.title ?? "SYSTEM"} font={a.mono} flash={flash} o={o}>
             <group position={[0, -0.03, 0.03]}>{lay.words.map((wd) => <Word3D key={wd.wi} font={font} li={d.li} wi={wd.wi} t={t} size={wd.size} style="city" beh={d.beh?.[wd.wi]} pos={[wd.x, wd.y, 0]} depth={0.3} kickT={kickT} fade={o} />)}</group>
           </Popup>
@@ -225,7 +236,9 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
       const fade = 1 - clamp01((t - end) / 0.3);
       if (t < L0(d.li) - 0.1 || fade <= 0) return;
       // line 22 faces you as you walk to the pod; line 23 faces you once you're seated
-      els.push(lineWords(d, new THREE.Vector3(0, 1.38, P0.z - 0.45).add(new THREE.Vector3(0, podY(t), 0)), d.li === 22 ? Math.PI : 0, fade, `pc${d.li}`));
+      const o2 = new THREE.Vector3(0, 1.38, P0.z - 0.45).add(new THREE.Vector3(0, podY(t), 0));
+      foci.push({ t0: L0(d.li), p: o2, li: d.li });
+      els.push(lineWords(d, o2, d.li === 22 ? Math.PI : 0, fade, `pc${d.li}`));
     });
   }
   // chorus: lines float around the pod, facing you
@@ -257,7 +270,7 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
   // ---------- camera ----------
   if (t < 23.0) {
     const c = introCam(Math.min(t, 19.85));
-    camP = c.p; camL = c.l; fov = c.f;
+    camP = c.p.clone().add(rig(t, 0.018)); camL = c.l.clone().add(rig(t + 50, 0.01)); fov = c.f;
     // STOP: everything freezes; the camera arcs slowly around the word
     if (t > W(4, 5).s) { const u = cubicInOut(clamp01((t - W(4, 5).s - 0.1) / 1.3)); const ang = -0.55 + 1.1 * u; const ctr = new THREE.Vector3(0, 1.33, -0.95); camP = ctr.clone().add(new THREE.Vector3(Math.sin(ang) * 0.75, 0.05, Math.cos(ang) * 0.75)); camL = ctr; fov = 40; }
     // FOR A MINUTE: back, then straight through the O of FOR into the verse
@@ -278,8 +291,8 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
     const k = VERSE.reduce((acc, d, i) => (t >= L0(d.li) - 0.3 ? i : acc), 0);
     const lineT = t - L0(VERSE[k].li), push = 0.12 * cubicOut(clamp01(lineT / 2.4));
     const d = dirY(th);
-    camP = VC.clone().addScaledVector(d, -0.18 + push).add(handheld(t, 0.012, 2.2));
-    camL = VC.clone().addScaledVector(d, 1.0).add(new THREE.Vector3(0, -0.01, 0));
+    camP = VC.clone().addScaledVector(d, -0.18 + push).add(rig(t, 0.02));
+    camL = VC.clone().addScaledVector(d, 1.0).add(new THREE.Vector3(0, -0.01, 0)).add(rig(t + 50, 0.012));
     fov = 42 - 4 * cubicOut(clamp01(lineT / 2.4));
     // ease in from the fly-through
     const ein = 1 - cubicOut(clamp01((t - 23.0) / 0.6));
@@ -287,7 +300,7 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
     // WEIGHT lands: a short shake; DARKNESS calls: the room shakes with each beat
     if (t > W(12, 4).s) camP.add(new THREE.Vector3(0, Math.exp(-(t - W(12, 4).s) / 0.15) * Math.sin((t - W(12, 4).s) * 70) * 0.012, 0));
     if (alarm > 0) camP.add(handheld(t * 3, 0.01 * alarm, 6));
-    roll = (noise1(t * 0.7, 5) - 0.5) * 0.05;
+    roll = (noise1(t * 0.21, 5) - 0.5) * 0.03;
   } else if (t < LAUNCH + 0.3) {
     // pre-chorus: turn around to the pod, walk in, sit, look down at the console
     const th0 = verseYaw(L0(22) - 0.4), d0 = dirY(th0);
@@ -298,8 +311,8 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
       { t: L0(23) + 0.9, p: [0, 1.28, P0.z + 0.12], l: [0, 1.15, P0.z - 0.6], f: 50 },
       { t: LAUNCH + 0.3, p: [0, 1.27, P0.z + 0.12], l: [0.06, 1.05, P0.z - 0.5], f: 52 },
     ];
-    const c = makeCamera(keys, 0.18)(t);
-    camP = c.p; camL = c.l; fov = c.f;
+    const c = makeCamera(keys, 0.3)(t);
+    camP = c.p.clone().add(rig(t, 0.014)); camL = c.l; fov = c.f;
   } else {
     // launch: hyperspeed pull-back out of the pod and up through the city, then the orbit in deep space
     const u = clamp01((t - (LAUNCH + 0.3)) / 4.0);
@@ -308,7 +321,7 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
     const launchL = pp.clone().add(new THREE.Vector3(0, 1.1, 0));
     const orb = chorusCam();
     const blend = cubicInOut(clamp01((t - 60.6) / 1.2));
-    camP = launchP.lerp(orb.p, blend); camL = launchL.lerp(orb.l, blend); fov = mix(mix(52, 64, Math.sin(Math.min(1, u * 1.4) * Math.PI)), orb.f, blend);
+    camP = launchP.lerp(orb.p.clone().add(rig(t, 0.35)), blend); camL = launchL.lerp(orb.l, blend); fov = mix(mix(52, 64, Math.sin(Math.min(1, u * 1.4) * Math.PI)), orb.f, blend);
   }
 
   // chorus words (after the camera is known, so they can face it)
@@ -323,9 +336,22 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
       let origin = pp.clone().add(new THREE.Vector3(0, 1.35 + ex * 0.6, 0)).addScaledVector(dc, d.li === 24 ? 1.6 : 3.4);
       if (d.li === 31) origin = origin.add(new THREE.Vector3(0, -1.2, 0));
       if (d.li === 32) { const c2 = camP.clone().sub(aPos()); c2.y = 0; c2.normalize(); origin = aPos().clone().addScaledVector(c2, 1.1); }
+      foci.push({ t0: L0(d.li), p: origin, li: d.li });
       els.push(lineWords(d, origin, 0, fade, `ch${d.li}`, camP));
     });
   }
+
+  // ---------- focus + the word light ----------
+  foci.sort((x, y) => x.t0 - y.t0);
+  const live = foci.filter((f) => f.t0 <= t + 0.05);
+  const cur = live[live.length - 1], prev = live[live.length - 2];
+  let focus = camP.distanceTo(camL);
+  if (cur) {
+    const dc = camP.distanceTo(cur.p), dp = prev ? camP.distanceTo(prev.p) : dc;
+    focus = mix(dp, dc, cubicInOut(clamp01((t - cur.t0 + 0.05) / 0.5)));
+  }
+  const wh = cur ? lineHeat(cur.li, t) : 0;
+  const wlP = cur ? cur.p.clone().add(camP.clone().sub(cur.p).normalize().multiplyScalar(0.65)).add(new THREE.Vector3(0, 0.3, 0)) : new THREE.Vector3();
 
   // ---------- render ----------
   const roomO = inRoom;
@@ -334,15 +360,26 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
   return (
     <AbsoluteFill style={{ background: "#000" }}>
       <Stage cam={{ pos: camP.toArray() as [number, number, number], look: camL.toArray() as [number, number, number], fov, roll, near: t > LAUNCH + 0.8 ? 0.3 : 0.05, far: t > LAUNCH ? 60000 : 400 }}
-        look={{ exposure: 0.92, env: 0.35, bloom: { strength: 0.45, radius: 0.5, threshold: 0.9 }, bg: "#05050a" }}>
+        look={{
+          exposure: 1.0, env: 0.3, bg: "#040508",
+          bloom: { strength: 0.32, radius: 0.32, threshold: 0.95 },
+          fogExp: t < LAUNCH + 0.4 ? { color: "#05060a", density: 0.2 } : undefined,
+          dof: t < LAUNCH + 0.3 ? { focus, aperture: 0.008, maxblur: 0.012 } : { focus, aperture: 0.0005, maxblur: 0.0035 },
+          lens: { ca: 0.012, grain: 0.035, vignette: 0.55, time: t },
+        }}>
         <Sky alt={alt} />
         {/* the room */}
         {roomO ? (
           <>
-            <ambientLight intensity={0.08} color="#9fb2d8" />
-            <pointLight position={[0, 1.2, -1.45]} intensity={2.2 * (0.4 + screen)} distance={4} color="#6f9fe0" />
-            <pointLight position={[-2.6, 2.4, -2.6]} intensity={5 + 10 * alarm} distance={7} color="#d2382b" castShadow shadow-mapSize={[1024, 1024]} />
-            <spotLight position={[0.2, 2.9, -0.5]} target-position={[0, 0.8, -1.4]} angle={0.7} penumbra={0.8} intensity={9} decay={2} color="#e8eef8" castShadow shadow-mapSize={[1024, 1024]} />
+            <ambientLight intensity={0.035} color="#9fb2d8" />
+            <pointLight position={[0, 1.2, -1.45]} intensity={1.4 * (0.4 + screen)} distance={3} color="#6f9fe0" />
+            <pointLight position={[-2.6, 2.4, -2.6]} intensity={3.5 + 10 * alarm} distance={7} color="#d2382b" castShadow shadow-mapSize={[1024, 1024]} />
+            {/* the work lamp: a hard cone of cold light through the haze */}
+            <spotLight position={[0.2, 2.9, -0.5]} target-position={[0, 0.8, -1.4]} angle={0.42} penumbra={0.65} intensity={7} decay={2} color="#e8eef8" castShadow shadow-mapSize={[1024, 1024]} />
+            <LightShaft from={[0.2, 2.9, -0.5]} to={[0.02, 0.76, -1.38]} r0={0.05} r1={0.95} color="#9fb4d8" k={0.16} t={t} />
+            <Motes t={t} o={1} />
+            {/* the sung word lights the room: its backlight spills forward onto desk, walls and you */}
+            <pointLight position={wlP.toArray() as [number, number, number]} intensity={0.7 * wh} distance={2.6} decay={2} color="#cfdcf2" />
             <Workshop t={t} drop={drop} concrete={a.concrete} bump={a.concreteBump} screen={screen} alarm={alarm} />
             {/* you, at the desk: seen only from the wide shots */}
             {sil && t > 13.0 && t < 18.4 ? <mesh material={sil} position={[0, 0.72, -0.15]} rotation={[0, Math.PI, 0]}><planeGeometry args={[0.85, 1.05]} /></mesh> : null}
@@ -380,9 +417,24 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
           </svg>
         </AbsoluteFill>
       ) : null}
-      {/* light film grain */}
-      <AbsoluteFill style={{ background: "radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.55) 100%)" }} />
+      {/* lens dust: fine specks and smudges on the front element, lit only when something bright is in frame */}
+      <LensDust k={0.06 + 0.22 * wh + (t > LAUNCH && t < LAUNCH + 3 ? 0.25 : 0)} />
     </AbsoluteFill>
   );
 };
-export const _u = [T, LINES, Img, staticFile, FMT, rng];
+export const _u = [T, LINES, Img, staticFile, FMT, rng, handheld];
+
+/** Lens dust as a screen-blended plate: hundreds of micro specks, a few soft smudges and a hair or two. */
+let dustURL: string | null = null;
+const lensDustURL = () => {
+  if (dustURL) return dustURL;
+  const c = document.createElement("canvas"); c.width = 1920; c.height = 1080;
+  const g = c.getContext("2d")!, r = rng(1234);
+  g.fillStyle = "#000"; g.fillRect(0, 0, 1920, 1080);
+  for (let i = 0; i < 14; i++) { const x = r() * 1920, y = r() * 1080, rad = 60 + r() * 180; const gr = g.createRadialGradient(x, y, 0, x, y, rad); gr.addColorStop(0, `rgba(190,200,215,${0.05 + r() * 0.07})`); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2); }
+  for (let i = 0; i < 700; i++) { const x = r() * 1920, y = r() * 1080, rad = 0.6 + Math.pow(r(), 4) * 7; g.fillStyle = `rgba(230,236,245,${0.15 + r() * 0.5})`; g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2); g.fill(); }
+  for (let i = 0; i < 3; i++) { g.strokeStyle = "rgba(220,225,235,0.3)"; g.lineWidth = 1; g.beginPath(); let x = r() * 1920, y = r() * 1080; g.moveTo(x, y); for (let k = 0; k < 6; k++) { x += (r() - 0.5) * 60; y += (r() - 0.3) * 40; g.lineTo(x, y); } g.stroke(); }
+  dustURL = c.toDataURL("image/png");
+  return dustURL;
+};
+const LensDust: React.FC<{ k: number }> = ({ k }) => <AbsoluteFill style={{ backgroundImage: `url(${lensDustURL()})`, backgroundSize: "100% 100%", mixBlendMode: "screen", opacity: Math.min(1, k) }} />;
