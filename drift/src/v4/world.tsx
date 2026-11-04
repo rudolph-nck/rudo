@@ -4,6 +4,8 @@ import { Font } from "three/examples/jsm/loaders/FontLoader.js";
 import { capHeight, glyphGeo, layout } from "../words/glyphs";
 import { rng } from "../utils/random";
 import { Beh, LX, W, clean, heat, letterXf, sylStarts } from "./core";
+import { Tone, distressedGlyph, typeMat } from "./film/materials";
+import { WetFloor } from "./film/env";
 
 /** Palette for Drift v2: industrial red + cold office blue in the city; indigo, charcoal and amber starlight above. */
 export const C = {
@@ -95,7 +97,9 @@ export const fontFor = (a: { inter: Font; mono: Font; serif: Font; bebas: Font }
  * One sung word as a row of extruded letters, revealed by syllable and moved by its behaviour.
  * Placed at `pos` with rotation `rot` (word centred on 0). Depth gives it mass; long shadows from the lights.
  */
-export const Word3D: React.FC<{ font: Font; li: number; wi: number; t: number; size: number; style: WStyle; beh?: Beh; pos?: [number, number, number]; rot?: [number, number, number]; depth?: number; kickT?: number; fade?: number; text?: string; halo?: boolean; alarm?: number }> = ({ font, li, wi, t, size, style, beh = "pop", pos = [0, 0, 0], rot = [0, 0, 0], depth = 0.22, kickT, fade = 1, text, halo = true, alarm = 0 }) => {
+export const Word3D: React.FC<{ font: Font; li: number; wi: number; t: number; size: number; style: WStyle; beh?: Beh; pos?: [number, number, number]; rot?: [number, number, number]; depth?: number; kickT?: number; fade?: number; text?: string; halo?: boolean; alarm?: number; crystal?: number; tone?: Tone }> = ({ font, li, wi, t, size, style, beh = "pop", pos = [0, 0, 0], rot = [0, 0, 0], depth = 0.22, kickT, fade = 1, text, halo = false, alarm = 0, crystal, tone }) => {
+  const cr = crystal ?? (style === "city" ? 0 : 1);
+  const tn: Tone = tone ?? (alarm > 0.5 ? "ember" : style === "city" ? "cold" : style === "serif" ? "bone" : "amber");
   const w = W(li, wi);
   const word = text ?? clean(w.w);
   if (t < w.s - 0.08) return null;
@@ -112,7 +116,7 @@ export const Word3D: React.FC<{ font: Font; li: number; wi: number; t: number; s
         const o = x.o * fade;
         if (o <= 0.01) return null;
         return (
-          <mesh key={i} geometry={glyphGeo(font, L.ch, size, size * depth, `v4${style}`, 0.012)} material={letterMat(style, h, o, alarm)}
+          <mesh key={i} geometry={distressedGlyph(font, L.ch, size, size * depth, `v5${style}`, cr > 0.5 ? 0.004 : 0.02)} material={typeMat(cr, h, o, tn)}
             position={[x.p[0] * size, x.p[1] * size, x.p[2] * size]} rotation={x.r} scale={x.s} castShadow receiveShadow />
         );
       })}
@@ -250,7 +254,7 @@ export const Workshop: React.FC<{ t: number; drop: number; concrete: THREE.Textu
     <group>
       {/* the floor drops away */}
       <group position={[0, -fall, 0]}>
-        <mesh material={dark} rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[8, 8]} /></mesh>
+        <WetFloor size={8} />
         {/* desk, monitor, keyboard */}
         <mesh material={dark} position={[0, 0.74, -1.55]} castShadow receiveShadow><boxGeometry args={[1.8, 0.05, 0.8]} /></mesh>
         {[-0.8, 0.8].map((x) => <mesh key={x} material={metal} position={[x, 0.37, -1.55]} castShadow><boxGeometry args={[0.05, 0.74, 0.7]} /></mesh>)}

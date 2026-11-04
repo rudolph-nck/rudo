@@ -10,6 +10,7 @@ import { Verse2V3 } from "./v3/verse2";
 import { Chorus2V3 } from "./v3/chorus2";
 import { BridgeV3 } from "./v3/bridge";
 import { FinaleV3 } from "./v3/finale";
+import { Skeleton } from "./v4/skeleton";
 import { Act1, A1_END } from "./v4/act1";
 import { BeatRuler } from "./v3/kit";
 import { AbsoluteFill } from "remotion";
@@ -146,6 +147,20 @@ const D2A1Comp: React.FC<{ muted?: boolean }> = ({ muted }) => {
   );
 };
 
+/** Drift v2, the whole song on the film pipeline: act 1 (built), then the skeleton for verse 2 → outro. */
+const D2Comp: React.FC<{ muted?: boolean }> = ({ muted }) => {
+  const f = useCurrentFrame();
+  const { width, height } = useVideoConfig();
+  setFormat(width, height);
+  const t = f / FPS;
+  return (
+    <>
+      {muted ? null : <AudioTrack />}
+      {t < A1_END ? <Act1 t={t} /> : <Skeleton t={t} />}
+    </>
+  );
+};
+
 export const Root: React.FC = () => (
   <>
     <Composition id="Style" component={StyleFrame} durationInFrames={120} fps={FPS} width={1080} height={1920} defaultProps={{ id: "weight" } as { id: string; t0?: number }} />
@@ -155,6 +170,7 @@ export const Root: React.FC = () => (
     <Composition id="V1Vertical" component={V1Comp} durationInFrames={Math.round((V1B_END - V1_START) * FPS)} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
     <Composition id="V1v3" component={V1V3Comp} durationInFrames={Math.round((V1V3_END - V1V3_START) * FPS)} fps={FPS} width={1920} height={1080} defaultProps={{ muted: false }} />
     <Composition id="C1v3" component={C1Comp} durationInFrames={Math.round((C1_END - C1_START) * FPS)} fps={FPS} width={1920} height={1080} defaultProps={{ muted: false }} />
+    <Composition id="D2" component={D2Comp} durationInFrames={Math.round(FULL_END * FPS)} fps={FPS} width={1920} height={1080} defaultProps={{ muted: false }} />
     <Composition id="D2A1" component={D2A1Comp} durationInFrames={Math.round(A1_END * FPS)} fps={FPS} width={1920} height={1080} defaultProps={{ muted: false }} />
     <Composition id="Drift" component={FullComp} durationInFrames={Math.round(FULL_END * FPS)} fps={FPS} width={1920} height={1080} defaultProps={{ muted: false }} />
     <Composition id="V3Frames" component={V3Frames} durationInFrames={150} fps={FPS} width={1920} height={1080} />

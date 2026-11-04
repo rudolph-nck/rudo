@@ -2,7 +2,10 @@ import React, { useMemo } from "react";
 import * as THREE from "three";
 import { AbsoluteFill, Img, staticFile } from "remotion";
 import { useAssets } from "../three/assets";
-import { Stage } from "../three/Stage";
+import { FilmStage } from "./film/FilmStage";
+import { CAGE, VOID, mixLook } from "./film/looks";
+import { KeySpot, keySpotPos } from "./film/env";
+import { drift, orbitAround, springK, throughHole } from "./film/camera";
 import { LINES, T } from "../data";
 import { clamp01, cubicIn, cubicInOut, cubicOut, mix } from "../utils/ease";
 import { noise1, rng } from "../utils/random";
@@ -23,8 +26,10 @@ import { C, City, Dust, Earth, LightShaft, Motes, Pod, Popup, Sky, WStyle, Word3
  * the camera makes slow panoramic orbits (a full 180° hold around the glowing A of "for a… bit").
  */
 export const A1_END = 91.8;
-const P0 = new THREE.Vector3(0, 0, 2.2); // the pod in the room
-const VC = new THREE.Vector3(0, 1.3, -0.25); // the verse: you, surrounded
+const P0 = new THREE.Vector3(0, 0, 2.9); // the pod, at the south end of the room
+const VC = new THREE.Vector3(0, 0, -0.2); // the verse: you, standing in the middle of the wet floor, surrounded
+const EYE = 1.05; // verse eye height
+const SV = 2.6; // verse windows are architectural: 2.6x scale, standing on the floor
 const dirY = (th: number) => new THREE.Vector3(Math.sin(th), 0, -Math.cos(th));
 const LAUNCH = 57.16;
 const ALT = 1000;
@@ -68,10 +73,10 @@ const CHORUS: LineDef[] = [
 const next = (defs: LineDef[], k: number, fallback: number) => (defs[k + 1] ? L0(defs[k + 1].li) : fallback);
 
 // ---- the verse ring: which way the camera faces for each line (a 90° whip on the snare before each new line) ----
-const VTH = VERSE.map((_, k) => k * (Math.PI / 2));
+const VTH = VERSE.map((_, k) => Math.PI / 4 + k * (Math.PI / 2));
 const whipAt = VERSE.map((d) => { const s = L0(d.li); const sn = SNARES.filter((x) => x <= s && s - x < 0.7); return sn.length ? sn[sn.length - 1] - 0.05 : s - 0.28; });
 const WHIP = 0.72; // slow-in / slow-out: the turn straddles the snare instead of snapping on it
-const verseYaw = (t: number) => { let th = VTH[0]; for (let k = 1; k < VERSE.length; k++) { const u = cubicInOut(clamp01((t - (whipAt[k] - WHIP * 0.45)) / WHIP)); th = mix(th, VTH[k], u); } return th; };
+const verseYaw = (t: number) => { let th = VTH[0]; for (let k = 1; k < VERSE.length; k++) { const u = springK(t, whipAt[k] - WHIP * 0.4, { damping: 24, mass: 1.6, stiffness: 70 }); th = mix(th, VTH[k], u); } return th; };
 /** The camera on a tracking rig: slow, weighted drift (two octaves of smooth noise), never jitter. */
 const rig = (t: number, amp: number) => new THREE.Vector3(
   (noise1(t * 0.17, 41) - 0.5) * amp + (noise1(t * 0.43, 44) - 0.5) * amp * 0.3,
@@ -82,25 +87,40 @@ const lineHeat = (li: number, t: number) => LINES[li].words.reduce((m, w) => Mat
 const slot = (k: number, t: number) => {
   const pushes = VERSE.filter((d, j) => j > k && j % 4 === k % 4 && t >= L0(d.li) - 0.1).length;
   const r = rng(k + 3);
-  const rad = 0.92 + pushes * 0.7, up = (r() - 0.5) * 0.22 + pushes * (k % 2 ? 0.16 : -0.14), side = (r() - 0.5) * 0.25 + pushes * (r() - 0.5) * 0.5;
+  const rad = 2.0 + Math.min(3, pushes) * 0.5, side = (r() - 0.5) * 0.5 + pushes * (r() - 0.5) * 0.9;
   const d = dirY(VTH[k]), sd = new THREE.Vector3(-d.z, 0, d.x);
-  return { pos: VC.clone().addScaledVector(d, rad).addScaledVector(sd, side).add(new THREE.Vector3(0, up, 0)), rotY: -VTH[k] + (r() - 0.5) * 0.18, tilt: (r() - 0.5) * 0.06, dim: pushes };
+  // the slab stands on the floor; older slabs lean back a little as they're pushed away
+  return { pos: VC.clone().addScaledVector(d, rad).addScaledVector(sd, side), rotY: -VTH[k] + (r() - 0.5) * 0.22, tilt: -0.04 * pushes + (r() - 0.5) * 0.03, dim: pushes };
 };
 
 // ---- intro camera (spline), pre-chorus camera (spline) ----
+// The room: desk + monitor against the north wall, the pod to the south, a wet concrete floor between them where
+// the intro words stand like monoliths under the single overhead key.
+const INTRO_AT: Record<number, [number, number, number]> = { 0: [0, 1.12, -1.73], 1: [-1.2, 0, -0.2], 2: [1.3, 0, -0.5], 3: [-0.2, 0, -0.3], 4: [0, 0, 0.1], 5: [0, 0, -1.05] };
+type IntroDef = { li: number; rows: number[][]; sizes: number[]; beh?: Record<number, Beh>; ry: number };
+const INTRO: IntroDef[] = [
+  { li: 0, rows: [[0]], sizes: [0.07], ry: 0 },
+  { li: 1, rows: [[0, 1, 2, 3], [4]], sizes: [0.11, 0.42], beh: { 4: "sag" }, ry: 0.45 },
+  { li: 2, rows: [[0, 1, 2, 3], [4]], sizes: [0.09, 0.36], beh: { 4: "stamp" }, ry: -0.36 },
+  { li: 3, rows: [[0, 1, 2, 3], [4]], sizes: [0.08, 0.24], beh: { 4: "dissolve" }, ry: 0 },
+  { li: 4, rows: [[0, 1, 2], [3], [4], [5]], sizes: [0.09, 0.16, 0.07, 0.62], beh: { 5: "freeze" }, ry: 0 },
+  { li: 5, rows: [[0, 1], [2]], sizes: [0.09, 0.22], ry: 0 },
+];
 const INTRO_KEYS: CamKey[] = [
-  { t: 0, p: [0.5, 2.62, 0.9], l: [0, 0.7, -1.3], f: 54 },
-  { t: 2.2, p: [0.3, 2.2, 0.6], l: [0, 0.9, -1.5], f: 50 },
-  { t: 4.0, p: [0.02, 1.32, 0.25], l: [0, 1.15, -1.7], f: 42 },
-  { t: 6.3, p: [0.04, 1.27, -0.32], l: [0, 1.22, -1.05], f: 38 },
-  { t: 8.6, p: [0.0, 1.24, -0.42], l: [0, 1.2, -1.05], f: 36 },
-  { t: 9.4, p: [0.22, 1.29, -0.3], l: [0.42, 1.3, -1.0], f: 38 },
-  { t: 11.0, p: [0.2, 1.3, -0.38], l: [0.42, 1.3, -1.0], f: 36 },
-  { t: 11.8, p: [-0.2, 1.24, -0.3], l: [-0.42, 1.2, -1.0], f: 38 },
-  { t: 13.8, p: [-0.15, 1.3, 0.1], l: [-0.3, 1.25, -1.0], f: 42 },
-  { t: 17.6, p: [0.6, 1.9, 1.5], l: [0, 1.1, -1.2], f: 46 },
-  { t: 18.6, p: [0.1, 1.42, -0.1], l: [0, 1.35, -0.95], f: 40 },
-  { t: 19.85, p: [0.05, 1.38, -0.28], l: [0, 1.33, -0.95], f: 38 },
+  { t: 0, p: [2.4, 2.75, 1.5], l: [0, 0.7, -1.4], f: 50 }, // the album shot: high corner, the desk in the pool of light
+  { t: 3.4, p: [1.4, 2.0, 0.6], l: [0, 0.9, -1.5], f: 46 },
+  { t: 4.6, p: [0.35, 1.32, -0.6], l: [0, 1.12, -1.72], f: 40 }, // the monitor: "Yeah..."
+  { t: 5.6, p: [0.2, 1.28, -0.75], l: [0, 1.12, -1.75], f: 38 },
+  { t: 6.7, p: [-0.3, 0.78, 1.35], l: [-1.2, 0.42, -0.2], f: 42 }, // low, on the wet floor: TIRED
+  { t: 8.7, p: [-0.5, 0.66, 1.15], l: [-1.2, 0.36, -0.2], f: 40 },
+  { t: 9.5, p: [0.6, 0.72, 1.2], l: [1.3, 0.36, -0.5], f: 42 }, // truck right: QUIT
+  { t: 11.0, p: [0.75, 0.6, 0.95], l: [1.3, 0.3, -0.5], f: 40 },
+  { t: 11.9, p: [0.9, 0.78, 1.45], l: [-0.2, 0.4, -0.3], f: 42 }, // DISAPPEAR (orbit hold layered on top)
+  { t: 13.6, p: [-1.0, 0.8, 1.35], l: [-0.2, 0.4, -0.3], f: 42 },
+  { t: 15.4, p: [-2.0, 2.4, 1.9], l: [0, 0.55, -1.0], f: 46 }, // wide: the cage, the figure at the desk, the stones on the floor
+  { t: 17.4, p: [-1.4, 2.0, 1.95], l: [0, 0.6, -0.6], f: 46 },
+  { t: 18.5, p: [0.1, 0.95, 1.95], l: [0, 0.55, 0.1], f: 44 }, // EVERYTHING TO STOP
+  { t: 19.0, p: [0.1, 0.9, 1.9], l: [0, 0.5, 0.1], f: 44 },
 ];
 const introCam = makeCamera(INTRO_KEYS, 0.3);
 
@@ -131,6 +151,21 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
     return { from, to };
   }, []);
   if (!a) return <AbsoluteFill style={{ background: "#000" }} />;
+  /** Where an intro line stands: on the wet floor (its block's base just above the ground), or on the monitor. */
+  const introOrigin = (d: IntroDef) => {
+    const at = INTRO_AT[d.li];
+    if (d.li === 0) return new THREE.Vector3(...at);
+    const h = layLine(a.inter, d.li, d.rows, d.sizes).height;
+    return new THREE.Vector3(at[0], h / 2 + 0.02, at[2]);
+  };
+  /** The counter (hole) of letter `ci` of word `wi` in an intro line, in world space. */
+  const holeOf = (d: IntroDef, wi: number, ci: number) => {
+    const lay = layLine(a.inter, d.li, d.rows, d.sizes);
+    const w = lay.words.find((x) => x.wi === wi)!;
+    const word = W(d.li, wi).w.toUpperCase().replace(/[.,!?…]/g, "");
+    const lx = layout(a.inter, word, w.size, 0.04).letters[ci].x;
+    return introOrigin(d).add(new THREE.Vector3(w.x + lx, w.y, 0));
+  };
 
   // ---------- state ----------
   const kickT = lastIn(KICKS, t, 1);
@@ -146,40 +181,34 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
   const els: React.ReactNode[] = [];
   // what the lens is focused on: every line registers its centre when it starts; focus racks between them
   const foci: { t0: number; p: THREE.Vector3; li: number }[] = [];
-  const lineWords = (d: LineDef, origin: THREE.Vector3, rotY: number, fade: number, keyp: string, billboardTo?: THREE.Vector3) => {
+  const lineWords = (d: LineDef, origin: THREE.Vector3, rotY: number, fade: number, keyp: string, billboardTo?: THREE.Vector3, depth?: number) => {
     const font = fontFor(a, d.style);
     const lay = layLine(font, d.li, d.rows, d.sizes);
     let ry = rotY;
     if (billboardTo) { const v = billboardTo.clone().sub(origin); ry = Math.atan2(v.x, v.z); }
     return (
       <group key={keyp} position={origin.toArray() as [number, number, number]} rotation={[0, ry, 0]}>
-        {lay.words.map((w) => <Word3D key={w.wi} font={font} li={d.li} wi={w.wi} t={t} size={w.size} style={d.style} beh={d.beh?.[w.wi]} pos={[w.x, w.y, 0]} depth={d.style === "city" ? 0.28 : 0.18} kickT={kickT} fade={fade} />)}
+        {lay.words.map((w) => <Word3D key={w.wi} font={font} li={d.li} wi={w.wi} t={t} size={w.size} style={d.style} beh={d.beh?.[w.wi]} pos={[w.x, w.y, 0]} depth={depth ?? (d.style === "city" ? 0.28 : 0.18)} kickT={kickT} fade={fade} />)}
       </group>
     );
   };
 
   // intro lines: solid words in front of the monitor; QUIT inside an error window
   if (t < 23.4) {
-    const intro: { li: number; rows: number[][]; sizes: number[]; beh?: Record<number, Beh>; at: [number, number, number]; ry: number }[] = [
-      { li: 0, rows: [[0]], sizes: [0.07], at: [0, 1.12, -1.7], ry: 0 },
-      { li: 1, rows: [[0, 1, 2, 3], [4]], sizes: [0.06, 0.2], beh: { 4: "sag" }, at: [0, 1.25, -1.05], ry: 0 },
-      { li: 2, rows: [[0, 1, 2, 3], [4]], sizes: [0.05, 0.16], beh: { 4: "stamp" }, at: [0.42, 1.3, -1.0], ry: -0.3 },
-      { li: 3, rows: [[0, 1, 2, 3], [4]], sizes: [0.05, 0.13], beh: { 4: "dissolve" }, at: [-0.42, 1.2, -1.0], ry: 0.32 },
-      { li: 4, rows: [[0, 1, 2], [3], [4], [5]], sizes: [0.05, 0.09, 0.04, 0.2], beh: { 5: "freeze" }, at: [0, 1.35, -0.95], ry: 0 },
-      { li: 5, rows: [[0, 1], [2]], sizes: [0.07, 0.14], at: [0, 1.32, -0.7], ry: 0 },
-    ];
+    const intro = INTRO;
     intro.forEach((d, k) => {
-      const end = k + 1 < intro.length ? L0(intro[k + 1].li) - 0.1 : 23.3;
-      const fade = d.li === 3 ? 1 : 1 - clamp01((t - end) / 0.35);
+      // TIRED and QUIT stay standing in the room like tombstones until the fly-through; the rest hand over
+      const end = d.li === 1 || d.li === 2 ? 20.85 : k + 1 < intro.length ? L0(intro[k + 1].li) - 0.1 : 23.3;
+      const fade = 1 - clamp01((t - end) / 0.35);
       if (t < L0(d.li) - 0.1 || fade <= 0) return;
-      const origin = new THREE.Vector3(...d.at);
+      const origin = introOrigin(d);
       foci.push({ t0: L0(d.li), p: origin, li: d.li });
-      if (d.li === 2) els.push(
-        <group key="quitbox" position={[0.42, 1.27, -1.03]} rotation={[0, -0.3, 0]} scale={cubicOut(clamp01((t - (W(2, 4).s - 0.08)) / 0.14))}>
-          <Popup w={0.62} h={0.36} tone="red" title="ERROR · CANNOT QUIT" font={a.mono} flash={Math.max(0, Math.sin((t - 10) * 9)) * (t > W(2, 4).s ? 1 : 0)} o={fade} />
+      if (d.li === 2) { const lw = layLine(a.inter, 2, d.rows, d.sizes); els.push(
+        <group key="quitbox" position={[origin.x, origin.y, origin.z - 0.12]} rotation={[0, d.ry, 0]} scale={cubicOut(clamp01((t - (W(2, 4).s - 0.08)) / 0.2))}>
+          <Popup w={lw.width + 0.3} h={lw.height + 0.3} tone="red" title="ERROR · CANNOT QUIT" font={a.mono} flash={Math.max(0, Math.sin((t - 10) * 9)) * (t > W(2, 4).s ? 1 : 0) * (t < 11 ? 1 : 0.3)} o={fade} />
         </group>,
-      );
-      els.push(lineWords({ li: d.li, rows: d.rows, sizes: d.sizes, beh: d.beh, style: "city" }, origin, d.ry, fade, `in${d.li}`));
+      ); }
+      els.push(lineWords({ li: d.li, rows: d.rows, sizes: d.sizes, beh: d.beh, style: "city" }, origin, d.ry, fade, `in${d.li}`, undefined, d.li === 0 ? 0.06 : 0.32));
     });
   }
 
@@ -189,17 +218,18 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
       if (t < L0(d.li) - 0.12) return;
       const sl = slot(k, t);
       const pop = cubicOut(clamp01((t - (L0(d.li) - 0.12)) / 0.38));
-      foci.push({ t0: L0(d.li), p: sl.pos, li: d.li });
+      foci.push({ t0: L0(d.li), p: sl.pos.clone().add(new THREE.Vector3(0, (((layLine(fontFor(a, d.style), d.li, d.rows, d.sizes).height + 0.16) * SV) / 2) + 0.05, 0)), li: d.li });
       const gone = 1 - clamp01((t - (L0(22) + 0.2)) / 0.6);
       const font = fontFor(a, d.style);
       const lay = layLine(font, d.li, d.rows, d.sizes);
       const w = lay.width + 0.14, h = lay.height + 0.16;
+      const standY = (h * SV) / 2 + 0.05; // the slab's bottom edge hovers just above the wet floor
       const flash = Math.max(alarm * (d.tone === "red" ? 1 : 0.5), k === VERSE.length - 1 ? 0 : 0) + (t - L0(d.li) < 0.25 ? 1 - (t - L0(d.li)) / 0.25 : 0) * 0.6;
-      const o = (sl.dim ? Math.max(0.06, 1 - sl.dim * 0.7) : 1) * gone * pop;
+      const o = (sl.dim ? Math.max(0.03, 0.14 - (sl.dim - 1) * 0.05) : 1) * gone * pop;
       // WEIGHT drops its window; ME / TIME tear
       const wy = d.li === 12 && t > W(12, 4).s - 0.05 ? -0.05 * Math.exp(-(t - W(12, 4).s) / 0.12) * Math.sin((t - W(12, 4).s) * 60) : 0;
       els.push(
-        <group key={`v${k}`} position={sl.pos.clone().add(new THREE.Vector3(0, wy, 0)).toArray() as [number, number, number]} rotation={[sl.tilt, sl.rotY, sl.tilt * 0.5]} scale={0.88 + 0.12 * pop}>
+        <group key={`v${k}`} position={sl.pos.clone().add(new THREE.Vector3(0, standY + wy * SV + (1 - pop) * 0.25, 0)).toArray() as [number, number, number]} rotation={[sl.tilt, sl.rotY, 0]} scale={SV * (0.9 + 0.1 * pop)}>
           <Popup w={w} h={h} tone={d.tone ?? "blue"} title={d.title ?? "SYSTEM"} font={a.mono} flash={flash} o={o}>
             <group position={[0, -0.03, 0.03]}>{lay.words.map((wd) => <Word3D key={wd.wi} font={font} li={d.li} wi={wd.wi} t={t} size={wd.size} style="city" beh={d.beh?.[wd.wi]} pos={[wd.x, wd.y, 0]} depth={0.3} kickT={kickT} fade={o} />)}</group>
           </Popup>
@@ -211,11 +241,11 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
     if (t > bw.s - 0.05 && t < LAUNCH) {
       for (let i = 0; i < 9; i++) {
         const at = bw.s + i * 0.06; if (t < at) continue;
-        const r = rng(i + 70), th = VTH[2] + (r() - 0.5) * 1.2, p = VC.clone().addScaledVector(dirY(th), 0.7 + r() * 0.5).add(new THREE.Vector3(0, (r() - 0.5) * 0.6, 0));
+        const r = rng(i + 70), th = VTH[2] + (r() - 0.5) * 1.2, p = VC.clone().addScaledVector(dirY(th), 1.5 + r() * 1.2).add(new THREE.Vector3(0, 0.25 + r() * 1.5, 0));
         const sc = cubicOut(clamp01((t - at) / 0.12)) * (1 - clamp01((t - (L0(9) + 2)) / 0.4));
         if (sc <= 0) continue;
         els.push(
-          <group key={`bl${i}`} position={p.toArray() as [number, number, number]} rotation={[0, -th + (r() - 0.5) * 0.4, (r() - 0.5) * 0.1]} scale={sc}>
+          <group key={`bl${i}`} position={p.toArray() as [number, number, number]} rotation={[0, -th + (r() - 0.5) * 0.4, (r() - 0.5) * 0.1]} scale={sc * SV * 0.8}>
             <Popup w={0.3} h={0.12} tone={i % 2 ? "red" : "blue"} title="!" font={a.mono} flash={0.4} o={0.9}>
               <Word3D font={a.inter} li={8} wi={5} t={t} size={0.045} style="city" pos={[0, -0.015, 0.03]} depth={0.25} />
             </Popup>
@@ -269,21 +299,46 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
 
   // ---------- camera ----------
   if (t < 23.0) {
-    const c = introCam(Math.min(t, 19.85));
-    camP = c.p.clone().add(rig(t, 0.018)); camL = c.l.clone().add(rig(t + 50, 0.01)); fov = c.f;
-    // STOP: everything freezes; the camera arcs slowly around the word
-    if (t > W(4, 5).s) { const u = cubicInOut(clamp01((t - W(4, 5).s - 0.1) / 1.3)); const ang = -0.55 + 1.1 * u; const ctr = new THREE.Vector3(0, 1.33, -0.95); camP = ctr.clone().add(new THREE.Vector3(Math.sin(ang) * 0.75, 0.05, Math.cos(ang) * 0.75)); camL = ctr; fov = 40; }
-    // FOR A MINUTE: back, then straight through the O of FOR into the verse
-    if (t > L0(5) - 0.4) {
-      const lay = layLine(a.inter, 5, [[0, 1], [2]], [0.07, 0.14]);
-      const forW = lay.words.find((w) => w.wi === 0)!;
-      const ox = forW.x + layout(a.inter, "FOR", 0.07, 0.04).letters[1].x; // the O is the middle letter of FOR
-      const oc = new THREE.Vector3(0 + ox, 1.32 + forW.y, -0.7);
-      const u = cubicInOut(clamp01((t - (L0(5) - 0.4)) / 0.8)), v = cubicIn(clamp01((t - 22.25) / 0.75));
-      const ctr = new THREE.Vector3(0, 1.32, -0.7);
-      const pA = ctr.clone().add(new THREE.Vector3(0, 0.02, 0.6));
-      camP = camP.clone().lerp(pA, u); camL = camL.clone().lerp(ctr, u); fov = mix(fov, 40, u);
-      if (v > 0) { camP = pA.clone().lerp(oc.clone().add(new THREE.Vector3(0, 0, -0.35)), v); camL = pA.clone().lerp(oc, 0.5 + 0.5 * v).add(new THREE.Vector3(0, 0, -1.2 * v)); fov = mix(40, 62, v); }
+    // the spline carries the intro; a floating-rig drift rides on top of every hold
+    const c = introCam(Math.min(t, 19.0));
+    camP = c.p.clone().add(drift(t, 0.04)); camL = c.l.clone().add(drift(t + 40, 0.015)); fov = c.f;
+    // ORBIT HOLD — DISAPPEAR: a 90° revolution around the sustained word, sprung (weight, no linear starts)
+    {
+      const ctr = introOrigin(INTRO[3]).add(new THREE.Vector3(0, -0.05, 0));
+      const win = cubicInOut(clamp01((t - 11.75) / 0.55)) * (1 - cubicInOut(clamp01((t - 13.8) / 1.1)));
+      if (win > 0) {
+        const yaw = mix(0.62, -0.95, springK(t, W(3, 4).s - 0.1, { damping: 26, mass: 2.2, stiffness: 45 }));
+        const op = orbitAround(ctr, yaw, 1.85, 0.42).add(drift(t, 0.03));
+        camP = camP.clone().lerp(op, win); camL = camL.clone().lerp(ctr, win); fov = mix(fov, 42, win);
+      }
+    }
+    // ORBIT HOLD — EVERYTHING… STOP: swing out ~80° to show the depth of the slab, spring back square on STOP
+    const stopD = INTRO[4], hole = holeOf(stopD, 5, 2); // the O of STOP
+    const sctr = new THREE.Vector3(introOrigin(stopD).x, hole.y, introOrigin(stopD).z);
+    if (t > 18.9) {
+      const out = springK(t, W(4, 3).s, { damping: 24, mass: 1.8, stiffness: 55 }), back = springK(t, W(4, 5).s, { damping: 24, mass: 1.4, stiffness: 80 });
+      const yaw = 0.05 - 1.35 * out + 1.4 * back;
+      const dist = mix(1.85, 1.4, back);
+      const op = orbitAround(sctr, yaw, dist, 0.32 * (1 - back) + 0.02);
+      const win = cubicInOut(clamp01((t - 18.9) / 0.4));
+      camP = camP.clone().lerp(op.add(drift(t, 0.02 * (1 - back))), win);
+      camL = camL.clone().lerp(sctr.clone().add(new THREE.Vector3(0, 0.12 * (1 - back), 0)), win); fov = mix(fov, 46, win);
+    }
+    // Z FLY-THROUGH #1 — through the counter of STOP's O, wiping into FOR A MINUTE behind it
+    const forD = INTRO[5], forC = introOrigin(forD);
+    if (t > 20.55) {
+      const k = cubicInOut(clamp01((t - 20.55) / 0.6));
+      const fp = throughHole(hole, new THREE.Vector3(0, 0, 1), k, 1.4, 0.35);
+      camP = fp.p; camL = fp.l.clone().lerp(forC, cubicInOut(clamp01((t - 20.85) / 0.45))); fov = mix(46, 54, Math.sin(k * Math.PI));
+    }
+    // Z FLY-THROUGH #2 — FOR A MINUTE holds, then straight through the O of FOR into the verse
+    if (t > 21.15) {
+      const hF = holeOf(forD, 0, 1);
+      const settle = springK(t, 21.15, { damping: 24, mass: 1.4, stiffness: 60 });
+      const sp = hole.clone().add(new THREE.Vector3(0, 0, -0.35)).lerp(new THREE.Vector3(hF.x, hF.y + 0.04, forC.z + 0.85), settle).add(drift(t, 0.012));
+      camP = sp; camL = forC.clone(); fov = 50;
+      const v = cubicIn(clamp01((t - 22.25) / 0.75));
+      if (v > 0) { const fp = throughHole(hF, new THREE.Vector3(0, 0, 1), v, 0.85, 0.3); camP = sp.clone().lerp(fp.p, Math.min(1, v * 3)); camL = forC.clone().lerp(fp.l, v); fov = mix(50, 66, v); }
     }
   } else if (t < L0(22) - 0.4) {
     // verse: trapped in the ring, whipping 90° on the snare, a slow push into each window, a nervous hand
@@ -291,23 +346,24 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
     const k = VERSE.reduce((acc, d, i) => (t >= L0(d.li) - 0.3 ? i : acc), 0);
     const lineT = t - L0(VERSE[k].li), push = 0.12 * cubicOut(clamp01(lineT / 2.4));
     const d = dirY(th);
-    camP = VC.clone().addScaledVector(d, -0.18 + push).add(rig(t, 0.02));
-    camL = VC.clone().addScaledVector(d, 1.0).add(new THREE.Vector3(0, -0.01, 0)).add(rig(t + 50, 0.012));
-    fov = 42 - 4 * cubicOut(clamp01(lineT / 2.4));
+    // standing in the middle of the wet floor; the slab in front, its reflection under it; a slow push on each line
+    camP = VC.clone().addScaledVector(d, -0.45 + push * 2.5).add(new THREE.Vector3(0, EYE, 0)).add(drift(t, 0.04));
+    camL = VC.clone().addScaledVector(d, 2.0).add(new THREE.Vector3(0, 0.66, 0)).add(drift(t + 40, 0.02));
+    fov = 46 - 4 * cubicOut(clamp01(lineT / 2.4));
     // ease in from the fly-through
     const ein = 1 - cubicOut(clamp01((t - 23.0) / 0.6));
-    if (ein > 0) { camP = camP.clone().add(new THREE.Vector3(0, 0, 0.25 * ein)); fov += 18 * ein; }
+    if (ein > 0) { camP = camP.clone().addScaledVector(d, -0.4 * ein); fov += 18 * ein; }
     // WEIGHT lands: a short shake; DARKNESS calls: the room shakes with each beat
-    if (t > W(12, 4).s) camP.add(new THREE.Vector3(0, Math.exp(-(t - W(12, 4).s) / 0.15) * Math.sin((t - W(12, 4).s) * 70) * 0.012, 0));
+    if (t > W(12, 4).s) camP.add(new THREE.Vector3(0, Math.exp(-(t - W(12, 4).s) / 0.2) * Math.sin((t - W(12, 4).s) * 40) * 0.02, 0));
     if (alarm > 0) camP.add(handheld(t * 3, 0.01 * alarm, 6));
     roll = (noise1(t * 0.21, 5) - 0.5) * 0.03;
   } else if (t < LAUNCH + 0.3) {
     // pre-chorus: turn around to the pod, walk in, sit, look down at the console
     const th0 = verseYaw(L0(22) - 0.4), d0 = dirY(th0);
     const keys: CamKey[] = [
-      { t: L0(22) - 0.4, p: VC.clone().addScaledVector(d0, -0.18).toArray() as [number, number, number], l: VC.clone().addScaledVector(d0, 1).toArray() as [number, number, number], f: 42 },
-      { t: L0(22) + 0.6, p: [0.1, 1.35, 0.2], l: [0, 1.2, 2.2], f: 44 },
-      { t: L0(23) - 0.3, p: [0.05, 1.32, 1.25], l: [0, 1.15, 2.2], f: 44 },
+      { t: L0(22) - 0.4, p: VC.clone().addScaledVector(d0, -0.45).add(new THREE.Vector3(0, EYE, 0)).toArray() as [number, number, number], l: VC.clone().addScaledVector(d0, 2).add(new THREE.Vector3(0, 0.66, 0)).toArray() as [number, number, number], f: 44 },
+      { t: L0(22) + 0.6, p: [0.1, 1.35, P0.z - 2.2], l: [0, 1.2, P0.z], f: 44 },
+      { t: L0(23) - 0.3, p: [0.05, 1.32, P0.z - 1.0], l: [0, 1.15, P0.z], f: 44 },
       { t: L0(23) + 0.9, p: [0, 1.28, P0.z + 0.12], l: [0, 1.15, P0.z - 0.6], f: 50 },
       { t: LAUNCH + 0.3, p: [0, 1.27, P0.z + 0.12], l: [0.06, 1.05, P0.z - 0.5], f: 52 },
     ];
@@ -351,6 +407,12 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
     focus = mix(dp, dc, cubicInOut(clamp01((t - cur.t0 + 0.05) / 0.5)));
   }
   const wh = cur ? lineHeat(cur.li, t) : 0;
+  // the overhead key follows the story: it slides (racks) from the last line's slab to the new one
+  const keyT = cur ? (prev ? prev.p.clone().lerp(cur.p, cubicInOut(clamp01((t - cur.t0 + 0.3) / 0.9))) : cur.p.clone()) : new THREE.Vector3(0, 0.8, -1.4);
+  if (t < 6.0) keyT.set(0, 0.8, -1.35); // the opening: the pool of light on the desk
+  if (t > 13.9 && t < 18.0) keyT.lerp(new THREE.Vector3(0, 0.75, -1.1), cubicInOut(clamp01((t - 13.9) / 1.2)));
+  const keyP = keySpotPos(keyT);
+  const look = t < LAUNCH + 0.2 ? CAGE : mixLook(CAGE, VOID, clamp01((t - LAUNCH - 0.2) / 0.6));
   const wlP = cur ? cur.p.clone().add(camP.clone().sub(cur.p).normalize().multiplyScalar(0.65)).add(new THREE.Vector3(0, 0.3, 0)) : new THREE.Vector3();
 
   // ---------- render ----------
@@ -359,30 +421,23 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
   const dustK = clamp01((t - (LAUNCH + 0.05)) / 4.2);
   return (
     <AbsoluteFill style={{ background: "#000" }}>
-      <Stage cam={{ pos: camP.toArray() as [number, number, number], look: camL.toArray() as [number, number, number], fov, roll, near: t > LAUNCH + 0.8 ? 0.3 : 0.05, far: t > LAUNCH ? 60000 : 400 }}
-        look={{
-          exposure: 1.0, env: 0.3, bg: "#040508",
-          bloom: { strength: 0.32, radius: 0.32, threshold: 0.95 },
-          fogExp: t < LAUNCH + 0.4 ? { color: "#05060a", density: 0.2 } : undefined,
-          dof: t < LAUNCH + 0.3 ? { focus, aperture: 0.008, maxblur: 0.012 } : { focus, aperture: 0.0005, maxblur: 0.0035 },
-          lens: { ca: 0.012, grain: 0.035, vignette: 0.55, time: t },
-        }}>
+      <FilmStage cam={{ pos: camP, look: camL, fov, roll, near: t > LAUNCH + 0.8 ? 0.3 : 0.05, far: t > LAUNCH ? 60000 : 400 }} look={look} focus={focus}>
         <Sky alt={alt} />
         {/* the room */}
         {roomO ? (
           <>
-            <ambientLight intensity={0.035} color="#9fb2d8" />
-            <pointLight position={[0, 1.2, -1.45]} intensity={1.4 * (0.4 + screen)} distance={3} color="#6f9fe0" />
-            <pointLight position={[-2.6, 2.4, -2.6]} intensity={3.5 + 10 * alarm} distance={7} color="#d2382b" castShadow shadow-mapSize={[1024, 1024]} />
-            {/* the work lamp: a hard cone of cold light through the haze */}
-            <spotLight position={[0.2, 2.9, -0.5]} target-position={[0, 0.8, -1.4]} angle={0.42} penumbra={0.65} intensity={7} decay={2} color="#e8eef8" castShadow shadow-mapSize={[1024, 1024]} />
-            <LightShaft from={[0.2, 2.9, -0.5]} to={[0.02, 0.76, -1.38]} r0={0.05} r1={0.95} color="#9fb4d8" k={0.16} t={t} />
+            {/* practicals: the monitor's cold spill, an industrial red warning lamp in the far corner */}
+            <pointLight position={[0, 1.2, -1.45]} intensity={1.2 * (0.4 + screen)} distance={3} color="#6f9fe0" />
+            <pointLight position={[-2.6, 2.4, -2.6]} intensity={2.5 + 10 * alarm} distance={7} color="#d2382b" />
+            {/* THE KEY: one hard overhead spot, steep angle, sharp shadows, soft penumbra — the cover light */}
+            <KeySpot target={keyT} intensity={85} angle={0.42} />
+            <LightShaft from={keyP.toArray() as [number, number, number]} to={keyT.clone().setY(0).toArray() as [number, number, number]} r0={0.06} r1={keyP.y * Math.tan(0.5) * 0.9} color="#a9b6cc" k={0.12} t={t} />
             <Motes t={t} o={1} />
             {/* the sung word lights the room: its backlight spills forward onto desk, walls and you */}
             <pointLight position={wlP.toArray() as [number, number, number]} intensity={0.7 * wh} distance={2.6} decay={2} color="#cfdcf2" />
             <Workshop t={t} drop={drop} concrete={a.concrete} bump={a.concreteBump} screen={screen} alarm={alarm} />
             {/* you, at the desk: seen only from the wide shots */}
-            {sil && t > 13.0 && t < 18.4 ? <mesh material={sil} position={[0, 0.72, -0.15]} rotation={[0, Math.PI, 0]}><planeGeometry args={[0.85, 1.05]} /></mesh> : null}
+            {sil && t > 13.0 && t < 18.4 ? <mesh material={sil} position={[0, 0.72, -0.85]} rotation={[0, Math.PI, 0]} castShadow><planeGeometry args={[0.85, 1.05]} /></mesh> : null}
           </>
         ) : null}
         {/* the pod, and you in it */}
@@ -403,7 +458,7 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
           </>
         ) : t > LAUNCH ? <Dust from={dust.from} to={dust.to} k={dustK} spin={(t - LAUNCH) * 0.6} o={clamp01((t - LAUNCH) / 0.3)} center={pp.toArray() as [number, number, number]} /> : null}
         {els}
-      </Stage>
+      </FilmStage>
       {/* the visor: a thin amber HUD while you're in the pod, before launch */}
       {t > L0(23) && t < LAUNCH + 0.8 ? (
         <AbsoluteFill style={{ opacity: clamp01((t - L0(23)) / 0.4) * (1 - clamp01((t - LAUNCH - 0.3) / 0.5)) }}>
@@ -418,7 +473,7 @@ export const Act1: React.FC<{ t: number }> = ({ t }) => {
         </AbsoluteFill>
       ) : null}
       {/* lens dust: fine specks and smudges on the front element, lit only when something bright is in frame */}
-      <LensDust k={0.06 + 0.22 * wh + (t > LAUNCH && t < LAUNCH + 3 ? 0.25 : 0)} />
+      <LensDust k={0.015 + 0.08 * wh + (t > LAUNCH && t < LAUNCH + 3 ? 0.25 : 0)} />
     </AbsoluteFill>
   );
 };
