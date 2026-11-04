@@ -10,6 +10,7 @@ import { Verse2V3 } from "./v3/verse2";
 import { Chorus2V3 } from "./v3/chorus2";
 import { BridgeV3 } from "./v3/bridge";
 import { FinaleV3 } from "./v3/finale";
+import { DriftV3, V3_END } from "./v5/drift";
 import { Skeleton } from "./v4/skeleton";
 import { Act1, A1_END } from "./v4/act1";
 import { BeatRuler } from "./v3/kit";
@@ -161,6 +162,19 @@ const D2Comp: React.FC<{ muted?: boolean }> = ({ muted }) => {
   );
 };
 
+/** Drift v3: flat typography in a void, one continuous camera — act 1 test (0:00–1:31.8). */
+const D3Comp: React.FC<{ muted?: boolean }> = ({ muted }) => {
+  const f = useCurrentFrame();
+  const { width, height } = useVideoConfig();
+  setFormat(width, height);
+  return (
+    <>
+      {muted ? null : <AudioTrack />}
+      <DriftV3 t={f / FPS} />
+    </>
+  );
+};
+
 export const Root: React.FC = () => (
   <>
     <Composition id="Style" component={StyleFrame} durationInFrames={120} fps={FPS} width={1080} height={1920} defaultProps={{ id: "weight" } as { id: string; t0?: number }} />
@@ -170,6 +184,7 @@ export const Root: React.FC = () => (
     <Composition id="V1Vertical" component={V1Comp} durationInFrames={Math.round((V1B_END - V1_START) * FPS)} fps={FPS} width={1080} height={1920} defaultProps={{ muted: false }} />
     <Composition id="V1v3" component={V1V3Comp} durationInFrames={Math.round((V1V3_END - V1V3_START) * FPS)} fps={FPS} width={1920} height={1080} defaultProps={{ muted: false }} />
     <Composition id="C1v3" component={C1Comp} durationInFrames={Math.round((C1_END - C1_START) * FPS)} fps={FPS} width={1920} height={1080} defaultProps={{ muted: false }} />
+    <Composition id="D3" component={D3Comp} durationInFrames={Math.round(V3_END * FPS)} fps={FPS} width={1920} height={1080} defaultProps={{ muted: false }} />
     <Composition id="D2" component={D2Comp} durationInFrames={Math.round(FULL_END * FPS)} fps={FPS} width={1920} height={1080} defaultProps={{ muted: false }} />
     <Composition id="D2A1" component={D2A1Comp} durationInFrames={Math.round(A1_END * FPS)} fps={FPS} width={1920} height={1080} defaultProps={{ muted: false }} />
     <Composition id="Drift" component={FullComp} durationInFrames={Math.round(FULL_END * FPS)} fps={FPS} width={1920} height={1080} defaultProps={{ muted: false }} />
