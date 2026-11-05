@@ -1,0 +1,14 @@
+.DS_Store
+node_modules/
+.vite/
+# reference clone (git clone https://github.com/mexicat/pdoom-video ref)
+ref/
+# renders
+out/
+# analysis: Python env, model weights, stems and intermediates (regenerable, large)
+analysis/.venv/
+analysis/.cache/
+analysis/__pycache__/
+analysis/stems/
+analysis/work/
+analysis/qa/
