@@ -106,6 +106,12 @@ carrying the weight") won't fit on one row at a readable size.
 Ordered by how much they matter. Each has a proposed fix; the first six need a decision before
 Phase 1/2.
 
+**Resolved (lead accepted the recommendations): d1–d6 are now in TREATMENT-drift.md**:
+`cutDown()` and the reprise entries in the skeleton, the "Engine requirements" section (fonts),
+the safe-area positions in `drive`/`apart`/`under`, beat cuts in `silence`, and the loop (frame 0
+is the lit wall/floor seam with the clock at 04:37; `tomorrow` returns to it and resets the clock).
+The KICKOFF seam check is fixed (break → hook1). d7, d8 and d11–d13 are still open.
+
 **d1. "Hard cuts on downbeats" vs `cut()`.** `cut()` snaps to the last *beat*. Snapping to the last
 downbeat instead would often cut up to a bar early, into the previous line. Proposal: add
 `cutDown(q, nth)` in timeline.ts that uses the last downbeat if it is ≤ 1 beat before the first

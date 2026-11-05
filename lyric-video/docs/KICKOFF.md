@@ -58,7 +58,7 @@ Prompt 1:
 > describes. Then build `hook` with n=1 as plate 7 describes: DIE un-inking on "just", DRIFT
 > lifting on tethers. Follow CLAUDE.md's workflow. Render stills at: first frame, the "stop"
 > word, the DIE hit, the "just" un-ink midpoint, the last frame of DRIFT. Look at each. The seam
-> must be at the same y in the last frame of `seam` and the first frame of `hook`. Report what
+> must be at the same y in the last frame of `break` and the first frame of `hook1`. Report what
 > you verified.
 
 Prompt 2:
