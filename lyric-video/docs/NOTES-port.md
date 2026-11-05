@@ -110,7 +110,14 @@ Phase 1/2.
 `cutDown()` and the reprise entries in the skeleton, the "Engine requirements" section (fonts),
 the safe-area positions in `drive`/`apart`/`under`, beat cuts in `silence`, and the loop (frame 0
 is the lit wall/floor seam with the clock at 04:37; `tomorrow` returns to it and resets the clock).
-The KICKOFF seam check is fixed (break → hook1). d7, d8 and d11–d13 are still open.
+The KICKOFF seam check is fixed (break → hook1).
+
+**Resolved (second pass):** d7 upright Cormorant = other people's words, italic stays the one
+confession line (STYLE + treatment); d8 `under`'s noise is illegible hairline texture, not set
+type; d11 fallbacks written into `pieces`/`dark`/`ceiling` (double cuts on the last kicks, never
+off the beat; verify kick counts in Phase 1); d12 the voicemail hold runs as the opening of
+`scars`; d13 the `ceiling` tip-over is a 3D rotation onto the floor plane, the clock is
+`HH:MM:SS AM`. Nothing in (d) is open now; d11 and d12 still need the Phase 1 data to confirm.
 
 **d1. "Hard cuts on downbeats" vs `cut()`.** `cut()` snaps to the last *beat*. Snapping to the last
 downbeat instead would often cut up to a bar early, into the previous line. Proposal: add

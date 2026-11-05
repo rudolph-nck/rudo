@@ -42,6 +42,8 @@ Stars are bone points, never lamp.
 - **IBM Plex Mono**: the machine voice. Clocks, counters, notifications, dashboards, forms.
   In RUDO videos the machine voice is *the world asking*. Typewriter quotes.
 - **Cormorant Garamond italic**: the sacred voice. One line per song, the confession line.
+- **Cormorant Garamond upright (roman)**: somebody else's words: a greeting card, a certificate,
+  praise that doesn't land. Allowed anywhere; never bloomed, never in lamp. The italic stays rare.
 - Single-stroke fonts (stroke.ts) when something is written by hand or by the amber point.
 - Kerned glyph by glyph (layout()/glyphX()). Typographic punctuation in lyric and serif voices.
 - No outlined or haloed type. No glyphs from outside the three families.
@@ -74,7 +76,8 @@ Stars are bone points, never lamp.
 3. **The slab**: a plain rectangle of the wall, hairline-drawn with concrete texture. The weight.
 4. **The tether**: a hairline from any floating thing straight down to the seam. Always present
    when something floats. Taut when pulling back, slack when released.
-5. **The clock**: Plex Mono `HH:MM AM`, top-left, seconds ticking; it can stop.
+5. **The clock**: Plex Mono `HH:MM:SS AM` (e.g. `04:37:12 AM`), top-left, the seconds ticking with
+   song time; it can stop. Treatment text that writes `04:37 AM` means the minute, seconds shown.
 
 ## The hook
 

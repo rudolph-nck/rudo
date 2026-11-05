@@ -24,6 +24,7 @@ and the last frame is the first frame, so the video loops. Nobody is drawn.
   line in the breakdown. Never in a corner.
 - Rare accent **dawn `#F4C27A`** is owned by the outro only.
 - Sacred voice (Cormorant italic) is used once: *Maybe I don't need fixing / Maybe I just need peace.*
+  Upright Cormorant is *other people's* words (*blessed*, the certificate titles) and doesn't count.
 
 ## Tone rules for Drift
 
@@ -79,7 +80,7 @@ replaces `stars` after hook 3.
 Frame 0 is the loop frame (plate 17 ends on it exactly): no fade from black. The seam is already
 there: one bone hairline at y ≈ 1240 — the **wall/floor seam**, not the ceiling edge — lit from above by a soft lamp falloff
 so the wall above it is barely concrete and the floor below barely reflects it (the cover's
-light). Top-left, the machine voice: `04:37 AM`, seconds ticking. "Yeah…" is a single word in the
+light). Top-left, the machine voice: `04:37:00 AM`, seconds ticking (STYLE's clock format). "Yeah…" is a single word in the
 lyric voice, low contrast, that exhales (weight 900 → 300) over its length. The spoken lines
 ("You ever get so tired…") are typed small in mono, one line at a time, like a thought being
 admitted, each fading as the next arrives. On "stop" the clock's seconds stop. On "for a minute"
@@ -95,17 +96,20 @@ seam of the cover's room rises from below into its place at y ≈ 1240 (hairline
 side walls, the lit patch on the wall). "same ceiling": the words sit on the
 ceiling plane in perspective, receding. "Same pressure on my chest": a **slab** — a plain
 rectangle of the wall, hairline-drawn with concrete texture — lowers from the top on the 808
-hits, one step per kick, and the lyric beneath it condenses (width 125 → 62) as it comes down.
-"Same people telling me I'm blessed": *blessed* arrives in the serif, upright, bright — somebody
+hits, one step per kick (however many kicks the two lines hold; it lands on the last), and the lyric beneath it condenses (width 125 → 62) as it comes down.
+"Same people telling me I'm blessed": *blessed* arrives in upright (roman) Cormorant, bright — somebody
 else's word — no bloom; it sits like a greeting card on the wall. "While I'm struggling to rest":
-the whole line rotates 90° to lie on the floor along the seam, and the slab rests on top of it.
+the whole line tips over backwards — a 3D rotation of 90° about the horizontal axis, not a 2D
+rotation — to lie flat on the floor plane in perspective along the seam, and the slab rests on top of it.
 The slab stays for the rest of the verse.
 
 ### 3 `pieces` — "Everybody needs a piece of me"
 ME in the lyric voice, huge, wide, centred on the wall above the seam. On every kick a
 rectangular piece is cut out of the letters (hairline cut; the piece slides to an edge of the
 frame) and gets a mono label: `WORK`, `TEAM`, `BILLS`, `MOM`, `FRIENDS`, `CHURCH`, `HOA`,
-`TAXES`, `TEXTS`, `MEETING 9:00`… Each cut increments **ASKS 01 → 14** in mono beside the seam.
+`TAXES`, `TEXTS`, `MEETING 9:00`… Each cut increments **ASKS 01 → 14** in mono beside the seam. If the window has fewer kicks than
+pieces (check in Phase 1), the last kicks cut two pieces at once and ASKS jumps by two: still
+14 by "mine", never a piece off the beat.
 "Everybody wants my time": the clock from plate 1 reappears and its hands are torn off as pieces
 too. "I'm carrying so much weight": the pieces pile onto the slab on the floor; the slab sinks a
 few pixels into the seam. "I forgot what's actually mine": what is left of ME is a sliver; the
@@ -114,7 +118,7 @@ word *mine* appears tiny, mono, lower-case, below the seam where nobody looks.
 ### 4 `wall` — "Built a life that people envy" (inverted)
 Hard cut to **bone paper**: the wall inverted, ink lines. On each downbeat a nail hit (shake
 2 px, a tick in the mono voice) and a hairline frame is hung on the wall; the lyric line is
-typeset inside it as a certificate title in the serif with a mono date line (`AWARDED · 2019`).
+typeset inside it as a certificate title in upright (roman) Cormorant with a mono date line (`AWARDED · 2019`).
 "Built a name they all respect": the frames multiply faster, overlapping, crooked. "Funny how
 success can leave you / feeling more disconnected": the frames are seen from the side — the
 camera tracks along the wall and the certificates are edge-on, a row of hairlines, nothing in
@@ -126,7 +130,7 @@ between them is the only thing in focus.
 The inverted plate flips back to ink on the downbeat as the lamp goes out; the frames remain as
 faint hairlines. "When the darkness starts to call": a phone lies face-down on the floor by the
 seam; on each kick its screen glows lamp-amber through the gap under it and the floor reflects it
-(the only light in the frame). Each buzz adds an ASK (15 → 22). On "call" the phone turns over on
+(the only light in the frame). Each buzz adds an ASK (15 → 22); if there are fewer than eight kicks, the last buzzes add two. On "call" the phone turns over on
 its own and the screen reads, in mono, `Unknown · calling…` with no accept button. The camera
 pushes slowly toward it through the whole line and the glow fills the bottom of the frame as we
 cut to the pre-chorus.
@@ -207,9 +211,12 @@ voice on screen. "Got questions with no replies": question marks are typed into 
 the cursor blinks; nothing comes back. "Got a father that I miss": the progress bar is the only
 motion in the frame. "And old voicemails I still play sometimes": on *play*, the trace replays
 from the start, dimmer, over the live one — an echo. No cuts, no shake, no bloom except the
-LED-sized dot of the scrubber. Hold the last frame for a full bar.
+LED-sized dot of the scrubber. The plate ends on a still frame (the scrubber at the end, the echo
+faded). There is probably no free bar before "Got dreams", so the hold belongs to `scars`: it
+opens on exactly this frame and holds it until its first downbeat, then the slab moves in.
 
 ### 12 `scars` — "Got dreams that keep me moving"
+Opens on `voicemail`'s last frame, held to the first downbeat (the voicemail's hold). Then:
 The slab, close, filling the frame. "Got dreams that keep me moving": the amber point runs along
 the seam at the slab's base, pulling the slab forward a step per beat. "And scars that keep me
 real": hairline **cracks** are drawn into the slab's face on the snares, one per word; they stay.
@@ -260,8 +267,10 @@ the bottom with the amber point on it, and the words are small, high, drifting. 
 guilt can't find me / Somewhere the past can't reach": **GUILT** and **PAST** are set below the
 seam, upside down, inside the 240 px between the seam (1240) and the safe-area floor (1480), and hairline tendrils grow up from them toward the floating words and fall
 short, every time, on the beat. "Somewhere I can hear myself again / underneath the noise": the
-frame fills with dense mono text — every label and notification from the whole video, scrolling
-— and it **parts** down the middle like curtains to reveal the lyric line in the lyric voice,
+frame fills with **noise**: the shapes of every label and notification from the whole video,
+scrolling, but rendered as illegible hairline texture (runs of mono-width dashes and blocks at
+word lengths, dust at 30–40 %), never readable set type, because the machine voice stays
+silent until the outro's clock. The noise **parts** down the middle like curtains to reveal the lyric line in the lyric voice,
 bone, quiet. "And when I'm ready / I'll come back stronger": the tether **tightens**: a slow
 pull, the floating words descending a little, the slab at the top of the frame descending too.
 "But tonight": the pull stops. "I just wanna drift": release — the words loosen, rise again, and
