@@ -57,7 +57,7 @@ and the last frame is the first frame, so the video loops. Nobody is drawn.
 | 4 | `wall` | Built a life … achievements on the wall | Inverted: bone paper, framed certificates hung on nails | 14 |
 | 5 | `dark` | But none of that gets quiet … darkness starts to call | Lights out one by one; a phone face-down, buzzing amber | 15–22 |
 | 6 | `break` | I'm not looking for an ending / just looking for a break | The seam refuses a full stop, then opens a gap: the door | 22 |
-| 7 | `hook` ×3 | I don't wanna die / I just wanna drift (each chorus) | The typographic slam; DIE un-inked, DRIFT lifts off on a tether | frozen |
+| 7 | `hook` ×3 + 2 reprises | I don't wanna die / I just wanna drift (start of each chorus; again at the end of choruses 1 and 2) | The typographic slam; DIE un-inked, DRIFT lifts off on a tether | frozen |
 | 8 | `stars` | Float somewhere between the stars … leave it for a bit | Crane up through the ceiling; words as constellation labels; NO ×3 erases objects | frozen |
 | 9 | `drive` | Sometimes I drive … sticks around | Night road; the seam is the horizon; dashboard mono; signs on the beat | 23–31 |
 | 10 | `apart` | People think I'm doing great … miles apart | Text bubbles stacking; the reply typed and deleted; bubbles recede a mile | 31–40 |
@@ -69,13 +69,15 @@ and the last frame is the first frame, so the video loops. Nobody is drawn.
 | 16 | `under` | Somewhere the guilt can't find me … But tonight I just wanna drift | Final-chorus plate: tendrils that fall short, noise that parts, the tether slackens | — |
 | 17 | `tomorrow` | Tomorrow I'll keep fighting … Let me drift | Dawn along the seam; the slab waits on the floor; loop to frame 1 | — |
 
-`hook` plays three times with `params: { n: 1 | 2 | 3 }`; `stars` follows hooks 1 and 2; `under`
+`hook` opens each chorus with `params: { n: 1 | 2 | 3 }` and returns as a reprise at the end of
+choruses 1 and 2 (`params: { n, reprise: true }`); `stars` follows hooks 1 and 2; `under`
 replaces `stars` after hook 3.
 
 ## Plates 1–5: the weight
 
 ### 1 `seam` — "for a minute"
-Black. The seam fades in: one bone hairline at y ≈ 1240, lit from above by a soft lamp falloff
+Frame 0 is the loop frame (plate 17 ends on it exactly): no fade from black. The seam is already
+there: one bone hairline at y ≈ 1240 — the **wall/floor seam**, not the ceiling edge — lit from above by a soft lamp falloff
 so the wall above it is barely concrete and the floor below barely reflects it (the cover's
 light). Top-left, the machine voice: `04:37 AM`, seconds ticking. "Yeah…" is a single word in the
 lyric voice, low contrast, that exhales (weight 900 → 300) over its length. The spoken lines
@@ -86,9 +88,11 @@ The title card "RUDO · DRIFT" in the cover's wide tracking sits on the wall abo
 bar, then goes.
 
 ### 2 `ceiling` — "Another morning, same ceiling"
-The seam is revealed as the **ceiling edge** seen from the floor looking up: the camera tilts
-down over the first line, and the line becomes the wall/floor seam of the cover's room (hairline
-perspective, two side walls, the lit patch on the wall). "same ceiling": the words sit on the
+Hard cut on the downbeat to the camera on the floor looking **up**: a hairline at the same
+y ≈ 1240 — but it is the **ceiling edge**, the far wall meeting the ceiling. Over the first line the
+camera tilts down: the ceiling edge slides up and out of the top of the frame, and the wall/floor
+seam of the cover's room rises from below into its place at y ≈ 1240 (hairline perspective, two
+side walls, the lit patch on the wall). "same ceiling": the words sit on the
 ceiling plane in perspective, receding. "Same pressure on my chest": a **slab** — a plain
 rectangle of the wall, hairline-drawn with concrete texture — lowers from the top on the 808
 hits, one step per kick, and the lyric beneath it condenses (width 125 → 62) as it comes down.
@@ -151,6 +155,12 @@ frame.
 - n=3 (final chorus): the breakdown version. Hairline type, small, a lot of black, slow; the
   letters rise almost to the top safe area; the tethers are one pixel. The only hook where DIE
   is not slammed: it is already a hairline, and it simply fades.
+- **Reprise** (`reprise: true`, end of choruses 1 and 2 — `hook1b`, `hook2b`): it opens on
+  `stars`' last frame, looking down the tether. The tether reels in on the beat and DRIFT's letters
+  come back down onto the seam; then the same slam in the same n look, shorter (no build-up).
+  Chorus 2 sings the pair twice: the first pass as above, the second heavier, and on its last
+  *drift* the letters are pulled flat onto the seam on the cut — `carry` opens "back on the floor".
+  The chorus 1 reprise ends with DRIFT lifted and the cut to `drive` turns the seam into the horizon.
 
 ### 8 `stars` — "Float somewhere between the stars" (after hooks 1 and 2)
 "Float somewhere": the camera cranes **up through the ceiling** — the ceiling edge passes, then
@@ -165,12 +175,13 @@ on the kick: a hairline calendar page (`DUE`), a checklist, a speech-bubble outl
 with a single horizontal stroke. "I don't wanna leave this world / I just wanna leave it for a
 bit": the camera looks straight down the tether: the seam is a hairline far below with one amber
 point on it (home), and the tether is taut. *For a bit* is set small beside the amber point. The
-hook repeat follows.
+hook reprise (`hook1b` / `hook2b`) follows as its own entry; `stars` ends on the downward look.
 
 ### 9 `drive` — "Sometimes I drive with no destination"
 Hard cut on the downbeat: the seam is now the **horizon of a night road**, seen through a
 windshield, hairline lane markings rushing toward the seam in perspective, stars above. The
-machine voice is the dashboard at the bottom: `2:14 AM · RADIO 88.7 · NAV: DESTINATION —`.
+machine voice is the dashboard, just under the horizon seam (y ≈ 1300–1460, above the bottom UI
+band — never in the bottom 420 px): `2:14 AM · RADIO 88.7 · NAV: DESTINATION —`.
 "Radio low, windows down": the radio glow dips; the mono text shivers like wind. The lyric
 arrives on **road signs** that pass on the beat, each line a sign, each word lit by the
 headlights as sung. "Trying to outrun the noise": notifications appear in the **rear-view
@@ -181,7 +192,7 @@ notifications are also in the windshield reflection; the road speeds up, the mir
 The room again, wall and seam. **Text bubbles** (hairline rounded rectangles, mono) stack on the
 wall on the kicks: `you're killing it`, `so proud of you`, `can you look at this real quick`,
 `you good?`, `need that by Friday`. ASKS 31 → 40. "Maybe that's the hardest part": the reply
-field at the bottom; the lyric is **typed as the reply** in the lyric voice, then deleted
+field just above the UI band (y ≈ 1360–1460, never in the bottom 420 px); the lyric is **typed as the reply** in the lyric voice, then deleted
 character by character before it is sent. "Being surrounded by everybody": the bubbles crowd in
 from all four edges until the lyric has no room. "While feeling miles apart": the bubbles
 **recede along the seam** into perspective, each a mile farther, a mono distance under each
@@ -229,8 +240,12 @@ voicemail. "Maybe I just need one night / where the world doesn't ask for me": A
 mono under the line, ticks once to 41, then its cursor blinks and does not tick again.
 
 ### 15 `silence` — the breakdown
-Seven lines, seven hard cuts, every one on a downbeat, every one switching something off.
-Nothing is added, only removed.
+Seven lines, seven hard cuts, every one switching something off. Nothing is added, only removed.
+The lines come about two beats apart (≈ 4 bars for all seven), so each cut lands on **the beat
+the line starts on**, not a downbeat; "Just silence" and "Just breathing" take the last two
+downbeats if the alignment allows. The seven sub-cuts are inside the one `silence` window: the
+scene computes them from the line starts (`lyrics.get(...)` + `audio.beatAt`), not from timeline
+entries.
 1. "No phone ringing": the phone from plate 5, face-up, glowing — the glow dies. ASKS 41 → 34.
 2. "No notifications": the text bubbles from plate 10 — wiped with one horizontal stroke each. ASKS → 20.
 3. "No pressure": the slab lifts off the seam and floats up out of the frame on its tether. ASKS → 12.
@@ -243,7 +258,7 @@ Nothing is added, only removed.
 The hairline hook hands off to the star field, but now from far below: the seam is a hairline at
 the bottom with the amber point on it, and the words are small, high, drifting. "Somewhere the
 guilt can't find me / Somewhere the past can't reach": **GUILT** and **PAST** are set below the
-seam, upside down, and hairline tendrils grow up from them toward the floating words and fall
+seam, upside down, inside the 240 px between the seam (1240) and the safe-area floor (1480), and hairline tendrils grow up from them toward the floating words and fall
 short, every time, on the beat. "Somewhere I can hear myself again / underneath the noise": the
 frame fills with dense mono text — every label and notification from the whole video, scrolling
 — and it **parts** down the middle like curtains to reveal the lyric line in the lyric voice,
@@ -260,40 +275,57 @@ the weight": the three TOMORROWs stack on the wall in the lyric voice, each one 
 little bolder; on *weight* the slab lowers back to the floor and lands softly on the seam, where
 it will be picked up. The clock returns, mono, top-left: `05:58 AM`. "But tonight…": everything
 on the wall dims; the clock's seconds stop. "Let me drift": the amber point lifts off the seam
-one last time and rises slowly on its tether, and the camera tilts up with it until the seam
-becomes the ceiling edge of plate 1. The clock reads `04:37 AM`. The last frame is the first
-frame; the video loops.
+one last time and rises slowly on its tether out of the top of the frame; the camera holds. Over
+the held "drift" the dawn drains out of the seam and the room settles back to plate 1's light
+(lamp falloff above the seam, faint floor reflection). On the last downbeat the clock **resets**,
+deliberately and visibly — the digits roll back to `04:37 AM` — and the frame is now exactly
+frame 0 (seam y, clock position, falloff, no slab, no point). The video loops; plate 1's seconds
+resume ticking on the loop.
 
 ## Hand-offs to make continuous (check with `render.ts sheet --cuts`)
 
-- Seam position (y) across every cut.
+- Seam position (y): at every cut the outgoing frame's seam y equals the incoming frame's (plates
+  may move it inside their own window: hook, stars, drive, voicemail, under). Seam checks for the
+  hooks are break → hook1, breath → hook2, silence → hook3, and stars → hook1b/hook2b.
 - The amber point's screen position into and out of `break`, `breath`, `silence`, `tomorrow`.
 - The slab's size and tether angle between `stars`, `carry`, `silence` step 3 and `under`.
-- The clock's position between `seam` and `tomorrow`.
+- The clock's position between `seam` and `tomorrow`, and the loop: the last frame of `tomorrow`
+  must equal frame 0 pixel for pixel (grain aside).
 
 ## timeline.ts skeleton
 
 ```ts
+/** Plate boundaries: the last downbeat if it is at most one beat before the line's first word,
+ *  otherwise the last beat (a straight downbeat snap would cut a bar early, into the previous line).
+ *  Hooks use plain cut(): their first word is the hit. */
+const cutDown = (q: string, nth = 0, tol = 0.02) => {
+  const s = ly.get(q, nth).words[0]!.start + tol;
+  const d = [...au.downbeats].reverse().find((x) => x <= s);
+  const beat = au.timeOfBeat(Math.floor(au.beatAt(s)));
+  return d !== undefined && au.beatAt(s) - au.beatAt(d) <= 1 ? d : beat;
+};
 const b = {
-  ceiling:   cut('Another morning'),
-  pieces:    cut('Everybody needs a piece'),
-  wall:      cut('Built a life'),
-  dark:      cut('But none of that gets quiet'),
-  break1:    cut("I'm not looking for an ending"),
+  ceiling:   cutDown('Another morning'),
+  pieces:    cutDown('Everybody needs a piece'),
+  wall:      cutDown('Built a life'),
+  dark:      cutDown('But none of that gets quiet'),
+  break1:    cutDown("I'm not looking for an ending"),
   hook1:     cut("I don't wanna die", 0),
-  stars1:    cut('Float somewhere', 0),
-  drive:     cut('Sometimes I drive'),
-  apart:     cut('People think'),
-  voicemail: cut('Got memories'),
-  scars:     cut('Got dreams'),
-  breath:    cut('Not forever'),
-  hook2:     cut("I don't wanna die", 2),   // chorus 1 sings it twice (0, 1)
-  stars2:    cut('Float somewhere', 1),
-  carry:     cut("Maybe I'm tired of carrying"),
-  silence:   cut('No phone ringing'),
-  hook3:     cut("I don't wanna die", 5),   // chorus 2 sings it three times (2, 3, 4)
-  under:     cut('Somewhere the guilt'),
-  tomorrow:  cut("Tomorrow I'll keep fighting"),
+  stars1:    cutDown('Float somewhere', 0),
+  hook1b:    cut("I don't wanna die", 1),   // chorus 1 reprise
+  drive:     cutDown('Sometimes I drive'),
+  apart:     cutDown('People think'),
+  voicemail: cutDown('Got memories'),
+  scars:     cutDown('Got dreams'),
+  breath:    cutDown('Not forever'),
+  hook2:     cut("I don't wanna die", 2),
+  stars2:    cutDown('Float somewhere', 1),
+  hook2b:    cut("I don't wanna die", 3),   // chorus 2 reprise: sings the pair twice (3 and 4)
+  carry:     cutDown("Maybe I'm tired of carrying"),
+  silence:   cutDown('No phone ringing'),
+  hook3:     cut("I don't wanna die", 5),
+  under:     cutDown('Somewhere the guilt'),
+  tomorrow:  cutDown("Tomorrow I'll keep fighting"),
   end:       au.duration,
 };
 return [
@@ -304,14 +336,16 @@ return [
   E('dark','dark', b.dark, b.break1),
   E('break','break', b.break1, b.hook1),
   E('hook1','hook', b.hook1, b.stars1, { params: { n: 1 } }),
-  E('stars1','stars', b.stars1, b.drive),
+  E('stars1','stars', b.stars1, b.hook1b),
+  E('hook1b','hook', b.hook1b, b.drive, { params: { n: 1, reprise: true } }),
   E('drive','drive', b.drive, b.apart),
   E('apart','apart', b.apart, b.voicemail),
   E('voicemail','voicemail', b.voicemail, b.scars),
   E('scars','scars', b.scars, b.breath),
   E('breath','breath', b.breath, b.hook2),
   E('hook2','hook', b.hook2, b.stars2, { params: { n: 2 } }),
-  E('stars2','stars', b.stars2, b.carry),
+  E('stars2','stars', b.stars2, b.hook2b),
+  E('hook2b','hook', b.hook2b, b.carry, { params: { n: 2, reprise: true } }),
   E('carry','carry', b.carry, b.silence),
   E('silence','silence', b.silence, b.hook3),
   E('hook3','hook', b.hook3, b.under, { params: { n: 3 } }),
@@ -321,10 +355,20 @@ return [
 ```
 
 The `nth` indices are confirmed against the lyric sheet: chorus 1 sings "I don't wanna die"
-twice (0, 1), chorus 2 three times (2, 3, 4 — it ends on the hook sung twice), the final chorus
-once (5). `hook` owns only the first occurrence in each chorus; `stars` picks up the rest as its
-exit (in chorus 2, `stars2` owns the double hook at its end). Re-check against
-`data/lyrics.json` after alignment.
+twice (0 opens it, 1 is the reprise), chorus 2 three times (2 opens it, 3 and 4 are its double
+reprise, both owned by `hook2b`), the final chorus once (5). Re-check against `data/lyrics.json`
+after alignment.
+
+## Engine requirements from Phase 0 (lead, Phase 2)
+
+- **Finer Archivo instances.** The treatment animates width and weight continuously ("Yeah"
+  900 → 300, `ceiling` 125 → 62, `scars` *nothing* 900 → 300). The engine only has static
+  instances (6 widths × 300/500/700/900), which would step visibly. Extend
+  `analysis/make_fonts.py` to weights every 100 (300–900) and widths every 12.5 (62.5–125), and
+  make `F.archivo(width, weight)` round to the nearest instance. If a hero moment still steps
+  visibly, interpolate outlines between neighbouring instances via `textPathCommands`.
+- `cutDown()` in `src/timeline.ts` as in the skeleton.
+- `hook` takes `params.reprise`.
 
 ## Build order
 

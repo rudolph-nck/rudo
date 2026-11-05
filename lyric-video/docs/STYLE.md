@@ -35,7 +35,8 @@ Stars are bone points, never lamp.
 
 ## Typography
 
-- **Archivo** (variable: width 62–125, weight 300–900): the lyric voice. Wide and tracked
+- **Archivo** (variable: width 62–125, weight 300–900; rendered from static instances every
+  12.5 width / 100 weight, see `analysis/make_fonts.py`): the lyric voice. Wide and tracked
   (+0.08 em) like the cover's title when it's a title; condensed (62) under pressure; wide (125)
   and light (500) when drifting.
 - **IBM Plex Mono**: the machine voice. Clocks, counters, notifications, dashboards, forms.
@@ -49,7 +50,8 @@ Stars are bone points, never lamp.
 
 - Something is always moving; big changes land on downbeats, kicks, snares. Camera eases into beats.
 - Strong eases (outExpo, inOutCubic, springs). Hold → snap. No floaty drift between scenes.
-- Hard cuts on downbeats are the default transition.
+- Hard cuts on downbeats are the default transition. In `timeline.ts` that is `cutDown()`: the
+  downbeat when it is within one beat before the line, otherwise the line's beat (never a bar early).
 - Tempo is slow (RUDO ≈ 86 BPM: beat 0.698 s, bar 2.79 s). Cut on downbeats or every two bars.
   808s drive a soft zoom/shake pulse (hit('kick', t, 0.25)); snares drive snaps; the piano/other
   envelope drives slow camera drift. Use the silence before a line: hold, then land the word.
