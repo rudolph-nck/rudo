@@ -218,6 +218,19 @@ export default class Tomorrow extends Scene {
     // the amber point and its tether
     const lb = this.lb;
     lb.clear();
+    // the instrumental tail: the camera holds, but the seam answers the drums — on each kick a short dawn
+    // glint runs right to left along the line (the dawn retreating), fading out before the loop converges
+    const tailEnv = smoothstep(this.liftEnd + 0.5, this.liftEnd + 2, t) * (1 - smoothstep(this.dPrev - 1.2, this.dPrev - 0.4, t));
+    if (tailEnv > 0.001) {
+      const W = this.ctx.W, life = 1.1;
+      for (const [k, st] of this.ctx.audio.events('kick', t - life, t)) {
+        if (st < 0.3) continue;
+        const a = (t - k) / life;
+        const x = lerp(W + 40, -40, ease.outCubic(a)), half = 70;
+        const I = (1 - a) ** 2 * 0.7 * tailEnv * (0.6 + 0.4 * st);
+        lb.seg2(x - half, SEAM_Y, x + half, SEAM_Y, HAIR * 1.4, [LIN.dawn[0] * I, LIN.dawn[1] * I, LIN.dawn[2] * I], 1);
+      }
+    }
     const p = this.point(t);
     const tetherA = 1 - smoothstep(this.liftEnd + 1, this.dPrev - (this.dPrev - this.dHum) / 2.5, t);
     if (p.k > 0 && tetherA > 0.001) tether(lb, p.x, p.y, PT_X, SEAM_Y, { slack: 0.45 * smoothstep(0, 0.15, p.k), t, seed: 11, intensity: tetherA });

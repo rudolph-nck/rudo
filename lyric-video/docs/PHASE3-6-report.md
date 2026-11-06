@@ -48,7 +48,24 @@ by the lead against the treatment; hand-offs between neighbouring plates were fi
 - The loop: `tomorrow`'s last frame equals frame 0 (diff statistics identical to the grain-only baseline).
 
 ## Draft
-(pending: the 30 fps draft is rendering; this section is filled in after it has been reviewed)
+`out/drift-draft-30fps.mp4` (gitignored): the whole song, 1080×1920, 30 fps, one sample per frame (no motion
+blur), rendered in the cloud container with SwiftShader in 78 min. Checked numerically over every frame
+(per-frame block differences of the decoded video against data/audio.json and the word timings):
+- **Off-beat motion:** no hit lands off the grid. The 14 large frame changes not within 70 ms of a beat, kick,
+  snare or word edge are all inside continuous eased moves that land on a beat: ceiling's tilt (lands 24.98),
+  dark's CRT switch-off after the last buzz, drive's signs, breath's door expanding into the cut, and stars2's
+  bone→night fade during the crane.
+- **Still > 2 s (grain averaged out):** 1.9–4.3 (seam's held breath under the title card, intended),
+  238.4–240.7 (the silence between "But tonight…" and "Let me drift", where the treatment holds and stops the
+  clock: intended) and 253.5–262.3 in `tomorrow`'s instrumental tail — fixed: the seam now answers the drums
+  with a short dawn glint running along it on each kick, fading out before the loop frame converges (the loop
+  frame is unchanged: its difference to frame 0 is still grain-level).
+- **Palette:** 528 frames sampled every 0.5 s: no visible blue- or green-dominant pixels.
+- **Words before they are sung, safe area, seam:** checked per plate in stills by each plate's author and in
+  the lead's review; nothing found in the draft's sheets.
+
+Not checked here: the motion-blurred final and the 2× render (GPU job, below), and listening to the draft
+against the picture in real time (the numbers above are the stand-in).
 
 ## Rendering the final (on a Mac with a GPU)
 The cloud container renders with SwiftShader (CPU): ~0.3–0.4 s per frame at one sample, so the motion-blurred
