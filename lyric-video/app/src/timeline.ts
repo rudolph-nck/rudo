@@ -55,7 +55,9 @@ export function makeTimeline(ly: Lyrics, au: AudioData): TimelineEntry[] {
     hook2b: cut("I don't wanna die", 3), // chorus 2 reprise (single)
     carry: cutDown("Maybe I'm tired of carrying"),
     silence: cutDown('No phone ringing'),
-    hook3: cut("I don't wanna die", 4),
+    // the final chorus: its "I don't wanna" is a long pickup that starts the instant "Just breathing" ends;
+    // cut on the first beat after that line, so `silence` keeps all seven lines (the hook's "I" shows ~0.1 s late, never early)
+    hook3: au.timeOfBeat(Math.ceil(au.beatAt(ly.get('Just breathing').end - 0.02))),
     under: cutDown('Somewhere the guilt'),
     tomorrow: cutDown("Tomorrow I'll keep fighting"),
     end: au.duration,

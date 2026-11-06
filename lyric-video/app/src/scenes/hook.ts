@@ -7,8 +7,15 @@
 //  - on "drift" the upper rows clear and DRIFT arrives (width 125, weight 500) and takes the light (lamp,
 //    glyph by glyph as it is sung); its letters lift off the baseline at slightly different rates, the
 //    tracking loosens, and from each letter a taut hairline tether runs straight down to the seam.
-// params: n (1 = chorus 1: bone on ink, clean, letters rise a third of the frame; 2/3: TODO — they render
-// the n=1 look for now), reprise (hook1b/hook2b: opens on `stars`' downward look, reels the tether in and
+// params: n — the escalation ladder (STYLE.md "The hook"):
+//   1 (chorus 1): bone on ink, clean; DRIFT rises a third of the frame;
+//   2 (chorus 2): inverted — ink type on a bone field (drawn by the scene, never post invert), heavier; DRIFT
+//     rises two-thirds on thinner ink tethers; hook2b ends with DRIFT pulled flat onto the seam on the cut
+//     (`carry` opens "back on the floor");
+//   3 (final chorus): the breakdown version — hairline weight, small, a lot of black, slow (fades, no slams,
+//     no shake); DIE is not slammed and simply fades; DRIFT rises almost to the top of the safe area on
+//     one-pixel tethers.
+// reprise (hook1b/hook2b: opens on `stars`' downward look, reels the tether in and
 // brings DRIFT back down onto the seam before the slam). The lines are found by content inside this entry's window.
 import type * as THREE from 'three';
 import { Scene, type Frame, type PostOverrides } from '../engine/scene';
@@ -27,13 +34,15 @@ const GAP = 26; // vertical gap between rows (px)
 const WIDTH = SAFE.x1 - SAFE.x0;
 
 interface Row { words: Word[]; text: string; fam: string; size: number; tr: number; y: number; L: TextLayout; x: number }
-interface Glyph { ch: string; x: number; w: number; rate: number; delay: number }
+interface Look { bg: [number, number, number]; fg: 'bone' | 'ink'; rowFam: string; dieFam: string; sizeK: number; tether: { rgb: [number, number, number]; width: number }; hit: number; slow: boolean }
 
 const fold = (s: string) => s.toLowerCase().replace(/’/g, "'");
 
 export default class Hook extends Scene {
   private layer = new Layer2D();
   private lb = new LineBatch(512, { screen2D: true, blend: 'add' });
+  private lbInk = new LineBatch(256, { screen2D: true, blend: 'normal' }); // ink lines on the n=2 bone field
+  private look!: Look;
   private n = 1;
   private reprise = false;
   private dieLine!: Line;
@@ -50,7 +59,14 @@ export default class Hook extends Scene {
     const { lyrics, params, start, end, H } = this.ctx;
     this.n = params.n ?? 1;
     this.reprise = !!params.reprise;
-    const inWin = lyrics.lines.filter((l) => l.start >= start - 0.05 && l.start < end);
+    const n = this.n;
+    this.look = n === 2
+      ? { bg: LIN.bone, fg: 'ink', rowFam: F.archivo(100, 900), dieFam: F.archivo(62.5, 900), sizeK: 1, tether: { rgb: LIN.ink, width: HAIR * 0.75 }, hit: 1.3, slow: false }
+      : n === 3
+        ? { bg: LIN.ink, fg: 'bone', rowFam: F.archivo(100, 300), dieFam: F.archivo(62.5, 300), sizeK: 0.5, tether: { rgb: LIN.bone, width: 0.8 }, hit: 0, slow: true }
+        : { bg: LIN.ink, fg: 'bone', rowFam: F.archivo(100, 800), dieFam: F.archivo(62.5, 900), sizeK: 1, tether: { rgb: LIN.bone, width: HAIR }, hit: 1, slow: false };
+    // lines overlapping the window (hook3's "I" starts just before its cut, on the pickup)
+    const inWin = lyrics.lines.filter((l) => l.end > start + 0.05 && l.start < end);
     this.dieLine = inWin.find((l) => fold(l.text).includes("wanna die")) ?? lyrics.get("I don't wanna die");
     this.driftLine = lyrics.lines.find((l) => l.i > this.dieLine.i && fold(l.text).includes('wanna drift'))!;
     const before = lyrics.lines.filter((l) => l.i < this.dieLine.i && fold(l.text).includes('wanna drift'));
@@ -74,10 +90,10 @@ export default class Hook extends Scene {
       const last = gi === groups.length - 1;
       const text = g.map((w) => w.w.toUpperCase()).join(' ');
       // the last row of the DIE line is DIE (62.5 / 900); of the DRIFT line, DRIFT (drawn separately)
-      const fam = last && heavyLast ? F.archivo(62.5, 900) : last ? this.drift.fam : F.archivo(100, 800);
+      const fam = last && heavyLast ? this.look.dieFam : last ? this.drift.fam : this.look.rowFam;
       const trEm = last && heavyLast ? 0 : 0.01;
       const cap = last && heavyLast ? 440 : last ? this.drift.size : 210;
-      const size = last && !heavyLast ? this.drift.size : Math.min(cap, (100 * WIDTH) / measure(text, fam, 100, trEm * 100));
+      const size = last && !heavyLast ? this.drift.size : Math.min(cap, (100 * WIDTH) / measure(text, fam, 100, trEm * 100)) * this.look.sizeK;
       const tr = trEm * size;
       const L = layout(text, fam, size, tr);
       return { words: g, text, fam, size, tr, y: 0, L, x: SAFE.x0 + (WIDTH - L.width) / 2 };
@@ -115,7 +131,7 @@ export default class Hook extends Scene {
       if (this.prevBit.length) forABit(c, this.prevBit, t, 1 - smoothstep(0, 0.4, k));
       downLookGlow(c, 1 - k);
       // (tethers fade in with the descent: `stars`' last frame has only the one tether)
-      if (this.prevDriftWord) this.prevDriftWord.draw(c, lb, t, 1 - k, { sung: true, dy: -1000 * (1 - k), tetherAlpha: smoothstep(0.15, 0.6, k) });
+      if (this.prevDriftWord) this.prevDriftWord.draw(c, lb, t, 1 - k, { sung: true, dy: -1000 * (1 - k), tetherAlpha: smoothstep(0.15, 0.6, k), tether: { rgb: LIN.bone, width: this.look.tether.width } });
     }
 
     // phrase A: I DON'T / WANNA (until phrase B starts) and DIE (until it is un-inked)
@@ -128,20 +144,32 @@ export default class Hook extends Scene {
     // phrase B: I JUST / WANNA until DRIFT arrives, then DRIFT alone
     if (t >= B0) {
       this.rowsB.slice(0, -1).forEach((r) => { if (t < dw.start) this.drawRow(c, r, t); });
-      if (t >= dw.start) this.drift.draw(c, lb, t, this.drift.liftK(t));
+      if (t >= dw.start) {
+        let k = this.drift.liftK(t);
+        // hook2b: on the cut, DRIFT is pulled flat onto the seam (`carry` opens back on the floor)
+        if (this.reprise && this.n === 2) k *= 1 - ease.inCubic(clamp((t - (this.ctx.end - 0.35)) / 0.35));
+        const ink = this.look.fg === 'ink';
+        this.drift.draw(c, ink ? this.lbInk : lb, t, k, { ink, tether: this.look.tether });
+      }
     }
 
-    clearRT(renderer, out, LIN.ink);
+    // (a reprise opens on `stars`' dark downward look; the n=2 bone field flips in on the first word)
+    clearRT(renderer, out, opening ? LIN.ink : this.look.bg);
     this.ctx.comp.draw(renderer, this.layer.upload(), out);
-    if (!opening) seam(lb, SEAM_Y, { width: HAIR });
+    if (!opening) {
+      if (this.look.fg === 'ink') seam(this.lbInk, SEAM_Y, { width: HAIR, color: LIN.ink });
+      else seam(lb, SEAM_Y, { width: this.n === 3 ? 0.9 : HAIR });
+    }
+    this.lbInk.render(renderer, out);
     lb.render(renderer, out);
+    this.lbInk.clear();
 
-    // DIE's hit: a short hard shake and a punch-in; the kick breathes the frame a little
-    const hit = pulse(t, dieW.start, 0.07);
+    // DIE's hit: a short hard shake and a punch-in (none in the slow n=3); the kick breathes the frame a little
+    const hit = pulse(t, dieW.start, 0.07) * this.look.hit;
     const fi = frameIdx(t);
     return {
       shake: [(hash(fi, 1) - 0.5) * 14 * hit, (hash(fi, 2) - 0.5) * 14 * hit],
-      zoom: 1 + 0.035 * pulse(t, dieW.start, 0.16) + 0.008 * f.a.kick,
+      zoom: 1 + 0.035 * this.look.hit * pulse(t, dieW.start, 0.16) + 0.008 * f.a.kick,
       grain: 0.05,
     };
   }
@@ -156,13 +184,14 @@ export default class Hook extends Scene {
       const x0 = r.x + (r.L.glyphs[ci]?.x ?? 0);
       ci += Array.from(txt).length + 1;
       if (t < w.start) continue;
-      const k = ease.outExpo(clamp((t - w.start) / 0.14));
-      const s = lerp(1.06, 1, k);
+      const slow = this.look.slow;
+      const k = slow ? ease.outCubic(clamp((t - w.start) / 0.45)) : ease.outExpo(clamp((t - w.start) / 0.14));
+      const s = slow ? 1 : lerp(1.06, 1, k);
       const wW = measure(txt, r.fam, r.size, r.tr);
       c.save();
       c.translate(x0 + wW / 2, r.y - r.size * 0.36);
       c.scale(s, s);
-      c.fillStyle = rgba('bone', 0.96);
+      c.fillStyle = rgba(this.look.fg, 0.96 * (slow ? k : 1));
       c.fillText(txt, -wW / 2, r.size * 0.36);
       c.restore();
     }
@@ -175,6 +204,16 @@ export default class Hook extends Scene {
     if (t < w.start) return;
     const txt = r.text;
     const cap = r.size * 0.72;
+    const fg = this.look.fg;
+    if (this.look.slow) {
+      // n=3: DIE is already a hairline; it is not slammed: it comes up slowly, and on "just" simply fades
+      const a = ease.outCubic(clamp((t - w.start) / 0.5)) * (1 - smoothstep(just.start, just.end + 0.3, t));
+      if (a <= 0) return;
+      c.font = font(r.fam, r.size);
+      c.fillStyle = rgba(fg, 0.96 * a);
+      c.fillText(txt, r.x, r.y);
+      return;
+    }
     const k = ease.outExpo(clamp((t - w.start) / 0.16));
     const s = lerp(1.25, 1, k);
     // drain: 0 before "just", 1 by its end; the husk then fades over 0.35 s
@@ -192,12 +231,12 @@ export default class Hook extends Scene {
       c.beginPath();
       c.rect(-20, -cap - r.size * 0.1, r.L.width + 40, (cap + r.size * 0.1) * (1 - drain));
       c.clip();
-      c.fillStyle = rgba('bone', 0.97);
+      c.fillStyle = rgba(fg, 0.97);
       c.fillText(txt, 0, 0);
       c.restore();
     }
     if (drain > 0) {
-      c.strokeStyle = rgba('bone', 0.75 * husk);
+      c.strokeStyle = rgba(fg, 0.75 * husk);
       c.lineWidth = HAIR;
       c.strokeText(txt, 0, 0);
     }
