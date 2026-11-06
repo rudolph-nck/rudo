@@ -40,6 +40,8 @@ interface Star { x: number; y: number; r: number; b: number; ph: number; f: numb
 export default class Stars extends Scene {
   private layer = new Layer2D();
   private lb = new LineBatch(4096, { screen2D: true, blend: 'add' });
+  private lbInk = new LineBatch(256, { screen2D: true, blend: 'normal' }); // ink lines while stars2 is still on hook2's bone field
+  private n = 1;
   private stars: Star[] = [];
   private drift: DriftWord | null = null;
   private float!: Line;
@@ -61,7 +63,8 @@ export default class Stars extends Scene {
     this.leave2 = inWin.find((l) => /leave it for a bit/i.test(l.text))!;
     const before = ly.lines.filter((l) => l.i < this.float.i && fold(l.text).includes('wanna drift'));
     const pd = before[before.length - 1];
-    if (pd) this.drift = new DriftWord(pd.words[pd.words.length - 1]!, 1, H);
+    this.n = this.ctx.params.n ?? 1; // stars2 follows the inverted n=2 hook: it opens on its bone field
+    if (pd) this.drift = new DriftWord(pd.words[pd.words.length - 1]!, this.n, H);
     const s = this.leave1.words[0]!.start + 0.02;
     this.tLook = [...audio.downbeats].reverse().find((d) => d <= s && s - d < 0.7) ?? this.leave1.words[0]!.start;
     this.kicks = audio.onsets['kick']!.filter(([, st]) => st > 0.35).map(([k]) => k);
@@ -98,12 +101,23 @@ export default class Stars extends Scene {
     this.layer.clear();
     const lb = this.lb;
     lb.clear();
+    this.lbInk.clear();
     if (t < this.tLook) this.sky(c, lb, t);
     else this.look(c, lb, t);
-    clearRT(renderer, out, LIN.ink);
+    // n=2: hook2's bone field, darkening into night as the camera cranes up
+    const k = this.paper(t);
+    clearRT(renderer, out, [lerp(LIN.ink[0], LIN.bone[0], k), lerp(LIN.ink[1], LIN.bone[1], k), lerp(LIN.ink[2], LIN.bone[2], k)]);
     this.ctx.comp.draw(renderer, this.layer.upload(), out);
+    this.lbInk.render(renderer, out);
     lb.render(renderer, out);
     return { zoom: 1 + 0.008 * f.a.kick }; // = hook's kick breath (the seam keeps its pixel row at the cut)
+  }
+
+  /** 1 = hook2's bone field (stars2 only), 0 = night. */
+  private paper(t: number) {
+    if (this.n !== 2) return 0;
+    const tF = this.float.words[0]!.start;
+    return 1 - smoothstep(tF, tF + 0.9, t);
   }
 
   // ---------------------------------------------------------------------------- 1 + 2: the sky
@@ -125,7 +139,11 @@ export default class Stars extends Scene {
       seam(lb, SEAM_Y - CEIL + h, { intensity: 0.8 });
       seam(lb, SEAM_Y - ROOF + h, { intensity: 0.6 });
     }
-    if (seamY < H + 40) seam(lb, seamY, { width: HAIR });
+    const ink = this.paper(t) > 0.5; // on the bone field: ink seam and tethers (normal blend)
+    if (seamY < H + 40) {
+      if (ink) seam(this.lbInk, seamY, { width: HAIR, color: LIN.ink });
+      else seam(lb, seamY, { width: HAIR });
+    }
 
     // the stars: in once the roof line has passed below the top of the frame
     const sa = smoothstep(ROOF - 200, ROOF + 500, h);
@@ -138,7 +156,10 @@ export default class Stars extends Scene {
     // DRIFT (the hook's last frame), floating with us, fading as the stars come in; tethers to the seam
     if (this.drift) {
       const a = 1 - smoothstep(tF + 0.5, tF + 1.7, t);
-      if (a > 0) this.drift.draw(c, lb, t, this.drift.liftK(t), { sung: t >= this.drift.word.end, seamY: Math.min(seamY, H + 20), alpha: a });
+      if (a > 0) this.drift.draw(c, ink ? this.lbInk : lb, t, this.drift.liftK(t), {
+        sung: t >= this.drift.word.end, seamY: Math.min(seamY, H + 20), alpha: a, ink,
+        tether: ink ? { rgb: LIN.ink, width: HAIR * 0.75 } : undefined,
+      });
     }
 
     // the slab rises with us from below, slowly turning, its tether paying out to the seam below

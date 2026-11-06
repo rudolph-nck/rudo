@@ -83,7 +83,7 @@ export function makeTimeline(ly: Lyrics, au: AudioData): TimelineEntry[] {
     E('scars', 'scars', b.scars, b.breath),
     E('breath', 'breath', b.breath, b.hook2),
     E('hook2', 'hook', b.hook2, b.stars2, { params: { n: 2 } }),
-    E('stars2', 'stars', b.stars2, b.hook2b),
+    E('stars2', 'stars', b.stars2, b.hook2b, { params: { n: 2 } }), // opens on hook2's inverted last frame
     E('hook2b', 'hook', b.hook2b, b.carry, { params: { n: 2, reprise: true } }),
     E('carry', 'carry', b.carry, b.silence),
     E('silence', 'silence', b.silence, b.hook3),
