@@ -16,24 +16,19 @@
 //    onto the seam behind it on the last strong kick. Last frame: seam at SEAM_Y, slab resting on it.
 import type * as THREE from 'three';
 import { Scene, type Frame, type PostOverrides } from '../engine/scene';
-import { clearRT, H, Layer2D, SCALE, scaleContext2D, W } from '../engine/gl';
+import { clearRT, H, Layer2D, SCALE, W } from '../engine/gl';
 import { Lyrics, type Line, type Word } from '../engine/lyrics';
 import { LIN, rgba } from '../engine/palette';
 import { F, font, layout, type TextLayout } from '../engine/type';
 import { clamp, ease, lerp, pulse, smoothstep } from '../engine/util';
+import { CX, drawPlane, EYE, FloorLine, FOC, NEAR, type Plane, texCanvas, YH, ZW } from './ceiling-floorline';
 import { clockSec, drawClock2D, HAIR, roomLight2D, SEAM_Y, SLAB, slab2D } from './_motifs';
 
 
 // ------------------------------------------------------------------ the room and the camera (metres)
-const FOC = 1000; // focal length, logical px
-const EYE = 1.0; // camera height above the floor
-const ZW = 2.0; // distance to the far wall
 const HC = 2.75; // ceiling height
 const XW = 1.15; // half the room's width (side-wall corners just off-frame once the camera has landed)
-const CX = W / 2;
-const YH = SEAM_Y - (FOC * EYE) / ZW; // horizon (eye level) on screen: 740; at pitch 0 the seam is at SEAM_Y
 const PX_M = FOC / ZW; // px per metre on the far wall at pitch 0 (500)
-const NEAR = 0.06;
 
 /** Camera-space (yc up, zc forward) of a world point (Y up from the floor, Z forward), camera pitched up by p. */
 function cam(Y: number, Z: number, p: number) {
@@ -44,62 +39,6 @@ function proj(X: number, Y: number, Z: number, p: number) {
   const { yc, zc } = cam(Y, Z, p);
   if (zc <= NEAR) return null;
   return { x: CX + (FOC * X) / zc, y: YH - (FOC * yc) / zc, zc };
-}
-
-/** A textured plane whose texture rows are world lines parallel to X: row v at (oy, oz) + v·m·(vy, vz). */
-interface Plane { cv: HTMLCanvasElement; tw: number; th: number; m: number; oy: number; oz: number; vy: number; vz: number }
-
-function texCanvas(w: number, h: number) {
-  const cv = document.createElement('canvas');
-  cv.width = Math.ceil(w * SCALE);
-  cv.height = Math.ceil(h * SCALE);
-  const c = scaleContext2D(cv.getContext('2d')!, SCALE);
-  return { cv, c };
-}
-
-/**
- * Draw a plane in perspective, one destination row at a time (rows are horizontal because the camera never
- * rolls): each screen row's ray meets the plane at texture row v, and that texture row is drawn there scaled
- * by FOC/depth. `step` is the row height in logical px; `alphaAt(y)` fades rows by screen y.
- */
-function drawPlane(c: CanvasRenderingContext2D, P: Plane, p: number, step: number, alpha = 1, alphaAt?: (y: number) => number) {
-  const cp = Math.cos(p), sp = Math.sin(p), oy = P.oy - EYE;
-  const S = P.th * P.m;
-  // screen extent: the projections of the two end rows (clipped to the near plane)
-  const zcAt = (s: number) => (P.oz + s * P.vz) * cp + (oy + s * P.vy) * sp;
-  let s0 = 0, s1 = S;
-  const za = zcAt(0), zb = zcAt(S);
-  if (za <= NEAR && zb <= NEAR) return;
-  if (za <= NEAR) s0 = (NEAR - za) / (zb - za) * S + 1e-4;
-  if (zb <= NEAR) s1 = (NEAR - za) / (zb - za) * S - 1e-4;
-  const yAt = (s: number) => { const Y = oy + s * P.vy, Z = P.oz + s * P.vz; return YH - (FOC * (Y * cp - Z * sp)) / (Z * cp + Y * sp); };
-  let ya = yAt(s0), yb = yAt(s1);
-  if (ya > yb) [ya, yb] = [yb, ya];
-  ya = Math.max(ya, -2); yb = Math.min(yb, H + 2);
-  if (yb <= ya) return;
-  const sAt = (y: number) => {
-    const k = (YH - y) / FOC;
-    const dy = k * cp + sp, dz = cp - k * sp;
-    const s = (dz * oy - dy * P.oz) / (dy * P.vz - dz * P.vy);
-    const lam = Math.abs(dz) > Math.abs(dy) ? (P.oz + s * P.vz) / dz : (oy + s * P.vy) / dy;
-    return { s, lam };
-  };
-  const st = Math.max(1 / SCALE, step);
-  const y0 = Math.floor(ya * SCALE) / SCALE;
-  c.save();
-  for (let y = y0; y < yb; y += st) {
-    const A = sAt(y), B = sAt(y + st);
-    if (A.lam <= NEAR || B.lam <= NEAR) continue;
-    let va = clamp(A.s, s0, s1) / P.m, vb = clamp(B.s, s0, s1) / P.m;
-    if (va > vb) [va, vb] = [vb, va];
-    if (vb - va <= 1e-4) continue;
-    const a = alpha * (alphaAt ? alphaAt(y + st / 2) : 1);
-    if (a <= 0.002) continue;
-    const k = (FOC / ((A.lam + B.lam) / 2)) * P.m; // screen px per texture px on this row
-    c.globalAlpha = a;
-    c.drawImage(P.cv, 0, va * SCALE, P.tw * SCALE, Math.max((vb - va) * SCALE, 0.5), CX - (P.tw / 2) * k, y, P.tw * k, st);
-  }
-  c.restore();
 }
 
 // ------------------------------------------------------------------ type
@@ -116,11 +55,10 @@ export default class Ceiling extends Scene {
   private tCreep = 0; private tSnap = 0; private tLand = 0;
   private steps: number[] = []; // strong kicks: the slab's steps; the last is the landing
   private bTop = -20; private bHang = 960; // slab bottom: before the first step, and after the last hanging step
-  private size2 = 96; private size3 = 96; private size4 = 110;
+  private size2 = 96; private size3 = 96;
   private wallP!: Plane; private floorP!: Plane; private ceilP!: Plane;
   private ceilText!: { cv: HTMLCanvasElement; c: CanvasRenderingContext2D; tw: number; th: number };
-  private tipText!: { cv: HTMLCanvasElement; c: CanvasRenderingContext2D; tw: number; th: number };
-  private zb = 1.62; // depth of the standing lyric's baseline (on the floor just in front of the wall)
+  private floor!: FloorLine;
   private lyrY = 1361; // its screen y at pitch 0
   private lcache = new Map<string, TextLayout>();
 
@@ -160,12 +98,11 @@ export default class Ceiling extends Scene {
     this.steps = (audio.onsets['kick'] ?? []).filter(([k, s]) => s >= 0.4 && k >= this.L2.start - 0.05 && k < end - 0.05).map(([k]) => k);
 
     // type sizes: line 2/3 at their widest (width 125) fit the safe width; line 4 at width 62.5
-    const wide = F.archivo(125, 500), cond = F.archivo(62.5, 900);
+    const wide = F.archivo(125, 500);
     const fit = (rows: string[], fam: string, max: number) => Math.min(max, ...rows.map((r) => (max * SAFE_X) / this.lay(r, fam, max).width));
     const txt = (l: Line, a: number, b: number) => l.words.slice(a, b).map((w) => w.w).join(' ');
     this.size2 = Math.floor(fit([txt(this.L2, 0, 2), txt(this.L2, 2, 99)], wide, 104));
     this.size3 = Math.floor(fit([txt(this.L3, 0, 2), txt(this.L3, 2, this.L3.words.length - 1)], wide, 104));
-    this.size4 = Math.floor(fit([txt(this.L4, 0, 3), txt(this.L4, 3, 99)], cond, 132));
 
     // ---- light textures (the cover's light, mapped onto the room's planes so it tilts with them)
     // far wall: roomLight2D exactly as it lies at pitch 0 (tex row v ↔ screen -135 + v), extended up to the ceiling
@@ -193,12 +130,9 @@ export default class Ceiling extends Scene {
     // ---- the ceiling lyric texture: one word per row, near (top of screen) to far (the edge)
     const n1 = this.L1.words.length;
     this.ceilText = { ...texCanvas(980, Math.ceil(n1 * CEIL_SIZE * ROW + CEIL_SIZE * 0.3)), tw: 980, th: Math.ceil(n1 * CEIL_SIZE * ROW + CEIL_SIZE * 0.3) };
-    // ---- the tipping lyric texture: two rows, the bottom row's baseline on the floor
-    const th4 = Math.ceil(this.size4 * (ROW + 0.78));
-    this.tipText = { ...texCanvas(980, th4), tw: 980, th: th4 };
-    // its baseline depth: when flat, its far edge lies just in front of the wall
-    this.zb = (ZW - 0.02) / (1 + th4 / FOC);
-    this.lyrY = YH + (FOC * EYE) / this.zb;
+    // ---- the tipping lyric (ceiling-floorline.ts): the standing lines share its baseline
+    this.floor = new FloorLine(ly);
+    this.lyrY = this.floor.baseY;
   }
 
   // ------------------------------------------------------------------ timing
@@ -411,34 +345,11 @@ export default class Ceiling extends Scene {
     c.restore();
   }
 
-  /** "While I'm struggling / to rest": stands on the floor, then tips over backwards onto it. */
+  /** "While I'm struggling / to rest": stands on the floor, then tips over backwards onto it (ceiling-floorline.ts). */
   private drawTip(c: CanvasRenderingContext2D, t: number) {
     const l = this.L4;
     if (t < l.start) return; // no anticipation: it rises out of the floor as the line before is pressed flat
-    const T = this.tipText, tc = T.c;
-    tc.setTransform(1, 0, 0, 1, 0, 0);
-    tc.clearRect(0, 0, T.tw, T.th);
-    const fam = F.archivo(62.5, 900), size = this.size4;
-    // two rows into the texture, the bottom row's baseline on the texture's bottom edge
-    const rows = [l.words.slice(0, 3).map((w) => ({ w })), l.words.slice(3).map((w) => ({ w }))];
-    const yLast = T.th - 2;
-    rows.forEach((row, ri) => {
-      const y = yLast - (rows.length - 1 - ri) * size * ROW;
-      const Ls = row.map((rw) => this.lay(rw.w.w, fam, size));
-      const sp = this.lay(' ', fam, size).width * 0.9;
-      const wsum = Ls.reduce((a, L) => a + L.width, 0) + sp * (row.length - 1);
-      let x = T.tw / 2 - wsum / 2;
-      row.forEach((rw, i) => { this.word(tc, rw.w, Ls[i]!, x, y, t); x += Ls[i]!.width + sp; });
-    });
-    // the plane: hinged on the floor at depth zb, rotated by th away from the camera (0 = upright, 90° = flat)
-    const th = this.tipAngle(t), m = this.zb / FOC; // 1:1 when upright
-    const hgt = T.th * m;
-    const P: Plane = { cv: T.cv, tw: T.tw, th: T.th, m, oy: hgt * Math.cos(th), oz: this.zb + hgt * Math.sin(th), vy: -Math.cos(th), vz: -Math.sin(th) };
-    const up = ease.outCubic(clamp((t - l.start) / 0.12));
-    c.save();
-    c.translate(0, this.lyrY); c.scale(1, up); c.translate(0, -this.lyrY);
-    drawPlane(c, P, 0, 1 / SCALE);
-    c.restore();
+    this.floor.draw(c, t, this.tipAngle(t), ease.outCubic(clamp((t - l.start) / 0.12)));
   }
 }
 

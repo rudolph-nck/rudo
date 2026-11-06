@@ -21,6 +21,7 @@ import { Lyrics, type Line, type Word } from '../engine/lyrics';
 import { LIN, rgba } from '../engine/palette';
 import { F, fitSize, font, layout, measure, plain } from '../engine/type';
 import { clamp, ease, hash, lerp, mulberry32, pulse, smoothstep, TAU } from '../engine/util';
+import { drawFloorLine } from './ceiling-floorline';
 import { CLOCK_POS, clockSec, drawClock2D, HAIR, roomLight2D, SAFE, seam, SEAM_Y, SLAB, slab2D } from './_motifs';
 
 const N_PIECES = 14;
@@ -223,11 +224,15 @@ export default class Pieces extends Scene {
     const t = f.t;
     const c = this.layer.ctx;
     this.layer.clear();
-    roomLight2D(c, SEAM_Y, { intensity: 0.85 });
+    roomLight2D(c, SEAM_Y, { intensity: 1 }); // = ceiling's last frame (no light dip at the cut)
 
     this.drawClock(c, t);
     this.drawRows(c, t);
     this.drawMe(c, t);
+    // the floor line `ceiling` leaves lying under the slab, until its last word ("rest", sung just after the cut) is done
+    const fl = this.ctx.lyrics.lines.find((l) => /struggling to rest/i.test(l.text));
+    const flEnd = (fl?.words[fl.words.length - 1]?.end ?? 0) + 0.2;
+    if (t < flEnd) drawFloorLine(c, this.ctx, t, 1 - smoothstep(flEnd - 0.2, flEnd, t));
     this.drawSlab(c, t);
     // pieces: parked/flying ones over everything; piled ones in landing order (later on top)
     const ps = [...this.pieces].sort((a, b) => (Math.min(a.land, 99) - Math.min(b.land, 99)) || a.tc - b.tc);
