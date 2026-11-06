@@ -274,3 +274,19 @@ export function drawClock2D(c: CanvasRenderingContext2D, sec: number, o: { x?: n
   c.fillText(clockText(sec), o.x ?? CLOCK_POS.x, o.y ?? CLOCK_POS.y);
   c.restore();
 }
+
+// ------------------------------------------------------------------------------- hand-offs
+/**
+ * Screen positions that two plates must agree on at a cut (docs/TREATMENT-drift.md, "Hand-offs").
+ *  - phoneGlow: where `dark` ends with the phone's lamp glow (face-down on the floor just below the
+ *    seam, centred by the camera's push); `break` starts its amber point here.
+ *  - downLook: the downward look down the tether that ends `stars` and opens the hook reprise: the
+ *    seam far below as a short hairline, the amber point (home) on it, the tether straight up from it.
+ */
+export const HANDOFF = {
+  phoneGlow: { x: W / 2, y: SEAM_Y + 64 },
+  downLook: { x: W / 2, y: SEAM_Y, seamHalf: 110 },
+} as const;
+
+/** The slab's size in its resting state on the seam (ceiling → pieces → … → stars, carry, silence, under). */
+export const SLAB = { w: 360, h: 230 } as const;

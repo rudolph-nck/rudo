@@ -40,7 +40,7 @@ export const DEFAULT_POST: PostParams = {
   bloomKnee: 0.1,
   bloomRadius: 0.75,
   halation: 0.25,
-  ca: 1.2,
+  ca: 0.5, // low: CA fringes hairlines at the frame edge into hues outside the palette
   grain: 0.055,
   vignette: 0.35,
   hud: 0,
@@ -120,6 +120,8 @@ ${SCALE === 1 ? `        c += texture(src, vUv + texel * vec2(-1, -1)).rgb; c +=
         vec2 dc = uv - 0.5;
         float r2 = dot(dc * vec2(res.x / res.y, 1.0), dc * vec2(res.x / res.y, 1.0));
         vec2 off = dc * r2 * ca / res.x * 4.0;
+        // no CA at the very edge: the offset channel would sample past the frame (a coloured edge line)
+        off *= smoothstep(0.0, 0.01, min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y)));
         vec3 col;
         col.r = texture(src, uv + off).r;
         col.g = texture(src, uv).g;

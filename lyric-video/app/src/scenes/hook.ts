@@ -8,8 +8,8 @@
 //    glyph by glyph as it is sung); its letters lift off the baseline at slightly different rates, the
 //    tracking loosens, and from each letter a taut hairline tether runs straight down to the seam.
 // params: n (1 = chorus 1: bone on ink, clean, letters rise a third of the frame; 2/3: TODO — they render
-// the n=1 look for now), reprise (hook1b/hook2b: opens with the previous DRIFT still lifted and reels it
-// back down onto the seam before the slam). The lines are found by content inside this entry's window.
+// the n=1 look for now), reprise (hook1b/hook2b: opens on `stars`' downward look, reels the tether in and
+// brings DRIFT back down onto the seam before the slam). The lines are found by content inside this entry's window.
 import type * as THREE from 'three';
 import { Scene, type Frame, type PostOverrides } from '../engine/scene';
 import { clearRT, Layer2D } from '../engine/gl';
@@ -18,9 +18,11 @@ import { Lyrics, type Line, type Word } from '../engine/lyrics';
 import { LIN, rgba } from '../engine/palette';
 import { F, font, layout, measure, type TextLayout } from '../engine/type';
 import { clamp, ease, frameIdx, hash, lerp, pulse, smoothstep } from '../engine/util';
-import { HAIR, SAFE, seam, SEAM_Y } from './_motifs';
+import { HAIR, HANDOFF, SAFE, seam, SEAM_Y } from './_motifs';
+import { downLook, downLookGlow, forABit } from './stars-down';
+import { DriftWord, HOOK_BASE } from './hook-drift';
 
-const BASE = SEAM_Y - 34; // baseline of the bottom row: the words stand on the seam
+const BASE = HOOK_BASE; // baseline of the bottom row: the words stand on the seam
 const GAP = 26; // vertical gap between rows (px)
 const WIDTH = SAFE.x1 - SAFE.x0;
 
@@ -39,8 +41,10 @@ export default class Hook extends Scene {
   private prevDrift: Line | null = null;
   private rowsA: Row[] = []; // I DON'T / WANNA / DIE
   private rowsB: Row[] = []; // I JUST / WANNA / DRIFT
-  private drift!: { word: Word; fam: string; size: number; y: number; tr0: number; tr1: number; capH: number };
-  private rise = 0;
+  private drift!: DriftWord;
+  private prevDriftWord: DriftWord | null = null;
+  /** "for a bit" (the end of the line before the reprise), still beside the point as the reprise opens. */
+  private prevBit: Word[] = [];
 
   override init() {
     const { lyrics, params, start, end, H } = this.ctx;
@@ -52,17 +56,12 @@ export default class Hook extends Scene {
     const before = lyrics.lines.filter((l) => l.i < this.dieLine.i && fold(l.text).includes('wanna drift'));
     this.prevDrift = before[before.length - 1] ?? null;
 
-    // DRIFT: the light word; size fitted to the safe width at its loosest tracking
-    const dWord = this.driftLine.words[this.driftLine.words.length - 1]!;
-    const dFam = F.archivo(125, 500);
-    const tr1 = 0.16, tr0 = 0.02;
-    const dText = dWord.w.toUpperCase();
-    const dSize = Math.min(260, (100 * WIDTH) / measure(dText, dFam, 100, tr1 * 100));
-    const dCap = dSize * 0.72;
-    this.drift = { word: dWord, fam: dFam, size: dSize, y: BASE, tr0, tr1, capH: dCap };
-    // n=1: the letters rise a third of the frame (kept below the top of the safe area)
-    this.rise = Math.min(H / 3, BASE - dCap - SAFE.y0 - 20);
+    // DRIFT: the light word (shared with `stars`, which opens on this plate's last frame)
+    this.drift = new DriftWord(this.driftLine.words[this.driftLine.words.length - 1]!, this.n, H);
+    if (this.prevDrift) this.prevDriftWord = new DriftWord(this.prevDrift.words[this.prevDrift.words.length - 1]!, this.n, H);
 
+    const prevLine = lyrics.lines[this.dieLine.i - 1];
+    if (this.reprise && prevLine && /for a bit/i.test(prevLine.text)) this.prevBit = prevLine.words.slice(-3);
     this.rowsA = this.stack(this.dieLine, true);
     this.rowsB = this.stack(this.driftLine, false);
   }
@@ -105,10 +104,18 @@ export default class Hook extends Scene {
     const dieW = this.dieLine.words[this.dieLine.words.length - 1]!;
     const justW = this.driftLine.words.find((w) => /just/i.test(w.w)) ?? this.driftLine.words[1]!;
 
-    // reprise: the previous DRIFT, lifted, reels back down onto the seam before the first word
-    if (this.reprise && this.prevDrift && t < this.dieLine.words[0]!.start) {
-      const k = ease.inOutCubic(clamp((t - this.ctx.start) / Math.max(0.2, this.dieLine.words[0]!.start - this.ctx.start - 0.05)));
-      this.drawDrift(c, lb, this.prevDrift.words[this.prevDrift.words.length - 1]!, t, 1 - k, true);
+    // reprise: opens on `stars`' last frame (the downward look down the tether, "for a bit" beside the
+    // point). The tether reels in: the far seam widens to the full frame while DRIFT's letters come back
+    // down from above onto the seam, landing as the first word hits.
+    const first = this.dieLine.words[0]!.start;
+    const opening = this.reprise && t < first;
+    if (opening) {
+      const k = ease.inOutCubic(clamp((t - this.ctx.start) / Math.max(0.2, first - this.ctx.start - 0.04)));
+      downLook(lb, t, { half: lerp(HANDOFF.downLook.seamHalf, this.ctx.W / 2 + 4, k), tetherTop: lerp(0, SEAM_Y, k), point: 1 - k });
+      if (this.prevBit.length) forABit(c, this.prevBit, t, 1 - smoothstep(0, 0.4, k));
+      downLookGlow(c, 1 - k);
+      // (tethers fade in with the descent: `stars`' last frame has only the one tether)
+      if (this.prevDriftWord) this.prevDriftWord.draw(c, lb, t, 1 - k, { sung: true, dy: -1000 * (1 - k), tetherAlpha: smoothstep(0.15, 0.6, k) });
     }
 
     // phrase A: I DON'T / WANNA (until phrase B starts) and DIE (until it is un-inked)
@@ -121,12 +128,12 @@ export default class Hook extends Scene {
     // phrase B: I JUST / WANNA until DRIFT arrives, then DRIFT alone
     if (t >= B0) {
       this.rowsB.slice(0, -1).forEach((r) => { if (t < dw.start) this.drawRow(c, r, t); });
-      if (t >= dw.start) this.drawDrift(c, lb, dw, t, this.liftK(t, dw), false);
+      if (t >= dw.start) this.drift.draw(c, lb, t, this.drift.liftK(t));
     }
 
     clearRT(renderer, out, LIN.ink);
     this.ctx.comp.draw(renderer, this.layer.upload(), out);
-    seam(lb, SEAM_Y, { width: HAIR });
+    if (!opening) seam(lb, SEAM_Y, { width: HAIR });
     lb.render(renderer, out);
 
     // DIE's hit: a short hard shake and a punch-in; the kick breathes the frame a little
@@ -137,11 +144,6 @@ export default class Hook extends Scene {
       zoom: 1 + 0.035 * pulse(t, dieW.start, 0.16) + 0.008 * f.a.kick,
       grain: 0.05,
     };
-  }
-
-  /** 0..1 lift of DRIFT over the sung word (at least 0.6 s), eased out. */
-  private liftK(t: number, w: Word) {
-    return clamp((t - w.start) / Math.max(0.6, w.end - w.start));
   }
 
   /** A row of plain words: each word slams in on its start (a quick settle from 106 %). */
@@ -200,40 +202,5 @@ export default class Hook extends Scene {
       c.strokeText(txt, 0, 0);
     }
     c.restore();
-  }
-
-  /**
-   * DRIFT: lamp as it is sung (glyph by glyph), letters lifting by `k` (0 = on the baseline, 1 = risen) at
-   * slightly different rates, tracking loosening with the lift, a taut tether from each letter to the seam.
-   * `sung`: draw fully lit (the reprise's already-sung DRIFT).
-   */
-  private drawDrift(c: CanvasRenderingContext2D, lb: LineBatch, w: Word, t: number, k: number, sung: boolean) {
-    const D = this.drift;
-    const txt = w.w.toUpperCase();
-    const tr = lerp(D.tr0, D.tr1, ease.outCubic(k)) * D.size;
-    const L = layout(txt, D.fam, D.size, tr);
-    const x0 = SAFE.x0 + (WIDTH - L.width) / 2;
-    const p = sung ? 1 : Lyrics.wordProgress(w, t);
-    const n = L.glyphs.length;
-    const arrive = sung ? 1 : ease.outCubic(clamp((t - w.start) / 0.12));
-    c.font = font(D.fam, D.size);
-    for (const g of L.glyphs) {
-      // each glyph's own rate: some lead, some lag; all eased out
-      const rate = 0.75 + 0.5 * hash(g.i, 11 + this.n);
-      const kg = ease.outCubic(clamp(k * rate)); // laggers stop short: the letters never re-align
-      const y = D.y - this.rise * kg;
-      const x = x0 + g.x;
-      const lit = sung ? 1 : clamp(p * n - g.i);
-      c.fillStyle = rgba('bone', 0.96 * arrive * (1 - lit));
-      if (lit < 1) c.fillText(g.ch, x, y);
-      if (lit > 0) { c.fillStyle = rgba('lamp', arrive * lit); c.fillText(g.ch, x, y); }
-      // tether: from the glyph's foot straight down to the seam, once it has left the baseline
-      const lift = D.y - y;
-      if (lift > 1.5) {
-        const cx = x + g.w / 2;
-        lb.seg2(cx, y + 6, cx, SEAM_Y, HAIR, [LIN.bone[0] * 0.7, LIN.bone[1] * 0.7, LIN.bone[2] * 0.7], clamp(lift / 24) * arrive);
-        lb.seg2(cx - 4, SEAM_Y, cx + 4, SEAM_Y, HAIR * 1.6, [LIN.bone[0] * 0.9, LIN.bone[1] * 0.9, LIN.bone[2] * 0.9], clamp(lift / 24) * arrive);
-      }
-    }
   }
 }
