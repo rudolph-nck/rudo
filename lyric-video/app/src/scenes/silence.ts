@@ -26,6 +26,7 @@ import { Lyrics, type Line, type Word } from '../engine/lyrics';
 import { LIN, rgba } from '../engine/palette';
 import { F, font, layout, measure, plain, type TextLayout } from '../engine/type';
 import { clamp, ease, frameIdx, lerp, smoothstep, TAU } from '../engine/util';
+import { drawLyricRow, drawSlabCracks, lastLineRow, type LyricRow } from './carry-lines';
 import { amberPoint, HAIR, roomLight2D, SAFE, seam, SEAM_Y, SLAB, slab2D, tether2D } from './_motifs';
 
 type RGB = [number, number, number];
@@ -74,6 +75,9 @@ export default class Silence extends Scene {
   private cuts: number[] = [];
   private placed: PL[] = [];
   private bubW: number[] = [];
+  /** carry's last line ("…ask for me"): "me" is still being sung at the cut, so it stays until it is done. */
+  private carryRow!: LyricRow;
+  private carryLine!: Line;
 
   override init() {
     const L = this.ctx.lyrics, A = this.ctx.audio;
@@ -115,6 +119,8 @@ export default class Silence extends Scene {
       return { line, fam, size, tr, y, words };
     });
     this.bubW = BUBBLES.map((b) => measure(b.text, F.mono(400), BUB_SIZE) + 40);
+    this.carryLine = L.get('ask for me');
+    this.carryRow = lastLineRow(this.carryLine);
   }
 
   private shotAt(t: number) {
@@ -197,12 +203,17 @@ export default class Silence extends Scene {
         c.save();
         c.translate(540, SEAM_Y - r - SLAB.h / 2); c.rotate(0.03 * clamp(r / 900)); c.translate(-540, -(SEAM_Y - r - SLAB.h / 2));
         slab2D(c, SLAB_X, SLAB_Y - r, SLAB.w, SLAB.h, { lit: 0.3, alpha: 0.95 });
+        c.translate(0, -r); drawSlabCracks(c, z, 0.95); // the cracks from `scars`: never repaired
         c.restore();
       }
       if (r > 0) { c.strokeStyle = rgba('bone', 0.85 * ta); c.lineWidth = HAIR * 1.6; c.beginPath(); c.moveTo(535, SEAM_Y); c.lineTo(545, SEAM_Y); c.stroke(); }
     }
     this.drawAsks(c, t, k);
     for (let i = 0; i < 6; i++) this.drawLine(c, this.placed[i]!, t, k, 0);
+    { // carry's last line, held across the cut in carry's place until its "me" is sung, then gone over 0.25 s
+      const ws = this.carryLine.words, meEnd = ws[ws.length - 1]!.end;
+      if (k === 0 && t < meEnd + 0.25) drawLyricRow(c, this.carryRow, t, this.carryLine.start - 0.4, 1 - smoothstep(meEnd, meEnd + 0.25, t));
+    }
     c.restore();
     // "Just breathing" rides the crest of the breath trace (screen space: shot 7 is unzoomed)
     const br = this.breath(t);

@@ -29,6 +29,7 @@ import { LIN, rgba } from '../engine/palette';
 import { F, font, layout, measure, plain, smart, type TextLayout } from '../engine/type';
 import { drawStrokeText, strokeText, type StrokeText } from '../engine/stroke';
 import { clamp, ease, frameIdx, hash, keys, lerp, mulberry32, pulse, smoothstep, TAU } from '../engine/util';
+import { drawLyricRow, drawSlabCracks, lastLineRow } from './carry-lines';
 import { HAIR, roomLight2D, SAFE, seam, SEAM_Y, SLAB, slab2D } from './_motifs';
 
 type RGB = [number, number, number];
@@ -100,7 +101,6 @@ export default class Carry extends Scene {
   private sliver!: Rect;
   private pieces: Piece[] = [];
   private labels: { st: StrokeText; x: number; y: number; rot: number }[] = [];
-  private cracks: { x: number; y: number }[][] = [];
   private rows: Row[] = [];
   private db: number[] = []; // downbeats in the window
   private lines: Line[] = [];
@@ -197,7 +197,8 @@ export default class Carry extends Scene {
     mk(lD2!, serif, { sy: 704, sw: 800, cap: 92, tref: lD1!.start, hide: hideD, serif: true, tr: 0 });
     // the last two lines in `silence`'s rows (world y 800 and 930), the size it sets its lines at
     mk(lE1!, F.archivo(100, 600), { wy: 800, sw: 740 * END_CAM.z, cap: 84 * END_CAM.z, tref: this.ctx.end, hide: 1e9 });
-    mk(lE2!, F.archivo(100, 600), { wy: 930, sw: 740 * END_CAM.z, cap: 84 * END_CAM.z, tref: this.ctx.end, hide: 1e9 });
+    // the last line comes from carry-lines.ts: `silence` keeps drawing it across the cut until "me" is sung
+    this.rows.push({ ...lastLineRow(lE2!), line: lE2!, show: lE2!.start - 0.4, hide: 1e9, serif: false });
     // QA: every row inside the title-safe area while it is on screen
     for (const r of this.rows) {
       const t1 = Math.min(r.hide, this.ctx.end - 0.01);
@@ -282,30 +283,8 @@ export default class Carry extends Scene {
     });
   }
 
-  /** The cracks (from `scars`, never repaired) and the invisible handwritten labels. */
+  /** The invisible handwritten labels (the cracks from `scars` live in carry-lines.ts, shared with `silence`). */
   private buildSlabMarks() {
-    const r = mulberry32(1414);
-    const starts = [[372, 1030, 0.5], [710, 1050, 2.6], [560, 1012, 1.7], [420, 1236, -1.2], [690, 1232, -2.2], [362, 1150, 0.1]] as const;
-    for (const [x0, y0, a0] of starts) {
-      const pts: { x: number; y: number }[] = [{ x: x0, y: y0 }];
-      let a: number = a0, x: number = x0, y: number = y0;
-      const n = 6 + Math.floor(r() * 5);
-      for (let i = 0; i < n; i++) {
-        a += (r() - 0.5) * 0.9;
-        const step = 9 + r() * 16;
-        x = clamp(x + Math.cos(a) * step, SLAB_X + 3, SLAB_X + SLAB.w - 3);
-        y = clamp(y + Math.sin(a) * step, SLAB_Y + 3, SEAM_Y - 3);
-        pts.push({ x, y });
-      }
-      this.cracks.push(pts);
-      if (r() < 0.6) { // a short branch
-        const k = 2 + Math.floor(r() * (pts.length - 3));
-        const b: { x: number; y: number }[] = [{ ...pts[k]! }];
-        let ba = a0 + (r() < 0.5 ? 0.9 : -0.9), bx = pts[k]!.x, by = pts[k]!.y;
-        for (let i = 0; i < 3; i++) { ba += (r() - 0.5) * 0.7; bx += Math.cos(ba) * 10; by += Math.sin(ba) * 10; b.push({ x: clamp(bx, SLAB_X + 3, SLAB_X + SLAB.w - 3), y: clamp(by, SLAB_Y + 3, SEAM_Y - 3) }); }
-        this.cracks.push(b);
-      }
-    }
     for (const lb of LABELS) {
       const st = strokeText(smart(lb.text), 'script', LABEL_SIZE, 0.5);
       this.labels.push({ st, x: Math.min(lb.x, SLAB_X + SLAB.w - 14 - st.width), y: lb.y, rot: lb.rot });
@@ -344,7 +323,7 @@ export default class Carry extends Scene {
     // the slab, its cracks, the lamp's pool on it
     const atEnd = smoothstep(this.calm - 1.5, this.calm, t);
     slab2D(c, SLAB_X, SLAB_Y, SLAB.w, SLAB.h, { lit: lerp(0.45, 0.3, atEnd), alpha: 0.95 });
-    this.drawCracks(c, z);
+    drawSlabCracks(c, z);
     if (bm.I > 0.001) this.drawPool(c, bm);
     c.restore();
     if (bm.I > 0.001) this.drawLabels(c, t, bm, z, cx);
@@ -368,17 +347,6 @@ export default class Carry extends Scene {
   }
 
   // -------------------------------------------------------------------------------- the slab marks
-  private drawCracks(c: CanvasRenderingContext2D, z: number) {
-    c.save();
-    c.lineJoin = 'round'; c.lineCap = 'round';
-    for (const pts of this.cracks) {
-      const path = () => { c.beginPath(); pts.forEach((p, i) => (i ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y))); };
-      c.translate(0, 1 / z); path(); c.strokeStyle = rgba('ink', 0.7); c.lineWidth = (HAIR * 1.4) / z; c.stroke(); c.translate(0, -1 / z);
-      path(); c.strokeStyle = rgba('dust', 0.55); c.lineWidth = (HAIR * 1.1) / z; c.stroke();
-    }
-    c.restore();
-  }
-
   /** The swinging lamp's pool on the slab and the wall around it (warm, soft, never a flare). */
   private drawPool(c: CanvasRenderingContext2D, bm: { I: number; x: number; y: number }) {
     c.save();
@@ -484,6 +452,7 @@ export default class Carry extends Scene {
     if (t < r.show) return;
     const off = 1 - smoothstep(r.hide, r.hide + (r.serif ? 0.3 : 0.16), t);
     if (off <= 0) return;
+    if (!r.serif) { drawLyricRow(c, r, t, r.show, off); return; }
     c.font = font(r.fam, r.size);
     c.textBaseline = 'alphabetic';
     for (const pw of r.words) {
