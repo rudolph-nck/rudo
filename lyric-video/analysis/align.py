@@ -43,8 +43,30 @@ ANCHORS = {}
 # plots clearly show the automatic result is wrong.  (line, token) ->
 # dict(start=..., end=...)
 FIX = {
-    # Drift: filled in after looking at the QA plots (analysis/qa/line_*.png), e.g.
-    # (li, ti): dict(start=12.34, conf=0.7)
+    # Drift, Phase 1: each checked on qa/line_*.png and the zoom plots (qa/intro_a, brk_b,
+    # outro_tail). Line indices follow lyrics/drift.src.js (94 lines).
+    # L0 "Yeah…": the voice decays until ~4.62 s; refine cut it at 4.51.
+    (0, 0): dict(end=4.62, conf=0.9),
+    # L61 "bit": the lead stops at ~158.8; 158.9-162.6 is backing-vocal "oh" pads only.
+    (61, 7): dict(end=158.82, conf=0.85),
+    # L62 "I": rest-onset latched onto the pad at 159.19; the sung "I" attacks at 162.68
+    # (onset spike, all CTC models 162.84-162.88, Suno lead-stem Whisper agrees).
+    (62, 0): dict(start=162.68, conf=0.85),
+    # L78 "Just" (breathing): the fricative rule took the final /s/ of "silence" (200.66);
+    # the /dʒ/ burst of "Just" is at 200.88-200.93 (CTC + Whisper 200.9).
+    (78, 0): dict(start=200.88, conf=0.85),
+    # L86 "I'll": 217.30-217.58 is still the tail of "ready" (same pitch); the new low
+    # note gliding up into "come" starts at 217.58 (Whisper 217.74, lv60k 218.02).
+    (86, 0): dict(start=217.58, conf=0.7),
+    # L89 "Tomorrow": the held "drift" (~1050 Hz) runs to 227.08; the /t/ and the low
+    # "To-" note start at 227.18 (MMS agrees).
+    (89, 0): dict(start=227.18, conf=0.85),
+    # L92 "tonight…": sung to ~238.0 and decays by ~238.4; 239-242 is silent. Refine
+    # never looked for the stop because the CTC end ran through the silence to 242.0.
+    (92, 1): dict(end=238.4, conf=0.9),
+    # L93 final "drift": the /ft/ release is at 242.88-242.92; keep the whole word. NOT
+    # held: the sustained vowel at 244.3-246.2 is a hum (see EXTRA_DESC).
+    (93, 2): dict(end=242.95, conf=0.95),
 }
 
 # ---------------------------------------------------------------------------
@@ -211,7 +233,12 @@ def refine(words, f, fix=None):
 
 EXTRA_DESC = [
     # (t0, t1, description) of vocals that are not lyric words (ad-libs, backing pads,
-    # breaths), identified from the QA plots, Suno's lead stem and Whisper. Drift: to fill.
+    # breaths), identified from the QA plots, Suno's lead stem and Whisper.
+    (158.9, 162.6, "backing-vocal 'oh' pads (Suno backing stem); the lyric video showed a "
+                   "second 'I don't wanna die / I just wanna drift' here, but it is not sung"),
+    (244.3, 246.2, "breathy hum on the final 'drift' pitch (lead stem; Whisper: 'Hmm'), "
+                   "not a word"),
+    (259.0, 260.5, "closing 'mm-hmm' (lead stem)"),
 ]
 
 
@@ -361,7 +388,10 @@ def make_plots(words, alt, L):
 
 NOTES = (
     "Timeline = gapless mp3 decode of audio/drift.mp3 (same as data/audio.json); Demucs stems "
-    "shifted by the cross-correlation offset in analysis/work/stem_offset.json. Method as in "
+    "shifted by the cross-correlation offset in analysis/work/stem_offset.json (23 ms). Text = "
+    "lyrics/drift.src.js, 94 lines: the lyric video's second 'I don't wanna die / I just wanna "
+    "drift' pair in chorus 2 is not sung (backing pads only, see extras), so the hook occurs 5 "
+    "times. Method as in "
     "pdoom-video: (1) CTC emissions (20 ms frames) from torchaudio MMS_FA and "
     "wav2vec2-large-lv60k-960h on the Demucs vocal stem (mono, left, right) and on Suno's own "
     "lead-vocal stem, fused as a probability mixture; (2) one global constrained Viterbi forced "

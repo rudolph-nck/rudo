@@ -27,8 +27,13 @@ def run(tag, model, prompt=None):
     from faster_whisper import WhisperModel
     m = WhisperModel(model, device="cpu", compute_type="int8",
                      download_root=str(common.CACHE / "hf" / "faster-whisper"))
+    import soundfile as sf
+    # Pass samples, not a path: faster-whisper's own decoder (PyAV) breaks with the PyAV
+    # version uv resolves (open() got an unexpected keyword 'metadata_errors').
+    audio, sr = sf.read(vocals16k(), dtype="float32")
+    assert sr == 16000
     segs, _ = m.transcribe(
-        str(vocals16k()), language="en", word_timestamps=True,
+        audio, language="en", word_timestamps=True,
         condition_on_previous_text=False, initial_prompt=prompt, temperature=0.0,
         no_speech_threshold=None, vad_filter=False,
     )

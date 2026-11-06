@@ -3,8 +3,11 @@
 // highlight; the aligner finds the real ones. Keep comments OUT of the array and free of
 // square brackets: analysis/common.py json-parses everything between the first and last bracket.
 // Sections: Intro 0:03, Verse 1 0:21, Pre 0:52, Chorus 0:56, Verse 2 1:29, Pre 2:08,
-// Chorus 2:14 (ends with the hook sung twice), Bridge 2:46, Breakdown 3:11,
-// Final Chorus 3:22, Outro 3:45.
+// Chorus 2:14, Bridge 2:50, Breakdown 3:12, Final Chorus 3:22, Outro 3:45.
+// Phase 1 check: chorus 2 ends with the hook pair sung ONCE, about 2:42-2:50, not twice as
+// the lyric video showed. Suno's lead stem, Whisper and the QA plots agree that 2:39-2:48
+// holds only backing-vocal oh pads. The phantom second pair was removed, so the hook
+// I don't wanna die occurs 5 times: chorus 1 twice, chorus 2 twice, final chorus once.
 const LY = [
   [3.0, 6.0, "Yeah…"],
   [6.0, 8.0, "You ever get so tired"], [8.0, 9.5, "You don't want to quit"], [9.5, 12.0, "You don't want to disappear"],
@@ -36,9 +39,8 @@ const LY = [
   [138.0, 141.0, "Float somewhere between the stars"], [141.0, 144.0, "And forget about all this"],
   [144.0, 146.0, "No deadlines"], [146.0, 148.0, "No expectations"], [148.0, 150.0, "No voices in my head"],
   [150.0, 153.0, "I don't wanna leave this world"], [153.0, 156.0, "I just wanna leave it for a bit"],
-  [156.0, 158.0, "I don't wanna die"], [158.0, 161.0, "I just wanna drift"],
-  [161.0, 163.0, "I don't wanna die"], [163.0, 166.0, "I just wanna drift"],
-  [166.0, 171.0, "Maybe I'm tired of carrying"], [171.0, 175.0, "Things nobody else can see"],
+  [161.0, 164.0, "I don't wanna die"], [166.0, 169.5, "I just wanna drift"],
+  [170.0, 171.0, "Maybe I'm tired of carrying"], [171.0, 175.0, "Things nobody else can see"],
   [175.0, 177.0, "Maybe I'm tired of being"], [177.0, 180.0, "Everything everybody needs"],
   [180.0, 183.0, "Maybe I don't need fixing"], [183.0, 185.0, "Maybe I just need peace"],
   [185.0, 187.0, "Maybe I just need one night"], [187.0, 191.0, "Where the world doesn't ask for me"],

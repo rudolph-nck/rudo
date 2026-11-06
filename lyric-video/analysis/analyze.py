@@ -28,42 +28,53 @@ from scipy.signal import butter, find_peaks, sosfiltfilt
 SR = 44100
 FPS = 100
 
-# Sections: (name, query, nth) = the lyric line that opens the section. A section starts on
-# the downbeat of the bar in which that line's first word starts, unless the word sits in the
-# last 2 beats of a bar (a pickup), in which case the section starts on the next downbeat and
-# the pickup stays in the previous section.
+# Sections: (name, query, nth[, word]) = the lyric line that opens the section. A section starts
+# on the downbeat of the bar in which that line's word `word` (default 0, the first) starts,
+# unless the word sits in the last 2 beats of a bar (a pickup), in which case the section
+# starts on the next downbeat and the pickup stays in the previous section.
+# Drift: the hook "I don't wanna die" is a >2-beat pickup whose downbeat is "die" (word 3);
+# the chorus energy enters there (57.86, 136.21), so the choruses key on "die". Keyed on "I",
+# chorus 3 started a bar early and swallowed the breakdown's last line ("Just breathing").
+# The outro keys on "fighting" for the same reason: "Tomorrow I'll keep" is a pickup.
 SECTIONS = [
     ("intro", None, 0),
     ("verse1", "Another morning", 0),
     ("pre1", "And I'm not looking for an ending", 0),
-    ("chorus1", "I don't wanna die", 0),
+    ("chorus1", "I don't wanna die", 0, 3),
     ("verse2", "Sometimes I drive", 0),
     ("pre2", "Not forever", 0),
-    ("chorus2", "I don't wanna die", 2),
+    ("chorus2", "I don't wanna die", 2, 3),
     ("bridge", "Maybe I'm tired of carrying", 0),
     ("breakdown", "No phone ringing", 0),
-    ("chorus3", "I don't wanna die", 5),
-    ("outro", "Tomorrow I'll keep fighting", 0),
+    ("chorus3", "I don't wanna die", 4, 3),   # 5th and last occurrence (sung 5x, not 6x)
+    ("outro", "Tomorrow I'll keep fighting", 0, 3),
 ]
 
 # Which beat index (mod 4) of the fitted grid is beat 1 of the bar. None = choose from the
 # drum pattern (strongest kick class, snare on 2 & 4 or 3 for half-time), printed in the log.
-BAR_PHASE = None
+# Drift (Phase 1): 2. The auto score was a near tie (phase 0: 1.127 vs phase 2: 1.093) because
+# snares sit on 2 & 4 under both. Phase 2 wins on everything else: bass and other-stem chroma
+# change most on grid beat 2 mod 4 (0.25/0.27 vs <=0.14 elsewhere), the strongest kick
+# 16th is grid beat 2 (63 hits, i.e. kick on 1 with a kick on the and-of-4), and more lyric
+# lines start on, or a 16th/8th before, a phase-2 downbeat (39 vs 33).
+BAR_PHASE = 2
 
 
 def line_starts():
-    """[(text, first-word start)] from data/lyrics.json if aligned, else the rough source."""
+    """[(text, [word starts])] from data/lyrics.json if aligned, else the rough source
+    (line start only)."""
     p = common.DATA / "lyrics.json"
     if p.exists():
         d = json.loads(p.read_text())
-        return [(l["text"], l["words"][0]["start"]) for l in d["lines"]], True
-    return [(t, a) for a, _, t in common.load_lyrics_src()], False
+        return [(l["text"], [w["start"] for w in l["words"]]) for l in d["lines"]], True
+    return [(t, [a]) for a, _, t in common.load_lyrics_src()], False
 
 
-def find_line(lines, q, nth):
+def find_line(lines, q, nth, word=0):
     fold = lambda x: x.lower().replace("\u2019", "'")
     hits = [st for t, st in lines if fold(q) in fold(t)]
-    return hits[nth]
+    st = hits[nth]
+    return st[min(word, len(st) - 1)]
 
 
 def choose_phase(off, P, kt, kdb, st):
@@ -321,15 +332,15 @@ def main(plots=False):
     sections = []
     lines, aligned = line_starts()
     starts = []
-    for name, q, nth in SECTIONS:
+    for name, q, nth, *word in SECTIONS:
         if q is None:
             starts.append(0.0); continue
-        w = find_line(lines, q, nth)
+        w = find_line(lines, q, nth, *word)
         k = math.floor((w - off_bar) / (4 * P) + 1e-6)
         if (w - bar_t(k)) / P >= 2.0:   # pickup in the last two beats: next bar
             k += 1
         starts.append(bar_t(k))
-    for (name, _, _), a, b in zip(SECTIONS, starts, starts[1:] + [duration]):
+    for (name, *_), a, b in zip(SECTIONS, starts, starts[1:] + [duration]):
         sections.append(dict(name=name, start=round(a, 3), end=round(b, 3)))
     print("sections from", "data/lyrics.json" if aligned else "ROUGH lyrics/drift.src.js (re-run after align.py)")
     for x in sections:
@@ -361,10 +372,12 @@ NOTES = (
     "Timeline = gapless mp3 decode of audio/drift.mp3; Demucs stems shifted by the measured "
     "offset (analysis/work/stem_offset.json). Tempo constant: {bpm:.3f} BPM (period {P:.5f} s), "
     "fitted over the whole song on drum+mix onset envelopes, phase refined on kick attacks; "
-    "first beat {off:.3f} s. Bar phase: beat index {phase} mod 4 is beat 1 (chosen from the kick/"
-    "snare pattern; confirm by ear); first downbeat {first_db:.3f} s. Sections start on the "
-    "downbeat of the bar holding their first lyric line (pickups in the last 2 beats stay in the "
-    "previous section). Envelopes: 100 fps, 46 ms RMS, one-pole smoothing (10 ms attack / 90 ms "
+    "first beat {off:.3f} s. Bar phase: beat index {phase} mod 4 is beat 1 (set explicitly: "
+    "harmony changes and the main kick fall there, snares on 2 & 4); first downbeat "
+    "{first_db:.3f} s. Sections start on the downbeat of the bar holding the opening word of "
+    "their first lyric line; pickups in the last 2 beats stay in the previous section, and the "
+    "choruses/outro key on their stressed word (\"die\", \"fighting\") because their lines "
+    "open with a long pickup. Envelopes: 100 fps, 46 ms RMS, one-pole smoothing (10 ms attack / 90 ms "
     "release), each /99th percentile, clipped 0..1. low <150 Hz, mid 150-2000 Hz, high >4 kHz of "
     "the mix; vocal/drums/bass/other = stem RMS. Onsets [time, strength 0-1] from the drums stem: "
     "kick = <120 Hz attacks ({kk}); snare = 1.5-5 kHz attacks with a noisy tail ({sn}); hat = >7 "

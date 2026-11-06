@@ -1,0 +1,3377 @@
+{
+  "lines": [
+    {
+      "i": 0,
+      "text": "Yeah…",
+      "start": 4.26,
+      "end": 4.62,
+      "words": [
+        {
+          "w": "Yeah…",
+          "start": 4.26,
+          "end": 4.62,
+          "conf": 0.9
+        }
+      ]
+    },
+    {
+      "i": 1,
+      "text": "You ever get so tired",
+      "start": 5.94,
+      "end": 7.867,
+      "words": [
+        {
+          "w": "You",
+          "start": 5.94,
+          "end": 6.081,
+          "conf": 0.81
+        },
+        {
+          "w": "ever",
+          "start": 6.081,
+          "end": 6.4,
+          "conf": 0.99
+        },
+        {
+          "w": "get",
+          "start": 6.4,
+          "end": 6.585,
+          "conf": 1.0
+        },
+        {
+          "w": "so",
+          "start": 6.585,
+          "end": 6.969,
+          "conf": 1.0
+        },
+        {
+          "w": "tired",
+          "start": 7.04,
+          "end": 7.867,
+          "conf": 0.98
+        }
+      ]
+    },
+    {
+      "i": 2,
+      "text": "You don't want to quit",
+      "start": 8.88,
+      "end": 10.177,
+      "words": [
+        {
+          "w": "You",
+          "start": 8.88,
+          "end": 9.06,
+          "conf": 0.77
+        },
+        {
+          "w": "don't",
+          "start": 9.06,
+          "end": 9.54,
+          "conf": 0.96
+        },
+        {
+          "w": "want",
+          "start": 9.54,
+          "end": 9.74,
+          "conf": 0.92
+        },
+        {
+          "w": "to",
+          "start": 9.74,
+          "end": 9.88,
+          "conf": 0.83
+        },
+        {
+          "w": "quit",
+          "start": 9.88,
+          "end": 10.177,
+          "conf": 0.92
+        }
+      ]
+    },
+    {
+      "i": 3,
+      "text": "You don't want to disappear",
+      "start": 11.3,
+      "end": 13.28,
+      "words": [
+        {
+          "w": "You",
+          "start": 11.3,
+          "end": 11.509,
+          "conf": 0.85
+        },
+        {
+          "w": "don't",
+          "start": 11.509,
+          "end": 11.74,
+          "conf": 1.0
+        },
+        {
+          "w": "want",
+          "start": 11.74,
+          "end": 12.068,
+          "conf": 0.9
+        },
+        {
+          "w": "to",
+          "start": 12.068,
+          "end": 12.267,
+          "conf": 0.79
+        },
+        {
+          "w": "disappear",
+          "start": 12.267,
+          "end": 13.28,
+          "conf": 0.75
+        }
+      ]
+    },
+    {
+      "i": 4,
+      "text": "You just want everything to stop",
+      "start": 17.78,
+      "end": 19.96,
+      "words": [
+        {
+          "w": "You",
+          "start": 17.78,
+          "end": 17.949,
+          "conf": 0.84
+        },
+        {
+          "w": "just",
+          "start": 17.949,
+          "end": 18.224,
+          "conf": 0.98
+        },
+        {
+          "w": "want",
+          "start": 18.224,
+          "end": 18.712,
+          "conf": 1.0
+        },
+        {
+          "w": "everything",
+          "start": 18.712,
+          "end": 19.38,
+          "conf": 0.85
+        },
+        {
+          "w": "to",
+          "start": 19.38,
+          "end": 19.476,
+          "conf": 0.5
+        },
+        {
+          "w": "stop",
+          "start": 19.476,
+          "end": 19.96,
+          "conf": 0.84
+        }
+      ]
+    },
+    {
+      "i": 5,
+      "text": "For a minute",
+      "start": 20.927,
+      "end": 21.756,
+      "words": [
+        {
+          "w": "For",
+          "start": 20.927,
+          "end": 21.167,
+          "conf": 0.85
+        },
+        {
+          "w": "a",
+          "start": 21.167,
+          "end": 21.42,
+          "conf": 0.93
+        },
+        {
+          "w": "minute",
+          "start": 21.42,
+          "end": 21.756,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 6,
+      "text": "Another morning, same ceiling",
+      "start": 22.838,
+      "end": 24.599,
+      "words": [
+        {
+          "w": "Another",
+          "start": 22.838,
+          "end": 23.467,
+          "conf": 0.85
+        },
+        {
+          "w": "morning,",
+          "start": 23.467,
+          "end": 23.841,
+          "conf": 0.99
+        },
+        {
+          "w": "same",
+          "start": 23.841,
+          "end": 24.185,
+          "conf": 1.0
+        },
+        {
+          "w": "ceiling",
+          "start": 24.185,
+          "end": 24.599,
+          "conf": 0.89
+        }
+      ]
+    },
+    {
+      "i": 7,
+      "text": "Same pressure on my chest",
+      "start": 24.599,
+      "end": 25.926,
+      "words": [
+        {
+          "w": "Same",
+          "start": 24.599,
+          "end": 24.96,
+          "conf": 1.0
+        },
+        {
+          "w": "pressure",
+          "start": 24.96,
+          "end": 25.28,
+          "conf": 0.99
+        },
+        {
+          "w": "on",
+          "start": 25.28,
+          "end": 25.5,
+          "conf": 0.93
+        },
+        {
+          "w": "my",
+          "start": 25.5,
+          "end": 25.6,
+          "conf": 0.96
+        },
+        {
+          "w": "chest",
+          "start": 25.6,
+          "end": 25.926,
+          "conf": 0.91
+        }
+      ]
+    },
+    {
+      "i": 8,
+      "text": "Same people telling me I'm blessed",
+      "start": 25.926,
+      "end": 27.807,
+      "words": [
+        {
+          "w": "Same",
+          "start": 25.926,
+          "end": 26.34,
+          "conf": 1.0
+        },
+        {
+          "w": "people",
+          "start": 26.38,
+          "end": 26.605,
+          "conf": 1.0
+        },
+        {
+          "w": "telling",
+          "start": 26.605,
+          "end": 27.12,
+          "conf": 1.0
+        },
+        {
+          "w": "me",
+          "start": 27.12,
+          "end": 27.3,
+          "conf": 0.85
+        },
+        {
+          "w": "I'm",
+          "start": 27.3,
+          "end": 27.44,
+          "conf": 0.97
+        },
+        {
+          "w": "blessed",
+          "start": 27.44,
+          "end": 27.807,
+          "conf": 0.97
+        }
+      ]
+    },
+    {
+      "i": 9,
+      "text": "While I'm struggling to rest",
+      "start": 27.927,
+      "end": 29.603,
+      "words": [
+        {
+          "w": "While",
+          "start": 27.927,
+          "end": 28.196,
+          "conf": 0.85
+        },
+        {
+          "w": "I'm",
+          "start": 28.196,
+          "end": 28.371,
+          "conf": 1.0
+        },
+        {
+          "w": "struggling",
+          "start": 28.371,
+          "end": 29.04,
+          "conf": 1.0
+        },
+        {
+          "w": "to",
+          "start": 29.04,
+          "end": 29.18,
+          "conf": 0.68
+        },
+        {
+          "w": "rest",
+          "start": 29.18,
+          "end": 29.603,
+          "conf": 0.93
+        }
+      ]
+    },
+    {
+      "i": 10,
+      "text": "Everybody needs a piece of me",
+      "start": 29.603,
+      "end": 31.359,
+      "words": [
+        {
+          "w": "Everybody",
+          "start": 29.603,
+          "end": 30.122,
+          "conf": 0.85
+        },
+        {
+          "w": "needs",
+          "start": 30.122,
+          "end": 30.451,
+          "conf": 0.85
+        },
+        {
+          "w": "a",
+          "start": 30.451,
+          "end": 30.56,
+          "conf": 0.99
+        },
+        {
+          "w": "piece",
+          "start": 30.56,
+          "end": 30.865,
+          "conf": 1.0
+        },
+        {
+          "w": "of",
+          "start": 30.865,
+          "end": 30.94,
+          "conf": 0.96
+        },
+        {
+          "w": "me",
+          "start": 30.94,
+          "end": 31.359,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 11,
+      "text": "Everybody wants my time",
+      "start": 31.359,
+      "end": 32.8,
+      "words": [
+        {
+          "w": "Everybody",
+          "start": 31.359,
+          "end": 31.873,
+          "conf": 0.85
+        },
+        {
+          "w": "wants",
+          "start": 31.873,
+          "end": 32.2,
+          "conf": 0.82
+        },
+        {
+          "w": "my",
+          "start": 32.2,
+          "end": 32.42,
+          "conf": 1.0
+        },
+        {
+          "w": "time",
+          "start": 32.42,
+          "end": 32.8,
+          "conf": 0.81
+        }
+      ]
+    },
+    {
+      "i": 12,
+      "text": "I'm carrying so much weight",
+      "start": 32.8,
+      "end": 34.412,
+      "words": [
+        {
+          "w": "I'm",
+          "start": 32.8,
+          "end": 33.02,
+          "conf": 0.82
+        },
+        {
+          "w": "carrying",
+          "start": 33.02,
+          "end": 33.484,
+          "conf": 0.83
+        },
+        {
+          "w": "so",
+          "start": 33.484,
+          "end": 33.634,
+          "conf": 1.0
+        },
+        {
+          "w": "much",
+          "start": 33.634,
+          "end": 34.08,
+          "conf": 0.99
+        },
+        {
+          "w": "weight",
+          "start": 34.08,
+          "end": 34.412,
+          "conf": 0.92
+        }
+      ]
+    },
+    {
+      "i": 13,
+      "text": "I forgot what's actually mine",
+      "start": 34.46,
+      "end": 36.502,
+      "words": [
+        {
+          "w": "I",
+          "start": 34.46,
+          "end": 34.556,
+          "conf": 0.76
+        },
+        {
+          "w": "forgot",
+          "start": 34.556,
+          "end": 35.14,
+          "conf": 1.0
+        },
+        {
+          "w": "what's",
+          "start": 35.14,
+          "end": 35.36,
+          "conf": 0.74
+        },
+        {
+          "w": "actually",
+          "start": 35.36,
+          "end": 36.16,
+          "conf": 0.97
+        },
+        {
+          "w": "mine",
+          "start": 36.16,
+          "end": 36.502,
+          "conf": 0.82
+        }
+      ]
+    },
+    {
+      "i": 14,
+      "text": "Built a life that people envy",
+      "start": 36.861,
+      "end": 38.512,
+      "words": [
+        {
+          "w": "Built",
+          "start": 36.861,
+          "end": 37.425,
+          "conf": 0.84
+        },
+        {
+          "w": "a",
+          "start": 37.425,
+          "end": 37.58,
+          "conf": 0.93
+        },
+        {
+          "w": "life",
+          "start": 37.58,
+          "end": 37.78,
+          "conf": 0.99
+        },
+        {
+          "w": "that",
+          "start": 37.78,
+          "end": 37.92,
+          "conf": 0.91
+        },
+        {
+          "w": "people",
+          "start": 37.92,
+          "end": 38.138,
+          "conf": 1.0
+        },
+        {
+          "w": "envy",
+          "start": 38.138,
+          "end": 38.512,
+          "conf": 0.97
+        }
+      ]
+    },
+    {
+      "i": 15,
+      "text": "Built a name they all respect",
+      "start": 38.512,
+      "end": 39.974,
+      "words": [
+        {
+          "w": "Built",
+          "start": 38.512,
+          "end": 38.84,
+          "conf": 1.0
+        },
+        {
+          "w": "a",
+          "start": 38.84,
+          "end": 38.96,
+          "conf": 0.83
+        },
+        {
+          "w": "name",
+          "start": 38.96,
+          "end": 39.206,
+          "conf": 1.0
+        },
+        {
+          "w": "they",
+          "start": 39.206,
+          "end": 39.36,
+          "conf": 1.0
+        },
+        {
+          "w": "all",
+          "start": 39.36,
+          "end": 39.52,
+          "conf": 0.98
+        },
+        {
+          "w": "respect",
+          "start": 39.52,
+          "end": 39.974,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 16,
+      "text": "Funny how success can leave you",
+      "start": 39.974,
+      "end": 42.099,
+      "words": [
+        {
+          "w": "Funny",
+          "start": 39.974,
+          "end": 40.239,
+          "conf": 0.85
+        },
+        {
+          "w": "how",
+          "start": 40.239,
+          "end": 40.503,
+          "conf": 0.86
+        },
+        {
+          "w": "success",
+          "start": 40.503,
+          "end": 41.26,
+          "conf": 1.0
+        },
+        {
+          "w": "can",
+          "start": 41.26,
+          "end": 41.48,
+          "conf": 0.85
+        },
+        {
+          "w": "leave",
+          "start": 41.48,
+          "end": 41.82,
+          "conf": 1.0
+        },
+        {
+          "w": "you",
+          "start": 41.82,
+          "end": 42.099,
+          "conf": 0.85
+        }
+      ]
+    },
+    {
+      "i": 17,
+      "text": "Feeling more disconnected",
+      "start": 42.738,
+      "end": 45.98,
+      "words": [
+        {
+          "w": "Feeling",
+          "start": 42.738,
+          "end": 43.18,
+          "conf": 0.74
+        },
+        {
+          "w": "more",
+          "start": 43.18,
+          "end": 43.466,
+          "conf": 0.88
+        },
+        {
+          "w": "disconnected",
+          "start": 43.88,
+          "end": 45.98,
+          "conf": 0.77
+        }
+      ]
+    },
+    {
+      "i": 18,
+      "text": "Got accomplishments on paper",
+      "start": 45.98,
+      "end": 47.612,
+      "words": [
+        {
+          "w": "Got",
+          "start": 45.98,
+          "end": 46.2,
+          "conf": 0.83
+        },
+        {
+          "w": "accomplishments",
+          "start": 46.2,
+          "end": 47.22,
+          "conf": 0.9
+        },
+        {
+          "w": "on",
+          "start": 47.22,
+          "end": 47.36,
+          "conf": 0.81
+        },
+        {
+          "w": "paper",
+          "start": 47.36,
+          "end": 47.612,
+          "conf": 0.99
+        }
+      ]
+    },
+    {
+      "i": 19,
+      "text": "Got achievements on the wall",
+      "start": 47.612,
+      "end": 49.12,
+      "words": [
+        {
+          "w": "Got",
+          "start": 47.612,
+          "end": 47.96,
+          "conf": 0.93
+        },
+        {
+          "w": "achievements",
+          "start": 47.96,
+          "end": 48.5,
+          "conf": 0.92
+        },
+        {
+          "w": "on",
+          "start": 48.5,
+          "end": 48.62,
+          "conf": 0.85
+        },
+        {
+          "w": "the",
+          "start": 48.62,
+          "end": 48.76,
+          "conf": 0.86
+        },
+        {
+          "w": "wall",
+          "start": 48.76,
+          "end": 49.12,
+          "conf": 0.93
+        }
+      ]
+    },
+    {
+      "i": 20,
+      "text": "But none of that gets quiet",
+      "start": 49.12,
+      "end": 50.54,
+      "words": [
+        {
+          "w": "But",
+          "start": 49.12,
+          "end": 49.32,
+          "conf": 1.0
+        },
+        {
+          "w": "none",
+          "start": 49.32,
+          "end": 49.687,
+          "conf": 0.96
+        },
+        {
+          "w": "of",
+          "start": 49.687,
+          "end": 49.867,
+          "conf": 0.66
+        },
+        {
+          "w": "that",
+          "start": 49.867,
+          "end": 49.98,
+          "conf": 0.95
+        },
+        {
+          "w": "gets",
+          "start": 49.98,
+          "end": 50.16,
+          "conf": 0.91
+        },
+        {
+          "w": "quiet",
+          "start": 50.16,
+          "end": 50.54,
+          "conf": 0.96
+        }
+      ]
+    },
+    {
+      "i": 21,
+      "text": "When the darkness starts to call",
+      "start": 50.54,
+      "end": 52.526,
+      "words": [
+        {
+          "w": "When",
+          "start": 50.54,
+          "end": 50.75,
+          "conf": 1.0
+        },
+        {
+          "w": "the",
+          "start": 50.75,
+          "end": 50.88,
+          "conf": 0.99
+        },
+        {
+          "w": "darkness",
+          "start": 50.88,
+          "end": 51.418,
+          "conf": 1.0
+        },
+        {
+          "w": "starts",
+          "start": 51.418,
+          "end": 51.9,
+          "conf": 0.96
+        },
+        {
+          "w": "to",
+          "start": 51.9,
+          "end": 51.987,
+          "conf": 1.0
+        },
+        {
+          "w": "call",
+          "start": 52.06,
+          "end": 52.526,
+          "conf": 0.93
+        }
+      ]
+    },
+    {
+      "i": 22,
+      "text": "And I'm not looking for an ending",
+      "start": 53.104,
+      "end": 55.04,
+      "words": [
+        {
+          "w": "And",
+          "start": 53.104,
+          "end": 53.4,
+          "conf": 0.82
+        },
+        {
+          "w": "I'm",
+          "start": 53.4,
+          "end": 53.48,
+          "conf": 0.84
+        },
+        {
+          "w": "not",
+          "start": 53.48,
+          "end": 53.66,
+          "conf": 0.85
+        },
+        {
+          "w": "looking",
+          "start": 53.66,
+          "end": 53.932,
+          "conf": 1.0
+        },
+        {
+          "w": "for",
+          "start": 53.932,
+          "end": 54.26,
+          "conf": 0.99
+        },
+        {
+          "w": "an",
+          "start": 54.26,
+          "end": 54.451,
+          "conf": 0.94
+        },
+        {
+          "w": "ending",
+          "start": 54.451,
+          "end": 55.04,
+          "conf": 0.85
+        }
+      ]
+    },
+    {
+      "i": 23,
+      "text": "I'm just looking for a break",
+      "start": 55.44,
+      "end": 57.17,
+      "words": [
+        {
+          "w": "I'm",
+          "start": 55.44,
+          "end": 55.58,
+          "conf": 0.66
+        },
+        {
+          "w": "just",
+          "start": 55.58,
+          "end": 55.78,
+          "conf": 0.99
+        },
+        {
+          "w": "looking",
+          "start": 55.78,
+          "end": 55.973,
+          "conf": 1.0
+        },
+        {
+          "w": "for",
+          "start": 55.973,
+          "end": 56.34,
+          "conf": 1.0
+        },
+        {
+          "w": "a",
+          "start": 56.34,
+          "end": 56.46,
+          "conf": 0.91
+        },
+        {
+          "w": "break",
+          "start": 56.46,
+          "end": 57.17,
+          "conf": 0.95
+        }
+      ]
+    },
+    {
+      "i": 24,
+      "text": "I don't wanna die",
+      "start": 57.17,
+      "end": 59.27,
+      "words": [
+        {
+          "w": "I",
+          "start": 57.17,
+          "end": 57.34,
+          "conf": 0.65
+        },
+        {
+          "w": "don't",
+          "start": 57.34,
+          "end": 57.5,
+          "conf": 0.76
+        },
+        {
+          "w": "wanna",
+          "start": 57.5,
+          "end": 57.739,
+          "conf": 0.85
+        },
+        {
+          "w": "die",
+          "start": 57.739,
+          "end": 59.27,
+          "conf": 0.77
+        }
+      ]
+    },
+    {
+      "i": 25,
+      "text": "I just wanna drift",
+      "start": 59.27,
+      "end": 60.827,
+      "words": [
+        {
+          "w": "I",
+          "start": 59.27,
+          "end": 59.44,
+          "conf": 0.75
+        },
+        {
+          "w": "just",
+          "start": 59.44,
+          "end": 59.759,
+          "conf": 0.75
+        },
+        {
+          "w": "wanna",
+          "start": 59.759,
+          "end": 60.178,
+          "conf": 0.82
+        },
+        {
+          "w": "drift",
+          "start": 60.178,
+          "end": 60.827,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 26,
+      "text": "Float somewhere between the stars",
+      "start": 61.266,
+      "end": 64.044,
+      "words": [
+        {
+          "w": "Float",
+          "start": 61.266,
+          "end": 61.595,
+          "conf": 0.72
+        },
+        {
+          "w": "somewhere",
+          "start": 61.595,
+          "end": 62.4,
+          "conf": 0.87
+        },
+        {
+          "w": "between",
+          "start": 62.4,
+          "end": 62.78,
+          "conf": 0.79
+        },
+        {
+          "w": "the",
+          "start": 62.78,
+          "end": 62.957,
+          "conf": 0.76
+        },
+        {
+          "w": "stars",
+          "start": 62.957,
+          "end": 64.044,
+          "conf": 0.96
+        }
+      ]
+    },
+    {
+      "i": 27,
+      "text": "And forget about all this",
+      "start": 64.54,
+      "end": 66.833,
+      "words": [
+        {
+          "w": "And",
+          "start": 64.54,
+          "end": 64.638,
+          "conf": 0.68
+        },
+        {
+          "w": "forget",
+          "start": 64.638,
+          "end": 65.1,
+          "conf": 1.0
+        },
+        {
+          "w": "about",
+          "start": 65.1,
+          "end": 65.586,
+          "conf": 0.92
+        },
+        {
+          "w": "all",
+          "start": 65.586,
+          "end": 65.94,
+          "conf": 0.94
+        },
+        {
+          "w": "this",
+          "start": 65.94,
+          "end": 66.833,
+          "conf": 0.95
+        }
+      ]
+    },
+    {
+      "i": 28,
+      "text": "No deadlines",
+      "start": 68.02,
+      "end": 69.26,
+      "words": [
+        {
+          "w": "No",
+          "start": 68.02,
+          "end": 68.38,
+          "conf": 0.85
+        },
+        {
+          "w": "deadlines",
+          "start": 68.38,
+          "end": 69.26,
+          "conf": 0.72
+        }
+      ]
+    },
+    {
+      "i": 29,
+      "text": "No expectations",
+      "start": 69.26,
+      "end": 71.18,
+      "words": [
+        {
+          "w": "No",
+          "start": 69.26,
+          "end": 69.52,
+          "conf": 0.97
+        },
+        {
+          "w": "expectations",
+          "start": 69.52,
+          "end": 71.18,
+          "conf": 0.98
+        }
+      ]
+    },
+    {
+      "i": 30,
+      "text": "No voices in my head",
+      "start": 71.18,
+      "end": 74.685,
+      "words": [
+        {
+          "w": "No",
+          "start": 71.18,
+          "end": 71.5,
+          "conf": 0.85
+        },
+        {
+          "w": "voices",
+          "start": 71.5,
+          "end": 72.57,
+          "conf": 0.93
+        },
+        {
+          "w": "in",
+          "start": 73.12,
+          "end": 73.338,
+          "conf": 0.77
+        },
+        {
+          "w": "my",
+          "start": 73.58,
+          "end": 74.28,
+          "conf": 0.83
+        },
+        {
+          "w": "head",
+          "start": 74.28,
+          "end": 74.685,
+          "conf": 0.62
+        }
+      ]
+    },
+    {
+      "i": 31,
+      "text": "I don't wanna leave this world",
+      "start": 74.685,
+      "end": 77.464,
+      "words": [
+        {
+          "w": "I",
+          "start": 74.685,
+          "end": 75.0,
+          "conf": 0.68
+        },
+        {
+          "w": "don't",
+          "start": 75.0,
+          "end": 75.4,
+          "conf": 0.53
+        },
+        {
+          "w": "wanna",
+          "start": 75.4,
+          "end": 75.7,
+          "conf": 0.8
+        },
+        {
+          "w": "leave",
+          "start": 75.7,
+          "end": 75.96,
+          "conf": 0.88
+        },
+        {
+          "w": "this",
+          "start": 75.96,
+          "end": 76.26,
+          "conf": 0.96
+        },
+        {
+          "w": "world",
+          "start": 76.26,
+          "end": 77.464,
+          "conf": 0.9
+        }
+      ]
+    },
+    {
+      "i": 32,
+      "text": "I just wanna leave it for a bit",
+      "start": 77.464,
+      "end": 84.074,
+      "words": [
+        {
+          "w": "I",
+          "start": 77.464,
+          "end": 77.64,
+          "conf": 0.68
+        },
+        {
+          "w": "just",
+          "start": 77.64,
+          "end": 77.84,
+          "conf": 0.93
+        },
+        {
+          "w": "wanna",
+          "start": 77.84,
+          "end": 78.34,
+          "conf": 0.87
+        },
+        {
+          "w": "leave",
+          "start": 78.34,
+          "end": 79.3,
+          "conf": 0.73
+        },
+        {
+          "w": "it",
+          "start": 79.3,
+          "end": 79.5,
+          "conf": 0.7
+        },
+        {
+          "w": "for",
+          "start": 79.5,
+          "end": 79.98,
+          "conf": 0.93
+        },
+        {
+          "w": "a",
+          "start": 79.98,
+          "end": 80.06,
+          "conf": 0.81
+        },
+        {
+          "w": "bit",
+          "start": 80.06,
+          "end": 84.074,
+          "conf": 0.83
+        }
+      ]
+    },
+    {
+      "i": 33,
+      "text": "I don't wanna die",
+      "start": 84.298,
+      "end": 89.357,
+      "words": [
+        {
+          "w": "I",
+          "start": 84.298,
+          "end": 84.688,
+          "conf": 0.89
+        },
+        {
+          "w": "don't",
+          "start": 84.688,
+          "end": 85.0,
+          "conf": 0.92
+        },
+        {
+          "w": "wanna",
+          "start": 85.0,
+          "end": 85.52,
+          "conf": 0.79
+        },
+        {
+          "w": "die",
+          "start": 85.52,
+          "end": 89.357,
+          "conf": 0.95
+        }
+      ]
+    },
+    {
+      "i": 34,
+      "text": "I just wanna drift",
+      "start": 89.941,
+      "end": 91.587,
+      "words": [
+        {
+          "w": "I",
+          "start": 89.941,
+          "end": 90.23,
+          "conf": 0.79
+        },
+        {
+          "w": "just",
+          "start": 90.23,
+          "end": 90.624,
+          "conf": 0.81
+        },
+        {
+          "w": "wanna",
+          "start": 90.624,
+          "end": 91.02,
+          "conf": 0.85
+        },
+        {
+          "w": "drift",
+          "start": 91.02,
+          "end": 91.587,
+          "conf": 0.77
+        }
+      ]
+    },
+    {
+      "i": 35,
+      "text": "Sometimes I drive with no destination",
+      "start": 91.587,
+      "end": 93.303,
+      "words": [
+        {
+          "w": "Sometimes",
+          "start": 91.587,
+          "end": 92.011,
+          "conf": 0.8
+        },
+        {
+          "w": "I",
+          "start": 92.011,
+          "end": 92.14,
+          "conf": 0.84
+        },
+        {
+          "w": "drive",
+          "start": 92.14,
+          "end": 92.405,
+          "conf": 0.99
+        },
+        {
+          "w": "with",
+          "start": 92.405,
+          "end": 92.48,
+          "conf": 0.83
+        },
+        {
+          "w": "no",
+          "start": 92.48,
+          "end": 92.729,
+          "conf": 1.0
+        },
+        {
+          "w": "destination",
+          "start": 92.729,
+          "end": 93.303,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 36,
+      "text": "Radio low, windows down",
+      "start": 93.303,
+      "end": 94.92,
+      "words": [
+        {
+          "w": "Radio",
+          "start": 93.303,
+          "end": 93.94,
+          "conf": 1.0
+        },
+        {
+          "w": "low,",
+          "start": 93.94,
+          "end": 94.24,
+          "conf": 0.76
+        },
+        {
+          "w": "windows",
+          "start": 94.24,
+          "end": 94.53,
+          "conf": 0.85
+        },
+        {
+          "w": "down",
+          "start": 94.53,
+          "end": 94.92,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 37,
+      "text": "Trying to outrun the noise",
+      "start": 94.92,
+      "end": 96.775,
+      "words": [
+        {
+          "w": "Trying",
+          "start": 94.92,
+          "end": 95.18,
+          "conf": 1.0
+        },
+        {
+          "w": "to",
+          "start": 95.18,
+          "end": 95.353,
+          "conf": 0.97
+        },
+        {
+          "w": "outrun",
+          "start": 95.353,
+          "end": 95.96,
+          "conf": 1.0
+        },
+        {
+          "w": "the",
+          "start": 95.96,
+          "end": 96.16,
+          "conf": 0.82
+        },
+        {
+          "w": "noise",
+          "start": 96.16,
+          "end": 96.775,
+          "conf": 0.98
+        }
+      ]
+    },
+    {
+      "i": 38,
+      "text": "That somehow always sticks around",
+      "start": 97.114,
+      "end": 100.068,
+      "words": [
+        {
+          "w": "That",
+          "start": 97.114,
+          "end": 97.633,
+          "conf": 0.74
+        },
+        {
+          "w": "somehow",
+          "start": 97.633,
+          "end": 98.312,
+          "conf": 1.0
+        },
+        {
+          "w": "always",
+          "start": 98.312,
+          "end": 98.895,
+          "conf": 0.77
+        },
+        {
+          "w": "sticks",
+          "start": 98.895,
+          "end": 99.554,
+          "conf": 1.0
+        },
+        {
+          "w": "around",
+          "start": 99.554,
+          "end": 100.068,
+          "conf": 0.85
+        }
+      ]
+    },
+    {
+      "i": 39,
+      "text": "People think I'm doing great",
+      "start": 101.22,
+      "end": 102.66,
+      "words": [
+        {
+          "w": "People",
+          "start": 101.22,
+          "end": 101.459,
+          "conf": 0.85
+        },
+        {
+          "w": "think",
+          "start": 101.459,
+          "end": 101.8,
+          "conf": 1.0
+        },
+        {
+          "w": "I'm",
+          "start": 101.8,
+          "end": 101.92,
+          "conf": 0.99
+        },
+        {
+          "w": "doing",
+          "start": 101.92,
+          "end": 102.28,
+          "conf": 0.92
+        },
+        {
+          "w": "great",
+          "start": 102.28,
+          "end": 102.66,
+          "conf": 0.98
+        }
+      ]
+    },
+    {
+      "i": 40,
+      "text": "Maybe that's the hardest part",
+      "start": 102.66,
+      "end": 104.068,
+      "words": [
+        {
+          "w": "Maybe",
+          "start": 102.66,
+          "end": 102.891,
+          "conf": 0.85
+        },
+        {
+          "w": "that's",
+          "start": 102.891,
+          "end": 103.2,
+          "conf": 0.89
+        },
+        {
+          "w": "the",
+          "start": 103.2,
+          "end": 103.295,
+          "conf": 1.0
+        },
+        {
+          "w": "hardest",
+          "start": 103.295,
+          "end": 103.659,
+          "conf": 1.0
+        },
+        {
+          "w": "part",
+          "start": 103.7,
+          "end": 104.068,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 41,
+      "text": "Being surrounded by everybody",
+      "start": 104.068,
+      "end": 105.76,
+      "words": [
+        {
+          "w": "Being",
+          "start": 104.068,
+          "end": 104.333,
+          "conf": 0.97
+        },
+        {
+          "w": "surrounded",
+          "start": 104.333,
+          "end": 104.812,
+          "conf": 1.0
+        },
+        {
+          "w": "by",
+          "start": 104.812,
+          "end": 105.18,
+          "conf": 1.0
+        },
+        {
+          "w": "everybody",
+          "start": 105.18,
+          "end": 105.76,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 42,
+      "text": "While feeling miles apart",
+      "start": 105.76,
+      "end": 107.93,
+      "words": [
+        {
+          "w": "While",
+          "start": 105.76,
+          "end": 105.989,
+          "conf": 0.76
+        },
+        {
+          "w": "feeling",
+          "start": 105.989,
+          "end": 106.68,
+          "conf": 1.0
+        },
+        {
+          "w": "miles",
+          "start": 106.68,
+          "end": 107.26,
+          "conf": 0.84
+        },
+        {
+          "w": "apart",
+          "start": 107.26,
+          "end": 107.93,
+          "conf": 0.83
+        }
+      ]
+    },
+    {
+      "i": 43,
+      "text": "Got memories that haunt me",
+      "start": 107.93,
+      "end": 109.531,
+      "words": [
+        {
+          "w": "Got",
+          "start": 107.93,
+          "end": 108.22,
+          "conf": 0.78
+        },
+        {
+          "w": "memories",
+          "start": 108.22,
+          "end": 108.823,
+          "conf": 0.83
+        },
+        {
+          "w": "that",
+          "start": 108.823,
+          "end": 109.0,
+          "conf": 0.77
+        },
+        {
+          "w": "haunt",
+          "start": 109.0,
+          "end": 109.217,
+          "conf": 0.97
+        },
+        {
+          "w": "me",
+          "start": 109.32,
+          "end": 109.531,
+          "conf": 0.97
+        }
+      ]
+    },
+    {
+      "i": 44,
+      "text": "Got questions with no replies",
+      "start": 109.8,
+      "end": 111.626,
+      "words": [
+        {
+          "w": "Got",
+          "start": 109.8,
+          "end": 109.98,
+          "conf": 0.85
+        },
+        {
+          "w": "questions",
+          "start": 109.98,
+          "end": 110.36,
+          "conf": 1.0
+        },
+        {
+          "w": "with",
+          "start": 110.36,
+          "end": 110.58,
+          "conf": 0.91
+        },
+        {
+          "w": "no",
+          "start": 110.58,
+          "end": 110.86,
+          "conf": 1.0
+        },
+        {
+          "w": "replies",
+          "start": 110.86,
+          "end": 111.626,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 45,
+      "text": "Got a father that I miss",
+      "start": 112.78,
+      "end": 114.1,
+      "words": [
+        {
+          "w": "Got",
+          "start": 112.78,
+          "end": 113.0,
+          "conf": 0.85
+        },
+        {
+          "w": "a",
+          "start": 113.0,
+          "end": 113.098,
+          "conf": 0.85
+        },
+        {
+          "w": "father",
+          "start": 113.098,
+          "end": 113.397,
+          "conf": 1.0
+        },
+        {
+          "w": "that",
+          "start": 113.397,
+          "end": 113.722,
+          "conf": 1.0
+        },
+        {
+          "w": "I",
+          "start": 113.722,
+          "end": 113.82,
+          "conf": 0.86
+        },
+        {
+          "w": "miss",
+          "start": 113.82,
+          "end": 114.1,
+          "conf": 0.87
+        }
+      ]
+    },
+    {
+      "i": 46,
+      "text": "And old voicemails I still play sometimes",
+      "start": 114.1,
+      "end": 117.303,
+      "words": [
+        {
+          "w": "And",
+          "start": 114.1,
+          "end": 114.28,
+          "conf": 0.83
+        },
+        {
+          "w": "old",
+          "start": 114.28,
+          "end": 114.54,
+          "conf": 0.79
+        },
+        {
+          "w": "voicemails",
+          "start": 114.54,
+          "end": 115.278,
+          "conf": 1.0
+        },
+        {
+          "w": "I",
+          "start": 115.278,
+          "end": 115.413,
+          "conf": 0.96
+        },
+        {
+          "w": "still",
+          "start": 115.413,
+          "end": 115.817,
+          "conf": 1.0
+        },
+        {
+          "w": "play",
+          "start": 115.86,
+          "end": 116.161,
+          "conf": 1.0
+        },
+        {
+          "w": "sometimes",
+          "start": 116.161,
+          "end": 117.303,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 47,
+      "text": "Got dreams that keep me moving",
+      "start": 118.18,
+      "end": 119.8,
+      "words": [
+        {
+          "w": "Got",
+          "start": 118.18,
+          "end": 118.271,
+          "conf": 0.82
+        },
+        {
+          "w": "dreams",
+          "start": 118.271,
+          "end": 118.605,
+          "conf": 0.92
+        },
+        {
+          "w": "that",
+          "start": 118.605,
+          "end": 118.7,
+          "conf": 0.86
+        },
+        {
+          "w": "keep",
+          "start": 118.7,
+          "end": 118.94,
+          "conf": 0.97
+        },
+        {
+          "w": "me",
+          "start": 118.94,
+          "end": 119.22,
+          "conf": 0.91
+        },
+        {
+          "w": "moving",
+          "start": 119.22,
+          "end": 119.8,
+          "conf": 0.97
+        }
+      ]
+    },
+    {
+      "i": 48,
+      "text": "And scars that keep me real",
+      "start": 119.8,
+      "end": 121.18,
+      "words": [
+        {
+          "w": "And",
+          "start": 119.8,
+          "end": 119.86,
+          "conf": 0.73
+        },
+        {
+          "w": "scars",
+          "start": 119.86,
+          "end": 120.32,
+          "conf": 0.91
+        },
+        {
+          "w": "that",
+          "start": 120.32,
+          "end": 120.44,
+          "conf": 0.92
+        },
+        {
+          "w": "keep",
+          "start": 120.44,
+          "end": 120.64,
+          "conf": 0.88
+        },
+        {
+          "w": "me",
+          "start": 120.64,
+          "end": 120.84,
+          "conf": 0.91
+        },
+        {
+          "w": "real",
+          "start": 120.84,
+          "end": 121.18,
+          "conf": 0.95
+        }
+      ]
+    },
+    {
+      "i": 49,
+      "text": "Most days I'm strong enough",
+      "start": 121.18,
+      "end": 123.115,
+      "words": [
+        {
+          "w": "Most",
+          "start": 121.18,
+          "end": 121.52,
+          "conf": 1.0
+        },
+        {
+          "w": "days",
+          "start": 121.52,
+          "end": 121.94,
+          "conf": 1.0
+        },
+        {
+          "w": "I'm",
+          "start": 121.94,
+          "end": 122.068,
+          "conf": 0.84
+        },
+        {
+          "w": "strong",
+          "start": 122.068,
+          "end": 122.66,
+          "conf": 1.0
+        },
+        {
+          "w": "enough",
+          "start": 122.66,
+          "end": 123.115,
+          "conf": 0.78
+        }
+      ]
+    },
+    {
+      "i": 50,
+      "text": "Some days I just wanna feel nothing",
+      "start": 123.604,
+      "end": 128.159,
+      "words": [
+        {
+          "w": "Some",
+          "start": 123.604,
+          "end": 124.32,
+          "conf": 0.85
+        },
+        {
+          "w": "days",
+          "start": 124.32,
+          "end": 124.697,
+          "conf": 0.82
+        },
+        {
+          "w": "I",
+          "start": 124.697,
+          "end": 125.02,
+          "conf": 0.54
+        },
+        {
+          "w": "just",
+          "start": 125.02,
+          "end": 125.704,
+          "conf": 0.92
+        },
+        {
+          "w": "wanna",
+          "start": 125.704,
+          "end": 126.328,
+          "conf": 0.75
+        },
+        {
+          "w": "feel",
+          "start": 126.328,
+          "end": 127.16,
+          "conf": 0.77
+        },
+        {
+          "w": "nothing",
+          "start": 127.16,
+          "end": 128.159,
+          "conf": 0.81
+        }
+      ]
+    },
+    {
+      "i": 51,
+      "text": "Not forever",
+      "start": 129.431,
+      "end": 131.322,
+      "words": [
+        {
+          "w": "Not",
+          "start": 129.431,
+          "end": 129.73,
+          "conf": 1.0
+        },
+        {
+          "w": "forever",
+          "start": 129.73,
+          "end": 131.322,
+          "conf": 0.98
+        }
+      ]
+    },
+    {
+      "i": 52,
+      "text": "Just long enough to breathe",
+      "start": 132.354,
+      "end": 135.542,
+      "words": [
+        {
+          "w": "Just",
+          "start": 132.354,
+          "end": 132.728,
+          "conf": 0.61
+        },
+        {
+          "w": "long",
+          "start": 132.728,
+          "end": 133.14,
+          "conf": 0.96
+        },
+        {
+          "w": "enough",
+          "start": 133.14,
+          "end": 133.78,
+          "conf": 0.92
+        },
+        {
+          "w": "to",
+          "start": 133.78,
+          "end": 133.94,
+          "conf": 0.83
+        },
+        {
+          "w": "breathe",
+          "start": 133.94,
+          "end": 135.542,
+          "conf": 0.96
+        }
+      ]
+    },
+    {
+      "i": 53,
+      "text": "I don't wanna die",
+      "start": 135.542,
+      "end": 136.824,
+      "words": [
+        {
+          "w": "I",
+          "start": 135.542,
+          "end": 135.68,
+          "conf": 0.56
+        },
+        {
+          "w": "don't",
+          "start": 135.68,
+          "end": 135.86,
+          "conf": 0.61
+        },
+        {
+          "w": "wanna",
+          "start": 135.86,
+          "end": 136.151,
+          "conf": 0.86
+        },
+        {
+          "w": "die",
+          "start": 136.22,
+          "end": 136.824,
+          "conf": 0.94
+        }
+      ]
+    },
+    {
+      "i": 54,
+      "text": "I just wanna drift",
+      "start": 137.453,
+      "end": 139.129,
+      "words": [
+        {
+          "w": "I",
+          "start": 137.453,
+          "end": 137.8,
+          "conf": 0.76
+        },
+        {
+          "w": "just",
+          "start": 137.8,
+          "end": 138.14,
+          "conf": 0.83
+        },
+        {
+          "w": "wanna",
+          "start": 138.14,
+          "end": 138.67,
+          "conf": 0.91
+        },
+        {
+          "w": "drift",
+          "start": 138.67,
+          "end": 139.129,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 55,
+      "text": "Float somewhere between the stars",
+      "start": 139.603,
+      "end": 142.9,
+      "words": [
+        {
+          "w": "Float",
+          "start": 139.603,
+          "end": 139.942,
+          "conf": 0.89
+        },
+        {
+          "w": "somewhere",
+          "start": 139.942,
+          "end": 140.76,
+          "conf": 0.9
+        },
+        {
+          "w": "between",
+          "start": 140.76,
+          "end": 141.12,
+          "conf": 0.75
+        },
+        {
+          "w": "the",
+          "start": 141.12,
+          "end": 141.339,
+          "conf": 0.76
+        },
+        {
+          "w": "stars",
+          "start": 141.339,
+          "end": 142.9,
+          "conf": 0.99
+        }
+      ]
+    },
+    {
+      "i": 56,
+      "text": "And forget about all this",
+      "start": 142.9,
+      "end": 145.589,
+      "words": [
+        {
+          "w": "And",
+          "start": 142.9,
+          "end": 143.0,
+          "conf": 0.74
+        },
+        {
+          "w": "forget",
+          "start": 143.0,
+          "end": 143.46,
+          "conf": 1.0
+        },
+        {
+          "w": "about",
+          "start": 143.46,
+          "end": 143.938,
+          "conf": 0.97
+        },
+        {
+          "w": "all",
+          "start": 143.938,
+          "end": 144.3,
+          "conf": 0.93
+        },
+        {
+          "w": "this",
+          "start": 144.3,
+          "end": 145.589,
+          "conf": 0.94
+        }
+      ]
+    },
+    {
+      "i": 57,
+      "text": "No deadlines",
+      "start": 146.337,
+      "end": 147.6,
+      "words": [
+        {
+          "w": "No",
+          "start": 146.337,
+          "end": 146.7,
+          "conf": 0.9
+        },
+        {
+          "w": "deadlines",
+          "start": 146.7,
+          "end": 147.6,
+          "conf": 0.89
+        }
+      ]
+    },
+    {
+      "i": 58,
+      "text": "No expectations",
+      "start": 147.6,
+      "end": 149.52,
+      "words": [
+        {
+          "w": "No",
+          "start": 147.6,
+          "end": 147.86,
+          "conf": 1.0
+        },
+        {
+          "w": "expectations",
+          "start": 147.86,
+          "end": 149.52,
+          "conf": 0.91
+        }
+      ]
+    },
+    {
+      "i": 59,
+      "text": "No voices in my head",
+      "start": 149.52,
+      "end": 153.44,
+      "words": [
+        {
+          "w": "No",
+          "start": 149.52,
+          "end": 149.86,
+          "conf": 0.8
+        },
+        {
+          "w": "voices",
+          "start": 149.86,
+          "end": 151.161,
+          "conf": 0.84
+        },
+        {
+          "w": "in",
+          "start": 151.281,
+          "end": 151.825,
+          "conf": 0.61
+        },
+        {
+          "w": "my",
+          "start": 151.935,
+          "end": 152.184,
+          "conf": 0.81
+        },
+        {
+          "w": "head",
+          "start": 152.184,
+          "end": 153.44,
+          "conf": 0.71
+        }
+      ]
+    },
+    {
+      "i": 60,
+      "text": "I don't wanna leave this world",
+      "start": 153.44,
+      "end": 155.9,
+      "words": [
+        {
+          "w": "I",
+          "start": 153.44,
+          "end": 153.56,
+          "conf": 0.66
+        },
+        {
+          "w": "don't",
+          "start": 153.56,
+          "end": 153.7,
+          "conf": 0.83
+        },
+        {
+          "w": "wanna",
+          "start": 153.7,
+          "end": 154.06,
+          "conf": 0.88
+        },
+        {
+          "w": "leave",
+          "start": 154.06,
+          "end": 154.32,
+          "conf": 0.86
+        },
+        {
+          "w": "this",
+          "start": 154.32,
+          "end": 154.609,
+          "conf": 0.94
+        },
+        {
+          "w": "world",
+          "start": 154.609,
+          "end": 155.9,
+          "conf": 0.86
+        }
+      ]
+    },
+    {
+      "i": 61,
+      "text": "I just wanna leave it for a bit",
+      "start": 155.9,
+      "end": 158.82,
+      "words": [
+        {
+          "w": "I",
+          "start": 155.9,
+          "end": 155.995,
+          "conf": 0.72
+        },
+        {
+          "w": "just",
+          "start": 155.995,
+          "end": 156.2,
+          "conf": 0.92
+        },
+        {
+          "w": "wanna",
+          "start": 156.2,
+          "end": 156.66,
+          "conf": 0.92
+        },
+        {
+          "w": "leave",
+          "start": 156.66,
+          "end": 157.66,
+          "conf": 0.7
+        },
+        {
+          "w": "it",
+          "start": 157.66,
+          "end": 157.926,
+          "conf": 0.59
+        },
+        {
+          "w": "for",
+          "start": 157.926,
+          "end": 158.26,
+          "conf": 0.72
+        },
+        {
+          "w": "a",
+          "start": 158.26,
+          "end": 158.42,
+          "conf": 0.83
+        },
+        {
+          "w": "bit",
+          "start": 158.42,
+          "end": 158.82,
+          "conf": 0.85
+        }
+      ]
+    },
+    {
+      "i": 62,
+      "text": "I don't wanna die",
+      "start": 162.68,
+      "end": 167.005,
+      "words": [
+        {
+          "w": "I",
+          "start": 162.68,
+          "end": 163.0,
+          "conf": 0.85
+        },
+        {
+          "w": "don't",
+          "start": 163.0,
+          "end": 163.38,
+          "conf": 0.74
+        },
+        {
+          "w": "wanna",
+          "start": 163.38,
+          "end": 163.888,
+          "conf": 0.9
+        },
+        {
+          "w": "die",
+          "start": 163.888,
+          "end": 167.005,
+          "conf": 0.9
+        }
+      ]
+    },
+    {
+      "i": 63,
+      "text": "I just wanna drift",
+      "start": 168.332,
+      "end": 169.899,
+      "words": [
+        {
+          "w": "I",
+          "start": 168.332,
+          "end": 168.6,
+          "conf": 0.78
+        },
+        {
+          "w": "just",
+          "start": 168.6,
+          "end": 168.94,
+          "conf": 0.84
+        },
+        {
+          "w": "wanna",
+          "start": 168.94,
+          "end": 169.465,
+          "conf": 0.95
+        },
+        {
+          "w": "drift",
+          "start": 169.465,
+          "end": 169.899,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 64,
+      "text": "Maybe I'm tired of carrying",
+      "start": 170.14,
+      "end": 172.717,
+      "words": [
+        {
+          "w": "Maybe",
+          "start": 170.14,
+          "end": 170.393,
+          "conf": 0.85
+        },
+        {
+          "w": "I'm",
+          "start": 170.393,
+          "end": 170.82,
+          "conf": 1.0
+        },
+        {
+          "w": "tired",
+          "start": 170.82,
+          "end": 171.6,
+          "conf": 1.0
+        },
+        {
+          "w": "of",
+          "start": 171.6,
+          "end": 171.86,
+          "conf": 0.82
+        },
+        {
+          "w": "carrying",
+          "start": 171.86,
+          "end": 172.717,
+          "conf": 0.98
+        }
+      ]
+    },
+    {
+      "i": 65,
+      "text": "Things nobody else can see",
+      "start": 172.892,
+      "end": 174.982,
+      "words": [
+        {
+          "w": "Things",
+          "start": 172.892,
+          "end": 173.32,
+          "conf": 0.85
+        },
+        {
+          "w": "nobody",
+          "start": 173.32,
+          "end": 173.89,
+          "conf": 0.85
+        },
+        {
+          "w": "else",
+          "start": 173.89,
+          "end": 174.32,
+          "conf": 0.85
+        },
+        {
+          "w": "can",
+          "start": 174.32,
+          "end": 174.563,
+          "conf": 1.0
+        },
+        {
+          "w": "see",
+          "start": 174.563,
+          "end": 174.982,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 66,
+      "text": "Maybe I'm tired of being",
+      "start": 175.446,
+      "end": 178.24,
+      "words": [
+        {
+          "w": "Maybe",
+          "start": 175.446,
+          "end": 176.16,
+          "conf": 0.85
+        },
+        {
+          "w": "I'm",
+          "start": 176.16,
+          "end": 176.4,
+          "conf": 0.83
+        },
+        {
+          "w": "tired",
+          "start": 176.4,
+          "end": 177.2,
+          "conf": 1.0
+        },
+        {
+          "w": "of",
+          "start": 177.2,
+          "end": 177.46,
+          "conf": 0.84
+        },
+        {
+          "w": "being",
+          "start": 177.46,
+          "end": 178.24,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 67,
+      "text": "Everything everybody needs",
+      "start": 178.24,
+      "end": 181.0,
+      "words": [
+        {
+          "w": "Everything",
+          "start": 178.24,
+          "end": 178.958,
+          "conf": 0.85
+        },
+        {
+          "w": "everybody",
+          "start": 178.958,
+          "end": 180.28,
+          "conf": 0.77
+        },
+        {
+          "w": "needs",
+          "start": 180.28,
+          "end": 181.0,
+          "conf": 0.85
+        }
+      ]
+    },
+    {
+      "i": 68,
+      "text": "Maybe I don't need fixing",
+      "start": 181.0,
+      "end": 183.084,
+      "words": [
+        {
+          "w": "Maybe",
+          "start": 181.0,
+          "end": 181.5,
+          "conf": 0.83
+        },
+        {
+          "w": "I",
+          "start": 181.5,
+          "end": 181.68,
+          "conf": 0.77
+        },
+        {
+          "w": "don't",
+          "start": 181.68,
+          "end": 182.04,
+          "conf": 0.96
+        },
+        {
+          "w": "need",
+          "start": 182.04,
+          "end": 182.251,
+          "conf": 1.0
+        },
+        {
+          "w": "fixing",
+          "start": 182.251,
+          "end": 183.084,
+          "conf": 0.94
+        }
+      ]
+    },
+    {
+      "i": 69,
+      "text": "Maybe I just need peace",
+      "start": 183.8,
+      "end": 185.748,
+      "words": [
+        {
+          "w": "Maybe",
+          "start": 183.8,
+          "end": 184.32,
+          "conf": 0.85
+        },
+        {
+          "w": "I",
+          "start": 184.32,
+          "end": 184.421,
+          "conf": 0.71
+        },
+        {
+          "w": "just",
+          "start": 184.421,
+          "end": 184.82,
+          "conf": 0.95
+        },
+        {
+          "w": "need",
+          "start": 184.82,
+          "end": 185.14,
+          "conf": 0.97
+        },
+        {
+          "w": "peace",
+          "start": 185.14,
+          "end": 185.748,
+          "conf": 0.99
+        }
+      ]
+    },
+    {
+      "i": 70,
+      "text": "Maybe I just need one night",
+      "start": 186.282,
+      "end": 189.02,
+      "words": [
+        {
+          "w": "Maybe",
+          "start": 186.282,
+          "end": 187.16,
+          "conf": 0.85
+        },
+        {
+          "w": "I",
+          "start": 187.16,
+          "end": 187.32,
+          "conf": 0.85
+        },
+        {
+          "w": "just",
+          "start": 187.32,
+          "end": 187.614,
+          "conf": 0.97
+        },
+        {
+          "w": "need",
+          "start": 187.614,
+          "end": 188.08,
+          "conf": 0.96
+        },
+        {
+          "w": "one",
+          "start": 188.08,
+          "end": 188.32,
+          "conf": 0.73
+        },
+        {
+          "w": "night",
+          "start": 188.32,
+          "end": 189.02,
+          "conf": 0.83
+        }
+      ]
+    },
+    {
+      "i": 71,
+      "text": "Where the world doesn't ask for me",
+      "start": 189.02,
+      "end": 192.567,
+      "words": [
+        {
+          "w": "Where",
+          "start": 189.02,
+          "end": 189.22,
+          "conf": 0.7
+        },
+        {
+          "w": "the",
+          "start": 189.22,
+          "end": 189.4,
+          "conf": 0.83
+        },
+        {
+          "w": "world",
+          "start": 189.4,
+          "end": 190.023,
+          "conf": 0.87
+        },
+        {
+          "w": "doesn't",
+          "start": 190.08,
+          "end": 191.6,
+          "conf": 0.88
+        },
+        {
+          "w": "ask",
+          "start": 191.6,
+          "end": 191.739,
+          "conf": 0.56
+        },
+        {
+          "w": "for",
+          "start": 191.739,
+          "end": 192.04,
+          "conf": 0.81
+        },
+        {
+          "w": "me",
+          "start": 192.04,
+          "end": 192.567,
+          "conf": 0.86
+        }
+      ]
+    },
+    {
+      "i": 72,
+      "text": "No phone ringing",
+      "start": 192.567,
+      "end": 193.929,
+      "words": [
+        {
+          "w": "No",
+          "start": 192.567,
+          "end": 192.807,
+          "conf": 0.7
+        },
+        {
+          "w": "phone",
+          "start": 192.86,
+          "end": 193.44,
+          "conf": 0.68
+        },
+        {
+          "w": "ringing",
+          "start": 193.44,
+          "end": 193.929,
+          "conf": 0.72
+        }
+      ]
+    },
+    {
+      "i": 73,
+      "text": "No notifications",
+      "start": 193.929,
+      "end": 195.7,
+      "words": [
+        {
+          "w": "No",
+          "start": 193.929,
+          "end": 194.3,
+          "conf": 0.95
+        },
+        {
+          "w": "notifications",
+          "start": 194.3,
+          "end": 195.7,
+          "conf": 0.94
+        }
+      ]
+    },
+    {
+      "i": 74,
+      "text": "No pressure",
+      "start": 195.7,
+      "end": 196.74,
+      "words": [
+        {
+          "w": "No",
+          "start": 195.7,
+          "end": 196.16,
+          "conf": 0.77
+        },
+        {
+          "w": "pressure",
+          "start": 196.16,
+          "end": 196.74,
+          "conf": 0.74
+        }
+      ]
+    },
+    {
+      "i": 75,
+      "text": "No proving myself",
+      "start": 196.74,
+      "end": 198.11,
+      "words": [
+        {
+          "w": "No",
+          "start": 196.74,
+          "end": 197.06,
+          "conf": 0.91
+        },
+        {
+          "w": "proving",
+          "start": 197.06,
+          "end": 197.48,
+          "conf": 0.93
+        },
+        {
+          "w": "myself",
+          "start": 197.48,
+          "end": 198.11,
+          "conf": 0.95
+        }
+      ]
+    },
+    {
+      "i": 76,
+      "text": "No pretending",
+      "start": 198.11,
+      "end": 199.472,
+      "words": [
+        {
+          "w": "No",
+          "start": 198.11,
+          "end": 198.364,
+          "conf": 0.72
+        },
+        {
+          "w": "pretending",
+          "start": 198.504,
+          "end": 199.472,
+          "conf": 0.73
+        }
+      ]
+    },
+    {
+      "i": 77,
+      "text": "Just silence",
+      "start": 199.472,
+      "end": 200.734,
+      "words": [
+        {
+          "w": "Just",
+          "start": 199.472,
+          "end": 199.656,
+          "conf": 0.84
+        },
+        {
+          "w": "silence",
+          "start": 199.656,
+          "end": 200.734,
+          "conf": 0.91
+        }
+      ]
+    },
+    {
+      "i": 78,
+      "text": "Just breathing",
+      "start": 200.88,
+      "end": 201.866,
+      "words": [
+        {
+          "w": "Just",
+          "start": 200.88,
+          "end": 201.213,
+          "conf": 0.85
+        },
+        {
+          "w": "breathing",
+          "start": 201.213,
+          "end": 201.866,
+          "conf": 0.87
+        }
+      ]
+    },
+    {
+      "i": 79,
+      "text": "I don't wanna die",
+      "start": 201.866,
+      "end": 204.111,
+      "words": [
+        {
+          "w": "I",
+          "start": 201.866,
+          "end": 202.02,
+          "conf": 0.59
+        },
+        {
+          "w": "don't",
+          "start": 202.02,
+          "end": 202.919,
+          "conf": 0.43
+        },
+        {
+          "w": "wanna",
+          "start": 202.919,
+          "end": 203.4,
+          "conf": 0.88
+        },
+        {
+          "w": "die",
+          "start": 203.4,
+          "end": 204.111,
+          "conf": 0.82
+        }
+      ]
+    },
+    {
+      "i": 80,
+      "text": "I just wanna drift",
+      "start": 204.71,
+      "end": 206.236,
+      "words": [
+        {
+          "w": "I",
+          "start": 204.71,
+          "end": 204.96,
+          "conf": 0.79
+        },
+        {
+          "w": "just",
+          "start": 204.96,
+          "end": 205.3,
+          "conf": 0.8
+        },
+        {
+          "w": "wanna",
+          "start": 205.3,
+          "end": 205.84,
+          "conf": 0.91
+        },
+        {
+          "w": "drift",
+          "start": 205.84,
+          "end": 206.236,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 81,
+      "text": "Somewhere the guilt can't find me",
+      "start": 207.015,
+      "end": 209.499,
+      "words": [
+        {
+          "w": "Somewhere",
+          "start": 207.015,
+          "end": 207.44,
+          "conf": 1.0
+        },
+        {
+          "w": "the",
+          "start": 207.44,
+          "end": 207.58,
+          "conf": 1.0
+        },
+        {
+          "w": "guilt",
+          "start": 207.58,
+          "end": 207.818,
+          "conf": 0.96
+        },
+        {
+          "w": "can't",
+          "start": 207.9,
+          "end": 208.511,
+          "conf": 0.98
+        },
+        {
+          "w": "find",
+          "start": 208.511,
+          "end": 209.36,
+          "conf": 0.99
+        },
+        {
+          "w": "me",
+          "start": 209.36,
+          "end": 209.499,
+          "conf": 0.85
+        }
+      ]
+    },
+    {
+      "i": 82,
+      "text": "Somewhere the past can't reach",
+      "start": 209.828,
+      "end": 211.953,
+      "words": [
+        {
+          "w": "Somewhere",
+          "start": 209.828,
+          "end": 210.287,
+          "conf": 1.0
+        },
+        {
+          "w": "the",
+          "start": 210.287,
+          "end": 210.4,
+          "conf": 0.98
+        },
+        {
+          "w": "past",
+          "start": 210.4,
+          "end": 211.1,
+          "conf": 0.99
+        },
+        {
+          "w": "can't",
+          "start": 211.1,
+          "end": 211.42,
+          "conf": 1.0
+        },
+        {
+          "w": "reach",
+          "start": 211.5,
+          "end": 211.953,
+          "conf": 1.0
+        }
+      ]
+    },
+    {
+      "i": 83,
+      "text": "Somewhere I can hear myself again",
+      "start": 212.218,
+      "end": 215.14,
+      "words": [
+        {
+          "w": "Somewhere",
+          "start": 212.218,
+          "end": 213.06,
+          "conf": 0.84
+        },
+        {
+          "w": "I",
+          "start": 213.06,
+          "end": 213.14,
+          "conf": 0.78
+        },
+        {
+          "w": "can",
+          "start": 213.14,
+          "end": 213.305,
+          "conf": 0.97
+        },
+        {
+          "w": "hear",
+          "start": 213.305,
+          "end": 213.68,
+          "conf": 0.93
+        },
+        {
+          "w": "myself",
+          "start": 213.68,
+          "end": 214.46,
+          "conf": 0.98
+        },
+        {
+          "w": "again",
+          "start": 214.46,
+          "end": 215.14,
+          "conf": 0.75
+        }
+      ]
+    },
+    {
+      "i": 84,
+      "text": "Underneath the noise",
+      "start": 215.14,
+      "end": 216.4,
+      "words": [
+        {
+          "w": "Underneath",
+          "start": 215.14,
+          "end": 215.68,
+          "conf": 0.83
+        },
+        {
+          "w": "the",
+          "start": 215.68,
+          "end": 215.96,
+          "conf": 0.47
+        },
+        {
+          "w": "noise",
+          "start": 215.96,
+          "end": 216.4,
+          "conf": 0.95
+        }
+      ]
+    },
+    {
+      "i": 85,
+      "text": "And when I'm ready",
+      "start": 216.4,
+      "end": 217.541,
+      "words": [
+        {
+          "w": "And",
+          "start": 216.4,
+          "end": 216.52,
+          "conf": 0.85
+        },
+        {
+          "w": "when",
+          "start": 216.52,
+          "end": 216.74,
+          "conf": 0.89
+        },
+        {
+          "w": "I'm",
+          "start": 216.74,
+          "end": 216.9,
+          "conf": 0.83
+        },
+        {
+          "w": "ready",
+          "start": 216.9,
+          "end": 217.541,
+          "conf": 0.85
+        }
+      ]
+    },
+    {
+      "i": 86,
+      "text": "I'll come back stronger",
+      "start": 217.58,
+      "end": 220.703,
+      "words": [
+        {
+          "w": "I'll",
+          "start": 217.58,
+          "end": 218.2,
+          "conf": 0.7
+        },
+        {
+          "w": "come",
+          "start": 218.2,
+          "end": 218.6,
+          "conf": 0.84
+        },
+        {
+          "w": "back",
+          "start": 218.6,
+          "end": 218.798,
+          "conf": 0.84
+        },
+        {
+          "w": "stronger",
+          "start": 218.798,
+          "end": 220.703,
+          "conf": 0.89
+        }
+      ]
+    },
+    {
+      "i": 87,
+      "text": "But tonight",
+      "start": 221.073,
+      "end": 224.06,
+      "words": [
+        {
+          "w": "But",
+          "start": 221.073,
+          "end": 221.32,
+          "conf": 0.8
+        },
+        {
+          "w": "tonight",
+          "start": 221.32,
+          "end": 224.06,
+          "conf": 0.76
+        }
+      ]
+    },
+    {
+      "i": 88,
+      "text": "I just wanna drift",
+      "start": 224.06,
+      "end": 227.18,
+      "words": [
+        {
+          "w": "I",
+          "start": 224.06,
+          "end": 224.734,
+          "conf": 0.61
+        },
+        {
+          "w": "just",
+          "start": 224.734,
+          "end": 225.128,
+          "conf": 0.75
+        },
+        {
+          "w": "wanna",
+          "start": 225.128,
+          "end": 225.572,
+          "conf": 0.84
+        },
+        {
+          "w": "drift",
+          "start": 225.647,
+          "end": 227.18,
+          "conf": 0.67
+        }
+      ]
+    },
+    {
+      "i": 89,
+      "text": "Tomorrow I'll keep fighting",
+      "start": 227.18,
+      "end": 229.982,
+      "words": [
+        {
+          "w": "Tomorrow",
+          "start": 227.18,
+          "end": 227.86,
+          "conf": 0.85
+        },
+        {
+          "w": "I'll",
+          "start": 227.86,
+          "end": 227.96,
+          "conf": 0.5
+        },
+        {
+          "w": "keep",
+          "start": 227.96,
+          "end": 228.36,
+          "conf": 0.7
+        },
+        {
+          "w": "fighting",
+          "start": 228.36,
+          "end": 229.982,
+          "conf": 0.77
+        }
+      ]
+    },
+    {
+      "i": 90,
+      "text": "Tomorrow I'll keep building",
+      "start": 229.982,
+      "end": 232.76,
+      "words": [
+        {
+          "w": "Tomorrow",
+          "start": 229.982,
+          "end": 230.66,
+          "conf": 0.67
+        },
+        {
+          "w": "I'll",
+          "start": 230.66,
+          "end": 230.86,
+          "conf": 0.58
+        },
+        {
+          "w": "keep",
+          "start": 230.86,
+          "end": 231.2,
+          "conf": 0.75
+        },
+        {
+          "w": "building",
+          "start": 231.2,
+          "end": 232.76,
+          "conf": 0.82
+        }
+      ]
+    },
+    {
+      "i": 91,
+      "text": "Tomorrow I'll keep carrying the weight",
+      "start": 232.76,
+      "end": 236.068,
+      "words": [
+        {
+          "w": "Tomorrow",
+          "start": 232.76,
+          "end": 233.38,
+          "conf": 0.66
+        },
+        {
+          "w": "I'll",
+          "start": 233.38,
+          "end": 233.54,
+          "conf": 0.5
+        },
+        {
+          "w": "keep",
+          "start": 233.54,
+          "end": 233.96,
+          "conf": 0.78
+        },
+        {
+          "w": "carrying",
+          "start": 233.96,
+          "end": 235.26,
+          "conf": 0.79
+        },
+        {
+          "w": "the",
+          "start": 235.26,
+          "end": 235.56,
+          "conf": 0.6
+        },
+        {
+          "w": "weight",
+          "start": 235.56,
+          "end": 236.068,
+          "conf": 0.87
+        }
+      ]
+    },
+    {
+      "i": 92,
+      "text": "But tonight…",
+      "start": 236.6,
+      "end": 238.4,
+      "words": [
+        {
+          "w": "But",
+          "start": 236.6,
+          "end": 236.74,
+          "conf": 0.77
+        },
+        {
+          "w": "tonight…",
+          "start": 236.74,
+          "end": 238.4,
+          "conf": 0.9
+        }
+      ]
+    },
+    {
+      "i": 93,
+      "text": "Let me drift",
+      "start": 242.04,
+      "end": 242.95,
+      "words": [
+        {
+          "w": "Let",
+          "start": 242.04,
+          "end": 242.155,
+          "conf": 0.83
+        },
+        {
+          "w": "me",
+          "start": 242.155,
+          "end": 242.444,
+          "conf": 1.0
+        },
+        {
+          "w": "drift",
+          "start": 242.444,
+          "end": 242.95,
+          "conf": 0.95
+        }
+      ]
+    }
+  ],
+  "extras": [
+    {
+      "start": 66.93,
+      "end": 67.92,
+      "desc": "unlisted vocal (backing vocal / ad-lib / breath)"
+    },
+    {
+      "start": 100.17,
+      "end": 101.12,
+      "desc": "unlisted vocal (backing vocal / ad-lib / breath)"
+    },
+    {
+      "start": 111.76,
+      "end": 112.68,
+      "desc": "unlisted vocal (backing vocal / ad-lib / breath)"
+    },
+    {
+      "start": 117.4,
+      "end": 118.08,
+      "desc": "unlisted vocal (backing vocal / ad-lib / breath)"
+    },
+    {
+      "start": 145.69,
+      "end": 146.23,
+      "desc": "unlisted vocal (backing vocal / ad-lib / breath)"
+    },
+    {
+      "start": 159.34,
+      "end": 162.58,
+      "desc": "backing-vocal 'oh' pads (Suno backing stem); the lyric video showed a second 'I don't wanna die / I just wanna drift' here, but it is not sung"
+    },
+    {
+      "start": 167.11,
+      "end": 168.23,
+      "desc": "unlisted vocal (backing vocal / ad-lib / breath)"
+    },
+    {
+      "start": 183.18,
+      "end": 183.7,
+      "desc": "unlisted vocal (backing vocal / ad-lib / breath)"
+    },
+    {
+      "start": 244.34,
+      "end": 246.12,
+      "desc": "breathy hum on the final 'drift' pitch (lead stem; Whisper: 'Hmm'), not a word"
+    },
+    {
+      "start": 259.05,
+      "end": 260.14,
+      "desc": "closing 'mm-hmm' (lead stem)"
+    }
+  ],
+  "notes": "Timeline = gapless mp3 decode of audio/drift.mp3 (same as data/audio.json); Demucs stems shifted by the cross-correlation offset in analysis/work/stem_offset.json (23 ms). Text = lyrics/drift.src.js, 94 lines: the lyric video's second 'I don't wanna die / I just wanna drift' pair in chorus 2 is not sung (backing pads only, see extras), so the hook occurs 5 times. Method as in pdoom-video: (1) CTC emissions (20 ms frames) from torchaudio MMS_FA and wav2vec2-large-lv60k-960h on the Demucs vocal stem (mono, left, right) and on Suno's own lead-vocal stem, fused as a probability mixture; (2) one global constrained Viterbi forced alignment of all lines with a garbage 'star' token between lines; (3) signal refinement per word on the vocal stem (rest onsets, spectral-flux onsets, fricative starts, legato ends); (4) cross-check against faster-whisper large-v3-turbo word timestamps (CPU, int8) and the individual models/channels; (5) manual verification on the QA plots, corrections in align.py FIX. conf: 0.35 + agreement of the independent alignments (<=60 ms) + CTC posterior + Whisper agreement; manual fixes carry their own conf."
+}

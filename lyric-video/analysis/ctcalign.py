@@ -18,7 +18,10 @@ import torchaudio
 from pron import pron
 
 FRAME = 0.02  # s per emission frame
-N_FRAMES = 7833
+# Emission frames for the whole song (pdoom hard-coded 7833 = its 156.7 s); derived from
+# the master's decoded length so every emission set is padded/cut to the same grid.
+N_FRAMES = int(np.ceil(__import__("soundfile").info(str(common.AUDIO)).frames
+                       / __import__("soundfile").info(str(common.AUDIO)).samplerate / FRAME))
 ALPHA = ["-"] + list("abcdefghijklmnopqrstuvwxyz'")
 AIDX = {c: i for i, c in enumerate(ALPHA)}
 
@@ -27,6 +30,7 @@ def _common_logp(model):
     em = np.load(common.WORK / f"emission_{model}.npy").astype(np.float64)
     if len(em) < N_FRAMES:
         em = np.concatenate([em, np.repeat(em[-1:], N_FRAMES - len(em), 0)])
+    em = em[:N_FRAMES]
     if model.startswith("mms"):
         labs = list(torchaudio.pipelines.MMS_FA.get_labels(star=None))
     else:
