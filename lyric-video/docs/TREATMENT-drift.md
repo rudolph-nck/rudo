@@ -329,10 +329,10 @@ const b = {
   breath:    cutDown('Not forever'),
   hook2:     cut("I don't wanna die", 2),
   stars2:    cutDown('Float somewhere', 1),
-  hook2b:    cut("I don't wanna die", 3),   // chorus 2 reprise: sings the pair twice (3 and 4)
+  hook2b:    cut("I don't wanna die", 3),   // chorus 2 reprise (single: Phase 1 found the pair is sung once)
   carry:     cutDown("Maybe I'm tired of carrying"),
   silence:   cutDown('No phone ringing'),
-  hook3:     cut("I don't wanna die", 5),
+  hook3:     /* first beat after "Just breathing" ends (see src/timeline.ts) */
   under:     cutDown('Somewhere the guilt'),
   tomorrow:  cutDown("Tomorrow I'll keep fighting"),
   end:       au.duration,
@@ -363,10 +363,11 @@ return [
 ];
 ```
 
-The `nth` indices are confirmed against the lyric sheet: chorus 1 sings "I don't wanna die"
-twice (0 opens it, 1 is the reprise), chorus 2 three times (2 opens it, 3 and 4 are its double
-reprise, both owned by `hook2b`), the final chorus once (5). Re-check against `data/lyrics.json`
-after alignment.
+The `nth` indices follow the recording (docs/PHASE1-report.md): "I don't wanna die" is sung 5 times —
+chorus 1 twice (0 opens it, 1 is the reprise), chorus 2 twice (2 opens it, 3 is its single reprise),
+the final chorus once (4). `hook3` cuts on the first beat after "Just breathing" so `silence` keeps
+all seven lines; `stars2` takes `params: { n: 2 }` to open on hook2's inverted frame. `src/timeline.ts`
+is the source of truth.
 
 ## Engine requirements from Phase 0 (lead, Phase 2)
 
