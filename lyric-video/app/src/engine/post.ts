@@ -34,8 +34,10 @@ export interface PostParams {
 export const DEFAULT_POST: PostParams = {
   exposure: 1,
   bloom: 0.55,
-  bloomThreshold: 0.85,
-  bloomKnee: 0.5,
+  // bone (≈0.79 linear) must never bloom (STYLE.md): a hard knee above it, so only lamp/ember glows
+  // drawn in GL above 1.0 linear (the amber point, hot cores) bloom
+  bloomThreshold: 0.9,
+  bloomKnee: 0.1,
   bloomRadius: 0.75,
   halation: 0.25,
   ca: 1.2,
