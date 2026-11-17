@@ -1,0 +1,29 @@
+# Portfolio Inventory
+
+_Scanned 2026-11-17. Ordered from most complete to least._
+
+**Scope note:** this directory holds one git repository, `rudo` (304 commits on `main`, 2026-02-11 → 2026-10-30; 90 by Claude, 50 by rudolph-nck, plus merges). Inside it are three separate projects with their own purpose, stack and history, so each one gets its own entry below. Line counts cover hand-written code (`.ts/.tsx/.js/.css/.prisma`) and leave out lockfiles and `node_modules`. Commit counts are commits that touched that project's paths. A fourth app, **NOVA**, is set up to be served at `/nova` through a rewrite in `next.config.js`, but its code lives in a separate Vercel project outside this directory, so it isn't covered here.
+
+---
+
+## 1. Rudo — AI Creator Platform
+
+**Status: Deployed** · **Commits:** ~173 · **Dates:** 2026-02-11 → 2026-10-26 (most of the work happened in February 2026)
+
+Rudo is a social platform where every creator is an AI. Users design AI "bots" with a no-code wizard, and the bots then post on their own: they write captions, generate images and video, comment, reply to each other and form relationships. Developers can also plug in their own agents through a versioned BYOB REST API, and spectators follow, react and comment. The stack is Next.js 15 (App Router) with React 19, TypeScript and Tailwind; PostgreSQL through Prisma; NextAuth; Inngest for background jobs; Stripe for paid tiers and credits; Resend for email; S3 for media; Zod for validation; Vitest for tests. AI comes from OpenAI, with fal.ai/Flux for images and Kling, Minimax and Runway for video, and video falls back to another provider when one fails. The repo is configured for deployment on Vercel (`vercel.json` with 5-minute generation and 2-hourly engagement crons, Node 22 pinned, builds that survive an unreachable database), and the config refers to the production domain rudo-ai.com. The most impressive piece is the autonomous agent architecture. A deterministic "Character Brain" compiler turns persona fields into numeric traits, vocabulary fingerprints and cognitive archetypes, with no LLM call and seeded per-bot jitter so similar bots still differ. It sits behind a perceive → decide → act agent loop, a "life" layer with memory and world events, a learning loop and a recommendation/trending feed, all run as 12 Inngest functions with concurrency limits. Numbers: about 44,900 lines of TypeScript, 36 Prisma models, 80 API routes, 26 pages, a full admin portal with credit management, 5 AI provider adapters, 14 test files with about 200 test cases, about 5,700 lines of design docs (`BLUEPRINT.md` plus 9 docs), and seed data for more than 60 bots with a social graph.
+
+---
+
+## 2. Project Builder — Interactive DIY How-To Guides
+
+**Status: Deployed** (as a login-gated section of the Rudo app at `/project-builder`) · **Commits:** 19 · **Dates:** 2026-10-26 → 2026-10-30
+
+Project Builder is a library of interactive home-improvement guides: tub-to-shower tile, outlets/GFCI, toilets, faucets, copper and PVC drain pipe, drywall, framing, painting, and laminate, LVP and tile flooring. Each guide asks about your specific job, calculates materials, and walks you through phases, steps and day-by-day work sessions with safety rules, "call a pro" warnings, quick-help cards, a glossary and an SVG illustration on every step. Technically it is a small data-driven engine: guides are JSON files that a Next.js route inlines into a vanilla-JS engine (`engine.js`) and an HTML template at request time. The format supports conditional questions, `{{ expression }}` templating over the answers and the calculations, inches rounded to the nearest 1/16", and inline warning, info and OK callouts. The stack is plain HTML, CSS and JS on top of Next.js routing, with session-based login that doesn't need the database. The most impressive single artifact is the hand-built tub-to-shower tile guide (about 2,100 lines in one page): a tutorial mode, a jobsite mode, a day planner, photos, animations, and a Design tab with a 3D view of the shower and unfolded wall layouts, including wide and seamless niches. Numbers: 18 JSON guides plus the custom tub/shower page, about 19,000 lines of guide content, 244 SVG figures, about 1,100 content ids (steps, questions, calcs and help cards), and about 790 lines of engine and route code. All of it was built in five days.
+
+---
+
+## 3. One Team, One Rhythm — Generative Cinematic Music Video
+
+**Status: Working** (renders locally; no rendered master is committed, because the `renders/` folders are empty) · **Commits:** 6 · **Dates:** 2026-09-29 (a single day)
+
+This is a 4-minute-42-second motion-design music video (1920×1080, 30 fps, 8,460 frames) for a corporate event, *Addition Financial × Addapalooza — The Summit 2026*. It is built as code in Remotion: one brand line travels through darkness and turns into a timeline, a plus sign, a road, a map, a rail and a stage while the song names every team and place. The stack is Remotion 4 with React 19 and TypeScript, Three.js and React Three Fiber, CSS-3D perspective staging, and Python scripts for audio analysis, speech recognition and data building. The most impressive part is that the film is fully data-driven and synced to the music. Python scripts separate the stems, transcribe the sung vocals, and snap lyric timings to a 107.7 BPM beat grid that also drives per-second energy pulses. A scene manifest (`scenes.json`) then maps chapters to 12 "world" components, and it gives every lyric line its hero word, camera behavior, transitions and beat markers, so editing a line of JSON changes the film. Numbers: about 4,500 lines of TypeScript/TSX, 12 world components, 27 department line-glyph diagrams, 36 roll-call places on a map constellation, a 2,600-line scene manifest, and 13 analysis and build scripts.
