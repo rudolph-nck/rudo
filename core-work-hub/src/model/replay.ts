@@ -17,6 +17,27 @@ export function sortEvents(events: SourcedEvent[]): SourcedEvent[] {
   );
 }
 
+/** Column a source status puts a card in, from config.statusColumns (exact or "Prefix*", case-insensitive). */
+export function statusColumn(config: HubConfig, status: string): WorkItem['column'] | undefined {
+  const s = status.trim().toLowerCase();
+  for (const [k, col] of Object.entries(config.statusColumns ?? {})) {
+    const key = k.trim().toLowerCase();
+    if (key.endsWith('*') ? s.startsWith(key.slice(0, -1)) : s === key) return col;
+  }
+  return undefined;
+}
+
+/** Link to the item in its source system: its own link, or the configured pattern for that source. */
+export function linkFor(config: HubConfig, source: string, id?: string, own?: string) {
+  if (own) return own;
+  const tpl = config.ticketUrls?.[source as keyof HubConfig['ticketUrls']];
+  return tpl && id ? tpl.replace('{id}', encodeURIComponent(id)) : undefined;
+}
+
+/** True when Service Desk status, not the hub, decides whether a synced ticket sits in this column. */
+export const sourceDrives = (config: HubConfig, it: { source: string; stale?: boolean }, col: WorkItem['column'], synced: boolean) =>
+  synced && it.source === 'SD' && (config.sourceDrivenColumns ?? []).includes(col);
+
 function isStatus(list: string[], status: string) {
   const s = status.trim().toLowerCase();
   return list.some((x) => x.toLowerCase() === s);
@@ -28,7 +49,7 @@ function fromTicket(t: SourceTicket, config: HubConfig): WorkItem {
     id: itemIdFor(t.source, t.source_id),
     source: t.source,
     source_id: t.source_id,
-    source_url: t.source_url,
+    source_url: linkFor(config, t.source, t.source_id, t.source_url),
     title: t.title,
     requester: t.requester,
     source_status: t.source_status,
@@ -137,6 +158,10 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
       audit.push({ event: e, file, rejected: 'Item already exists' });
       continue;
     }
+    if (e.type === 'item.move' && it && tickets.has(it.id) && (sourceDrives(config, it, e.data.column, true) || sourceDrives(config, it, it.column, true))) {
+      audit.push({ event: e, file, rejected: `Service Desk status controls ${sourceDrives(config, it, e.data.column, true) ? e.data.column : it.column} for tickets` });
+      continue;
+    }
     const why = rejectReason(config, file, e, it);
     if (why) {
       audit.push({ event: e, file, rejected: why });
@@ -152,7 +177,7 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
           id: e.item,
           source: d.source,
           source_id: d.source_id,
-          source_url: d.source_url,
+          source_url: linkFor(config, d.source, d.source_id, d.source_url),
           title: d.title,
           description: d.description,
           requester: d.requester,
@@ -292,12 +317,25 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
     }
     if (isStatus(config.closedStatuses, t.source_status)) {
       w.sourceClosed = true;
+      w.statusDriven = 'Done';
       if (w.column !== 'Done') {
         w.column = 'Done';
         w.rankKey = undefined;
         w.done = t.closed ?? snapshot?.generatedAt ?? w.touched;
       }
-    } else if (isStatus(config.resolvedStatuses, t.source_status)) w.sourceResolved = true;
+    } else {
+      if (isStatus(config.resolvedStatuses, t.source_status)) w.sourceResolved = true;
+      // e.g. "Waiting for vendor" / "On Hold" in Service Desk -> Waiting. When the status changes back,
+      // the card returns to whatever column the hub last put it in (replay is recomputed from scratch).
+      const sc = statusColumn(config, t.source_status);
+      if (sc && sc !== 'Intake' && (w.bucket || sc === 'Done')) {
+        w.statusDriven = sc;
+        if (w.column !== sc) {
+          w.column = sc;
+          w.rankKey = undefined;
+        }
+      }
+    }
   }
 
   // ---- Unique integer ranks per bucket.

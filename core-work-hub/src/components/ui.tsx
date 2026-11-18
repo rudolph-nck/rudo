@@ -67,8 +67,21 @@ export function SourceBadge({ item }: { item: WorkItem }) {
   const label = item.source === 'Hub' ? 'Hub' : `${item.source === 'SD' ? 'SD' : 'Wrike'}${item.source_id ? ' #' + item.source_id : ''}`;
   if (item.source_url)
     return (
-      <a className="chip src" href={item.source_url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()} title={`Open in ${item.source === 'SD' ? 'Service Desk' : item.source}`}>
+      <a
+        className="chip src link"
+        href={item.source_url}
+        target="_blank"
+        rel="noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+        title={`Open in ${item.source === 'SD' ? 'Service Desk' : item.source} (new tab)`}
+        aria-label={`${label}, open in ${item.source === 'SD' ? 'Service Desk' : item.source}`}
+      >
         {label}
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
+        </svg>
       </a>
     );
   return <span className="chip src">{label}</span>;

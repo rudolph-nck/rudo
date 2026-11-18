@@ -92,7 +92,7 @@ export function demoSeed(): { config: HubConfig; snapshot: TicketsSnapshot; even
   grade('SD:48174', 11, 'Support', 'P2', 3, 3, 3, 'voice', 'noelle');
   move('nick', 'SD:48174', 11, 'To Do');
   move('noelle', 'SD:48174', 9, 'Doing');
-  move('noelle', 'SD:48174', 6, 'Waiting');
+  // Waiting comes from its Service Desk status ("Waiting for vendor"), not a hub move.
   ack('noelle', 'SD:48174', 9);
   next('noelle', 'SD:48174', 6, addDays(today, -2));
 

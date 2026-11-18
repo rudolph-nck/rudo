@@ -31,6 +31,13 @@ export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNod
           {item.hold.reason ? `: ${item.hold.reason}` : ''}
         </div>
       )}
+      {item.source === 'SD' && !item.sourceClosed && item.source_status && !/^(open|in progress|assigned)$/i.test(item.source_status) && (
+        <div className="meta">
+          <span className="chip sd-status" title={item.statusDriven ? 'Service Desk status decides this column' : 'Service Desk status'}>
+            SD: {item.source_status}
+          </span>
+        </div>
+      )}
       {(sys || item.parent_id) && <div className="meta">{[sys, item.parent_id ? 'Task' : undefined].filter(Boolean).join(' · ')}</div>}
       <div className="foot">
         <Avatar user={item.owner} config={state.config} />

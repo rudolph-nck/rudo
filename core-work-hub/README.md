@@ -110,6 +110,23 @@ npm run e2e        # multi-user browser test (serve dist/ on :4173 first, see th
 
 ## Working with Service Desk
 
+### Use the board, jump to the ticket
+Every ticket card's **SD #number ↗** badge opens the ticket in Service Desk in a new tab. The card details have an **Open #… in Service Desk** button, and Triage has one too (shortcut **O**). Links are built from `ticketUrls` in `hub-config.json` (for example `"SD": "https://<sdp host>/WorkOrder.do?woMode=viewWO&woID={id}"`), so every card gets a link even if an import didn't carry one. Wrike items use the `Wrike` pattern.
+
+### Who controls which column
+| Column | Controlled by | Why |
+|---|---|---|
+| Intake, To Do, Ready to pick up, Doing, On Hold | **Hub** | Prioritizing and WIP: Service Desk has no concept of rank or "ready". |
+| Waiting | **Service Desk status** (for tickets) | Statuses listed in `statusColumns` (default: On Hold, Onhold, Waiting*, Pending*) put the card in Waiting. When the status goes back to Open, the card returns to wherever the hub last had it. |
+| Done | **Service Desk status** (for tickets) | Closing a ticket in Service Desk moves the card on the next sync. "Resolved" shows in the Ready to close tile. |
+
+Dragging a ticket into or out of a Service Desk-controlled column shows **Service Desk controls this one** with a button to open the ticket. The rule is also enforced when changes are replayed, so a hand-edited change file can't get around it. Hub-only and Wrike items move freely. Change which columns are locked with `sourceDrivenColumns`. Note that Service Desk's "On Hold" status (waiting on someone) maps to **Waiting**; the hub's **On Hold** column means "we deprioritized it".
+
+### The grade lives in the hub
+Bucket, impact, urgency, effort, score, rank and owner are stored in the hub's change files against the ticket number (`SD:48211`), so they survive every sync and every re-import. Service Desk keeps its own priority, which seeds the hub's until the item is graded. For reporting, the **Items CSV** on the Metrics page has `source_id` next to the score, bucket and rank, so Power BI can join it to Service Desk data. If the team wants the score visible inside Service Desk, add custom fields there (for example Hub Bucket, Hub Score, Hub Rank) and fill them with the Phase 2 write-back below.
+
+### Changing Service Desk from the hub
+
 The hub can't change Service Desk live from the page. A browser page opened from a shared folder can't safely hold the API token (anyone with folder access could read it), and Service Desk won't accept calls from a page on a file share anyway. So the split is:
 
 | In Service Desk (system of record) | In the hub (what we work on, in what order, by whom) |

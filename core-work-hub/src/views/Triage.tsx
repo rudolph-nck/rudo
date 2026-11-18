@@ -117,11 +117,20 @@ export function Triage() {
     else return toast('No link or email for the requester on this item.');
     await commit([{ type: 'item.reply', item: sel.id, data: { via: sel.source_url ? (sel.source === 'SD' ? 'Service Desk' : sel.source) : 'email' } }]);
   };
+  const openSource = () => {
+    if (sel?.source_url) window.open(sel.source_url, '_blank', 'noopener');
+    else toast('No link for this item.');
+  };
   const close = async () => {
     if (!sel) return;
-    if (sel.source === 'SD' && !confirm('Move to Done? Close the ticket in Service Desk too, or the next sync keeps it open there.')) return;
+    // Tickets close in Service Desk; the card follows on the next sync.
+    if (sel.source === 'SD') {
+      openSource();
+      return toast(`Close #${sel.source_id} in Service Desk; the card moves to Done on the next sync.`);
+    }
     if (await commit([{ type: 'item.move', item: sel.id, data: { column: 'Done', reason: 'Closed from triage' } }])) toast('Moved to Done.');
   };
+
 
   // Standup shortcuts: J/K move, 1–4 priority, Enter sends.
   useEffect(() => {
@@ -139,6 +148,9 @@ export function Triage() {
       } else if (['1', '2', '3', '4'].includes(e.key) && draft && canAct) {
         e.preventDefault();
         setDraft({ ...draft, priority: PRIORITIES[Number(e.key) - 1], priorityTouched: true });
+      } else if (e.key === 'o' || e.key === 'O') {
+        e.preventDefault();
+        openSource();
       } else if (e.key === 'Enter' && t.tagName !== 'BUTTON' && t.tagName !== 'A') {
         e.preventDefault();
         void send();
@@ -169,6 +181,7 @@ export function Triage() {
           <span><span className="kbd">J</span>/<span className="kbd">K</span> move</span>
           <span><span className="kbd">1</span>–<span className="kbd">4</span> priority</span>
           <span><span className="kbd">Enter</span> send</span>
+          <span><span className="kbd">O</span> open in SD</span>
         </div>
       </div>
       {!canAct && <div className="banner info">{readOnly ? 'Read-only view.' : 'Grading and ranking happen in standup on Nick’s screen. You can review the queue here.'}</div>}
@@ -206,8 +219,13 @@ export function Triage() {
                         <button className="btn primary" onClick={send} disabled={!canAct || !grade}>
                           Send to To Do{grade ? ` · #${(grade.bucket === listBucket ? insertAt ?? list.length : suggestedRankIndex(rankedList(state, grade.bucket), grade.priority, score)) + 1} in ${BUCKET_LABEL[grade.bucket]}` : ''}
                         </button>
+                        {it.source_url && (
+                          <a className="btn" href={it.source_url} target="_blank" rel="noreferrer">
+                            Open in {it.source === 'SD' ? 'Service Desk' : it.source} <Icon name="link" size={16} />
+                          </a>
+                        )}
                         <button className="btn" onClick={reply} disabled={readOnly}>Reply to requester</button>
-                        <button className="btn danger" onClick={close} disabled={!canAct}>Close</button>
+                        <button className="btn danger" onClick={close} disabled={!canAct}>{it.source === 'SD' ? 'Close in Service Desk' : 'Close'}</button>
                         {pri && <span className="small muted">Will be {pri}</span>}
                       </div>
                     </div>

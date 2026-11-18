@@ -57,11 +57,21 @@ export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; init
         </div>
       ))}
 
+      {item.source_url && (
+        <a className="btn primary" style={{ alignSelf: 'flex-start' }} href={item.source_url} target="_blank" rel="noreferrer">
+          Open {item.source === 'SD' ? `#${item.source_id} in Service Desk` : item.source === 'Wrike' ? 'in Wrike' : 'link'} <Icon name="link" size={16} />
+        </a>
+      )}
+      {item.statusDriven && (
+        <div className="banner info">
+          In {item.statusDriven} because Service Desk says “{item.source_status}”. Change the status in Service Desk to move it.
+        </div>
+      )}
       <div className="row wrap">
         <span className="label">Column</span>
         <div className="seg" role="group" aria-label="Move to column">
           {COLUMNS.map((c) => (
-            <button key={c} aria-pressed={item.column === c} disabled={readOnly || item.sourceClosed} onClick={() => requestMove(item, c)}>
+            <button key={c} aria-pressed={item.column === c} disabled={readOnly} onClick={() => requestMove(item, c)}>
               {COLUMN_LABEL[c]}
             </button>
           ))}
@@ -78,7 +88,6 @@ export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; init
           Pick it up
         </button>
       )}
-      {item.sourceClosed && <div className="banner info">Closed in {item.source === 'SD' ? 'Service Desk' : item.source}, so it stays in Done.</div>}
 
       <dl className="kv">
         <dt>Owner</dt>

@@ -103,6 +103,15 @@ export interface HubConfig {
   closedStatuses: string[];
   /** Statuses that mean "ready to close" (resolved but not yet closed). */
   resolvedStatuses: string[];
+  /** Link pattern per source; {id} is the ticket/task number. Used when a row has no link of its own. */
+  ticketUrls: Partial<Record<Source, string>>;
+  /**
+   * Service Desk statuses that put a card in a column automatically (case-insensitive; a trailing * matches
+   * any ending, e.g. "Waiting*"). Closed statuses always mean Done.
+   */
+  statusColumns: Record<string, Column>;
+  /** Columns that Service Desk status controls for synced tickets: the hub won't move SD cards into or out of them. */
+  sourceDrivenColumns: Column[];
   /** When true, analysts may grade and rank too (team grading in standup from any seat). */
   analystsCanGrade: boolean;
   /** Days without a next-update date before a Doing/Waiting item counts as overdue. */
@@ -201,6 +210,8 @@ export interface WorkItem {
   /** Source says closed (auto-Done). */
   sourceClosed?: boolean;
   sourceResolved?: boolean;
+  /** Set when the card's column comes from its Service Desk status (it can't be moved in the hub). */
+  statusDriven?: Column;
 }
 
 export interface Conflict { ts: string; item: string; field: string; hubValue: unknown; sourceValue: unknown; hubUser: string }

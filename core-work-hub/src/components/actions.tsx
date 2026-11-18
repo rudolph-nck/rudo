@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useState, type ReactNode } from
 import { useHub } from '../store/hub';
 import { addDays, checkWip, rankKeyAt, rankedList, todayISO, findPerson } from '../model/logic';
 import { BUCKETS, BUCKET_LABEL, COLUMN_LABEL, isRanked, type Bucket, type Column, type NewEvent, type Source, type WorkItem } from '../model/types';
-import { Modal, toast } from './ui';
+import { Icon, Modal, toast } from './ui';
 import { ItemDrawer } from './ItemDrawer';
 
 interface UiCtx {
@@ -62,6 +62,7 @@ export function UiProvider({ children }: { children: ReactNode }) {
   const [blocked, setBlocked] = useState<{ item: WorkItem; messages: string[] } | null>(null);
   const [reason, setReason] = useState('');
   const [hold, setHold] = useState<PendingHold | null>(null);
+  const [sdOwned, setSdOwned] = useState<{ item: WorkItem; to: Column } | null>(null);
   const [holdTo, setHoldTo] = useState<Column>('On Hold');
   const [holdReason, setHoldReason] = useState('');
   const [holdRelease, setHoldRelease] = useState(false);
@@ -84,6 +85,12 @@ export function UiProvider({ children }: { children: ReactNode }) {
           openItem(item.id, 'grade');
           toast('Grade it first: pick a bucket and scores.');
         } else toast('Ungraded work stays in Intake until it is graded in standup.');
+        return false;
+      }
+      // Service Desk status drives Waiting and Done for synced tickets: change the status there instead.
+      const synced = item.source === 'SD' && !!state.snapshot?.items.some((t) => t.source === 'SD' && t.source_id === item.source_id);
+      if (synced && (state.config.sourceDrivenColumns.includes(to) || item.statusDriven)) {
+        setSdOwned({ item, to });
         return false;
       }
       if (!grader && item.owner && item.owner !== me) {
@@ -286,6 +293,33 @@ export function UiProvider({ children }: { children: ReactNode }) {
         )}
       </Modal>
       <Modal
+        open={!!sdOwned}
+        onClose={() => setSdOwned(null)}
+        title="Service Desk controls this one"
+        footer={
+          <>
+            <button className="btn" onClick={() => setSdOwned(null)}>Cancel</button>
+            {sdOwned?.item.source_url && (
+              <a className="btn primary" href={sdOwned.item.source_url} target="_blank" rel="noreferrer" onClick={() => setSdOwned(null)}>
+                Open #{sdOwned.item.source_id} in Service Desk <Icon name="link" size={16} />
+              </a>
+            )}
+          </>
+        }
+      >
+        {sdOwned?.item.statusDriven ? (
+          <p style={{ margin: 0 }}>
+            <strong>{sdOwned.item.title}</strong> is in {COLUMN_LABEL[sdOwned.item.statusDriven]} because its Service Desk status is “{sdOwned.item.source_status}”.
+            Change the status in Service Desk and the card follows on the next sync (within 15 minutes).
+          </p>
+        ) : (
+          <p style={{ margin: 0 }}>
+            For tickets, <strong>{sdOwned?.to}</strong> follows the Service Desk status.{' '}
+            {sdOwned?.to === 'Done' ? 'Resolve or close the ticket in Service Desk' : 'Set the ticket to a waiting status in Service Desk'} and the card moves on the next sync (within 15 minutes).
+          </p>
+        )}
+      </Modal>
+      <Modal
         open={!!blocked}
         onClose={() => setBlocked(null)}
         title="Over the WIP limit"
@@ -316,7 +350,8 @@ function NewWorkDialog({ parent, onClose }: { parent?: WorkItem; onClose: () => 
   const valid = title.trim().length > 2 && (source === 'Hub' || sourceId.trim());
   const submit = async () => {
     if (!valid) return;
-    const id = (crypto.randomUUID?.() ?? Math.random().toString(36).slice(2));
+    // A ticket entered by hand gets the same ID the sync uses, so it never shows up twice.
+    const id = source !== 'Hub' && sourceId.trim() ? `${source}:${sourceId.trim().replace(/^#/, '')}` : (crypto.randomUUID?.() ?? Math.random().toString(36).slice(2));
     const ok = await commit([
       {
         type: 'item.create',

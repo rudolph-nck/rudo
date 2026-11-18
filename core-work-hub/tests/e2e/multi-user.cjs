@@ -97,18 +97,28 @@ const check = (c, m) => { if (!c) { console.log('FAIL', m); process.exitCode = 1
   await nick.waitForTimeout(300);
   await nick.keyboard.press('Escape');
 
-  // Drag-and-drop: Wes drags Bravo (his) from Doing to Waiting with the mouse
+  // Drag-and-drop with the mouse. Waiting is driven by Service Desk status for tickets, so that drop is refused.
   await wes.locator('button[aria-label="Refresh now"]').click();
   await wes.waitForTimeout(500);
-  const card = wes.locator('article.card', { hasText: 'Bravo' });
-  const target = wes.locator('.cell[aria-label="Waiting, Support"]');
-  const cb = await card.boundingBox(), tb = await target.boundingBox();
-  await wes.mouse.move(cb.x + 40, cb.y + 20); await wes.mouse.down();
-  await wes.mouse.move(cb.x + 60, cb.y + 40, { steps: 5 });
-  await wes.mouse.move(tb.x + tb.width / 2, tb.y + 40, { steps: 15 });
-  await wes.mouse.up();
+  const drag = async (cellLabel) => {
+    const card = wes.locator('article.card', { hasText: 'Bravo' });
+    const target = wes.locator(`.cell[aria-label="${cellLabel}"]`);
+    const cb = await card.boundingBox(), tb = await target.boundingBox();
+    await wes.mouse.move(cb.x + 40, cb.y + 20); await wes.mouse.down();
+    await wes.mouse.move(cb.x + 60, cb.y + 40, { steps: 5 });
+    await wes.mouse.move(tb.x + tb.width / 2, tb.y + 40, { steps: 15 });
+    await wes.mouse.up();
+  };
+  await drag('Waiting, Support');
+  await wes.getByRole('heading', { name: 'Service Desk controls this one' }).waitFor();
+  check(await wes.getByRole('link', { name: /Open #1002 in Service Desk/ }).count() === 1, 'drop on Waiting -> "Service Desk controls this one" with a link to #1002');
+  await wes.getByRole('button', { name: 'Cancel' }).click();
+  await drag('On Hold, Support');
+  await wes.waitForTimeout(400);
+  await wes.getByLabel(/Why is it coming off the plate/).fill('Waiting on change window');
+  await wes.getByRole('button', { name: 'Move to On Hold' }).click();
   await wes.waitForTimeout(500);
-  check(await wes.locator('.cell[aria-label="Waiting, Support"] .card', { hasText: 'Bravo' }).count() === 1, 'Wes dragged Bravo to Waiting');
+  check(await wes.locator('.cell[aria-label="On Hold, Support"] .card', { hasText: 'Bravo' }).count() === 1, 'Wes dragged Bravo to On Hold with a reason');
 
   // Wes cannot move Alpha? Alpha owned by wes now. Try Cathy-owned? Check analyst can't move someone else's card: Charlie (ungraded) drag blocked.
   // Read change files
@@ -122,7 +132,7 @@ const check = (c, m) => { if (!c) { console.log('FAIL', m); process.exitCode = 1
   check(Object.keys(files).sort().join() === 'nick.jsonl,wes.jsonl', 'one change file per person: ' + Object.keys(files));
   const ov = files['nick.jsonl'].find(e => e.type === 'item.move' && e.data.override);
   check(ov && ov.data.override === 'P1 outage' && ov.before && ov.before.column === 'To Do', 'override logged with reason and before value');
-  check(files['wes.jsonl'].some(e => e.type === 'item.move' && e.data.column === 'Waiting' && e.before.column === 'Doing'), 'Wes move recorded with before/after');
+  check(files['wes.jsonl'].some(e => e.type === 'item.move' && e.data.column === 'On Hold' && e.data.reason && e.before.column === 'Doing'), 'Wes move recorded with reason and before/after');
 
   // Audit page lists everything
   await nick.goto(URL + '&as=nick#/audit');

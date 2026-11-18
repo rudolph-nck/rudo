@@ -190,7 +190,7 @@ textarea.input { min-height: 84px; resize: vertical; }
 .card .title { font-weight: 700; font-size: 13.5px; line-height: 1.35; color: var(--text); background: none; border: 0; padding: 0; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
 .card .title:hover { text-decoration: underline; }
 .card .meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-3); flex-wrap: wrap; }
-.card .foot { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-3); }
+.card .foot { display: flex; flex-wrap: wrap; row-gap: 4px; align-items: center; gap: 8px; font-size: 12px; color: var(--text-3); }
 .card .due { font-weight: 700; color: var(--text-2); white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; }
 .card .due.overdue { color: var(--danger); }
 .card .menu-btn { margin-left: auto; width: 32px; height: 32px; min-height: 32px; border-radius: 8px; border: 0; background: transparent; color: var(--text-3); cursor: pointer; display: grid; place-items: center; }
@@ -304,3 +304,7 @@ dialog.drawer { margin: 0 0 0 auto; height: 100vh; max-height: 100vh; width: min
 .card .hold { font-size: 12px; color: var(--warn); background: var(--warn-soft); border-radius: 8px; padding: 6px 8px; font-weight: 600; overflow-wrap: anywhere; }
 .card .pickup { min-height: 36px; }
 .col-head .tag { text-transform: none; letter-spacing: 0; font-weight: 600; }
+
+.chip.src.link { color: var(--accent-text); text-decoration: none; gap: 4px; }
+.chip.src.link:hover { border-color: var(--accent); text-decoration: underline; }
+.chip.sd-status { background: var(--surface-2); color: var(--text-2); border: 1px dashed var(--border-strong); }

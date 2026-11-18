@@ -34,6 +34,12 @@ export function defaultConfig(): HubConfig {
     capacityModel: { projects: 14, maintenance: 8, owner_tickets: 10, dispatch: 4, documentation: 4 },
     closedStatuses: ['Closed', 'Cancelled', 'Canceled', 'Completed'],
     resolvedStatuses: ['Resolved'],
+    ticketUrls: {
+      SD: 'https://servicedesk.example.com/WorkOrder.do?woMode=viewWO&woID={id}',
+      Wrike: 'https://www.wrike.com/open.htm?id={id}',
+    },
+    statusColumns: { 'On Hold': 'Waiting', Onhold: 'Waiting', 'Waiting*': 'Waiting', 'Pending*': 'Waiting' },
+    sourceDrivenColumns: ['Waiting', 'Done'],
     analystsCanGrade: false,
     defaultUpdateDays: 2,
   };
@@ -52,5 +58,8 @@ export function normalizeConfig(raw: Partial<HubConfig>): HubConfig {
     capacityModel: { ...d.capacityModel, ...(raw.capacityModel ?? {}) },
     closedStatuses: raw.closedStatuses ?? d.closedStatuses,
     resolvedStatuses: raw.resolvedStatuses ?? d.resolvedStatuses,
+    ticketUrls: { ...d.ticketUrls, ...(raw.ticketUrls ?? {}) },
+    statusColumns: raw.statusColumns ?? d.statusColumns,
+    sourceDrivenColumns: raw.sourceDrivenColumns ?? d.sourceDrivenColumns,
   };
 }

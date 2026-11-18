@@ -6,6 +6,8 @@ import {
   PointerSensor,
   TouchSensor,
   closestCorners,
+  pointerWithin,
+  type CollisionDetection,
   useDroppable,
   useSensor,
   useSensors,
@@ -23,6 +25,16 @@ import { BUCKETS, BUCKET_LABEL, COLUMNS, COLUMN_LABEL, PRIORITIES, isRanked, typ
 import { useNav } from '../nav';
 
 type Lane = Bucket | 'all' | 'intake';
+
+/** Prefer whatever is under the pointer (card or column); fall back to nearest corners for keyboard drags. */
+const collision: CollisionDetection = (args) => {
+  const hits = pointerWithin(args);
+  if (hits.length) {
+    const card = hits.find((h) => !String(h.id).startsWith('cell|'));
+    return card ? [card] : hits;
+  }
+  return closestCorners(args);
+};
 const cellId = (lane: Lane, col: Column) => `cell|${lane}|${col}`;
 const parseCell = (id: string) => {
   const [, lane, col] = id.split('|');
@@ -161,6 +173,8 @@ export function Board() {
       }
     } else if (source === target) return;
     if (isRanked(col) && lane === 'all' && source === target) return toast(`Pick a bucket to re-rank its ${COLUMN_LABEL[col]} list.`);
+    // Let the drag library finish its drop before any dialog (WIP, reason, Service Desk) takes focus.
+    await new Promise((r) => setTimeout(r, 0));
     await requestMove(item, col, { index });
   };
 
@@ -255,7 +269,7 @@ export function Board() {
         </div>
       </div>
 
-      <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onStart} onDragOver={onOver} onDragEnd={onEnd} onDragCancel={() => { setActive(undefined); setOverCell(undefined); }}>
+      <DndContext sensors={sensors} collisionDetection={collision} onDragStart={onStart} onDragOver={onOver} onDragEnd={onEnd} onDragCancel={() => { setActive(undefined); setOverCell(undefined); }}>
         <div className="board-scroll">
           <div className="board" role="presentation">
             {COLUMNS.map((c) => (

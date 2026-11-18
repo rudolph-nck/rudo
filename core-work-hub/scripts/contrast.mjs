@@ -18,7 +18,7 @@ const ratio = (a, b) => {
 };
 const pairs = [
   ...['text', 'text-2', 'text-3'].flatMap((t) => ['bg', 'surface', 'surface-2'].map((b) => [t, b])),
-  ['text-2', 'surface-3'], ['accent-text', 'surface'], ['accent-text', 'bg'], ['accent-text', 'accent-soft'], ['on-accent', 'accent'], ['on-accent', 'accent-hover'],
+  ['text-2', 'surface-3'], ['accent-text', 'surface'], ['accent-text', 'surface-2'], ['accent-text', 'bg'], ['accent-text', 'accent-soft'], ['on-accent', 'accent'], ['on-accent', 'accent-hover'],
   ['danger', 'surface'], ['danger', 'bg'], ['danger', 'danger-soft'], ['success', 'success-soft'], ['warn', 'warn-soft'], ['warn', 'surface'],
   ['p1-fg', 'p1-bg'], ['p2-fg', 'p2-bg'], ['p3-fg', 'p3-bg'], ['p4-fg', 'p4-bg'],
 ];

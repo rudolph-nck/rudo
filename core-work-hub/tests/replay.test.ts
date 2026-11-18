@@ -258,3 +258,46 @@ describe('Ready to pick up and On Hold', () => {
     expect(s.items.get('SD:100')!.column).toBe('Doing');
   });
 });
+
+describe('Service Desk status drives Waiting and Done', () => {
+  const doing = (id = 'SD:100') => [grade('nick', 1, id, 'Support', 'wes'), move('nick', 2, id, 'To Do'), move('wes', 3, id, 'Doing')];
+
+  it('a waiting status in SD puts the card in Waiting, and it returns when SD reopens', () => {
+    let s = replay(defaultConfig(), snap([{ source_status: 'Waiting for vendor' }]), doing());
+    expect(s.items.get('SD:100')!).toMatchObject({ column: 'Waiting', statusDriven: 'Waiting' });
+    s = replay(defaultConfig(), snap([{ source_status: 'Open' }]), doing());
+    expect(s.items.get('SD:100')!.column).toBe('Doing');
+    expect(s.items.get('SD:100')!.statusDriven).toBeUndefined();
+  });
+
+  it('SD "On Hold" maps to Waiting, not the hub\'s reprioritized On Hold', () => {
+    const s = replay(defaultConfig(), snap([{ source_status: 'On Hold' }]), doing());
+    expect(s.items.get('SD:100')!.column).toBe('Waiting');
+  });
+
+  it('the hub cannot move a ticket into Done or Waiting; hub items still can', () => {
+    const s = replay(defaultConfig(), snap([{}]), [
+      ...doing(),
+      move('nick', 4, 'SD:100', 'Done'),
+      ev('nick', 5, { type: 'item.create', item: 'h1', data: { source: 'Hub', title: 'Hub task' } }),
+      grade('nick', 6, 'h1'),
+      move('nick', 7, 'h1', 'Done'),
+    ]);
+    expect(s.items.get('SD:100')!.column).toBe('Doing');
+    expect(s.audit.find((a) => a.rejected)?.rejected).toMatch(/Service Desk status controls Done/);
+    expect(s.items.get('h1')!.column).toBe('Done');
+  });
+
+  it('builds links from the configured pattern when a row has none', () => {
+    const cfg = defaultConfig();
+    cfg.ticketUrls.SD = 'https://sdp.local/req/{id}';
+    const s = replay(cfg, snap([{}]), []);
+    expect(s.items.get('SD:100')!.source_url).toBe('https://sdp.local/req/100');
+  });
+
+  it('a ticket entered by hand with its number merges with the synced one', () => {
+    const s = replay(defaultConfig(), snap([{}]), [ev('wes', 1, { type: 'item.create', item: 'SD:100', data: { source: 'SD', source_id: '100', title: 'dup' } })]);
+    expect([...s.items.keys()]).toEqual(['SD:100']);
+    expect(s.items.get('SD:100')!.title).toBe('T0');
+  });
+});
