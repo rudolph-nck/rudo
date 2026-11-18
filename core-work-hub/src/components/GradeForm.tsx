@@ -1,0 +1,136 @@
+import { useMemo } from 'react';
+import { useHub } from '../store/hub';
+import { assignable, computeScore, suggestOwner, suggestPriority, findPerson } from '../model/logic';
+import { BUCKETS, BUCKET_LABEL, PRIORITIES, type Bucket, type Grade, type Priority, type WorkItem } from '../model/types';
+import { Avatar, BucketDot, Pick } from './ui';
+
+export interface Draft {
+  bucket?: Bucket;
+  priority?: Priority;
+  priorityTouched?: boolean;
+  impact?: number;
+  urgency?: number;
+  effort?: number;
+  system?: string;
+  owner?: string;
+  ownerTouched?: boolean;
+}
+
+export const draftFrom = (i: WorkItem): Draft => ({
+  bucket: i.bucket,
+  priority: i.priority,
+  priorityTouched: !!i.graded,
+  impact: i.impact,
+  urgency: i.urgency,
+  effort: i.effort,
+  system: i.system,
+  owner: i.owner,
+  ownerTouched: !!i.owner,
+});
+
+export function effectiveGrade(d: Draft, suggestedOwner?: string): Grade | undefined {
+  const score = computeScore(d.impact, d.urgency, d.effort);
+  const priority = d.priorityTouched ? d.priority : suggestPriority(score) ?? d.priority;
+  if (!d.bucket || !priority || !d.impact || !d.urgency || !d.effort) return undefined;
+  return { bucket: d.bucket, priority, impact: d.impact, urgency: d.urgency, effort: d.effort, system: d.system, owner: d.ownerTouched ? d.owner : d.owner ?? suggestedOwner };
+}
+
+const SCALE = [1, 2, 3, 4, 5] as const;
+
+/** One-click grading: bucket, 1–5 impact/urgency/effort, live score and suggested priority, system and owner. */
+export function GradeForm({ item, draft, onChange, disabled }: { item: WorkItem; draft: Draft; onChange: (d: Draft) => void; disabled?: boolean }) {
+  const { state } = useHub();
+  const cfg = state.config;
+  const score = computeScore(draft.impact, draft.urgency, draft.effort);
+  const sugPri = suggestPriority(score);
+  const priority = draft.priorityTouched ? draft.priority : sugPri ?? draft.priority;
+  const sug = useMemo(() => suggestOwner(state, draft.system, item.id), [state, draft.system, item.id]);
+  const owner = draft.ownerTouched ? draft.owner : draft.owner ?? sug?.username;
+  const set = (p: Partial<Draft>) => onChange({ ...draft, ...p });
+  const ownerName = (u?: string) => findPerson(cfg, u)?.name ?? u;
+  const sys = cfg.systems.find((s) => s.id === draft.system);
+
+  return (
+    <div className="grade">
+      <div className="grade-row">
+        <span className="label" id={`b-${item.id}`}>Bucket</span>
+        <Pick label="Bucket" value={draft.bucket} options={BUCKETS} onChange={(b) => set({ bucket: b })} disabled={disabled} render={(b) => <><BucketDot b={b} />{BUCKET_LABEL[b]}</>} />
+      </div>
+      <div className="grade-row">
+        <span className="label">Impact</span>
+        <Pick label="Impact, 1 to 5" value={draft.impact} options={SCALE} onChange={(v) => set({ impact: v })} disabled={disabled} />
+      </div>
+      <div className="grade-row">
+        <span className="label">Urgency</span>
+        <Pick label="Urgency, 1 to 5" value={draft.urgency} options={SCALE} onChange={(v) => set({ urgency: v })} disabled={disabled} />
+      </div>
+      <div className="grade-row">
+        <span className="label">Effort</span>
+        <Pick label="Effort, 1 to 5" value={draft.effort} options={SCALE} onChange={(v) => set({ effort: v })} disabled={disabled} />
+      </div>
+      <div className="scorebox" aria-live="polite">
+        <div>
+          <div className="label">Score</div>
+          <div className="big">{score ?? '–'}</div>
+        </div>
+        <div className="small muted">(impact × urgency) ÷ effort</div>
+        <div className="grow" />
+        <div>
+          <div className="label">Priority {sugPri && <span className="muted">· suggested {sugPri}</span>}</div>
+          <Pick
+            label="Priority"
+            value={priority}
+            options={PRIORITIES}
+            disabled={disabled}
+            onChange={(p) => set({ priority: p, priorityTouched: true })}
+            render={(p) => <span>{p}</span>}
+          />
+        </div>
+      </div>
+      <div className="grid2">
+        <label className="field">
+          <span>System</span>
+          <select className="input" value={draft.system ?? ''} disabled={disabled} onChange={(e) => set({ system: e.target.value || undefined, ownerTouched: draft.ownerTouched && !!draft.owner })}>
+            <option value="">No system</option>
+            {cfg.systems.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="field">
+          <span>Owner</span>
+          <select className="input" value={owner ?? ''} disabled={disabled} onChange={(e) => set({ owner: e.target.value || undefined, ownerTouched: true })}>
+            <option value="">No owner</option>
+            {assignable(cfg).map((p) => (
+              <option key={p.username} value={p.username}>
+                {p.name}
+                {sug?.username === p.username ? ' (suggested)' : ''}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      {sys && (
+        <div className="suggest">
+          <Avatar user={sug?.username} config={cfg} />
+          <div className="grow">
+            <div style={{ fontWeight: 700 }}>
+              {sug ? <>Next in rotation: {ownerName(sug.username)} <span className="muted">({sug.slot})</span></> : 'No owners on the map for this system'}
+            </div>
+            <div className="small muted">
+              {sug?.reason}. Map: {ownerName(sys.primary) ?? '–'} → {ownerName(sys.secondary) ?? '–'}
+              {sys.third ? ` → ${ownerName(sys.third)}` : ''}
+            </div>
+          </div>
+          {sug && owner !== sug.username && (
+            <button type="button" className="btn sm" disabled={disabled} onClick={() => set({ owner: sug.username, ownerTouched: true })}>
+              Use {ownerName(sug.username)}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

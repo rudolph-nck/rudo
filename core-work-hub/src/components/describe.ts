@@ -1,0 +1,57 @@
+import { findPerson, systemName } from '../model/logic';
+import type { HubConfig, HubEvent } from '../model/types';
+
+const fmt = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : String(v));
+
+/** Human sentence for one audit event, including before → after where the event recorded it. */
+export function describeEvent(e: HubEvent, cfg: HubConfig): string {
+  const who = (u?: unknown) => (typeof u === 'string' ? findPerson(cfg, u)?.name ?? u : '—');
+  const b = (k: string) => (e.before ? e.before[k] : undefined);
+  switch (e.type) {
+    case 'item.create':
+      return `created this (${e.data.source}${e.data.source_id ? ' #' + e.data.source_id : ''})`;
+    case 'item.grade': {
+      const g = e.data;
+      const parts = [`${g.bucket}, ${g.priority}`, `I${g.impact}/U${g.urgency}/E${g.effort}`];
+      if (g.system) parts.push(systemName(cfg.systems, g.system) ?? g.system);
+      if (g.owner) parts.push(`owner ${who(g.owner)}`);
+      const was = e.before && e.before.bucket ? ` (was ${fmt(b('bucket'))}, ${fmt(b('priority'))}, owner ${who(b('owner'))})` : '';
+      return `graded: ${parts.join(' · ')}${was}`;
+    }
+    case 'item.move':
+      return `moved ${fmt(b('column'))} → ${e.data.column}${e.data.override ? ` — WIP override: “${e.data.override}”` : ''}`;
+    case 'item.rank':
+      return `re-ranked (was #${fmt(b('rankKey'))})`;
+    case 'rank.normalize':
+      return `renumbered the ${e.data.bucket} To Do list`;
+    case 'item.update': {
+      const d = e.data;
+      const bits: string[] = [];
+      if (d.owner !== undefined) bits.push(`owner ${who(b('owner'))} → ${who(d.owner)}`);
+      if (d.next_update_due !== undefined) bits.push(`next update ${fmt(b('next_update_due'))} → ${fmt(d.next_update_due)}`);
+      if (d.priority !== undefined) bits.push(`priority ${fmt(b('priority'))} → ${d.priority}`);
+      if (d.title !== undefined) bits.push(`title → “${d.title}”`);
+      if (d.description !== undefined) bits.push('edited notes');
+      if (d.parent_id !== undefined) bits.push('changed parent');
+      if (d.bucket !== undefined) bits.push(`bucket ${fmt(b('bucket'))} → ${d.bucket}`);
+      if (d.system !== undefined) bits.push(`system → ${systemName(cfg.systems, d.system)}`);
+      return 'changed ' + bits.join(', ');
+    }
+    case 'item.ack':
+      return 'acknowledged the assignment';
+    case 'item.comment':
+      return `commented: “${e.data.text.length > 80 ? e.data.text.slice(0, 80) + '…' : e.data.text}”`;
+    case 'item.reply':
+      return `replied to the requester (${e.data.via})`;
+    case 'time.log':
+      return `logged ${e.data.hours}h to ${e.data.bucket.replace('_', ' ')} on ${e.data.date}`;
+    case 'config.person':
+      return `set ${who(e.data.username)}'s WIP limit to ${fmt(e.data.wipLimit)}`;
+    case 'config.bucketWip':
+      return `set bucket WIP limits: ${Object.entries(e.data).map(([k, v]) => `${k} ${fmt(v)}`).join(', ')}`;
+    case 'config.dispatch':
+      return `updated the dispatch rotation (${e.data.shifts.length} shifts)`;
+    case 'config.system':
+      return `${e.data.deleted ? 'removed' : 'updated'} system “${e.data.name}” on the ownership map`;
+  }
+}
