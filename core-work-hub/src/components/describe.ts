@@ -19,11 +19,11 @@ export function describeEvent(e: HubEvent, cfg: HubConfig): string {
       return `graded: ${parts.join(' · ')}${was}`;
     }
     case 'item.move':
-      return `moved ${fmt(b('column'))} → ${e.data.column}${e.data.override ? ` — WIP override: “${e.data.override}”` : ''}`;
+      return `moved ${fmt(b('column'))} → ${e.data.column}${e.data.release ? ' and released the owner' : ''}${e.data.reason ? ` — reason: “${e.data.reason}”` : ''}${e.data.override ? ` — WIP override: “${e.data.override}”` : ''}`;
     case 'item.rank':
       return `re-ranked (was #${fmt(b('rankKey'))})`;
     case 'rank.normalize':
-      return `renumbered the ${e.data.bucket} To Do list`;
+      return `renumbered the ${e.data.bucket} ${e.data.column ?? 'To Do'} list`;
     case 'item.update': {
       const d = e.data;
       const bits: string[] = [];

@@ -34,11 +34,19 @@ core-work-hub/
 - **Permissions:** checked when changes are replayed, using the *file name* (not anything written inside the file). Matt's (viewer) changes and changes from unknown names are ignored and flagged in the audit log. The real lock is NTFS: Matt gets read-only on the folder.
 - **Identity:** on first open each person picks their name. Their changes go to `changes/<username>.jsonl`. This is honor-system within the team, backed by NTFS: the file owner on disk shows who actually wrote each file.
 
+### Workflow
+
+**Intake → To Do → Ready to pick up → Doing → On Hold → Waiting → Done**
+
+- **To Do** is the bucket's force-ranked backlog. **Ready to pick up** is the short, ranked list that's groomed and next. Anyone with a free WIP slot presses **Pick up** on a Ready card: it becomes theirs and moves to Doing (WIP limit checked).
+- **Taking work off someone's plate.** Moving a card out of Doing to On Hold, Ready or To Do opens a **Take it off the plate** dialog. A reason is required, and it shows on the card and in the audit log. **On Hold** keeps the owner and frees their WIP slot. **Ready** or **To Do** can also release the owner (the default for Ready) so anyone can pick it up. Nick can put it at the top of the list.
+- Only Doing counts against WIP limits. Analysts can do this to their own cards; Nick can do it to anyone's.
+
 ### Screens
 
 | View | What it does |
 |---|---|
-| **Board** (home, Concept A) | Needs-you tiles (waiting for acknowledgment, no owner, ready to close), bucket switcher, swimlanes, filters by analyst/priority/system/source. Drag between columns; drag within a bucket's To Do to re-rank. Each card's ⋯ menu offers "Move to…" for keyboard and touch users. |
+| **Board** (home, Concept A) | Needs-you tiles (waiting for acknowledgment, no owner, ready to close), bucket switcher, swimlanes, filters by analyst/priority/system/source. Drag between columns; drag within a bucket's To Do or Ready to re-rank. Each card's ⋯ menu offers "Move to…" for keyboard and touch users. |
 | **Intake → Triage and rank** (Concept C) | Intake queue on the left, ranked To Do on the right. One-click bucket and 1–5 impact/urgency/effort; live score `(impact × urgency) ÷ effort` and suggested priority; owner suggested from the ownership map, alternating primary and secondary. **Send to To Do** shows the rank it will get. Capacity strip shows Doing slots vs WIP limit. Shortcuts: **J/K** move, **1–4** priority, **Enter** send. |
 | **My work** | Everything you own, by column; acknowledge assignments; log time against the capacity buckets. |
 | **Team** | One row per analyst: Doing vs WIP limit, To Do queue, overdue updates, unacknowledged items, dispatcher/backup badge, and hours vs the capacity model. |
@@ -100,7 +108,22 @@ npm run e2e        # multi-user browser test (serve dist/ on :4173 first, see th
 
 `index.html` is ~590 KB with fonts inlined and makes no network requests.
 
-## Acceptance criteria (v1, phases 0–1)
+## Working with Service Desk
+
+The hub can't change Service Desk live from the page. A browser page opened from a shared folder can't safely hold the API token (anyone with folder access could read it), and Service Desk won't accept calls from a page on a file share anyway. So the split is:
+
+| In Service Desk (system of record) | In the hub (what we work on, in what order, by whom) |
+|---|---|
+| Ticket intake ("no ticket, no work") | Bucket, grade, rank, To Do / Ready / Doing / On Hold |
+| Replies and notes to the requester | WIP limits, pick-ups, reprioritizing with reasons |
+| Resolving and closing (the hub follows within 15 min) | Next-update dates, standup triage, metrics |
+
+**Recommended path for write-back, in order:**
+1. **Now (Phase 1):** read-only sync every 15 minutes. Owners do ticket work in Service Desk; **Reply to requester** opens the ticket there.
+2. **Phase 2, no server needed:** extend `Sync-ServiceDesk.ps1` on Nick's PC to also read the change files and push a few fields back: technician (owner), priority, and a short note on moves (for example "Moved to On Hold: <reason>"), optionally setting Service Desk's own On Hold status so SLA timers pause. It can run every 5 minutes, so changes land in Service Desk within about 5 minutes, not live. This needs a token with write access instead of the read-only one, which is the decision to take to Lee and Matt.
+3. **Live (seconds):** only with an approved always-on service (a small server, an Azure Function or a Power Platform flow) holding the token. That is the "if a server is approved" v2 in the scope.
+
+ (v1, phases 0–1)
 
 | Criterion | Status |
 |---|---|

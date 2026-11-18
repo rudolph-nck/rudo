@@ -8,13 +8,17 @@
 
 export type Source = 'SD' | 'Wrike' | 'Hub';
 export type Bucket = 'Project' | 'Maintenance' | 'Support';
-export type Column = 'Intake' | 'To Do' | 'Doing' | 'Waiting' | 'Done';
+export type Column = 'Intake' | 'To Do' | 'Ready' | 'Doing' | 'On Hold' | 'Waiting' | 'Done';
 export type Priority = 'P1' | 'P2' | 'P3' | 'P4';
 export type Role = 'manager' | 'analyst' | 'viewer';
 export type TimeBucket = 'projects' | 'maintenance' | 'owner_tickets' | 'dispatch' | 'documentation';
 
 export const BUCKETS: Bucket[] = ['Project', 'Maintenance', 'Support'];
-export const COLUMNS: Column[] = ['Intake', 'To Do', 'Doing', 'Waiting', 'Done'];
+export const COLUMNS: Column[] = ['Intake', 'To Do', 'Ready', 'Doing', 'On Hold', 'Waiting', 'Done'];
+/** Columns kept in a force-ranked order per bucket. */
+export const RANKED_COLUMNS: Column[] = ['To Do', 'Ready'];
+export const isRanked = (c?: Column) => !!c && RANKED_COLUMNS.includes(c);
+export const COLUMN_LABEL: Record<Column, string> = { Intake: 'Intake', 'To Do': 'To Do', Ready: 'Ready to pick up', Doing: 'Doing', 'On Hold': 'On Hold', Waiting: 'Waiting', Done: 'Done' };
 export const PRIORITIES: Priority[] = ['P1', 'P2', 'P3', 'P4'];
 export const TIME_BUCKETS: { key: TimeBucket; label: string }[] = [
   { key: 'projects', label: 'Projects' },
@@ -133,9 +137,9 @@ export type HubEvent = EventBase &
   (
     | { type: 'item.create'; item: string; data: { source: Source; source_id?: string; source_url?: string; title: string; description?: string; requester?: string; bucket?: Bucket; parent_id?: string; owner?: string; column?: Column } }
     | { type: 'item.grade'; item: string; data: Grade }
-    | { type: 'item.move'; item: string; data: { column: Column; rankKey?: number; override?: string; reason?: string } }
+    | { type: 'item.move'; item: string; data: { column: Column; rankKey?: number; override?: string; reason?: string; release?: boolean } }
     | { type: 'item.rank'; item: string; data: { rankKey: number } }
-    | { type: 'rank.normalize'; data: { bucket: Bucket; order: string[] } }
+    | { type: 'rank.normalize'; data: { bucket: Bucket; column?: Column; order: string[] } }
     | { type: 'item.update'; item: string; data: { owner?: string | null; priority?: Priority; next_update_due?: string | null; title?: string; description?: string; parent_id?: string | null; bucket?: Bucket; system?: string } }
     | { type: 'item.ack'; item: string; data: Record<string, never> }
     | { type: 'item.comment'; item: string; data: { text: string } }
@@ -169,7 +173,7 @@ export interface WorkItem {
   source_owner?: string;
   bucket?: Bucket;
   column: Column;
-  /** Sort key inside the bucket's To Do list. Display rank (1..n, unique) is derived from it. */
+  /** Sort key inside the bucket's ranked list (To Do or Ready). Display rank (1..n, unique) is derived from it. */
   rankKey?: number;
   rank?: number;
   priority?: Priority;
@@ -182,6 +186,8 @@ export interface WorkItem {
   /** Owner acknowledged the assignment. Reset whenever owner changes. */
   acked: boolean;
   next_update_due?: string;
+  /** Why it was taken off the plate (set when moved to On Hold or released to Ready from Doing). */
+  hold?: { reason: string; since: string; user: string; from?: Column };
   parent_id?: string;
   created: string;
   graded?: string;

@@ -19,7 +19,7 @@ import { useUi } from '../components/actions';
 import { CardBody, SortableCard } from '../components/Card';
 import { Icon, toast } from '../components/ui';
 import { analysts, daysBetween, needsAck, noOwner, priorityRank, readyToClose } from '../model/logic';
-import { BUCKETS, BUCKET_LABEL, COLUMNS, PRIORITIES, type Bucket, type Column, type WorkItem } from '../model/types';
+import { BUCKETS, BUCKET_LABEL, COLUMNS, COLUMN_LABEL, PRIORITIES, isRanked, type Bucket, type Column, type WorkItem } from '../model/types';
 import { useNav } from '../nav';
 
 type Lane = Bucket | 'all' | 'intake';
@@ -49,7 +49,7 @@ export function applyFilters(items: WorkItem[], f: Filters) {
 }
 
 function sortCell(items: WorkItem[], col: Column, lane: Lane) {
-  if (col === 'To Do') {
+  if (isRanked(col)) {
     return [...items].sort((a, b) => (lane === 'all' ? priorityRank(a.priority) - priorityRank(b.priority) || (a.rank ?? 0) - (b.rank ?? 0) : (a.rank ?? 0) - (b.rank ?? 0)));
   }
   if (col === 'Done') return [...items].sort((a, b) => (b.done ?? '').localeCompare(a.done ?? ''));
@@ -143,24 +143,24 @@ export function Board() {
       return;
     }
     let index: number | undefined;
-    if (col === 'To Do' && lane !== 'all' && lane !== 'intake') {
+    if (isRanked(col) && lane !== 'all' && lane !== 'intake') {
       const list = cellItemsFor(lane, col);
       const overIdx = list.findIndex((i) => i.id === String(e.over!.id));
       index = overIdx >= 0 ? overIdx : list.filter((i) => i.id !== item.id).length;
       if (f.owner || f.priority || f.system || f.source) {
         // Filtered list: map the visible position onto the full ranked list.
-        const full = [...state.items.values()].filter((i) => i.column === 'To Do' && i.bucket === lane).sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
+        const full = [...state.items.values()].filter((i) => i.column === col && i.bucket === lane).sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
         const anchor = overIdx >= 0 ? list[overIdx] : undefined;
         const others = full.filter((i) => i.id !== item.id);
         const movingDown = source === target && list.findIndex((i) => i.id === item.id) < overIdx;
         index = anchor ? others.findIndex((i) => i.id === anchor.id) + (movingDown ? 1 : 0) : others.length;
       }
-      if (source === target && item.column === 'To Do') {
-        if (!grader) return toast('Only Nick re-ranks To Do (or the team in standup).');
+      if (source === target && item.column === col) {
+        if (!grader) return toast(`Only Nick re-ranks ${COLUMN_LABEL[col]} (or the team in standup).`);
         if (item.rank === index + 1 || (overIdx >= 0 && list[overIdx].id === item.id)) return;
       }
     } else if (source === target) return;
-    if (col === 'To Do' && lane === 'all' && source === target) return toast('Pick a bucket to re-rank its To Do list.');
+    if (isRanked(col) && lane === 'all' && source === target) return toast(`Pick a bucket to re-rank its ${COLUMN_LABEL[col]} list.`);
     await requestMove(item, col, { index });
   };
 
@@ -176,7 +176,7 @@ export function Board() {
       <div className="page-head">
         <div>
           <h1>Board</h1>
-          <div className="sub">Force-ranked To Do per bucket. Finish before you start.</div>
+          <div className="sub">Force-ranked To Do and Ready per bucket. Finish before you start.</div>
         </div>
         <div className="topbar-actions">
           {!readOnly && (
@@ -260,7 +260,7 @@ export function Board() {
           <div className="board" role="presentation">
             {COLUMNS.map((c) => (
               <div key={c} className="col-head">
-                {c}
+                {COLUMN_LABEL[c]}
                 <span className="n">{visible.filter((i) => i.column === c && (bucket === 'all' || i.bucket === bucket || (c === 'Intake' && !i.bucket))).length}</span>
                 {c === 'Doing' && (
                   <span className={`wip chip ${bucketLimit !== undefined && doingTotal > bucketLimit ? 'bad' : 'src'}`} title="Work in progress">
@@ -279,7 +279,7 @@ export function Board() {
               </div>
               {BUCKETS.map((b, k) => (
                 <Fragment key={b}>
-                  <div className="lane-head" style={{ gridColumn: '2 / 6', gridRow: k * 2 + 1, marginTop: k ? 10 : 0 }}>
+                  <div className="lane-head" style={{ gridColumn: `2 / ${COLUMNS.length + 1}`, gridRow: k * 2 + 1, marginTop: k ? 10 : 0 }}>
                     <span className={`dot ${b}`} />
                     {BUCKET_LABEL[b]}
                   </div>

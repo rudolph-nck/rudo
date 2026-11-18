@@ -207,3 +207,54 @@ describe('demo seed', () => {
     expect(s.items.get('SD:48140')!.column).toBe('Done');
   });
 });
+
+describe('Ready to pick up and On Hold', () => {
+  const base = () => [grade('nick', 1, 'SD:100', 'Support', 'wes'), move('nick', 2, 'SD:100', 'To Do'), move('wes', 3, 'SD:100', 'Doing')];
+
+  it('Ready is ranked per bucket separately from To Do', () => {
+    const s = replay(defaultConfig(), snap([{}, {}, {}]), [
+      grade('nick', 1, 'SD:100'), move('nick', 2, 'SD:100', 'Ready'),
+      grade('nick', 3, 'SD:101'), move('nick', 4, 'SD:101', 'Ready'),
+      grade('nick', 5, 'SD:102'), move('nick', 6, 'SD:102', 'To Do'),
+      ev('nick', 7, { type: 'item.rank', item: 'SD:101', data: { rankKey: 0 } }),
+    ]);
+    expect(rankedList(s, 'Support', 'Ready').map((i) => [i.id, i.rank])).toEqual([['SD:101', 1], ['SD:100', 2]]);
+    expect(rankedList(s, 'Support').map((i) => i.rank)).toEqual([1]);
+  });
+
+  it('On Hold keeps the owner and the reason, and frees the WIP slot', () => {
+    const cfg = defaultConfig();
+    cfg.people.find((p) => p.username === 'wes')!.wipLimit = 1;
+    const s = replay(cfg, snap([{}, {}]), [...base(), move('nick', 4, 'SD:100', 'On Hold', { reason: 'Reprioritized' }), grade('nick', 5, 'SD:101', 'Support', 'wes')]);
+    const it = s.items.get('SD:100')!;
+    expect(it.column).toBe('On Hold');
+    expect(it.owner).toBe('wes');
+    expect(it.hold).toMatchObject({ reason: 'Reprioritized', user: 'nick', from: 'Doing' });
+    expect(checkWip(s, s.items.get('SD:101')!, 'wes', 'Doing').ok).toBe(true);
+  });
+
+  it('releasing to Ready clears the owner and lands ranked', () => {
+    const s = replay(defaultConfig(), snap([{}]), [...base(), move('nick', 4, 'SD:100', 'Ready', { reason: 'Off the plate', release: true })]);
+    const it = s.items.get('SD:100')!;
+    expect(it.owner).toBeUndefined();
+    expect(it.rank).toBe(1);
+    expect(it.hold?.reason).toBe('Off the plate');
+  });
+
+  it('an analyst can release their own card, and anyone can then pick it up', () => {
+    const s = replay(defaultConfig(), snap([{}]), [
+      ...base(),
+      move('wes', 4, 'SD:100', 'Ready', { reason: 'Swamped', release: true }),
+      ev('cathy', 5, { type: 'item.update', item: 'SD:100', data: { owner: 'cathy' } }),
+      move('cathy', 6, 'SD:100', 'Doing'),
+    ]);
+    expect(s.audit.filter((a) => a.rejected)).toEqual([]);
+    const it = s.items.get('SD:100')!;
+    expect([it.column, it.owner, it.hold]).toEqual(['Doing', 'cathy', undefined]);
+  });
+
+  it("an analyst cannot put someone else's card on hold", () => {
+    const s = replay(defaultConfig(), snap([{}]), [...base(), move('cathy', 4, 'SD:100', 'On Hold', { reason: 'x' })]);
+    expect(s.items.get('SD:100')!.column).toBe('Doing');
+  });
+});

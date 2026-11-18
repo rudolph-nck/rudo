@@ -2,14 +2,14 @@ import { useMemo, useState } from 'react';
 import { useHub } from '../store/hub';
 import { useUi } from './actions';
 import { assignable, daysBetween, findPerson, fmtShortDate, isOverdue, systemName, todayISO } from '../model/logic';
-import { COLUMNS, TIME_BUCKETS, type TimeBucket, type WorkItem } from '../model/types';
+import { COLUMNS, COLUMN_LABEL, TIME_BUCKETS, type TimeBucket, type WorkItem } from '../model/types';
 import { Avatar, BucketDot, Icon, Modal, PriorityChip, SourceBadge, toast } from './ui';
 import { GradeForm, draftFrom, effectiveGrade, type Draft } from './GradeForm';
 import { describeEvent } from './describe';
 
 export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; initialTab?: 'grade'; onClose: () => void }) {
   const { state, me, grader, readOnly, commit } = useHub();
-  const { requestMove, openNew, openItem } = useUi();
+  const { requestMove, openNew, openItem, pickUp } = useUi();
   const cfg = state.config;
   const [draft, setDraft] = useState<Draft>(() => draftFrom(item));
   const [gradeOpen, setGradeOpen] = useState(initialTab === 'grade' || (!item.graded && grader && item.column === 'Intake'));
@@ -62,11 +62,22 @@ export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; init
         <div className="seg" role="group" aria-label="Move to column">
           {COLUMNS.map((c) => (
             <button key={c} aria-pressed={item.column === c} disabled={readOnly || item.sourceClosed} onClick={() => requestMove(item, c)}>
-              {c}
+              {COLUMN_LABEL[c]}
             </button>
           ))}
         </div>
       </div>
+      {item.hold && (
+        <div className="banner warn">
+          {item.column === 'On Hold' ? 'On hold' : 'Taken off Doing'} since {new Date(item.hold.since).toLocaleDateString()} by {name(item.hold.user)}
+          {item.hold.reason ? `: ${item.hold.reason}` : ''}
+        </div>
+      )}
+      {item.column === 'Ready' && !readOnly && (!item.owner || mine) && (
+        <button className="btn primary" style={{ alignSelf: 'flex-start' }} onClick={async () => { if (await pickUp(item)) onClose(); }}>
+          Pick it up
+        </button>
+      )}
       {item.sourceClosed && <div className="banner info">Closed in {item.source === 'SD' ? 'Service Desk' : item.source}, so it stays in Done.</div>}
 
       <dl className="kv">

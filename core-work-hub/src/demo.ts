@@ -73,6 +73,8 @@ export function demoSeed(): { config: HubConfig; snapshot: TicketsSnapshot; even
   create('nick', 'hub-backup-docs', 21, 'Wrike', 'Write runbook: Veeam restore for core file server', { source_id: '4410388', source_url: 'https://www.wrike.com/open.htm?id=4410388' });
   create('wes', 'hub-dmarc', 2, 'Hub', 'Move DMARC policy from p=none to quarantine', { requester: 'Security', description: 'Reports clean for 30 days. Needs change window.' });
   create('noelle', 'hub-ups', 1, 'Hub', 'UPS battery replacement in server room (calendar)', { requester: 'Facilities' });
+  create('nick', 'hub-ready-mfa', 4, 'Hub', 'Clean up stale MFA methods for 12 accounts', { requester: 'Security' });
+  create('nick', 'hub-ready-patch', 4, 'Hub', 'Push Edge update ring to pilot group', { requester: 'Change board' });
   create('nick', 'hub-wifi', 25, 'Wrike', 'Branch Wi-Fi refresh: survey 3 branches', { source_id: '4409902', source_url: 'https://www.wrike.com/open.htm?id=4409902' });
 
   grade('SD:48188', 5, 'Maintenance', 'P1', 5, 5, 2, 'network', 'trey');
@@ -137,6 +139,16 @@ export function demoSeed(): { config: HubConfig; snapshot: TicketsSnapshot; even
   move('nick', 'hub-backup-docs', 20, 'To Do');
   grade('hub-wifi', 24, 'Project', 'P3', 3, 2, 4, 'network', 'trey');
   move('nick', 'hub-wifi', 24, 'To Do');
+
+  // Ready to pick up: ranked, nobody owns them yet.
+  const ready = (item: string, d: number) => events.push(ev('nick', d, { type: 'item.move', item, data: { column: 'Ready' } } as never));
+  grade('hub-ready-mfa', 3, 'Support', 'P3', 3, 2, 1, 'ad');
+  ready('hub-ready-mfa', 2);
+  grade('hub-ready-patch', 3, 'Maintenance', 'P2', 3, 4, 1, 'endpoint');
+  ready('hub-ready-patch', 2);
+  // Reprioritized: Wi-Fi survey was in Doing, taken off Trey's plate for the cert renewal.
+  move('trey', 'hub-wifi', 10, 'Doing');
+  events.push(ev('nick', 3, { type: 'item.move', item: 'hub-wifi', data: { column: 'On Hold', reason: 'Paused for the TLS renewal and Patch Tuesday; resume after Dec 5' } } as never));
 
   events.push(ev('wes', 4, { type: 'item.comment', item: 'hub-sp-migration', data: { text: 'Lending pilot scheduled for next Thursday after hours.' } } as never));
   events.push(ev('trey', 3, { type: 'item.comment', item: 'SD:48188', data: { text: 'CSR submitted to the CA, waiting on validation email.' } } as never));

@@ -1,6 +1,6 @@
 import { computeScore, findPerson, mapSourcePriority, roleOf, canGrade } from './logic';
 import type { AuditEntry, Bucket, Conflict, HubConfig, HubEvent, HubState, SourceTicket, TicketsSnapshot, TimeEntry, WorkItem } from './types';
-import { BUCKETS } from './types';
+import { BUCKETS, RANKED_COLUMNS, isRanked } from './types';
 
 export interface SourcedEvent {
   event: HubEvent;
@@ -77,6 +77,7 @@ export function rejectReason(config: HubConfig, file: string, e: HubEvent, item?
       const d = e.data;
       if (grader) return undefined;
       if (d.priority !== undefined || d.bucket !== undefined || d.system !== undefined) return 'Only the manager grades';
+      if (d.owner === null && item?.owner === file) return undefined; // giving back your own card
       if (d.owner !== undefined && d.owner !== file) return 'Analysts can only take ownership themselves';
       if (d.owner === file && item?.owner && item.owner !== file) return 'Item already has an owner';
       if (d.owner === undefined && !own) return 'Analysts update their own cards';
@@ -105,9 +106,9 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
     tickets.set(it.id, t);
   }
 
-  const maxKey = (bucket?: Bucket) => {
+  const maxKey = (bucket: Bucket | undefined, column: WorkItem['column']) => {
     let m = 0;
-    for (const i of items.values()) if (i.column === 'To Do' && i.bucket === bucket && i.rankKey !== undefined) m = Math.max(m, i.rankKey);
+    for (const i of items.values()) if (i.column === column && i.bucket === bucket && i.rankKey !== undefined) m = Math.max(m, i.rankKey);
     return m;
   };
   const markHubSet = (id: string, field: 'owner' | 'priority', ts: string, user: string) => {
@@ -116,8 +117,8 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
     hubSet.set(id, h);
   };
   const setColumn = (it: WorkItem, column: WorkItem['column'], ts: string, rankKey?: number) => {
-    if (column === 'To Do') {
-      if (it.column !== 'To Do' || rankKey !== undefined) it.rankKey = rankKey ?? maxKey(it.bucket) + 1;
+    if (isRanked(column)) {
+      if (it.column !== column || rankKey !== undefined) it.rankKey = rankKey ?? maxKey(it.bucket, column) + 1;
     } else it.rankKey = undefined;
     if (column === 'Doing' && !it.started) it.started = ts;
     if (column === 'Done') it.done = ts;
@@ -186,19 +187,31 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
         }
         markHubSet(w.id, 'priority', e.ts, file);
         w.graded = w.graded ?? e.ts;
-        if (bucketChanged && w.column === 'To Do') w.rankKey = maxKey(w.bucket) + 1;
+        if (bucketChanged && isRanked(w.column)) w.rankKey = maxKey(w.bucket, w.column) + 1;
         break;
       }
-      case 'item.move':
-        setColumn(it!, e.data.column, e.ts, canGrade(config, file) ? e.data.rankKey : undefined);
+      case 'item.move': {
+        const w = it!;
+        const from = w.column;
+        setColumn(w, e.data.column, e.ts, canGrade(config, file) ? e.data.rankKey : undefined);
+        // Taking work off someone's plate: keep the reason on the card until it moves on.
+        if (e.data.column === 'On Hold' || (e.data.reason && from === 'Doing' && isRanked(e.data.column)))
+          w.hold = { reason: e.data.reason ?? '', since: e.ts, user: file, from };
+        else if (e.data.column !== from) w.hold = undefined;
+        if (e.data.release && w.owner) {
+          w.owner = undefined;
+          w.acked = false;
+          markHubSet(w.id, 'owner', e.ts, file);
+        }
         break;
+      }
       case 'item.rank':
-        if (it!.column === 'To Do') it!.rankKey = e.data.rankKey;
+        if (isRanked(it!.column)) it!.rankKey = e.data.rankKey;
         break;
       case 'rank.normalize':
         e.data.order.forEach((id, i) => {
           const x = items.get(id);
-          if (x && x.column === 'To Do' && x.bucket === e.data.bucket) x.rankKey = i + 1;
+          if (x && x.column === (e.data.column ?? 'To Do') && x.bucket === e.data.bucket) x.rankKey = i + 1;
         });
         break;
       case 'item.update': {
@@ -220,7 +233,7 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
         if (d.system !== undefined) w.system = d.system;
         if (d.bucket !== undefined && d.bucket !== w.bucket) {
           w.bucket = d.bucket;
-          if (w.column === 'To Do') w.rankKey = maxKey(w.bucket) + 1;
+          if (isRanked(w.column)) w.rankKey = maxKey(w.bucket, w.column) + 1;
         }
         break;
       }
@@ -288,13 +301,14 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
   }
 
   // ---- Unique integer ranks per bucket.
-  for (const b of BUCKETS) {
-    const list = [...items.values()].filter((i) => i.column === 'To Do' && i.bucket === b);
-    list.sort((a, b2) => (a.rankKey ?? 0) - (b2.rankKey ?? 0) || a.id.localeCompare(b2.id));
-    list.forEach((i, n) => (i.rank = n + 1));
-  }
+  for (const b of BUCKETS)
+    for (const c of RANKED_COLUMNS) {
+      const list = [...items.values()].filter((i) => i.column === c && i.bucket === b);
+      list.sort((a, b2) => (a.rankKey ?? 0) - (b2.rankKey ?? 0) || a.id.localeCompare(b2.id));
+      list.forEach((i, n) => (i.rank = n + 1));
+    }
   for (const i of items.values()) {
-    if (i.column !== 'To Do') i.rank = undefined;
+    if (!isRanked(i.column)) i.rank = undefined;
     i.score = computeScore(i.impact, i.urgency, i.effort);
   }
 

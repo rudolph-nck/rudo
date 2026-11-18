@@ -42,6 +42,7 @@ export function Team() {
           const lim = personWipLimit(cfg, p.username);
           const todo = items.filter((i) => i.owner === p.username && i.column === 'To Do').sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
           const waiting = items.filter((i) => i.owner === p.username && i.column === 'Waiting');
+          const onHold = items.filter((i) => i.owner === p.username && i.column === 'On Hold');
           const overdue = items.filter((i) => i.owner === p.username && isOverdue(i));
           const unacked = items.filter((i) => i.owner === p.username && !i.acked && i.column !== 'Done' && i.column !== 'Intake');
           const hours = state.time.filter((t) => t.user === p.username && t.date >= from && t.date <= to);
@@ -69,6 +70,7 @@ export function Team() {
                 <div className="small muted" style={{ marginTop: 4 }}>
                   {BUCKETS.map((b) => `${doing.filter((i) => i.bucket === b).length} ${b[0]}`).join(' · ')}
                   {waiting.length ? ` · ${waiting.length} waiting` : ''}
+                  {onHold.length ? ` · ${onHold.length} on hold` : ''}
                 </div>
               </div>
               <div style={{ minWidth: 0 }}>

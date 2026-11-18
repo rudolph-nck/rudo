@@ -4,12 +4,13 @@ import { CSS } from '@dnd-kit/utilities';
 import { useHub } from '../store/hub';
 import { useUi } from './actions';
 import { fmtAge, fmtShortDate, isOverdue, systemName } from '../model/logic';
-import { COLUMNS, type WorkItem } from '../model/types';
+import { COLUMNS, COLUMN_LABEL, type WorkItem } from '../model/types';
 import { Avatar, BucketDot, Icon, PriorityChip, SourceBadge } from './ui';
 
 export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNode }) {
-  const { state } = useHub();
-  const { openItem } = useUi();
+  const { state, me, readOnly } = useHub();
+  const { openItem, pickUp } = useUi();
+  const canPick = item.column === 'Ready' && !readOnly && (!item.owner || item.owner === me);
   const overdue = isOverdue(item);
   const sys = systemName(state.config.systems, item.system);
   return (
@@ -24,6 +25,12 @@ export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNod
       <button className="title" onClick={() => openItem(item.id)} onPointerDown={(e) => e.stopPropagation()}>
         {item.title}
       </button>
+      {item.hold && (item.column === 'On Hold' || item.column === 'Ready' || item.column === 'To Do') && (
+        <div className="hold" title={`By ${state.config.people.find((p) => p.username === item.hold!.user)?.name ?? item.hold.user} on ${new Date(item.hold.since).toLocaleDateString()}`}>
+          {item.column === 'On Hold' ? 'On hold' : 'Taken off Doing'} {fmtShortDate(item.hold.since)}
+          {item.hold.reason ? `: ${item.hold.reason}` : ''}
+        </div>
+      )}
       {(sys || item.parent_id) && <div className="meta">{[sys, item.parent_id ? 'Task' : undefined].filter(Boolean).join(' · ')}</div>}
       <div className="foot">
         <Avatar user={item.owner} config={state.config} />
@@ -33,7 +40,12 @@ export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNod
           {fmtAge(item.created)}
         </span>
         <span className="grow" />
-        {item.next_update_due && item.column !== 'Done' && (
+        {canPick && (
+          <button className="btn sm primary pickup" onClick={() => void pickUp(item)} onPointerDown={(e) => e.stopPropagation()} aria-label={`Pick up ${item.title}`}>
+            Pick up
+          </button>
+        )}
+        {!canPick && item.next_update_due && item.column !== 'Done' && (
           <span className={`due ${overdue ? 'overdue' : ''}`} title="Next update due">
             <Icon name="clock" size={13} /> {overdue ? 'Overdue · ' : ''}
             {fmtShortDate(item.next_update_due)}
@@ -74,7 +86,7 @@ function MoveMenu({ item }: { item: WorkItem }) {
                 void requestMove(item, c);
               }}
             >
-              {c}
+              {COLUMN_LABEL[c]}
             </button>
           ))}
           <div className="nav-sep" />

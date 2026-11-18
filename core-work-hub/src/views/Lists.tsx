@@ -3,7 +3,7 @@ import { useHub } from '../store/hub';
 import { useUi } from '../components/actions';
 import { Avatar, BucketDot, Icon, PriorityChip, SourceBadge, toast } from '../components/ui';
 import { fmtAge, fmtShortDate, isOverdue, needsAck, noOwner, priorityRank, readyToClose, todayISO, findPerson } from '../model/logic';
-import { COLUMNS, TIME_BUCKETS, type TimeBucket, type WorkItem } from '../model/types';
+import { COLUMNS, COLUMN_LABEL, TIME_BUCKETS, type TimeBucket, type WorkItem } from '../model/types';
 import { useNav } from '../nav';
 
 export function ItemTable({ items, empty }: { items: WorkItem[]; empty: string }) {
@@ -149,7 +149,7 @@ export function MyWork() {
         const list = mine.filter((i) => i.column === c).sort((a, b) => Number(isOverdue(b)) - Number(isOverdue(a)) || priorityRank(a.priority) - priorityRank(b.priority));
         return (
           <section key={c} className="stack" aria-label={c}>
-            <h2>{c} <span className="muted">({list.length})</span></h2>
+            <h2>{COLUMN_LABEL[c]} <span className="muted">({list.length})</span></h2>
             <ItemTable items={list} empty={c === 'Done' ? 'Nothing finished in the last 7 days.' : `Nothing in ${c}.`} />
           </section>
         );

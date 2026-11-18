@@ -101,7 +101,7 @@ h3 { font-size: 14px; font-weight: 700; }
 textarea.input { min-height: 84px; resize: vertical; }
 .input:focus { border-color: var(--accent); box-shadow: var(--focus); outline: none; }
 
-.seg { display: inline-flex; padding: 4px; gap: 2px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border); }
+.seg { display: inline-flex; flex-wrap: wrap; padding: 4px; gap: 2px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border); }
 .seg button { min-height: 36px; padding: 0 14px; border: 0; border-radius: 9px; background: transparent; font-weight: 600; color: var(--text-2); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
 .seg button[aria-pressed='true'], .seg button[aria-checked='true'] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
 .seg button:hover:not([aria-pressed='true']) { color: var(--text); }
@@ -166,7 +166,7 @@ textarea.input { min-height: 84px; resize: vertical; }
 .filters select { min-height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--surface); font-weight: 600; font-size: 13px; }
 .toggle { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--surface); font-weight: 600; font-size: 13px; cursor: pointer; }
 .toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
-.board { display: grid; grid-template-columns: repeat(5, minmax(206px, 1fr)); gap: 10px 12px; min-width: 1090px; align-items: stretch; }
+.board { display: grid; grid-template-columns: repeat(7, minmax(168px, 1fr)); gap: 10px 10px; min-width: 1236px; align-items: stretch; }
 .board > div:not(.lane-head):not(.col-head) { min-width: 0; }
 .board-scroll { overflow-x: auto; padding-bottom: 8px; margin: 0 -4px; padding-left: 4px; padding-right: 4px; }
 .col-head { display: flex; align-items: center; gap: 8px; padding: 4px 6px 8px; font-weight: 800; font-size: 13px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; }
@@ -300,3 +300,7 @@ dialog.drawer { margin: 0 0 0 auto; height: 100vh; max-height: 100vh; width: min
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 .card .top { flex-wrap: wrap; row-gap: 4px; padding-right: 30px; min-height: 26px; }
 .card .card-menu { position: absolute; top: 6px; right: 6px; }
+
+.card .hold { font-size: 12px; color: var(--warn); background: var(--warn-soft); border-radius: 8px; padding: 6px 8px; font-weight: 600; overflow-wrap: anywhere; }
+.card .pickup { min-height: 36px; }
+.col-head .tag { text-transform: none; letter-spacing: 0; font-weight: 600; }

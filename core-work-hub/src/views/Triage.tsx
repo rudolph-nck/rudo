@@ -71,6 +71,7 @@ export function Triage() {
   const [selId, setSelId] = useState<string | undefined>(queue[0]?.id);
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [listBucket, setListBucket] = useState<Bucket>('Support');
+  const [listCol, setListCol] = useState<'To Do' | 'Ready'>('To Do');
   const sel = selId ? state.items.get(selId) : undefined;
   const draft = sel ? drafts[sel.id] ?? draftFrom(sel) : undefined;
   const setDraft = (d: Draft) => sel && setDrafts((x) => ({ ...x, [sel.id]: d }));
@@ -88,12 +89,12 @@ export function Triage() {
     selRef.current?.scrollIntoView({ block: 'nearest' });
   }, [selId]);
 
-  const list = rankedList(state, listBucket);
+  const list = rankedList(state, listBucket, listCol);
   const score = draft ? computeScore(draft.impact, draft.urgency, draft.effort) : undefined;
   const sugOwner = draft ? suggestOwner(state, draft.system, sel?.id)?.username : undefined;
   const grade = draft ? effectiveGrade(draft, sugOwner) : undefined;
   const pri: Priority | undefined = draft ? (draft.priorityTouched ? draft.priority : suggestPriority(score) ?? draft.priority) : undefined;
-  const insertAt = grade && grade.bucket === listBucket ? suggestedRankIndex(list, grade.priority, score) : undefined;
+  const insertAt = grade && grade.bucket === listBucket && listCol === 'To Do' ? suggestedRankIndex(list, grade.priority, score) : undefined;
 
   const send = async () => {
     if (!sel || !canAct) return;
@@ -153,7 +154,7 @@ export function Triage() {
     const item = state.items.get(String(e.active.id));
     const to = list.findIndex((i) => i.id === e.over!.id);
     if (!item || to < 0) return;
-    const { pre, key } = rankEvents(list, item, to, listBucket);
+    const { pre, key } = rankEvents(list, item, to, listBucket, listCol);
     await commit([...pre, { type: 'item.rank', item: item.id, data: { rankKey: key } }]);
   };
 
@@ -219,7 +220,14 @@ export function Triage() {
 
         <section className="panel" aria-labelledby="r-h">
           <div className="panel-head">
-            <h2 id="r-h" className="grow">Ranked To Do</h2>
+            <h2 id="r-h" className="grow">Ranked</h2>
+            <div className="seg" role="group" aria-label="List">
+              {(['To Do', 'Ready'] as const).map((c) => (
+                <button key={c} aria-pressed={listCol === c} onClick={() => setListCol(c)}>
+                  {c === 'Ready' ? 'Ready to pick up' : c}
+                </button>
+              ))}
+            </div>
             <div className="seg" role="group" aria-label="Bucket">
               {BUCKETS.map((b) => (
                 <button key={b} aria-pressed={listBucket === b} onClick={() => setListBucket(b)}>
@@ -231,14 +239,14 @@ export function Triage() {
           </div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onRankEnd}>
             <SortableContext items={list.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-              <ol className="ranked" aria-label={`${BUCKET_LABEL[listBucket]} To Do in rank order`}>
+              <ol className="ranked" aria-label={`${BUCKET_LABEL[listBucket]} ${listCol} in rank order`}>
                 {list.map((it, n) => (
                   <RankFragment key={it.id} showNew={insertAt === n} sel={sel} rank={n + 1}>
                     <RankRow item={it} disabled={!canAct} />
                   </RankFragment>
                 ))}
                 {insertAt === list.length && sel && <NewRow sel={sel} rank={list.length + 1} />}
-                {list.length === 0 && insertAt === undefined && <li className="muted" style={{ padding: 24, textAlign: 'center' }}>Nothing ranked in {BUCKET_LABEL[listBucket]} yet.</li>}
+                {list.length === 0 && insertAt === undefined && <li className="muted" style={{ padding: 24, textAlign: 'center' }}>Nothing in {BUCKET_LABEL[listBucket]} {listCol === 'Ready' ? 'Ready to pick up' : 'To Do'} yet.</li>}
               </ol>
             </SortableContext>
           </DndContext>

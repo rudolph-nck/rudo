@@ -101,10 +101,10 @@ export function nextDispatch(config: HubConfig, today = todayISO()): DispatchShi
 
 // ---------------------------------------------------------------- ranking
 
-/** To Do list of a bucket, in rank order. */
-export function rankedList(state: HubState, bucket: Bucket): WorkItem[] {
+/** Ranked list (To Do by default, or Ready) of a bucket, in rank order. */
+export function rankedList(state: HubState, bucket: Bucket, column: Column = 'To Do'): WorkItem[] {
   return [...state.items.values()]
-    .filter((i) => i.column === 'To Do' && i.bucket === bucket && !i.stale)
+    .filter((i) => i.column === column && i.bucket === bucket && !i.stale)
     .sort((a, b) => (a.rank ?? 1e9) - (b.rank ?? 1e9));
 }
 
