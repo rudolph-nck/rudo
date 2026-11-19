@@ -522,3 +522,10 @@ table.cal td.sup { background: var(--accent-soft); }
 .ts-raters.tip-wrap { display: flex; }
 .ts-pos.tip-wrap { justify-content: center; }
 .chip.tip-wrap { display: inline-flex; }
+
+/* ---------- tooltips on 1–5 buttons */
+.pick button.has-tip { position: relative; }
+.pick button .btn-tip { bottom: calc(100% + 10px); width: 260px; max-width: 260px; font-weight: 500; text-align: left; }
+.pick button:hover .btn-tip, .pick button:focus-visible .btn-tip { visibility: visible; opacity: 1; transition-delay: 0.15s; }
+.pick button .btn-tip strong { display: block; margin-bottom: 3px; font-weight: 800; }
+.btn-tip-pts { display: block; margin-top: 4px; font-weight: 800; }

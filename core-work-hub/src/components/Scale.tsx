@@ -7,7 +7,7 @@ const SCALE = [1, 2, 3, 4, 5] as const;
  * 1–5 picker that explains itself: optional short captions on the buttons (e.g. "~1 week"), the meaning of every
  * value on hover, and the meaning of the selected value written out underneath.
  */
-export function ScalePick({ label, value, onChange, levels, short, disabled, extra }: { label: string; value?: number; onChange: (v: number) => void; levels?: string[]; short?: string[]; disabled?: boolean; extra?: ReactNode }) {
+export function ScalePick({ label, value, onChange, levels, short, points, disabled, extra }: { label: string; value?: number; onChange: (v: number) => void; levels?: string[]; short?: string[]; points?: number[]; disabled?: boolean; extra?: ReactNode }) {
   return (
     <div className="scale">
       <div className="row wrap" style={{ gap: 10 }}>
@@ -18,6 +18,17 @@ export function ScalePick({ label, value, onChange, levels, short, disabled, ext
           onChange={onChange}
           disabled={disabled}
           describe={(v) => levels?.[v - 1]}
+          tip={
+            levels
+              ? (v) => (
+                  <>
+                    <strong>{label}: {v}{short ? ` · ${short[v - 1]}` : ''}</strong>
+                    {levels[v - 1]}
+                    {points && <span className="btn-tip-pts">{points[v - 1]} velocity point{points[v - 1] === 1 ? '' : 's'}</span>}
+                  </>
+                )
+              : undefined
+          }
           render={(v) =>
             short ? (
               <span className="lvl">

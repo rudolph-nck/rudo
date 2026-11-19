@@ -31,6 +31,9 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   // Rate the migration project as Nick (update my rating)
   const row = p.locator('.ts-row', { hasText: 'Migrate department file shares' });
   await row.getByRole('button', { name: /^Update my rating: Migrate/ }).click();
+  const eff4 = row.getByRole('radiogroup', { name: 'Effort, 1 to 5' }).getByRole('radio', { name: '4', exact: true });
+  await eff4.hover(); await p.waitForTimeout(300);
+  check(/1–2 months of work[\s\S]*5 velocity points/.test(await p.locator('.btn-tip').filter({ visible: true }).first().innerText()), 'hovering an effort button shows its time and points');
   await row.getByRole('radiogroup', { name: 'Urgency, 1 to 5' }).getByRole('radio', { name: '5' }).click();
   await row.getByRole('button', { name: 'Save my rating' }).click();
   await p.waitForTimeout(300);

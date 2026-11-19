@@ -140,14 +140,35 @@ export function Modal({ open, onClose, title, children, footer, drawer, labelled
 }
 
 /** Radio-style button group (role=radiogroup) used for grading. */
-export function Pick<T extends string | number>({ label, value, options, onChange, render, disabled, describe }: { label: string; value?: T; options: readonly T[]; onChange: (v: T) => void; render?: (v: T) => ReactNode; disabled?: boolean; describe?: (v: T) => string | undefined }) {
+export function Pick<T extends string | number>({ label, value, options, onChange, render, disabled, describe, tip }: { label: string; value?: T; options: readonly T[]; onChange: (v: T) => void; render?: (v: T) => ReactNode; disabled?: boolean; describe?: (v: T) => string | undefined; tip?: (v: T) => ReactNode }) {
+  const gid = useId();
   return (
     <div className="pick" role="radiogroup" aria-label={label}>
-      {options.map((o) => (
-        <button key={String(o)} type="button" role="radio" aria-checked={value === o} disabled={disabled} onClick={() => onChange(o)} title={describe?.(o)} aria-label={describe ? String(o) : undefined} aria-description={describe?.(o)}>
-          {render ? render(o) : String(o)}
-        </button>
-      ))}
+      {options.map((o) => {
+        const t = tip?.(o);
+        const tid = `${gid}-${String(o)}`;
+        return (
+          <button
+            key={String(o)}
+            type="button"
+            role="radio"
+            aria-checked={value === o}
+            disabled={disabled}
+            onClick={() => onChange(o)}
+            aria-label={describe ? String(o) : undefined}
+            aria-describedby={t ? tid : undefined}
+            className={t ? 'has-tip' : undefined}
+          >
+            {render ? render(o) : String(o)}
+            {/* Styled tooltip with what this value means: shows on hover and keyboard focus. */}
+            {t && (
+              <span role="tooltip" id={tid} className="tip btn-tip">
+                {t}
+              </span>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }

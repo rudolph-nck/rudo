@@ -336,6 +336,7 @@ function RateForm({ r, criteria, onDone }: { r: TeamRow; criteria: TeamCriterion
             onChange={(x) => setV({ ...v, [c.key]: x })}
             levels={c.levels}
             short={c.short}
+            points={c.points}
             extra={<span className="small muted">team {r.ts.avg[c.key]?.toFixed(1) ?? '—'}</span>}
           />
         </div>
