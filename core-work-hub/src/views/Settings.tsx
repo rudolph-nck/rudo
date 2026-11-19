@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useHub } from '../store/hub';
 import { Avatar, download, Icon, toast } from '../components/ui';
-import { addDays, analysts, assignable, findPerson, personForSourceName, personWipLimit, todayISO } from '../model/logic';
+import { analysts, assignable, findPerson, personForSourceName, personWipLimit } from '../model/logic';
 import { isStatus } from '../model/replay';
 import { importTicketsCsv, mergeSnapshot, type CsvImportResult } from '../model/csv';
-import { BUCKETS, BUCKET_LABEL, type Bucket, type DispatchShift, type Source, type SystemOwnership } from '../model/types';
+import { BUCKETS, BUCKET_LABEL, type Bucket, type Source, type SystemOwnership } from '../model/types';
 import { DemoStore } from '../store/storage';
 
 function DataImport() {
@@ -198,41 +198,6 @@ function WipSettings() {
   );
 }
 
-function DispatchSettings() {
-  const { state, commit, role, readOnly } = useHub();
-  const cfg = state.config;
-  const edit = role === 'manager' && !readOnly;
-  const [rows, setRows] = useState<DispatchShift[]>(() => [...cfg.dispatch].sort((a, b) => a.from.localeCompare(b.from)));
-  const people = assignable(cfg);
-  const upd = (i: number, p: Partial<DispatchShift>) => setRows((r) => r.map((x, n) => (n === i ? { ...x, ...p } : x)));
-  const last = rows[rows.length - 1];
-  return (
-    <section className="panel" aria-labelledby="disp-h">
-      <div className="panel-head"><h2 id="disp-h" className="grow">Dispatch rotation</h2></div>
-      <table className="table">
-        <thead><tr><th>Dispatcher</th><th>Backup</th><th>From</th><th>To</th><th><span className="sr-only">Remove</span></th></tr></thead>
-        <tbody>
-          {rows.map((s, i) => (
-            <tr key={i}>
-              <td><select className="input" aria-label="Dispatcher" disabled={!edit} value={s.analyst} onChange={(e) => upd(i, { analyst: e.target.value })}>{people.map((p) => <option key={p.username} value={p.username}>{p.name}</option>)}</select></td>
-              <td><select className="input" aria-label="Backup" disabled={!edit} value={s.backup ?? ''} onChange={(e) => upd(i, { backup: e.target.value || undefined })}><option value="">None</option>{people.map((p) => <option key={p.username} value={p.username}>{p.name}</option>)}</select></td>
-              <td><input className="input" type="date" aria-label="From" disabled={!edit} value={s.from} onChange={(e) => upd(i, { from: e.target.value })} /></td>
-              <td><input className="input" type="date" aria-label="To" disabled={!edit} value={s.to} onChange={(e) => upd(i, { to: e.target.value })} /></td>
-              <td>{edit && <button className="btn icon ghost" aria-label="Remove shift" onClick={() => setRows((r) => r.filter((_, n) => n !== i))}><Icon name="x" /></button>}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {edit && (
-        <div className="row" style={{ padding: 14 }}>
-          <button className="btn" onClick={() => setRows((r) => [...r, { analyst: analysts(cfg)[0]?.username ?? '', from: last ? addDays(last.to, 1) : todayISO(), to: last ? addDays(last.to, 7) : addDays(todayISO(), 6) }])}><Icon name="plus" /> Add shift</button>
-          <button className="btn primary" onClick={async () => { if (rows.some((r) => r.to < r.from)) return toast('A shift ends before it starts.'); if (await commit([{ type: 'config.dispatch', data: { shifts: rows } }])) toast('Rotation saved.'); }}>Save rotation</button>
-        </div>
-      )}
-    </section>
-  );
-}
-
 function SystemsSettings() {
   const { state, commit, role, readOnly } = useHub();
   const cfg = state.config;
@@ -348,7 +313,6 @@ export function Settings() {
       </div>
       <DataImport />
       <WipSettings />
-      <DispatchSettings />
       <SystemsSettings />
       <PeopleSettings />
     </div>

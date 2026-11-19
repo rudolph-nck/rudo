@@ -29,6 +29,14 @@ export function defaultConfig(): HubConfig {
       { id: 'print', name: 'Printing & scanning', primary: 'tabitha', secondary: 'cathy', criticality: 'Low' },
     ],
     dispatch: [],
+    // Level 1 support rotation. Nick is the escalation point. Cathy is out of the rotation until further notice.
+    rotation: {
+      order: ['trey', 'tabitha', 'michael', 'wes', 'noelle', 'cathy'],
+      shift: 'month',
+      current: { analyst: 'trey', until: '2026-11-30' },
+      escalation: 'nick',
+      out: [{ username: 'cathy' }],
+    },
     bucketWip: {},
     defaultWipLimit: 2,
     capacityModel: { projects: 14, maintenance: 8, owner_tickets: 10, dispatch: 4, documentation: 4 },
@@ -57,6 +65,7 @@ export function normalizeConfig(raw: Partial<HubConfig>): HubConfig {
     people: raw.people?.length ? raw.people : d.people,
     systems: raw.systems ?? d.systems,
     dispatch: raw.dispatch ?? [],
+    rotation: raw.rotation ?? d.rotation,
     bucketWip: raw.bucketWip ?? {},
     capacityModel: { ...d.capacityModel, ...(raw.capacityModel ?? {}) },
     closedStatuses: raw.closedStatuses ?? d.closedStatuses,

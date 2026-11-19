@@ -1,0 +1,30 @@
+// Browser test: Overview dashboard and Rotation page on demo data. Run after `npm run build`.
+const { chromium } = require('playwright');
+const file = 'file://' + require('path').resolve(__dirname, '../../dist/index.html');
+const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.exitCode = 1; };
+(async () => {
+  const b = await chromium.launch();
+  const p = await b.newPage({ viewport: { width: 1600, height: 1000 } });
+  const errs = []; p.on('pageerror', (e) => errs.push(e.message));
+  await p.goto(file + '?demo&as=nick');
+  await p.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('cwh.demo.')).forEach((k) => localStorage.removeItem(k)));
+  await p.reload(); await p.waitForSelector('.hero');
+  check((await p.locator('h1').first().innerText()) === 'Overview', 'Nick (manager) lands on the Overview');
+  check((await p.locator('.viz-card svg[role=img]').count()) >= 5, 'charts render');
+  await p.locator('.viz-card rect[tabindex]').first().hover();
+  check(await p.locator('.viz-tip').isVisible(), 'hover shows a tooltip');
+  const flow = p.locator('section.viz-card', { hasText: 'Flow: opened vs closed' });
+  await flow.getByRole('button', { name: 'Table' }).click();
+  check((await flow.locator('table tbody tr').count()) === 12, 'flow chart has a 12-week table view');
+  check((await p.locator('table.team-load tbody tr').count()) === 7, 'team load lists Nick and the six analysts');
+  await p.getByRole('button', { name: 'Trey', exact: false }).filter({ hasText: 'Trey' }).first().click();
+  check(/Trey/.test(await p.locator('.hero-card .l').innerText()), 'clicking a person filters the dashboard');
+  await p.goto(file + '?demo&as=nick#/rotation'); await p.waitForSelector('.timeline-shifts');
+  check(/Trey/.test(await p.locator('.big-name').innerText()), 'rotation shows who is on support');
+  check(/Out for now/.test(await p.locator('.rota-order').innerText()), 'someone out of rotation is marked');
+  const w = await b.newPage(); await w.goto(file + '?demo&as=wes'); await w.waitForSelector('h1');
+  check((await w.locator('h1').first().innerText()) === 'Board', 'analysts land on the Board');
+  console.log('errors', errs);
+  if (errs.length) process.exitCode = 1;
+  await b.close();
+})();

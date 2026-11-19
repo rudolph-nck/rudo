@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { defaultConfig } from '../src/model/config';
 import { replay, type SourcedEvent } from '../src/model/replay';
-import { analysts, checkWip, computeScore, rankKeyAt, rankedList, suggestOwner, suggestPriority, mapSourcePriority, personForSourceName } from '../src/model/logic';
+import { analysts, checkWip, computeScore, currentDispatch, nextDispatch, rotationShifts, rankKeyAt, rankedList, suggestOwner, suggestPriority, mapSourcePriority, personForSourceName } from '../src/model/logic';
 import { importTicketsCsv, maskNumbers, mergeSnapshot, parseCsv } from '../src/model/csv';
-import type { HubEvent, TicketsSnapshot } from '../src/model/types';
+import type { HubEvent, TicketsSnapshot, WorkItem } from '../src/model/types';
+import { heldUp, overview } from '../src/model/analytics';
 import { demoSeed } from '../src/demo';
 
 let n = 0;
@@ -365,5 +366,65 @@ describe('Service Desk "Core - All" report format', () => {
 describe('team', () => {
   it('Nick carries work alongside the six analysts; Matt does not', () => {
     expect(analysts(defaultConfig()).map((p) => p.username)).toEqual(['nick', 'wes', 'cathy', 'noelle', 'trey', 'michael', 'tabitha']);
+  });
+});
+
+describe('support rotation', () => {
+  it('runs the order monthly from Trey (until Nov 30), skipping anyone out, with Nick as escalation', () => {
+    const cfg = defaultConfig();
+    const s = rotationShifts(cfg, 6);
+    expect(s.map((x) => [x.analyst, x.from, x.to])).toEqual([
+      ['trey', '2026-11-01', '2026-11-30'],
+      ['tabitha', '2026-12-01', '2026-12-31'],
+      ['michael', '2027-01-01', '2027-01-31'],
+      ['wes', '2027-02-01', '2027-02-28'],
+      ['noelle', '2027-03-01', '2027-03-31'],
+      ['trey', '2027-04-01', '2027-04-30'],
+      ['tabitha', '2027-05-01', '2027-05-31'],
+    ]);
+    expect(s.every((x) => x.escalation === 'nick')).toBe(true);
+    expect(s[0].backup).toBe('tabitha');
+    expect(currentDispatch(cfg, '2026-11-19')?.analyst).toBe('trey');
+    expect(nextDispatch(cfg, '2026-11-19')?.analyst).toBe('tabitha');
+  });
+  it('someone returning on a date rejoins in their place in the order', () => {
+    const cfg = defaultConfig();
+    cfg.rotation!.out = [{ username: 'cathy', until: '2027-02-28' }];
+    const names = rotationShifts(cfg, 7).map((x) => x.analyst);
+    expect(names).toEqual(['trey', 'tabitha', 'michael', 'wes', 'noelle', 'cathy', 'trey', 'tabitha']);
+  });
+  it('a cover overrides the rotation for its dates', () => {
+    const cfg = defaultConfig();
+    cfg.dispatch = [{ analyst: 'wes', from: '2026-11-23', to: '2026-11-25' }];
+    expect(currentDispatch(cfg, '2026-11-24')?.analyst).toBe('wes');
+    expect(currentDispatch(cfg, '2026-11-26')?.analyst).toBe('trey');
+  });
+  it('weekly shifts are 7 days', () => {
+    const cfg = defaultConfig();
+    cfg.rotation = { ...cfg.rotation!, shift: 'week', current: { analyst: 'trey', until: '2026-11-29' } };
+    expect(rotationShifts(cfg, 2).map((x) => [x.analyst, x.from, x.to])).toEqual([
+      ['trey', '2026-11-23', '2026-11-29'], ['tabitha', '2026-11-30', '2026-12-06'], ['michael', '2026-12-07', '2026-12-13'],
+    ]);
+  });
+});
+
+describe('overview analytics', () => {
+  const now = new Date('2026-11-19T12:00:00Z');
+  it('counts held-up work, per-person load and flow', () => {
+    const d = demoSeed();
+    const s = replay(d.config, d.snapshot, d.events.map((event) => ({ event, file: event.user })));
+    const o = overview(s, {}, 8, new Date());
+    expect(o.kpis.open).toBe([...s.items.values()].filter((i) => i.column !== 'Done').length);
+    expect(o.flow).toHaveLength(8);
+    expect(o.rows.map((r) => r.username)).toContain('nick');
+    expect(o.held.every((h, i, a) => i === 0 || a[i - 1].days >= h.days)).toBe(true);
+    expect(o.byColumn.reduce((n, c) => n + c.total, 0)).toBe(o.kpis.open);
+    expect(o.aging.reduce((n, c) => n + c.total, 0)).toBe(o.kpis.open);
+  });
+  it('flags Doing with no update for 5+ days as stalled, and Waiting by its SD status', () => {
+    const base = { id: 'x', source: 'SD', title: 't', source_status: 'Open', acked: true, created: '2026-10-01T00:00:00Z', comments: [] } as never as WorkItem;
+    expect(heldUp({ ...base, column: 'Doing', touched: '2026-11-10T00:00:00Z' }, now)?.kind).toBe('stale');
+    expect(heldUp({ ...base, column: 'Doing', touched: '2026-11-17T00:00:00Z' }, now)).toBeUndefined();
+    expect(heldUp({ ...base, column: 'Waiting', statusDriven: 'Waiting', source_status: 'Waiting for 3rd Party', touched: '2026-11-01T00:00:00Z' }, now)?.why).toBe('Waiting for 3rd Party');
   });
 });

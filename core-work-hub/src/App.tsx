@@ -11,7 +11,8 @@ import { Avatar, Icon, Toaster } from './components/ui';
 import { Board } from './views/Board';
 import { Triage } from './views/Triage';
 import { Team } from './views/Team';
-import { Metrics } from './views/Metrics';
+import { Overview } from './views/Overview';
+import { Rotation } from './views/Rotation';
 import { Audit } from './views/Audit';
 import { Settings } from './views/Settings';
 import { MyWork, NeedsList } from './views/Lists';
@@ -65,11 +66,12 @@ function Sidebar() {
   }, []);
   const ago = lastSync ? Math.round((Date.now() - lastSync.getTime()) / 1000) : undefined;
   const items: [View, string, string, number?][] = [
+    ['overview', 'chart', 'Overview'],
     ['board', 'board', 'Board'],
     ['mine', 'me', 'My work'],
     ['triage', 'inbox', 'Intake', intake],
     ['team', 'team', 'Team'],
-    ['metrics', 'chart', 'Metrics'],
+    ['rotation', 'clock', 'Rotation'],
   ];
   return (
     <aside className="sidebar" aria-label="Main">
@@ -91,19 +93,20 @@ function Sidebar() {
       </nav>
 
       <section className="dispatch-card" aria-label="Dispatcher">
-        <div className="section-title">On dispatch</div>
+        <div className="section-title">On support</div>
         {disp ? (
           <>
             <div className="who">
               <Avatar user={disp.analyst} config={cfg} />
               {findPerson(cfg, disp.analyst)?.name ?? disp.analyst}
             </div>
-            <div className="small muted">Until {fmtShortDate(disp.to)}{disp.backup ? ` · backup ${findPerson(cfg, disp.backup)?.name ?? disp.backup}` : ''}</div>
+            <div className="small muted">Until {fmtShortDate(disp.to)}{disp.escalation ? ` · escalation ${findPerson(cfg, disp.escalation)?.name ?? disp.escalation}` : ''}</div>
           </>
         ) : (
-          <div className="small muted" style={{ marginTop: 6 }}>No one scheduled. Set the rotation in Settings.</div>
+          <div className="small muted" style={{ marginTop: 6 }}>No one scheduled. Set up the rotation.</div>
         )}
         {next && <div className="small muted" style={{ marginTop: 6 }}>Next: {findPerson(cfg, next.analyst)?.name} from {fmtShortDate(next.from)}</div>}
+        <button className="btn sm ghost" style={{ marginTop: 6, paddingLeft: 0 }} onClick={() => go('rotation')}>Schedule →</button>
       </section>
 
       <div className="sidebar-foot">
@@ -125,8 +128,8 @@ function Sidebar() {
 }
 
 function Shell() {
-  const { error } = useHub();
-  const [route, setRoute] = useState(() => parseHash(location.hash));
+  const { error, role } = useHub();
+  const [route, setRoute] = useState(() => (location.hash.length > 2 ? parseHash(location.hash) : { view: (role === 'analyst' ? 'board' : 'overview') as View, param: undefined }));
   useEffect(() => {
     const on = () => setRoute(parseHash(location.hash));
     window.addEventListener('hashchange', on);
@@ -136,7 +139,7 @@ function Shell() {
     location.hash = `/${v}${p ? '/' + encodeURIComponent(p) : ''}`;
   }, []);
   useEffect(() => {
-    document.title = `${{ board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
+    document.title = `${{ overview: 'Overview', rotation: 'Rotation', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
     (document.querySelector('main') as HTMLElement | null)?.focus({ preventScroll: true });
   }, [route.view]);
   return (
@@ -150,7 +153,8 @@ function Shell() {
             {route.view === 'mine' && <MyWork />}
             {route.view === 'triage' && <Triage />}
             {route.view === 'team' && <Team />}
-            {route.view === 'metrics' && <Metrics />}
+            {route.view === 'overview' && <Overview />}
+            {route.view === 'rotation' && <Rotation />}
             {route.view === 'audit' && <Audit />}
             {route.view === 'settings' && <Settings />}
             {route.view === 'list' && <NeedsList />}

@@ -51,6 +51,8 @@ export function describeEvent(e: HubEvent, cfg: HubConfig): string {
       return `set bucket WIP limits: ${Object.entries(e.data).map(([k, v]) => `${k} ${fmt(v)}`).join(', ')}`;
     case 'config.dispatch':
       return `updated the dispatch rotation (${e.data.shifts.length} shifts)`;
+    case 'config.rotation':
+      return `updated the support rotation (${e.data.order.map((u) => who(u)).join(' → ')}, ${e.data.shift === 'month' ? 'monthly' : e.data.shift === 'week' ? 'weekly' : 'every 2 weeks'})`;
     case 'config.system':
       return `${e.data.deleted ? 'removed' : 'updated'} system “${e.data.name}” on the ownership map`;
   }

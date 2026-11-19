@@ -64,6 +64,7 @@ function fromTicket(t: SourceTicket, config: HubConfig): WorkItem {
     // Seeded from the SD sub-category through the ownership map's aliases; grading can change it.
     system: systemForCategory(config, t.subcategory, t.category),
     subcategory: t.subcategory,
+    due_by: t.due_by,
     owner,
     ownerFromSource: !!t.source_owner,
     // A technician assigned in Service Desk is not a hub acknowledgment.
@@ -155,6 +156,7 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
     if (column === 'Doing' && !it.started) it.started = ts;
     if (column === 'Done') it.done = ts;
     else it.done = undefined;
+    if (it.column !== column) it.columnSince = ts;
     it.column = column;
   };
 
@@ -301,6 +303,9 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
       case 'config.dispatch':
         config.dispatch = e.data.shifts;
         break;
+      case 'config.rotation':
+        config.rotation = e.data;
+        break;
       case 'config.system': {
         const { deleted, ...sys } = e.data;
         const idx = config.systems.findIndex((s) => s.id === sys.id);
@@ -339,6 +344,7 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
       w.statusDriven = 'Done';
       if (w.column !== 'Done') {
         w.column = 'Done';
+        w.columnSince = t.closed;
         w.rankKey = undefined;
         w.done = t.closed ?? snapshot?.generatedAt ?? w.touched;
       }
@@ -352,6 +358,7 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
         if (w.column !== sc) {
           w.column = sc;
           w.rankKey = undefined;
+          w.columnSince = undefined;
         }
       }
     }

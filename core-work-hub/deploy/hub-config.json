@@ -116,6 +116,27 @@
     }
   ],
   "dispatch": [],
+  "rotation": {
+    "order": [
+      "trey",
+      "tabitha",
+      "michael",
+      "wes",
+      "noelle",
+      "cathy"
+    ],
+    "shift": "month",
+    "current": {
+      "analyst": "trey",
+      "until": "2026-11-30"
+    },
+    "escalation": "nick",
+    "out": [
+      {
+        "username": "cathy"
+      }
+    ]
+  },
   "bucketWip": {},
   "defaultWipLimit": 2,
   "capacityModel": {

@@ -93,16 +93,37 @@ export interface SystemOwnership {
 export interface DispatchShift {
   analyst: string;
   backup?: string;
+  /** Escalation point for the shift (from the rotation). */
+  escalation?: string;
+  /** True for shifts computed from the rotation (not a hand-entered cover/swap). */
+  generated?: boolean;
   /** ISO dates, inclusive. */
   from: string;
   to: string;
+}
+
+export type ShiftLength = 'week' | '2weeks' | 'month';
+
+export interface Rotation {
+  /** Running order of usernames. */
+  order: string[];
+  shift: ShiftLength;
+  /** Who is on now, and the last day of their shift: the schedule runs on from here. */
+  current: { analyst: string; until: string };
+  /** Escalation point behind level 1. */
+  escalation?: string;
+  /** People temporarily out of the rotation. No `until` = until further notice. Keep reasons private. */
+  out: { username: string; until?: string }[];
 }
 
 export interface HubConfig {
   teamName: string;
   people: Person[];
   systems: SystemOwnership[];
+  /** Hand-entered covers and swaps. They take precedence over the rotation for their dates. */
   dispatch: DispatchShift[];
+  /** Level 1 support rotation: computed shift by shift from this. */
+  rotation?: Rotation;
   /** Team-wide Doing limit per bucket (sum over everyone). */
   bucketWip: Partial<Record<Bucket, number>>;
   defaultWipLimit: number;
@@ -166,6 +187,7 @@ export type HubEvent = EventBase &
     | { type: 'config.person'; data: { username: string; wipLimit?: number; bucketWip?: Partial<Record<Bucket, number>>; sdName?: string } }
     | { type: 'config.bucketWip'; data: Partial<Record<Bucket, number>> }
     | { type: 'config.dispatch'; data: { shifts: DispatchShift[] } }
+    | { type: 'config.rotation'; data: Rotation }
     | { type: 'config.system'; data: SystemOwnership & { deleted?: boolean } }
   );
 
@@ -211,6 +233,10 @@ export interface WorkItem {
   graded?: string;
   started?: string;
   done?: string;
+  /** Service Desk SLA due date. */
+  due_by?: string;
+  /** When the card entered its current column (for "stuck for N days"). */
+  columnSince?: string;
   /** Last time anything happened to the item (any event or source change). */
   touched: string;
   comments: Comment[];

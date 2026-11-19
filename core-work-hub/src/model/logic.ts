@@ -1,4 +1,4 @@
-import type { Bucket, Column, DispatchShift, HubConfig, HubState, Person, Priority, Role, SystemOwnership, WorkItem } from './types';
+import type { Rotation, ShiftLength, Bucket, Column, DispatchShift, HubConfig, HubState, Person, Priority, Role, SystemOwnership, WorkItem } from './types';
 
 // ---------------------------------------------------------------- dates
 
@@ -126,11 +126,72 @@ export const initials = (p?: Person, fallback?: string) => {
 
 // ---------------------------------------------------------------- dispatch
 
+/** Last day of a shift that starts on `from`. */
+export function shiftEnd(from: string, len: ShiftLength): string {
+  if (len === 'week') return addDays(from, 6);
+  if (len === '2weeks') return addDays(from, 13);
+  const d = new Date(from + 'T12:00:00');
+  // A month later, minus a day: Dec 1 -> Dec 31, Dec 15 -> Jan 14.
+  const n = new Date(d.getFullYear(), d.getMonth() + 1, d.getDate(), 12);
+  return addDays(todayISO(n), -1);
+}
+
+/** First day of a shift that ends on `to` (inverse of shiftEnd). */
+export function shiftStart(to: string, len: ShiftLength): string {
+  if (len === 'week') return addDays(to, -6);
+  if (len === '2weeks') return addDays(to, -13);
+  const d = new Date(addDays(to, 1) + 'T12:00:00');
+  return todayISO(new Date(d.getFullYear(), d.getMonth() - 1, d.getDate(), 12));
+}
+
+const isOut = (r: Rotation, username: string, onDate: string) =>
+  r.out.some((o) => o.username === username && (!o.until || o.until >= onDate));
+
+/**
+ * Level 1 shifts from the rotation: the current shift, then the running order from the person after the current
+ * one, skipping anyone out on the shift's start date. Backup = whoever is up next.
+ */
+export function rotationShifts(config: HubConfig, count = 12): DispatchShift[] {
+  const r = config.rotation;
+  if (!r || !r.order.length || !r.current?.analyst || !r.current.until) return [];
+  const eligible = (d: string) => r.order.filter((u) => !isOut(r, u, d));
+  const out: DispatchShift[] = [];
+  let idx = r.order.indexOf(r.current.analyst);
+  let from = shiftStart(r.current.until, r.shift);
+  out.push({ analyst: r.current.analyst, from, to: r.current.until, escalation: r.escalation, generated: true });
+  from = addDays(r.current.until, 1);
+  for (let n = 0; n < count && out.length < count + 1; n++) {
+    if (!eligible(from).length) break;
+    let guard = 0;
+    do {
+      idx = (idx + 1) % r.order.length;
+    } while (isOut(r, r.order[idx], from) && ++guard <= r.order.length);
+    const to = shiftEnd(from, r.shift);
+    out.push({ analyst: r.order[idx], from, to, escalation: r.escalation, generated: true });
+    from = addDays(to, 1);
+  }
+  out.forEach((s, i) => (s.backup = out[i + 1]?.analyst));
+  return out;
+}
+
+/** The schedule people see: rotation shifts with hand-entered covers/swaps laid over them. */
+export function schedule(config: HubConfig, count = 12): DispatchShift[] {
+  const rot = rotationShifts(config, count);
+  const manual = config.dispatch.map((s) => ({ ...s, escalation: s.escalation ?? config.rotation?.escalation }));
+  return [...manual, ...rot].sort((a, b) => a.from.localeCompare(b.from) || Number(!!a.generated) - Number(!!b.generated));
+}
+
 export function currentDispatch(config: HubConfig, today = todayISO()): DispatchShift | undefined {
-  return config.dispatch.find((s) => s.from <= today && today <= s.to);
+  // A cover/swap wins over the rotation for its dates.
+  return (
+    config.dispatch.find((s) => s.from <= today && today <= s.to) ??
+    rotationShifts(config, 2).find((s) => s.from <= today && today <= s.to)
+  );
 }
 export function nextDispatch(config: HubConfig, today = todayISO()): DispatchShift | undefined {
-  return [...config.dispatch].filter((s) => s.from > today).sort((a, b) => a.from.localeCompare(b.from))[0];
+  const cur = currentDispatch(config, today);
+  const after = cur ? cur.to : today;
+  return schedule(config, 3).filter((s) => s.from > after).sort((a, b) => a.from.localeCompare(b.from))[0];
 }
 
 // ---------------------------------------------------------------- ranking

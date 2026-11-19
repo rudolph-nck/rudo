@@ -7,11 +7,8 @@ export function demoSeed(): { config: HubConfig; snapshot: TicketsSnapshot; even
   const config = defaultConfig();
   const today = todayISO();
   const monday = addDays(today, -((new Date().getDay() + 6) % 7));
-  config.dispatch = [
-    { analyst: 'trey', backup: 'noelle', from: addDays(monday, -7), to: addDays(monday, -1) },
-    { analyst: 'cathy', backup: 'michael', from: monday, to: addDays(monday, 6) },
-    { analyst: 'wes', backup: 'tabitha', from: addDays(monday, 7), to: addDays(monday, 13) },
-  ];
+  // Demo rotation: the same running order, with the current shift ending this coming Sunday.
+  config.rotation = { ...config.rotation!, shift: 'week', current: { analyst: 'trey', until: addDays(monday, 6) } };
   config.bucketWip = { Project: 4 };
 
   const now = Date.now();

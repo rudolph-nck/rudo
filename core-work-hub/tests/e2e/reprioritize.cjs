@@ -8,7 +8,7 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   const ctx = await b.newContext({ viewport: { width: 1600, height: 1000 } });
   const p = await ctx.newPage();
   const errs = []; p.on('pageerror', e => errs.push(e.message));
-  await p.goto(file + '?demo&as=nick');
+  await p.goto(file + '?demo&as=nick#/board');
   await p.evaluate(() => { Object.keys(localStorage).filter(k => k.startsWith('cwh.demo.')).forEach(k => localStorage.removeItem(k)); });
   await p.reload(); await p.waitForSelector('.card');
   check(await p.locator('.col-head', { hasText: 'Ready to pick up' }).count() === 1 && await p.locator('.col-head', { hasText: 'On Hold' }).count() === 1, 'board has Ready to pick up and On Hold columns');
