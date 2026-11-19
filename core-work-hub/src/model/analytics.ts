@@ -233,3 +233,56 @@ export function shiftStats(state: HubState, analyst: string, from: string, to: s
     stillInIntake: came.filter((i) => i.column === 'Intake').length,
   };
 }
+
+// ---------------------------------------------------------------- priority conflicts
+
+export type ConflictKind = 'lower-first' | 'unowned' | 'stuck' | 'rank-inversion' | 'owner-off';
+export interface PriorityConflict {
+  kind: ConflictKind;
+  /** The higher-priority item that is being held back (or the bucket for rank inversions). */
+  item?: WorkItem;
+  /** For 'lower-first': the lower-priority item the owner is working instead. */
+  other?: WorkItem;
+  bucket?: Bucket;
+  text: string;
+}
+
+const PRI = { P1: 1, P2: 2, P3: 3, P4: 4 } as const;
+const pri = (i: WorkItem) => (i.priority ? PRI[i.priority] : 9);
+
+/** Places where the work isn't following the priorities. P1/P2 only for people-level conflicts. */
+export function priorityConflicts(state: HubState, now = new Date()): PriorityConflict[] {
+  const open = [...state.items.values()].filter((i) => !i.stale && i.column !== 'Done' && i.column !== 'Intake');
+  const out: PriorityConflict[] = [];
+  const name = (u?: string) => state.config.people.find((p) => p.username === u)?.name ?? u ?? '';
+  const today = now.toISOString().slice(0, 10);
+  for (const hi of open.filter((i) => pri(i) <= 2)) {
+    if (!hi.owner && !hi.source_owner && hi.column !== 'Ready') {
+      out.push({ kind: 'unowned', item: hi, text: `${hi.priority} has no owner` });
+      continue;
+    }
+    if (hi.owner && (hi.column === 'To Do' || hi.column === 'Ready')) {
+      const lower = open
+        .filter((o) => o.owner === hi.owner && o.column === 'Doing' && pri(o) > pri(hi))
+        .sort((a, b) => pri(b) - pri(a))[0];
+      if (lower) out.push({ kind: 'lower-first', item: hi, other: lower, text: `${name(hi.owner)} is working a ${lower.priority} while this ${hi.priority} waits` });
+    }
+    const off = state.config.timeOff?.find((t) => t.username === hi.owner && t.from <= today && today <= t.to);
+    if (off && hi.column === 'Doing') out.push({ kind: 'owner-off', item: hi, text: `${name(hi.owner)} is off until ${off.to}; this ${hi.priority} is in Doing` });
+    const h = heldUp(hi, now);
+    if (h && h.days >= 3 && h.kind !== 'waiting') out.push({ kind: 'stuck', item: hi, text: `${hi.priority} ${h.kind === 'hold' ? 'on hold' : 'stalled'} for ${h.days} days` });
+  }
+  for (const b of BUCKETS) {
+    for (const col of ['To Do', 'Ready'] as const) {
+      const list = open.filter((i) => i.column === col && i.bucket === b).sort((x, y) => (x.rank ?? 0) - (y.rank ?? 0));
+      const inv = list.findIndex((i, n) => list.slice(n + 1).some((j) => pri(j) < pri(i)));
+      if (inv >= 0) {
+        const worse = list[inv];
+        const better = list.slice(inv + 1).find((j) => pri(j) < pri(worse))!;
+        out.push({ kind: 'rank-inversion', bucket: b, item: better, other: worse, text: `${b} ${col}: #${worse.rank} is ${worse.priority} but #${better.rank} is ${better.priority}` });
+      }
+    }
+  }
+  const order: ConflictKind[] = ['lower-first', 'unowned', 'owner-off', 'stuck', 'rank-inversion'];
+  return out.sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind) || (a.item ? pri(a.item) : 9) - (b.item ? pri(b.item) : 9));
+}

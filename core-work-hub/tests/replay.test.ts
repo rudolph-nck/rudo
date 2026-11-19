@@ -4,7 +4,7 @@ import { replay, type SourcedEvent } from '../src/model/replay';
 import { analysts, checkWip, computeScore, coverageGaps, currentDispatch, nextDispatch, offOn, rotationShifts, schedule, rankKeyAt, rankedList, suggestOwner, suggestPriority, mapSourcePriority, personForSourceName } from '../src/model/logic';
 import { importTicketsCsv, maskNumbers, mergeSnapshot, parseCsv } from '../src/model/csv';
 import type { HubEvent, TicketsSnapshot, WorkItem } from '../src/model/types';
-import { heldUp, overview, shiftStats } from '../src/model/analytics';
+import { heldUp, overview, priorityConflicts, shiftStats } from '../src/model/analytics';
 import { demoSeed } from '../src/demo';
 
 let n = 0;
@@ -476,5 +476,22 @@ describe('rotation overrides, time off and support tracking', () => {
       { file: 'trey', event: { id: 'f', ts: '2026-11-21T09:00:00Z', user: 'trey', type: 'time.log', data: { bucket: 'dispatch', hours: 3, date: '2026-11-21' } } as HubEvent },
     ]);
     expect(shiftStats(s, 'trey', '2026-11-16', '2026-11-30')).toEqual({ cameIn: 2, triaged: 1, worked: 2, closed: 1, dispatchHours: 3, stillInIntake: 1 });
+  });
+});
+
+describe('priority conflicts', () => {
+  const g = (file: string, min: number, item: string, priority: string, owner?: string) =>
+    ev(file, min, { type: 'item.grade', item, data: { bucket: 'Support', priority, impact: 3, urgency: 3, effort: 1, owner } });
+  it('finds lower-priority work in Doing while a P1 waits, unowned P1s and rank inversions', () => {
+    const s = replay(defaultConfig(), snap([{}, {}, {}, {}]), [
+      g('nick', 1, 'SD:100', 'P1', 'wes'), move('nick', 2, 'SD:100', 'To Do'),
+      g('nick', 3, 'SD:101', 'P3', 'wes'), move('nick', 4, 'SD:101', 'Doing'),
+      g('nick', 5, 'SD:102', 'P2'), move('nick', 6, 'SD:102', 'Doing'),
+      g('nick', 7, 'SD:103', 'P4'), move('nick', 8, 'SD:103', 'To Do', { rankKey: 0 }),
+    ]);
+    const c = priorityConflicts(s);
+    expect(c.map((x) => x.kind)).toEqual(['lower-first', 'unowned', 'rank-inversion']);
+    expect(c[0]).toMatchObject({ item: { id: 'SD:100' }, other: { id: 'SD:101' } });
+    expect(c[2].text).toMatch(/#1 is P4 but #2 is P1/);
   });
 });

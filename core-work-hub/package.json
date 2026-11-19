@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "contrast": "node scripts/contrast.mjs",
-    "e2e": "node tests/e2e/multi-user.cjs && node tests/e2e/reprioritize.cjs && node tests/e2e/overview.cjs && node tests/e2e/timeoff.cjs"
+    "e2e": "node tests/e2e/multi-user.cjs && node tests/e2e/reprioritize.cjs && node tests/e2e/overview.cjs && node tests/e2e/timeoff.cjs && node tests/e2e/priorities.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

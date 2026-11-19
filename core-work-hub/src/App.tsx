@@ -14,6 +14,7 @@ import { Team } from './views/Team';
 import { Overview } from './views/Overview';
 import { Rotation } from './views/Rotation';
 import { TimeOff } from './views/TimeOff';
+import { Priorities } from './views/Priorities';
 import { Audit } from './views/Audit';
 import { Settings } from './views/Settings';
 import { MyWork, NeedsList } from './views/Lists';
@@ -70,6 +71,7 @@ function Sidebar() {
   const items: [View, string, string, number?][] = [
     ['overview', 'chart', 'Overview'],
     ['board', 'board', 'Board'],
+    ['priorities', 'flag', 'Priorities'],
     ['mine', 'me', 'My work'],
     ['triage', 'inbox', 'Intake', intake],
     ['team', 'team', 'Team'],
@@ -143,7 +145,7 @@ function Shell() {
     location.hash = `/${v}${p ? '/' + encodeURIComponent(p) : ''}`;
   }, []);
   useEffect(() => {
-    document.title = `${{ overview: 'Overview', rotation: 'Rotation', timeoff: 'Time off', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
+    document.title = `${{ overview: 'Overview', rotation: 'Rotation', timeoff: 'Time off', priorities: 'Priorities', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
     (document.querySelector('main') as HTMLElement | null)?.focus({ preventScroll: true });
   }, [route.view]);
   return (
@@ -160,6 +162,7 @@ function Shell() {
             {route.view === 'overview' && <Overview />}
             {route.view === 'rotation' && <Rotation />}
             {route.view === 'timeoff' && <TimeOff />}
+            {route.view === 'priorities' && <Priorities />}
             {route.view === 'audit' && <Audit />}
             {route.view === 'settings' && <Settings />}
             {route.view === 'list' && <NeedsList />}

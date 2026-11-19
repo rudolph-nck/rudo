@@ -30,6 +30,7 @@ const paths: Record<string, ReactNode> = {
   upload: <><path d="M12 21V9M7 14l5-5 5 5" /><path d="M4 3h16" /></>,
   folder: <path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />,
   calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></>,
+  flag: <><path d="M5 21V4" /><path d="M5 4h11l-2 4 2 4H5" /></>,
   triage: <><path d="M4 6h16M7 12h10M10 18h4" /></>,
 };
 export function Icon({ name, size = 18, label }: { name: keyof typeof paths | string; size?: number; label?: string }) {
