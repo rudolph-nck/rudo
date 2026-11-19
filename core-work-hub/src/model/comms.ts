@@ -48,10 +48,19 @@ function window(std: CommStandard, d: Date): [number, number] | undefined {
   return std.hours[d.getDay()];
 }
 const minsOf = (d: Date) => d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+/** That calendar day at a local clock time (minutes after midnight). Clock-based, so daylight-saving days work. */
 const at = (d: Date, mins: number) => {
   const x = new Date(d);
+  const whole = Math.floor(mins);
+  x.setHours(0, whole, Math.round((mins - whole) * 60), 0);
+  return x;
+};
+/** Midnight at the start of the next calendar day. Never step days by adding 24 hours: DST days are 23 or 25 hours long. */
+const nextDay = (d: Date) => {
+  const x = new Date(d);
   x.setHours(0, 0, 0, 0);
-  return new Date(x.getTime() + mins * 60000);
+  x.setDate(x.getDate() + 1);
+  return x;
 };
 
 /** `start` plus `minutes` of business time. */
@@ -68,7 +77,7 @@ export function addBusinessMinutes(std: CommStandard, start: Date, minutes: numb
         left -= avail;
       }
     }
-    cur = at(new Date(cur.getTime() + 864e5), 0);
+    cur = nextDay(cur);
   }
   return cur;
 }
@@ -86,7 +95,7 @@ export function businessMinutesBetween(std: CommStandard, a: Date, b: Date): num
       const to = Math.min(w[1], sameDay ? minsOf(b) : w[1]);
       if (to > from) total += to - from;
     }
-    cur = at(new Date(cur.getTime() + 864e5), 0);
+    cur = nextDay(cur);
   }
   return total;
 }
@@ -104,9 +113,10 @@ export function addBusinessDays(std: CommStandard, start: Date, days: number): D
   let cur = addBusinessMinutes(std, start, 0);
   const tod = minsOf(cur);
   for (let n = 0; n < days; n++) {
-    let d = at(new Date(cur.getTime() + 864e5), 0);
-    for (let guard = 0; guard < 30 && !window(std, d); guard++) d = at(new Date(d.getTime() + 864e5), 0);
-    const w = window(std, d)!;
+    let d = nextDay(cur);
+    for (let guard = 0; guard < 30 && !window(std, d); guard++) d = nextDay(d);
+    const w = window(std, d);
+    if (!w) return d; // no business day within a month (e.g. every day a holiday): stop rather than fail
     cur = at(d, Math.min(Math.max(tod, w[0]), w[1]));
   }
   return cur;

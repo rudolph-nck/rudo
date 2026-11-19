@@ -1,3 +1,4 @@
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { ProfileDialog } from './components/Profile';
 import { useCallback, useEffect, useState } from 'react';
 import { HubProvider, useHub } from './store/hub';
@@ -173,19 +174,21 @@ function Shell() {
           <Sidebar />
           <main className="main" tabIndex={-1} style={{ outline: 'none' }}>
             {error && <div className="banner error" role="alert" style={{ margin: '16px 28px 0' }}>{error}</div>}
-            {route.view === 'board' && <Board />}
-            {route.view === 'mine' && <MyWork />}
-            {route.view === 'triage' && <Triage />}
-            {route.view === 'team' && <Team />}
-            {route.view === 'overview' && <Overview />}
-            {route.view === 'rotation' && <Rotation />}
-            {route.view === 'timeoff' && <TimeOff />}
-            {route.view === 'priorities' && <Priorities />}
-            {route.view === 'teamscore' && <TeamScore />}
-            {route.view === 'notifications' && <Notifications />}
-            {route.view === 'audit' && <Audit />}
-            {route.view === 'settings' && <Settings />}
-            {route.view === 'list' && <NeedsList />}
+            <ErrorBoundary key={route.view}>
+              {route.view === 'board' && <Board />}
+              {route.view === 'mine' && <MyWork />}
+              {route.view === 'triage' && <Triage />}
+              {route.view === 'team' && <Team />}
+              {route.view === 'overview' && <Overview />}
+              {route.view === 'rotation' && <Rotation />}
+              {route.view === 'timeoff' && <TimeOff />}
+              {route.view === 'priorities' && <Priorities />}
+              {route.view === 'teamscore' && <TeamScore />}
+              {route.view === 'notifications' && <Notifications />}
+              {route.view === 'audit' && <Audit />}
+              {route.view === 'settings' && <Settings />}
+              {route.view === 'list' && <NeedsList />}
+            </ErrorBoundary>
           </main>
         </div>
         <Toaster />
