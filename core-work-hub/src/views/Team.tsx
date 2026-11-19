@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useHub } from '../store/hub';
 import { Avatar } from '../components/ui';
 import { CapacityStrip } from './Triage';
-import { addDays, analysts, currentDispatch, doingFor, isOverdue, personWipLimit, todayISO } from '../model/logic';
-import { BUCKETS, TIME_BUCKETS } from '../model/types';
+import { addDays, analysts, capacityFor, currentDispatch, doingFor, isOverdue, personWipLimit, todayISO } from '../model/logic';
+import { BUCKETS, LEVEL_LABEL, TIME_BUCKETS } from '../model/types';
 import { useUi } from '../components/actions';
 
 const mondayOf = (iso: string) => {
@@ -46,13 +46,14 @@ export function Team() {
           const overdue = items.filter((i) => i.owner === p.username && isOverdue(i));
           const unacked = items.filter((i) => i.owner === p.username && !i.acked && i.column !== 'Done' && i.column !== 'Intake');
           const hours = state.time.filter((t) => t.user === p.username && t.date >= from && t.date <= to);
+          const cap = capacityFor(cfg, p.username, from);
           const role = disp?.analyst === p.username ? 'dispatch' : disp?.backup === p.username ? 'backup' : undefined;
           return (
             <div className="team-row" key={p.username}>
               <div className="row">
                 <Avatar user={p.username} config={cfg} size="lg" />
                 <div>
-                  <div style={{ fontWeight: 800 }}>{p.name}</div>
+                  <div style={{ fontWeight: 800 }}>{p.name}{p.level ? <span className="small muted" style={{ fontWeight: 600 }}> · {LEVEL_LABEL[p.level]}</span> : null}</div>
                   {role === 'dispatch' && <span className="chip p3">On dispatch</span>}
                   {role === 'backup' && <span className="chip src">Dispatch backup</span>}
                 </div>
@@ -93,11 +94,11 @@ export function Team() {
                 {unacked.length > 0 && <span className="chip warn">{unacked.length} not acked</span>}
               </div>
               <div>
-                <div className="label" style={{ marginBottom: 4 }}>Hours vs capacity model</div>
+                <div className="label" style={{ marginBottom: 4 }}>Hours vs {cap.label.toLowerCase()} split</div>
                 <div className="hours">
                   {TIME_BUCKETS.map((b) => {
                     const h = hours.filter((t) => t.bucket === b.key).reduce((s, t) => s + t.hours, 0);
-                    const target = cfg.capacityModel[b.key] ?? 0;
+                    const target = cap.hours[b.key] ?? 0;
                     const pct = target ? Math.min(100, (h / target) * 100) : h ? 100 : 0;
                     return (
                       <div key={b.key} style={{ display: 'contents' }}>

@@ -8,7 +8,6 @@ import { useUi } from './actions';
 import { addDays, fmtAge, fmtShortDate, isOverdue, offOn, systemName } from '../model/logic';
 import { COLUMNS, COLUMN_LABEL, type WorkItem } from '../model/types';
 import { CommChip } from './Comm';
-import { computeTeamScore, criteriaOf, isProject } from '../model/teamscore';
 import { BUCKET_LABEL } from '../model/types';
 import { Avatar, BucketDot, Icon, PriorityChip, SourceBadge } from './ui';
 
@@ -33,9 +32,6 @@ export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNod
         {item.expedite && <span className="chip forced" title={`Forced priority: ${item.expedite.reason} (requested by ${item.expedite.requestedBy})`}>FORCED</span>}
         <PriorityChip p={item.priority} />
         <SourceBadge item={item} />
-        {isProject(item) && computeTeamScore(item, criteriaOf(state.config)).score !== undefined && (
-          <span className="chip ts-chip" title="Team score">★ {computeTeamScore(item, criteriaOf(state.config)).score}</span>
-        )}
         {menu}
       </div>
       <button className="title" onClick={() => openItem(item.id)} onPointerDown={(e) => e.stopPropagation()}>

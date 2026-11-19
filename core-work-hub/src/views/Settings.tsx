@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useHub } from '../store/hub';
 import { Avatar, download, Icon, toast } from '../components/ui';
-import { analysts, assignable, findPerson, personForSourceName, personWipLimit, ownerList } from '../model/logic';
+import { analysts, assignable, findPerson, personForSourceName, personWipLimit, ownerList, DEFAULT_CAPACITY_BY_LEVEL } from '../model/logic';
 import { isStatus } from '../model/replay';
 import { priorityStandardOf } from '../model/priority';
 import { DEFAULT_IMPORT_FILE } from '../store/autoimport';
 import { importTicketRows, importTicketsCsv, mergeSnapshot, type CsvImportResult } from '../model/csv';
 import { readXlsx } from '../model/xlsx';
-import { BUCKETS, BUCKET_LABEL, PRIORITIES, type Bucket, type NewEvent, type Priority, type PriorityStandard, type PriorityTarget, type Source, type SystemOwnership } from '../model/types';
+import { BUCKETS, BUCKET_LABEL, LEVEL_LABEL, TIME_BUCKETS, PRIORITIES, type Level, type TimeBucket, type Bucket, type NewEvent, type Priority, type PriorityStandard, type PriorityTarget, type Source, type SystemOwnership } from '../model/types';
 import { DemoStore } from '../store/storage';
 
 function DataImport() {
@@ -198,11 +198,17 @@ function WipSettings() {
     <section className="panel" aria-labelledby="wip-h">
       <div className="panel-head"><h2 id="wip-h" className="grow">WIP limits</h2><span className="small muted">Start at 1–2 items in Doing</span></div>
       <table className="table">
-        <thead><tr><th>Analyst</th><th>Doing limit</th>{BUCKETS.map((b) => <th key={b}>{BUCKET_LABEL[b]} limit</th>)}</tr></thead>
+        <thead><tr><th>Analyst</th><th>Level</th><th>Doing limit</th>{BUCKETS.map((b) => <th key={b}>{BUCKET_LABEL[b]} limit</th>)}</tr></thead>
         <tbody>
           {analysts(cfg).map((p) => (
             <tr key={p.username}>
               <td><div className="row"><Avatar user={p.username} config={cfg} />{p.name}</div></td>
+              <td>
+                <select className="input" style={{ width: 'auto' }} aria-label={`${p.name} level`} disabled={!edit} value={p.level ?? ''} onChange={(e) => void commit([{ type: 'config.person', data: { username: p.username, level: (e.target.value || null) as Level | null } }])}>
+                  <option value="">—</option>
+                  {(['senior', 'mid', 'junior'] as Level[]).map((l) => <option key={l} value={l}>{LEVEL_LABEL[l]}</option>)}
+                </select>
+              </td>
               <td>
                 <input className="input" style={{ width: 90 }} type="number" min={1} max={9} aria-label={`${p.name} Doing limit`} disabled={!edit} defaultValue={personWipLimit(cfg, p.username)}
                   onBlur={(e) => { const v = Number(e.target.value); if (v >= 1 && v !== personWipLimit(cfg, p.username)) void commit([{ type: 'config.person', data: { username: p.username, wipLimit: v } }]); }} />
@@ -223,6 +229,7 @@ function WipSettings() {
           ))}
           <tr>
             <td><strong>Whole team</strong></td>
+            <td />
             <td className="muted small">per bucket →</td>
             {BUCKETS.map((b) => (
               <td key={b}>
@@ -237,6 +244,43 @@ function WipSettings() {
           </tr>
         </tbody>
       </table>
+    </section>
+  );
+}
+
+function CapacitySettings() {
+  const { state, commit, role, readOnly } = useHub();
+  const cfg = state.config;
+  const edit = role === 'manager' && !readOnly;
+  const rows: (Level | 'support')[] = ['senior', 'mid', 'junior', 'support'];
+  const by = { ...DEFAULT_CAPACITY_BY_LEVEL, ...(cfg.capacityByLevel ?? {}) } as Record<Level | 'support', Record<TimeBucket, number>>;
+  return (
+    <section className="panel" aria-labelledby="cap-h">
+      <div className="panel-head"><h2 id="cap-h" className="grow">Weekly time split by level</h2><span className="small muted">Hours per week the Team page measures each person against. Support week applies automatically during someone's shift.</span></div>
+      <div className="table-wrap">
+        <table className="table">
+          <thead><tr><th>Level</th>{TIME_BUCKETS.map((b) => <th key={b.key}>{b.label}</th>)}<th>Total</th></tr></thead>
+          <tbody>
+            {rows.map((l) => {
+              const h = by[l];
+              const total = TIME_BUCKETS.reduce((t, b) => t + (h[b.key] ?? 0), 0);
+              return (
+                <tr key={l}>
+                  <td><strong>{l === 'support' ? 'On support week' : LEVEL_LABEL[l]}</strong>{l !== 'support' && <div className="small muted">{analysts(cfg).filter((p) => p.level === l).map((p) => p.name).join(', ') || 'nobody yet'}</div>}</td>
+                  {TIME_BUCKETS.map((b) => (
+                    <td key={b.key}>
+                      <input className="input" style={{ width: 70 }} type="number" min={0} max={40} aria-label={`${l} ${b.label} hours`} disabled={!edit} defaultValue={h[b.key] ?? 0}
+                        onBlur={(e) => { const v = Number(e.target.value); if (v !== h[b.key]) void commit([{ type: 'config.capacity', data: { level: l, hours: { ...h, [b.key]: v } } }]); }} />
+                      <div className="small muted">{total ? Math.round(((h[b.key] ?? 0) / total) * 100) : 0}%</div>
+                    </td>
+                  ))}
+                  <td>{total} h</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }
@@ -431,6 +475,7 @@ export function Settings() {
       <DataImport />
       <PriorityStandardSettings />
       <WipSettings />
+      <CapacitySettings />
       <SystemsSettings />
       <PeopleSettings />
     </div>

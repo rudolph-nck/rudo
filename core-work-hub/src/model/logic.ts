@@ -1,4 +1,5 @@
-import type { Rotation, ShiftLength, Bucket, Column, DispatchShift, HubConfig, HubState, Person, Priority, Role, SystemOwnership, WorkItem } from './types';
+import type { Rotation, ShiftLength, Bucket, Column, DispatchShift, HubConfig, HubState, Level, Person, Priority, Role, SystemOwnership, TimeBucket, WorkItem } from './types';
+import { LEVEL_LABEL } from './types';
 
 // ---------------------------------------------------------------- dates
 
@@ -383,6 +384,29 @@ export const doingFor = (state: HubState, username: string) =>
   [...state.items.values()].filter((i) => i.column === 'Doing' && i.owner === username && !i.stale);
 
 /** Would moving `item` into Doing (owned by `owner`) break a limit? */
+/** Weekly hours per bucket (about 40 h), by level; "support" applies to whoever is on their support shift. */
+export const DEFAULT_CAPACITY_BY_LEVEL: Record<Level | 'support', Record<TimeBucket, number>> = {
+  senior: { projects: 16, maintenance: 8, owner_tickets: 10, dispatch: 2, documentation: 4 },
+  mid: { projects: 12, maintenance: 8, owner_tickets: 12, dispatch: 4, documentation: 4 },
+  junior: { projects: 4, maintenance: 8, owner_tickets: 14, dispatch: 8, documentation: 6 },
+  support: { projects: 2, maintenance: 4, owner_tickets: 8, dispatch: 20, documentation: 6 },
+};
+
+/** Whether someone is on support on any weekday from `fromISO` for `days` days. */
+export function onSupportBetween(cfg: HubConfig, username: string, fromISO: string, days = 7): boolean {
+  for (let k = 0; k < days; k++) if (currentDispatch(cfg, addDays(fromISO, k))?.analyst === username) return true;
+  return false;
+}
+
+/** The weekly time split someone is measured against: support week first, then their level, then the team model. */
+export function capacityFor(cfg: HubConfig, username: string, weekFromISO = todayISO()): { hours: Record<TimeBucket, number>; label: string } {
+  const by = { ...DEFAULT_CAPACITY_BY_LEVEL, ...(cfg.capacityByLevel ?? {}) } as Record<Level | 'support', Record<TimeBucket, number>>;
+  if (onSupportBetween(cfg, username, weekFromISO, 5)) return { hours: by.support, label: 'Support week' };
+  const lvl = findPerson(cfg, username)?.level;
+  if (lvl) return { hours: by[lvl], label: LEVEL_LABEL[lvl] };
+  return { hours: cfg.capacityModel, label: 'Team model' };
+}
+
 export function checkWip(state: HubState, item: WorkItem, owner: string | undefined, toColumn: Column): WipCheck {
   const msgs: string[] = [];
   if (toColumn !== 'Doing' || (item.column === 'Doing' && item.owner === owner)) return { ok: true, messages: [] };
@@ -395,6 +419,9 @@ export function checkWip(state: HubState, item: WorkItem, owner: string | undefi
     const mine = others.filter((i) => i.owner === owner);
     const limit = personWipLimit(cfg, owner);
     if (mine.length + 1 > limit) msgs.push(`${p?.name ?? owner} would have ${mine.length + 1} in Doing (limit ${limit}).`);
+    // On a support shift, projects pause: support work comes first.
+    const shift = currentDispatch(cfg);
+    if (item.bucket === 'Project' && shift?.analyst === owner) msgs.push(`${p?.name ?? owner} is on support until ${fmtShortDate(shift.to)}: projects are paused during a support shift.`);
     const bl = item.bucket ? p?.bucketWip?.[item.bucket] : undefined;
     if (item.bucket && bl !== undefined) {
       const n = mine.filter((i) => i.bucket === item.bucket).length + 1;

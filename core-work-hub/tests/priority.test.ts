@@ -160,3 +160,53 @@ describe('stand-up list', () => {
     expect(m[0].suggested).toBe(ad.primary);
   });
 });
+
+describe('stand-up agenda: due today, coming up, check-ins', () => {
+  it('a P2 on day 3 of 3 is "due today"; one due in two days is "coming up"; a check-in counts as discussed', () => {
+    const s0 = snap([
+      { created: local(11, 16, 11).toISOString() }, // Mon 11:00 -> due Thu
+      { created: local(11, 18, 11).toISOString() }, // Wed 11:00 -> due Mon
+    ]);
+    const evs = [grade(local(11, 16, 11, 5), 'SD:100', 'P2'), grade(local(11, 18, 11, 5), 'SD:101', 'P2')];
+    const thu = local(11, 19, 10, 15);
+    const r = standup(replay(defaultConfig(), s0, evs), thu);
+    expect(r.dueToday.map((x) => x.item.id)).toEqual(['SD:100']);
+    expect(r.dueToday[0].why).toMatch(/Last day: day 3 of 3/);
+    expect(r.comingUp.map((x) => x.item.id)).toEqual(['SD:101']);
+    expect(r.discussed).toBe(0);
+    const s2 = replay(defaultConfig(), s0, [...evs, ev('trey', local(11, 19, 10, 20), { type: 'item.standup', item: 'SD:100', data: { status: 'at-risk', note: 'Vendor call at 2' } })]);
+    const r2 = standup(s2, local(11, 19, 10, 25));
+    expect(r2.discussed).toBe(1); // Trey is on support, so his check-in counts
+    expect(standupText(s2, r2, local(11, 19, 10, 25))).toMatch(/\[At risk: Vendor call at 2\]/);
+  });
+  it('analysts cannot record check-ins', () => {
+    const s = replay(defaultConfig(), snap([{}]), [grade(local(11, 2, 10), 'SD:100', 'P3'), ev('wes', local(11, 3), { type: 'item.standup', item: 'SD:100', data: { status: 'blocked' } })]);
+    expect(s.items.get('SD:100')!.standupLog).toBeUndefined();
+  });
+});
+
+describe('levels and support week', () => {
+  it('time split follows the level, and the support split during a support shift', async () => {
+    const { capacityFor } = await import('../src/model/logic');
+    const cfg = defaultConfig();
+    cfg.people.find((p) => p.username === 'wes')!.level = 'senior';
+    cfg.people.find((p) => p.username === 'michael')!.level = 'junior';
+    expect(capacityFor(cfg, 'wes', '2026-11-16')).toMatchObject({ label: 'Senior', hours: { projects: 16 } });
+    expect(capacityFor(cfg, 'michael', '2026-11-16')).toMatchObject({ label: 'Junior', hours: { dispatch: 8 } });
+    expect(capacityFor(cfg, 'trey', '2026-11-16')).toMatchObject({ label: 'Support week', hours: { dispatch: 20 } }); // Trey is on support
+    expect(capacityFor(cfg, 'noelle', '2026-11-16').label).toBe('Team model'); // no level set
+  });
+  it('projects pause for whoever is on support (WIP check warns; override still possible)', async () => {
+    const { checkWip, currentDispatch } = await import('../src/model/logic');
+    const onSupport = currentDispatch(defaultConfig())!.analyst; // whoever the rotation has on support today
+    const s = replay(defaultConfig(), snap([{}]), [grade(local(11, 2, 10), 'SD:100', 'P3', onSupport, 'Project')]);
+    const w = checkWip(s, s.items.get('SD:100')!, onSupport, 'Doing');
+    expect(w.ok).toBe(false);
+    expect(w.messages.join(' ')).toMatch(/on support until .*projects are paused/);
+  });
+  it('business time shows whole units only', async () => {
+    const { fmtBusiness, DEFAULT_STANDARD } = await import('../src/model/comms');
+    expect(fmtBusiness(DEFAULT_STANDARD, 540 * 1.6)).toBe('2 business days');
+    expect(fmtBusiness(DEFAULT_STANDARD, 200)).toBe('3h');
+  });
+});

@@ -114,6 +114,8 @@ export function rejectReason(config: HubConfig, file: string, e: HubEvent, item?
       return 'Only Nick can force a priority';
     case 'item.reprioritize':
       return grader ? undefined : 'Only Nick (or the person on support) changes priority';
+    case 'item.standup':
+      return grader ? undefined : 'Only Nick or the person on support records stand-up check-ins';
     case 'item.commit':
       return grader || item?.owner === file ? undefined : 'Only the owner, support or Nick sets a commitment';
     case 'item.ack':
@@ -389,11 +391,19 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
         markHubSet(w.id, 'priority', e.ts, file);
         break;
       }
+      case 'item.standup': {
+        const w = it!;
+        w.standupLog = [...(w.standupLog ?? []), { ts: e.ts, user: file, status: e.data.status, note: e.data.note }].slice(-20);
+        break;
+      }
       case 'item.commit': {
         const w = it!;
         w.commitment = e.data.date ? { date: e.data.date, by: file, ts: e.ts, note: e.data.note } : undefined;
         break;
       }
+      case 'config.capacity':
+        config.capacityByLevel = { ...(config.capacityByLevel ?? {}), [e.data.level]: e.data.hours };
+        break;
       case 'config.priorityStandard': {
         const cur = config.priorityStandard ?? {};
         const next = { ...cur, ...e.data } as typeof cur;
@@ -421,6 +431,7 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
         const p = config.people.find((x) => x.username === e.data.username);
         if (p) {
           if (e.data.wipLimit !== undefined) p.wipLimit = e.data.wipLimit;
+          if (e.data.level !== undefined) p.level = e.data.level ?? undefined;
           if (e.data.sdName !== undefined) p.sdName = e.data.sdName || undefined;
           if (e.data.aliases !== undefined) p.aliases = e.data.aliases;
           if (e.data.bucketWip !== undefined) p.bucketWip = e.data.bucketWip;

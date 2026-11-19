@@ -168,13 +168,19 @@ function Shell() {
   useEffect(() => {
     if (!lastSync || readOnly || !store.windowsPicture || !meP || meP.avatar !== undefined) return;
     const key = 'cwh.winpicTried.' + me;
-    try { if (localStorage.getItem(key)) return; localStorage.setItem(key, '1'); } catch { return; }
+    try { if (localStorage.getItem(key)) return; } catch { return; }
+    let cancelled = false;
+    const done = () => { try { localStorage.setItem(key, '1'); } catch { /* ignore */ } };
     void (async () => {
       try {
         const blob = await store.windowsPicture!();
-        if (blob) await commit([{ type: 'profile.set', data: { photo: await toAvatarPhoto(blob) } }]);
-      } catch { /* keep initials */ }
+        if (cancelled) return;
+        if (!blob) return done(); // Windows has no picture: don't ask again
+        // Only mark it done once saved, so a reload mid-way tries again next time.
+        if (await commit([{ type: 'profile.set', data: { photo: await toAvatarPhoto(blob) } }])) done();
+      } catch { /* try again next time */ }
     })();
+    return () => { cancelled = true; };
   }, [lastSync, readOnly, store, meP, me, commit]);
   useDesktopAlerts();
   useCopyLinks();

@@ -679,3 +679,37 @@ details.su-owners[open] > summary h2::before { content: '▾ '; }
 
 .backlog-bar { display: inline-block; width: 140px; height: 8px; border-radius: 4px; background: var(--surface-3); overflow: hidden; }
 .backlog-bar > span { display: block; height: 100%; background: var(--success); border-radius: 4px; }
+
+/* ---- Stand-up agenda rows */
+.su-progress { padding: 14px 16px; }
+.su-big { font-size: 26px; font-weight: 800; }
+.backlog-bar.wide { width: 220px; }
+.su-list { list-style: none; margin: 0; padding: 0 8px 8px; }
+.su-row { display: grid; grid-template-columns: 74px minmax(0, 1fr) 200px 32px auto; gap: 12px; align-items: center; padding: 10px 8px; border-top: 1px solid var(--border); border-left: 3px solid transparent; }
+.su-row:first-child { border-top: 0; }
+.su-row.checked.on-track { border-left-color: var(--success); }
+.su-row.checked.at-risk { border-left-color: var(--warn); }
+.su-row.checked.blocked { border-left-color: var(--danger); }
+.su-pri { display: flex; align-items: center; gap: 4px; }
+.su-title { font-weight: 700; color: var(--text); }
+.su-why { font-weight: 600; font-size: 13px; color: var(--text-2); }
+.su-why.past, .su-why.double { color: var(--danger); }
+.su-why.risk { color: var(--warn); }
+.su-note { margin-top: 4px; color: var(--text-2); }
+.su-status { display: inline-block; padding: 1px 7px; border-radius: 6px; font-size: 11.5px; font-weight: 700; background: var(--surface-2); color: var(--text-2); }
+.su-status.on-track { background: var(--success-soft); color: var(--success); }
+.su-status.at-risk { background: var(--warn-soft); color: var(--warn); }
+.su-status.blocked { background: var(--danger-soft); color: var(--danger); }
+.su-seg button { min-height: 30px; padding: 0 9px; font-size: 12.5px; }
+.su-seg button.on-track[aria-checked='true'] { color: var(--success); }
+.su-seg button.at-risk[aria-checked='true'] { color: var(--warn); }
+.su-seg button.blocked[aria-checked='true'] { color: var(--danger); }
+details.su-more > summary { cursor: pointer; list-style: none; }
+details.su-more > summary::-webkit-details-marker { display: none; }
+details.su-more > summary h2::before { content: '▸ '; color: var(--text-3); }
+details.su-more[open] > summary h2::before { content: '▾ '; }
+@media (max-width: 1250px) {
+  .su-row { grid-template-columns: 64px minmax(0, 1fr) 32px; }
+  .su-row .su-why { grid-column: 2; }
+  .su-row .su-act { grid-column: 1 / -1; }
+}

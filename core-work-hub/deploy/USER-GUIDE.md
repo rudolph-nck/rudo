@@ -28,14 +28,15 @@ Requester not responding: follow up every 48 h (P1 every 2 h); copy their manage
 If an update is missed, it goes to **you**, then to **whoever is on support** after a business day, then to **Nick**.
 
 ## Stand-up
-- **Stand-up page** (run by Nick and whoever is on support): open P1s, past target, missed commitments, due within a business day, repeatedly bumped, departments waiting, and the backlog to clear next. Each row: **Commit date** or **Re-prioritize** (lowering needs a reason; tick “Requester told”). **Copy for Teams** posts the list.
+- **Stand-up page** (run by Nick and whoever is on support), in order: open P1s, **due today** (last day of target, e.g. a P2 on day 3 of 3: address it or re-prioritize), past target, missed commitments, **coming up** (next two business days, a quick touch base), repeatedly bumped, departments waiting, and the backlog to clear next.
+- On each row: mark **On track / At risk / Blocked** (add a **Note** if useful), set a **Date** (commitment), or change the **Priority** (lowering needs a reason). The counter shows how many have been discussed today. **Copy for Teams** posts the list with today's check-ins.
 - **Intake (Triage):** grade new tickets and Wrike projects (projects use the project effort scale: days to months): bucket, impact, urgency, effort (hover any number to see what it means). Shortcuts: **J/K** move, **1–4** priority, **Enter** send, **O** open in Service Desk.
 - **Team score:** rate projects 1–5 (hover for meanings). Ties are settled in the meeting.
 - **Priorities:** all open work P1–P4 and any conflicts.
 - **Overview:** what's held up and everyone's load.
 
 ## Good to know
-- **WIP limit:** Doing is capped (usually 2). Finish or park something first.
+- **WIP limit:** Doing is capped (seniors 3, mid 3, juniors 2). Finish or park something first. During your **support week, projects pause**: support work comes first.
 - **Taking work off your plate** (to On Hold / Ready / To Do) asks for a reason.
 - **On support:** you also grade and rank during your shift; your shift stats are on **Rotation**.
 - **Forced priority** (red **FORCED** tag): leadership asked for it; it goes first.

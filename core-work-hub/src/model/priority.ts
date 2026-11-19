@@ -4,6 +4,7 @@ import { addBusinessDays, addBusinessMinutes, businessMinutesBetween, commStatus
 import { currentDispatch, findPerson, ownerList, todayISO } from './logic';
 import { isStatus } from './replay';
 import type { CommStandard, HubConfig, HubState, Priority, PriorityStandard, PriorityTarget, WorkItem } from './types';
+import { STANDUP_LABEL } from './types';
 
 export const PRIORITIES: Priority[] = ['P1', 'P2', 'P3', 'P4'];
 
@@ -141,7 +142,10 @@ export interface OwnerMismatch {
 export interface Standup {
   p1: StandupRow[];
   past: StandupRow[];
-  dueSoon: StandupRow[];
+  dueToday: StandupRow[];
+  comingUp: StandupRow[];
+  /** Must-discuss items with a check-in today. */
+  discussed: number;
   bumped: StandupRow[];
   missedCommitments: StandupRow[];
   departments: { department: string; idleDays: number; open: number; oldest: StandupRow }[];
@@ -185,12 +189,18 @@ export function standup(state: HubState, now = new Date()): Standup {
     .filter((r) => r.age.priority !== 'P1' && (r.age.stage === 'past' || r.age.stage === 'double') && !committed(r))
     .map((r) => ({ ...r, why: label(r) }))
     .sort((a, b) => RANK[a.age.effective] - RANK[b.age.effective] || byScore(a, b));
-  // Reaches its target within the next business day.
-  const tomorrow = addBusinessDays(std, now, 1);
-  const dueSoon = fresh
-    .filter((r) => r.age.priority !== 'P1' && r.age.stage !== 'past' && r.age.stage !== 'double' && r.age.stage !== 'waiting' && r.age.due <= tomorrow && !committed(r))
-    .map((r) => ({ ...r, why: `Target ${r.age.due.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} (day ${dayNo(r.age)} of ${r.age.target})` }))
+  // Last day of its target today (e.g. a P2 on day 3 of 3): address it at today's stand-up or re-prioritize.
+  const eod = endOfBusinessDay(std, now);
+  const dueToday = fresh
+    .filter((r) => r.age.priority !== 'P1' && r.age.stage !== 'past' && r.age.stage !== 'double' && r.age.stage !== 'waiting' && r.age.due <= eod && !committed(r))
+    .map((r) => ({ ...r, why: `Last day: day ${r.age.target} of ${r.age.target}, due ${r.age.due.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}` }))
     .sort(byScore);
+  // Coming up: reaches its target in the next two business days. A quick touch base.
+  const soonLimit = endOfBusinessDay(std, addBusinessDays(std, eod, 2));
+  const comingUp = fresh
+    .filter((r) => r.age.priority !== 'P1' && r.age.stage !== 'past' && r.age.stage !== 'double' && r.age.stage !== 'waiting' && r.age.due > eod && r.age.due <= soonLimit && !committed(r))
+    .map((r) => ({ ...r, why: `Target ${r.age.due.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} (day ${dayNo(r.age)} of ${r.age.target})` }))
+    .sort((a, b) => a.age.due.getTime() - b.age.due.getTime());
   const bumped = open.filter((r) => (r.item.bumps ?? 0) >= ps.bumpFlag).map((r) => ({ ...r, why: `Passed over ${r.item.bumps} times` })).sort(byScore);
   const missedCommitments = open.filter((r) => r.age.commitment?.missed).map((r) => ({ ...r, why: `Committed for ${r.age.commitment!.date}` })).sort(byScore);
   const waiting = open.filter((r) => r.age.stage === 'waiting').map((r) => ({ ...r, why: `${r.item.source_status ?? 'Waiting'} · day ${dayNo(r.age)} of ${r.age.target}` })).sort(byScore);
@@ -260,11 +270,16 @@ export function standup(state: HubState, now = new Date()): Standup {
 
   const next = [...backlogRows].sort(byScore).map((r) => ({ ...r, why: `${r.age.trueAgeDays} days old${r.age.ungraded ? ' · ungraded' : ''}` }));
   const pace = (closedThisWeek + closedLastWeek) / 2 || closedLastWeek || closedThisWeek;
-  const ids = new Set([...p1, ...past, ...missedCommitments, ...bumped, ...departments.slice(0, 5).map((d) => d.oldest), ...next.slice(0, ps.backlogDaily)].map((r) => r.item.id));
+  const must = [...p1, ...dueToday, ...past, ...missedCommitments, ...bumped, ...departments.slice(0, 5).map((d) => d.oldest), ...next.slice(0, ps.backlogDaily)];
+  const ids = new Set(must.map((r) => r.item.id));
+  const today = todayISO(now);
+  const discussed = [...ids].filter((id) => state.items.get(id)?.standupLog?.some((c) => todayISO(new Date(c.ts)) === today)).length;
   return {
     p1,
     past,
-    dueSoon,
+    dueToday,
+    comingUp,
+    discussed,
     bumped,
     missedCommitments,
     departments,
@@ -280,7 +295,12 @@ export function standup(state: HubState, now = new Date()): Standup {
 export function standupText(state: HubState, s: Standup, now = new Date()): string {
   const cfg = state.config;
   const name = (u?: string) => (u ? findPerson(cfg, u)?.name ?? u : 'no owner');
-  const line = (r: StandupRow) => `• ${r.age.priority}${r.age.raised ? `→${r.age.effective}` : ''} ${r.item.source_id ? `#${r.item.source_id} ` : ''}${r.item.title} (${name(r.item.owner)}) - ${r.why}`;
+  const today = todayISO(now);
+  const check = (r: StandupRow) => {
+    const c = [...(r.item.standupLog ?? [])].reverse().find((x) => todayISO(new Date(x.ts)) === today);
+    return c ? ` [${STANDUP_LABEL[c.status]}${c.note ? `: ${c.note}` : ''}]` : '';
+  };
+  const line = (r: StandupRow) => `• ${r.age.priority}${r.age.raised ? `→${r.age.effective}` : ''} ${r.item.source_id ? `#${r.item.source_id} ` : ''}${r.item.title} (${name(r.item.owner)}) - ${r.why}${check(r)}`;
   const support = currentDispatch(cfg, todayISO(now))?.analyst;
   const out = [`IT Core stand-up, ${now.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}${support ? ` · on support: ${name(support)}` : ''}`, ''];
   const sec = (title: string, rows: StandupRow[]) => {
@@ -290,7 +310,8 @@ export function standupText(state: HubState, s: Standup, now = new Date()): stri
   sec('Open P1s', s.p1);
   sec('Past target', s.past);
   sec('Missed commitments', s.missedCommitments);
-  sec('Due within a business day', s.dueSoon);
+  sec('Due today (last day of target)', s.dueToday);
+  sec('Coming up', s.comingUp);
   sec('Repeatedly bumped', s.bumped);
   sec('Departments waiting', s.departments.slice(0, 5).map((d) => d.oldest));
   const ps = priorityStandardOf(cfg);

@@ -1,4 +1,5 @@
 import { AVATAR_COLORS } from '../model/avatar';
+import { STANDUP_LABEL } from '../model/types';
 import { findPerson, systemName } from '../model/logic';
 import type { HubConfig, HubEvent } from '../model/types';
 
@@ -48,8 +49,12 @@ export function describeEvent(e: HubEvent, cfg: HubConfig): string {
       return `logged ${e.data.hours}h to ${e.data.bucket.replace('_', ' ')} on ${e.data.date}`;
     case 'item.reprioritize':
       return `changed priority to ${e.data.priority}: ${e.data.reason}${e.data.toldRequester ? ' (requester told)' : ''}${e.data.managerAware ? ' (discussed with Matt)' : ''}`;
+    case 'item.standup':
+      return `stand-up check-in: ${STANDUP_LABEL[e.data.status]}${e.data.note ? ` (${e.data.note})` : ''}`;
     case 'item.commit':
       return e.data.date ? `committed to ${e.data.date}${e.data.note ? `: ${e.data.note}` : ''}` : 'cleared the commitment date';
+    case 'config.capacity':
+      return `set the ${e.data.level === 'support' ? 'support-week' : e.data.level} time split (${Object.values(e.data.hours).join('/')} h)`;
     case 'config.priorityStandard':
       return `changed the priority standard${e.data.startFrom !== undefined ? ` (start date ${e.data.startFrom || 'none'})` : ''}`;
     case 'profile.set': {
@@ -62,7 +67,7 @@ export function describeEvent(e: HubEvent, cfg: HubConfig): string {
       return `changed their avatar${parts.length ? ': ' + parts.join(', ') : ''}`;
     }
     case 'config.person':
-      return `set ${who(e.data.username)}'s WIP limit to ${fmt(e.data.wipLimit)}`;
+      return e.data.level !== undefined ? `set ${who(e.data.username)}'s level to ${e.data.level ?? 'none'}` : `set ${who(e.data.username)}'s WIP limit to ${fmt(e.data.wipLimit)}`;
     case 'config.bucketWip':
       return `set bucket WIP limits: ${Object.entries(e.data).map(([k, v]) => `${k} ${fmt(v)}`).join(', ')}`;
     case 'config.dispatch':

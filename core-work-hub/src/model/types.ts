@@ -11,6 +11,10 @@ export type Bucket = 'Project' | 'Maintenance' | 'Support';
 export type Column = 'Intake' | 'To Do' | 'Ready' | 'Doing' | 'On Hold' | 'Waiting' | 'Done';
 export type Priority = 'P1' | 'P2' | 'P3' | 'P4';
 export type Role = 'manager' | 'analyst' | 'viewer';
+export type StandupStatus = 'on-track' | 'at-risk' | 'blocked';
+export const STANDUP_LABEL: Record<StandupStatus, string> = { 'on-track': 'On track', 'at-risk': 'At risk', blocked: 'Blocked' };
+export type Level = 'senior' | 'mid' | 'junior';
+export const LEVEL_LABEL: Record<Level, string> = { senior: 'Senior', mid: 'Mid', junior: 'Junior' };
 export type TimeBucket = 'projects' | 'maintenance' | 'owner_tickets' | 'dispatch' | 'documentation';
 
 export const BUCKETS: Bucket[] = ['Project', 'Maintenance', 'Support'];
@@ -90,6 +94,8 @@ export interface Person {
   avatar?: AvatarStyle;
   /** Doing limit for this analyst. */
   wipLimit?: number;
+  /** Experience level: picks the weekly time split the Team page compares against. */
+  level?: Level;
   /** A manager who also takes tickets: shows in the Team view, capacity strip and WIP limits. */
   works?: boolean;
   /** Optional per-bucket Doing limit for this analyst. */
@@ -276,6 +282,8 @@ export interface HubConfig {
   defaultWipLimit: number;
   /** Weekly hours per capacity bucket from the communication standards. */
   capacityModel: Record<TimeBucket, number>;
+  /** Weekly hours per bucket by level, and for anyone on their support week. Falls back to capacityModel. */
+  capacityByLevel?: Partial<Record<Level | 'support', Record<TimeBucket, number>>>;
   /** Service Desk statuses that move a card to Done automatically. */
   closedStatuses: string[];
   /** Statuses that mean "ready to close" (resolved but not yet closed). */
@@ -337,7 +345,8 @@ export type HubEvent = EventBase &
     | { type: 'item.reply'; item: string; data: { via: string; kind?: 'first' | 'update' | 'follow-up' | 'internal'; nextUpdate?: string; note?: string } }
     | { type: 'time.log'; item?: string; data: { bucket: TimeBucket; hours: number; date: string; note?: string } }
     | { type: 'profile.set'; data: { color?: string | null; emoji?: string | null; photo?: string | null } }
-    | { type: 'config.person'; data: { username: string; wipLimit?: number; bucketWip?: Partial<Record<Bucket, number>>; sdName?: string; aliases?: string[] } }
+    | { type: 'config.capacity'; data: { level: Level | 'support'; hours: Record<TimeBucket, number> } }
+    | { type: 'config.person'; data: { username: string; level?: Level | null; wipLimit?: number; bucketWip?: Partial<Record<Bucket, number>>; sdName?: string; aliases?: string[] } }
     | { type: 'config.bucketWip'; data: Partial<Record<Bucket, number>> }
     | { type: 'config.dispatch'; data: { shifts: DispatchShift[] } }
     | { type: 'config.rotation'; data: Rotation }
@@ -346,6 +355,7 @@ export type HubEvent = EventBase &
     | { type: 'team.score'; item: string; data: { score: number | null; reason?: string } }
     | { type: 'item.expedite'; item: string; data: Expedite | { clear: true; reason?: string } }
     | { type: 'item.reprioritize'; item: string; data: { priority: Priority; reason: string; toldRequester?: boolean; managerAware?: boolean } }
+    | { type: 'item.standup'; item: string; data: { status: StandupStatus; note?: string } }
     | { type: 'item.commit'; item: string; data: { date: string | null; note?: string } }
     | { type: 'config.priorityStandard'; data: Partial<PriorityStandard> }
     | { type: 'config.system'; data: SystemOwnership & { deleted?: boolean } }
@@ -412,6 +422,8 @@ export interface WorkItem {
   bumpLog?: { ts: string; by: string; why: string }[];
   /** Every priority change after grading, with the reason. */
   priorityLog?: { ts: string; user: string; from?: Priority; to: Priority; reason?: string; toldRequester?: boolean; managerAware?: boolean }[];
+  /** Stand-up check-ins by Nick or the person on support (latest last). */
+  standupLog?: { ts: string; user: string; status: StandupStatus; note?: string }[];
   /** A date the team committed to at stand-up (YYYY-MM-DD). */
   commitment?: { date: string; by: string; ts: string; note?: string };
   /** Team score inputs (projects): latest ratings per person, and a score the team set. */

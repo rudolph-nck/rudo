@@ -15,11 +15,13 @@ export function CommChip({ item }: { item: WorkItem }) {
   if (!st || st.level === 'ok') return null;
   const std = standardOf(state.config);
   const cls = st.level === 'soon' ? 'warn' : 'bad';
+  const short = st.kind === 'first' ? 'Response' : st.kind === 'follow-up' ? 'Follow-up' : 'Update';
+  const lateBy = st.lateMinutes ? fmtBusiness(std, st.lateMinutes).replace(' business day', ' day') : '';
   const text =
     st.level === 'soon'
-      ? `${st.kind === 'first' ? 'Response' : st.kind === 'follow-up' ? 'Follow-up' : 'Update'} due ${fmtDue(st.due)}`
+      ? `${short} due ${fmtDue(st.due)}`
       : st.level === 'overdue'
-        ? `${st.label} late`
+        ? `${short} late · ${lateBy}`
         : st.level === 'support'
           ? 'Escalated to support'
           : 'Escalated to Nick';

@@ -51,7 +51,7 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   await p.getByRole('button', { name: /Rank the Projects board/ }).click();
   await p.waitForTimeout(300);
   await p.goto(file + '?demo&as=nick#/board'); await p.waitForSelector('.card');
-  check((await p.locator('.chip.ts-chip').count()) >= 3, 'project cards show their team score');
+  check((await p.locator('.card .chip.ts-chip').count()) === 0, 'Kanban cards stay clean: team score points live on the Team score page, not on cards');
   // Viewer: read-only
   const m = await ctx.newPage(); await m.goto(file + '?demo&as=matt#/teamscore'); await m.waitForSelector('.ts-list');
   check((await m.getByRole('button', { name: /^(Rate|Update my rating|Set score)/ }).count()) === 0, 'Matt sees team scores read-only');

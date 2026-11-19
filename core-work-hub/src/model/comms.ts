@@ -289,16 +289,15 @@ export function commSummary(state: HubState, now = new Date()) {
   };
 }
 
-/** "3h 20m" / "2 business days" style for business minutes. */
+/** Whole units only: "2 business days" (a started day counts) or "3h" / "40m" under a day. */
 export function fmtBusiness(std: CommStandard, mins: number) {
   const day = workdayMinutes(std);
   if (mins >= day) {
-    const d = Math.round((mins / day) * 10) / 10;
+    const d = Math.ceil(mins / day - 0.05);
     return `${d} business day${d === 1 ? '' : 's'}`;
   }
-  const h = Math.floor(mins / 60);
-  const m = Math.round(mins % 60);
-  return h ? `${h}h${m ? ` ${m}m` : ''}` : `${m}m`;
+  if (mins >= 60) return `${Math.round(mins / 60)}h`;
+  return `${Math.max(1, Math.round(mins))}m`;
 }
 
 /** Ready-to-paste note for the requester, following the standard's wording. */
