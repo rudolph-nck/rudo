@@ -125,13 +125,29 @@
     "documentation": 4
   },
   "closedStatuses": [
-    "Closed",
-    "Cancelled",
+    "Closed*",
     "Canceled",
+    "Cancelled",
+    "Rejected",
     "Completed"
   ],
   "resolvedStatuses": [
     "Resolved"
+  ],
+  "ticketUrls": {
+    "SD": "https://servicedesk.example.com/WorkOrder.do?woMode=viewWO&woID={num}",
+    "Wrike": "https://www.wrike.com/open.htm?id={id}"
+  },
+  "statusColumns": {
+    "Waiting for CORE": null,
+    "Waiting*": "Waiting",
+    "On Hold": "Waiting",
+    "Onhold": "Waiting",
+    "Pending*": "Waiting"
+  },
+  "sourceDrivenColumns": [
+    "Waiting",
+    "Done"
   ],
   "analystsCanGrade": false,
   "defaultUpdateDays": 2

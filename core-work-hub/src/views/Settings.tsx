@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { useHub } from '../store/hub';
 import { Avatar, download, Icon, toast } from '../components/ui';
-import { addDays, analysts, assignable, findPerson, personWipLimit, todayISO } from '../model/logic';
+import { addDays, analysts, assignable, findPerson, personForSourceName, personWipLimit, todayISO } from '../model/logic';
+import { isStatus } from '../model/replay';
 import { importTicketsCsv, mergeSnapshot, type CsvImportResult } from '../model/csv';
 import { BUCKETS, BUCKET_LABEL, type Bucket, type DispatchShift, type Source, type SystemOwnership } from '../model/types';
 import { DemoStore } from '../store/storage';
 
 function DataImport() {
-  const { state, me, role, readOnly, writeSnapshot, store } = useHub();
+  const { state, me, role, readOnly, writeSnapshot, store, commit } = useHub();
   const [source, setSource] = useState<Source>('SD');
-  const [tpl, setTpl] = useState(() => localStorage.getItem('cwh.urlTpl.SD') ?? 'https://servicedesk.example.com/WorkOrder.do?woMode=viewWO&woID={id}');
+  const [tpl, setTpl] = useState(() => localStorage.getItem('cwh.urlTpl.SD') ?? state.config.ticketUrls.SD ?? '');
   const [res, setRes] = useState<CsvImportResult>();
   const snap = state.snapshot;
   const manager = role === 'manager' && !readOnly;
@@ -37,7 +38,7 @@ function DataImport() {
                 </select>
               </label>
               <label className="field">
-                <span>Link template ({'{id}'} = ticket number)</span>
+                <span>Link pattern ({'{id}'} = INC-79744, {'{num}'} = 79744)</span>
                 <input className="input" value={tpl} onChange={(e) => setTpl(e.target.value)} />
               </label>
             </div>
@@ -50,15 +51,17 @@ function DataImport() {
                 onChange={async (e) => {
                   const f = e.target.files?.[0];
                   if (!f) return;
-                  setRes(importTicketsCsv(await f.text(), source, tpl));
+                  setRes(importTicketsCsv(await f.text(), source, { urlTemplate: tpl, isClosed: (st) => isStatus(state.config.closedStatuses, st) }));
                 }}
               />
             </label>
             {res && (
               <div className="stack">
                 <div className={`banner ${res.tickets.length ? 'info' : 'error'}`}>
-                  {res.tickets.length} rows ready. Columns matched: {Object.entries(res.columns).map(([k, v]) => `${v} → ${k}`).join(', ') || 'none'}.
+                  {res.tickets.length} tickets ready ({res.tickets.filter((t) => !isStatus(state.config.closedStatuses, t.source_status)).length} open, the rest closed in the last 90 days)
+                  {res.skippedOldClosed ? `; ${res.skippedOldClosed} older closed tickets left out` : ''}. Columns matched: {Object.entries(res.columns).map(([k, v]) => `${v} → ${k}`).join(', ') || 'none'}.
                 </div>
+                <TechnicianMap tickets={res.tickets} onSave={async (pairs) => { if (await commit(pairs.map(([username, sdName]) => ({ type: 'config.person', data: { username, sdName } })))) toast('Technician names saved.'); }} />
                 {res.warnings.length > 0 && <div className="banner warn"><div>{res.warnings.slice(0, 6).map((w) => <div key={w}>{w}</div>)}{res.warnings.length > 6 && <div>…and {res.warnings.length - 6} more</div>}</div></div>}
                 <div className="row">
                   <button
@@ -88,6 +91,59 @@ function DataImport() {
         )}
       </div>
     </section>
+  );
+}
+
+/** Service Desk technician -> hub person. Prefilled by name matching; Nick confirms or corrects. */
+function TechnicianMap({ tickets, onSave }: { tickets: { source_owner?: string; source_status: string }[]; onSave: (pairs: [string, string][]) => void }) {
+  const { state } = useHub();
+  const cfg = state.config;
+  const counts = new Map<string, number>();
+  tickets.forEach((t) => t.source_owner && !isStatus(cfg.closedStatuses, t.source_status) && counts.set(t.source_owner, (counts.get(t.source_owner) ?? 0) + 1));
+  tickets.forEach((t) => t.source_owner && !counts.has(t.source_owner) && counts.set(t.source_owner, 0));
+  const names = [...counts.keys()].sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0));
+  const [map, setMap] = useState<Record<string, string>>(() => Object.fromEntries(names.map((n) => [n, personForSourceName(cfg, n)?.username ?? ''])));
+  if (!names.length) return null;
+  const people = assignable(cfg);
+  return (
+    <div className="panel" style={{ boxShadow: 'none' }}>
+      <div className="panel-head">
+        <h3 className="grow">Service Desk technicians</h3>
+        <span className="small muted">Service Desk assigns the work. Match each technician to a hub person, or leave “Not on the hub”.</span>
+      </div>
+      <div className="table-wrap">
+        <table className="table">
+          <thead><tr><th>Technician in Service Desk</th><th className="num">Open tickets</th><th>Hub person</th></tr></thead>
+          <tbody>
+            {names.map((n) => (
+              <tr key={n}>
+                <td>{n}</td>
+                <td className="num">{counts.get(n) || ''}</td>
+                <td>
+                  <select className="input" aria-label={`Hub person for ${n}`} value={map[n] ?? ''} onChange={(e) => setMap({ ...map, [n]: e.target.value })}>
+                    <option value="">Not on the hub</option>
+                    {people.map((p) => <option key={p.username} value={p.username}>{p.name}</option>)}
+                  </select>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="row" style={{ padding: 12 }}>
+        <button
+          className="btn"
+          onClick={() => {
+            const pairs = Object.entries(map).filter(([, u]) => u).map(([n, u]) => [u, n] as [string, string]);
+            const dup = pairs.map(([u]) => u).find((u, i, a) => a.indexOf(u) !== i);
+            if (dup) return toast(`${findPerson(cfg, dup)?.name} is matched to two technicians; pick one.`);
+            onSave(pairs.filter(([u, n]) => findPerson(cfg, u)?.sdName !== n));
+          }}
+        >
+          Save technician names
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -194,12 +250,13 @@ function SystemsSettings() {
       <div className="panel-head"><h2 id="sys-h" className="grow">Ownership map</h2><span className="small muted">Grading suggests owners from this map, alternating primary and secondary.</span></div>
       <div className="table-wrap">
         <table className="table">
-          <thead><tr><th>System</th><th>Primary</th><th>Secondary</th><th>Third backup</th><th>Criticality</th><th><span className="sr-only">Edit</span></th></tr></thead>
+          <thead><tr><th>System</th><th>SD sub-categories</th><th>Primary</th><th>Secondary</th><th>Third backup</th><th>Criticality</th><th><span className="sr-only">Edit</span></th></tr></thead>
           <tbody>
             {cfg.systems.map((s) =>
               draft?.id === s.id ? (
                 <tr key={s.id}>
                   <td><input className="input" aria-label="System name" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} /></td>
+                  <td><input className="input" aria-label="Service Desk sub-categories, comma separated" placeholder="Symitar Quest, SymXchange" value={(draft.aliases ?? []).join(', ')} onChange={(e) => setDraft({ ...draft, aliases: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) })} /></td>
                   <td><PersonSel label="Primary" v={draft.primary} on={(x) => setDraft({ ...draft, primary: x })} /></td>
                   <td><PersonSel label="Secondary" v={draft.secondary} on={(x) => setDraft({ ...draft, secondary: x })} /></td>
                   <td><PersonSel label="Third backup" v={draft.third} on={(x) => setDraft({ ...draft, third: x })} /></td>
@@ -212,6 +269,7 @@ function SystemsSettings() {
               ) : (
                 <tr key={s.id}>
                   <td><strong>{s.name}</strong></td>
+                  <td className="small muted">{s.aliases?.join(', ') || '—'}</td>
                   <td>{findPerson(cfg, s.primary)?.name ?? '—'}</td>
                   <td>{findPerson(cfg, s.secondary)?.name ?? '—'}</td>
                   <td>{findPerson(cfg, s.third)?.name ?? '—'}</td>

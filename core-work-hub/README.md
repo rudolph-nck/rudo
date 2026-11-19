@@ -111,7 +111,7 @@ npm run e2e        # multi-user browser test (serve dist/ on :4173 first, see th
 ## Working with Service Desk
 
 ### Use the board, jump to the ticket
-Every ticket card's **SD #number ↗** badge opens the ticket in Service Desk in a new tab. The card details have an **Open #… in Service Desk** button, and Triage has one too (shortcut **O**). Links are built from `ticketUrls` in `hub-config.json` (for example `"SD": "https://<sdp host>/WorkOrder.do?woMode=viewWO&woID={id}"`), so every card gets a link even if an import didn't carry one. Wrike items use the `Wrike` pattern.
+Every ticket card's **SD #number ↗** badge opens the ticket in Service Desk in a new tab. The card details have an **Open #… in Service Desk** button, and Triage has one too (shortcut **O**). Links are built from `ticketUrls` in `hub-config.json` (for example `"SD": "https://<sdp host>/WorkOrder.do?woMode=viewWO&woID={num}"`, where `{id}` is the full ticket ID like `INC-79744` and `{num}` is just `79744`; open a ticket in Service Desk and copy its address to confirm), so every card gets a link even if an import didn't carry one. Wrike items use the `Wrike` pattern.
 
 ### Who controls which column
 | Column | Controlled by | Why |
@@ -121,6 +121,29 @@ Every ticket card's **SD #number ↗** badge opens the ticket in Service Desk in
 | Done | **Service Desk status** (for tickets) | Closing a ticket in Service Desk moves the card on the next sync. "Resolved" shows in the Ready to close tile. |
 
 Dragging a ticket into or out of a Service Desk-controlled column shows **Service Desk controls this one** with a button to open the ticket. The rule is also enforced when changes are replayed, so a hand-edited change file can't get around it. Hub-only and Wrike items move freely. Change which columns are locked with `sourceDrivenColumns`. Note that Service Desk's "On Hold" status (waiting on someone) maps to **Waiting**; the hub's **On Hold** column means "we deprioritized it".
+
+### Service Desk assigns the work
+- If a ticket has a technician in Service Desk, that person owns the card. The owner shows as "assigned in Service Desk" with a **Reassign in Service Desk** link, and grading can't change it.
+- The hub assigns only tickets that are unassigned in SD, using the rotation suggestion or **Pick up**. The card then reminds you to set the same technician in Service Desk.
+- When SD reassigns a ticket the hub had given to someone else, SD wins and the change is listed under Sync conflicts.
+- Technicians who aren't on the hub (another team) show as an outlined avatar with their initials. Their tickets don't count in "No owner".
+- **Matching names:** Service Desk uses full names ("Wesley Wilson"). The hub matches first names automatically, and the import screen has a **Service Desk technicians** table to confirm or correct each match (saved as `sdName`). Viewers are never matched automatically.
+
+### Importing the "Core - All" report
+Export the report as CSV and import it in **Settings → Ticket data**. The importer:
+- finds the header below the report's title lines;
+- treats "Not Assigned" and "-" as empty;
+- keeps open tickets plus tickets closed in the last 90 days;
+- uses the SLA as the starting priority when there's no Priority column (Critical → P1, High/VIP → P2, Medium → P3, Low → P4);
+- uses Department as the requester;
+- sets each ticket's system from its Sub Category through the ownership map's **SD sub-categories** (aliases).
+
+Status defaults match the report:
+- `Closed*` (all the "Closed - …" variants), Canceled and Rejected → Done.
+- Waiting for Requester / 3rd Party / Management / Infrastructure / Service Desk → Waiting.
+- **Waiting for CORE** stays where the hub has it, because the ball is in our court.
+
+A ticket that's waiting in SD but hasn't been graded yet stays in Intake until it's graded.
 
 ### The grade lives in the hub
 Bucket, impact, urgency, effort, score, rank and owner are stored in the hub's change files against the ticket number (`SD:48211`), so they survive every sync and every re-import. Service Desk keeps its own priority, which seeds the hub's until the item is graded. For reporting, the **Items CSV** on the Metrics page has `source_id` next to the score, bucket and rank, so Power BI can join it to Service Desk data. If the team wants the score visible inside Service Desk, add custom fields there (for example Hub Bucket, Hub Score, Hub Rank) and fill them with the Phase 2 write-back below.

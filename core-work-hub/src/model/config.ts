@@ -32,13 +32,16 @@ export function defaultConfig(): HubConfig {
     bucketWip: {},
     defaultWipLimit: 2,
     capacityModel: { projects: 14, maintenance: 8, owner_tickets: 10, dispatch: 4, documentation: 4 },
-    closedStatuses: ['Closed', 'Cancelled', 'Canceled', 'Completed'],
+    // "Closed*" covers "Closed - Requester Unresponsive", "Closed - Moved to Project", "Closed - Requires 3rd Party".
+    closedStatuses: ['Closed*', 'Canceled', 'Cancelled', 'Rejected', 'Completed'],
     resolvedStatuses: ['Resolved'],
     ticketUrls: {
-      SD: 'https://servicedesk.example.com/WorkOrder.do?woMode=viewWO&woID={id}',
+      // {id} = "INC-79744", {num} = "79744". Open a ticket in Service Desk and copy its address to confirm the pattern.
+      SD: 'https://servicedesk.example.com/WorkOrder.do?woMode=viewWO&woID={num}',
       Wrike: 'https://www.wrike.com/open.htm?id={id}',
     },
-    statusColumns: { 'On Hold': 'Waiting', Onhold: 'Waiting', 'Waiting*': 'Waiting', 'Pending*': 'Waiting' },
+    // "Waiting for CORE" means the ball is in our court, so it stays wherever the hub has it.
+    statusColumns: { 'Waiting for CORE': null, 'Waiting*': 'Waiting', 'On Hold': 'Waiting', Onhold: 'Waiting', 'Pending*': 'Waiting' },
     sourceDrivenColumns: ['Waiting', 'Done'],
     analystsCanGrade: false,
     defaultUpdateDays: 2,

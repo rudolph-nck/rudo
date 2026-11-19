@@ -45,7 +45,16 @@ export function avatarColor(username: string, config: HubConfig) {
   const i = config.people.findIndex((p) => p.username === username);
   return AVATAR_COLORS[(i < 0 ? username.length : i) % AVATAR_COLORS.length];
 }
-export function Avatar({ user, config, size }: { user?: string; config: HubConfig; size?: 'lg' }) {
+export function Avatar({ user, config, size, external }: { user?: string; config: HubConfig; size?: 'lg'; external?: string }) {
+  if (!user && external) {
+    const clean = external.replace(/^retained until [\d/]+ - /i, '');
+    const ini = clean.split(/\s+/).filter(Boolean).map((w) => w[0]).filter((c) => /[a-z]/i.test(c));
+    return (
+      <span className={`avatar ext ${size ?? ''}`} role="img" aria-label={`${clean} (Service Desk)`} title={`${clean}: assigned in Service Desk, not on the hub`}>
+        {((ini[0] ?? '?') + (ini.length > 1 ? ini[ini.length - 1] : '')).toUpperCase()}
+      </span>
+    );
+  }
   if (!user)
     return (
       <span className={`avatar none ${size ?? ''}`} role="img" aria-label="No owner" title="No owner">

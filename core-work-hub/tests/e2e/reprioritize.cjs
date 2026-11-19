@@ -34,30 +34,36 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   await p.waitForTimeout(300);
   check(await p.locator('.cell[aria-label="Ready, Maintenance"] article.card').filter({ has: p.getByRole('button', { name: 'Patch Tuesday: server group B', exact: true }) }).count() === 1, 'On Hold -> Ready');
 
-  // Doing -> Ready with release (Tabitha's Intune item)
+  // An SD-assigned ticket can't be released from the hub: the dialog points to Service Desk instead.
   const t = p.locator('article.card', { hasText: 'Intune compliance' });
   await t.getByRole('button', { name: /Actions for/ }).click();
   await p.getByRole('menuitem', { name: 'Ready to pick up' }).click();
-  await p.getByLabel(/Why is it coming off the plate/).fill('Tabitha is out; anyone can take it');
-  check(await p.getByLabel(/Release Tabitha/).isChecked(), 'release defaults on for Ready');
+  await p.getByLabel(/Why is it coming off the plate/).waitFor();
+  check(await p.getByText('Assigned in Service Desk. To free it').count() === 1 && await p.getByLabel(/Release Tabitha/).count() === 0, 'SD-assigned ticket: no release option, points to Service Desk');
+  await p.getByRole('button', { name: 'Cancel' }).click();
+
+  // Doing -> Ready with release on a Wrike item (Wes's SharePoint migration); Cathy picks it up.
+  const m = p.locator('article.card').filter({ has: p.getByRole('button', { name: 'Migrate department file shares to SharePoint', exact: true }) });
+  await m.getByRole('button', { name: /Actions for/ }).click();
+  await p.getByRole('menuitem', { name: 'Ready to pick up' }).click();
+  await p.getByLabel(/Why is it coming off the plate/).fill('Wes is on the core upgrade; anyone can take it');
+  check(await p.getByLabel(/Release Wes/).isChecked(), 'release defaults on for Ready');
   await p.getByRole('button', { name: 'Move to Ready to pick up' }).click();
   await p.waitForTimeout(300);
-  const rc = p.locator('.cell[aria-label="Ready, Support"] article.card', { hasText: 'Intune compliance' });
-  check(await rc.count() === 1 && /#1/.test(await rc.innerText()), 'released to top of Support Ready (#1)');
-  check(await rc.locator('.avatar').getAttribute('aria-label') === 'No owner', 'owner cleared');
+  const rc = p.locator('.cell[aria-label="Ready, Project"] article.card').filter({ has: p.getByRole('button', { name: 'Migrate department file shares to SharePoint', exact: true }) });
+  check(await rc.count() === 1 && /#1/.test(await rc.innerText()), 'released to top of Projects Ready (#1)');
+  check(await rc.locator('.avatar').first().getAttribute('aria-label') === 'No owner', 'owner cleared');
 
-  // Wes picks it up from his session (same browser storage)
   const w = await ctx.newPage(); w.on('pageerror', e => errs.push(e.message));
-  await w.goto(file + '?demo&as=wes'); await w.waitForSelector('.card');
-  const wc = w.locator('article.card', { hasText: 'Intune compliance' });
+  await w.goto(file + '?demo&as=cathy'); await w.waitForSelector('.card');
+  const wc = w.locator('article.card').filter({ has: w.getByRole('button', { name: 'Migrate department file shares to SharePoint', exact: true }) });
   await wc.getByRole('button', { name: /Pick up/ }).click();
   await w.waitForTimeout(400);
-  // Wes limit 2, has SharePoint migration in Doing -> should fit
-  const dc = w.locator('.cell[aria-label="Doing, Support"] article.card', { hasText: 'Intune compliance' });
-  check(await dc.count() === 1 && await dc.locator('.avatar').getAttribute('aria-label') === 'Wes', 'Wes picked it up: Doing, owner Wes');
-  await w.goto(file + '?demo&as=wes#/audit'); await w.waitForSelector('table');
+  const dc = w.locator('.cell[aria-label="Doing, Project"] article.card').filter({ has: w.getByRole('button', { name: 'Migrate department file shares to SharePoint', exact: true }) });
+  check(await dc.count() === 1 && await dc.locator('.avatar').first().getAttribute('aria-label') === 'Cathy', 'Cathy picked it up: Doing, owner Cathy');
+  await w.goto(file + '?demo&as=cathy#/audit'); await w.waitForSelector('table');
   const txt = await w.locator('section.panel table').last().innerText();
-  check(/released the owner — reason: “Tabitha is out/.test(txt), 'audit shows release with reason');
+  check(/released the owner — reason: “Wes is on the core upgrade/.test(txt), 'audit shows release with reason');
   await p.emulateMedia({ colorScheme: 'dark' });
   await p.reload(); await p.waitForSelector('.card');
   await p.screenshot({ path: (process.env.SHOTS || require('os').tmpdir()) + '/board-v2-dark.png' });

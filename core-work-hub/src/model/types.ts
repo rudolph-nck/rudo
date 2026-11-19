@@ -43,6 +43,11 @@ export interface SourceTicket {
   source_owner?: string;
   group?: string;
   category?: string;
+  /** Service Desk sub-category ("Symitar Quest", "Meridian Link"…); seeds the item's system via the ownership map. */
+  subcategory?: string;
+  department?: string;
+  /** Service Desk SLA due date. */
+  due_by?: string;
   created: string;
   closed?: string;
   /** Per-field timestamps of when the *source* last changed that field (set by the sync), used for conflicts. */
@@ -75,6 +80,8 @@ export interface Person {
 export interface SystemOwnership {
   id: string;
   name: string;
+  /** Service Desk sub-categories (or categories) that belong to this system, e.g. ["Symitar Quest", "SymXchange"]. */
+  aliases?: string[];
   primary?: string;
   secondary?: string;
   third?: string;
@@ -109,7 +116,7 @@ export interface HubConfig {
    * Service Desk statuses that put a card in a column automatically (case-insensitive; a trailing * matches
    * any ending, e.g. "Waiting*"). Closed statuses always mean Done.
    */
-  statusColumns: Record<string, Column>;
+  statusColumns: Record<string, Column | null>;
   /** Columns that Service Desk status controls for synced tickets: the hub won't move SD cards into or out of them. */
   sourceDrivenColumns: Column[];
   /** When true, analysts may grade and rank too (team grading in standup from any seat). */
@@ -154,7 +161,7 @@ export type HubEvent = EventBase &
     | { type: 'item.comment'; item: string; data: { text: string } }
     | { type: 'item.reply'; item: string; data: { via: string } }
     | { type: 'time.log'; item?: string; data: { bucket: TimeBucket; hours: number; date: string; note?: string } }
-    | { type: 'config.person'; data: { username: string; wipLimit?: number; bucketWip?: Partial<Record<Bucket, number>> } }
+    | { type: 'config.person'; data: { username: string; wipLimit?: number; bucketWip?: Partial<Record<Bucket, number>>; sdName?: string } }
     | { type: 'config.bucketWip'; data: Partial<Record<Bucket, number>> }
     | { type: 'config.dispatch'; data: { shifts: DispatchShift[] } }
     | { type: 'config.system'; data: SystemOwnership & { deleted?: boolean } }
@@ -210,6 +217,9 @@ export interface WorkItem {
   /** Source says closed (auto-Done). */
   sourceClosed?: boolean;
   sourceResolved?: boolean;
+  /** Owner comes from the Service Desk technician (reassign in Service Desk, not here). */
+  ownerFromSource?: boolean;
+  subcategory?: string;
   /** Set when the card's column comes from its Service Desk status (it can't be moved in the hub). */
   statusDriven?: Column;
 }

@@ -93,6 +93,10 @@ export function UiProvider({ children }: { children: ReactNode }) {
         setSdOwned({ item, to });
         return false;
       }
+      if (!grader && item.ownerFromSource && item.owner !== me) {
+        toast(`Assigned to ${item.owner ? findPerson(state.config, item.owner)?.name : item.source_owner} in Service Desk. Reassign it there first.`);
+        return false;
+      }
       if (!grader && item.owner && item.owner !== me) {
         toast(`Only ${findPerson(state.config, item.owner)?.name ?? item.owner} or Nick can move this card.`);
         return false;
@@ -102,7 +106,7 @@ export function UiProvider({ children }: { children: ReactNode }) {
         return new Promise<boolean>((resolve) => {
           setHoldTo(to);
           setHoldReason('');
-          setHoldRelease(to !== 'On Hold');
+          setHoldRelease(to !== 'On Hold' && !item.ownerFromSource);
           setHoldTop(opts.index === undefined);
           setHold({ item, to, opts, resolve });
         });
@@ -160,13 +164,13 @@ export function UiProvider({ children }: { children: ReactNode }) {
 
   const pickUp = useCallback(
     async (item: WorkItem) => {
-      if (item.owner && item.owner !== me) {
-        toast(`${findPerson(state.config, item.owner)?.name ?? item.owner} already owns this.`);
+      if ((item.owner && item.owner !== me) || (item.ownerFromSource && item.owner !== me)) {
+        toast(`${item.owner ? findPerson(state.config, item.owner)?.name ?? item.owner : item.source_owner} already owns this${item.ownerFromSource ? ' in Service Desk' : ''}.`);
         return false;
       }
       const extra: NewEvent[] = item.owner ? [] : [{ type: 'item.update', item: item.id, data: { owner: me } }];
       const ok = await requestMove({ ...item, owner: me }, 'Doing', { extra });
-      if (ok) toast('Picked up. It’s in your Doing now.');
+      if (ok) toast(item.source === 'SD' && !item.ownerFromSource ? `Picked up. Set yourself as technician on #${item.source_id} in Service Desk too.` : 'Picked up. It’s in your Doing now.');
       return ok;
     },
     [me, requestMove, state.config],
@@ -261,7 +265,7 @@ export function UiProvider({ children }: { children: ReactNode }) {
               aria-checked={holdTo === c}
               onClick={() => {
                 setHoldTo(c);
-                setHoldRelease(c !== 'On Hold');
+                setHoldRelease(c !== 'On Hold' && !hold?.item.ownerFromSource);
               }}
             >
               {COLUMN_LABEL[c]}
@@ -279,7 +283,13 @@ export function UiProvider({ children }: { children: ReactNode }) {
           <span>Why is it coming off the plate? (required)</span>
           <textarea className="input" value={holdReason} onChange={(e) => setHoldReason(e.target.value)} placeholder="e.g. Reprioritized for the core upgrade; resume after Dec 5" autoFocus />
         </label>
-        {hold?.item.owner && (
+        {hold?.item.ownerFromSource && (
+          <p className="small" style={{ margin: 0, color: 'var(--warn)', fontWeight: 600 }}>
+            Assigned in Service Desk. To free it for someone else, change the technician on{' '}
+            {hold.item.source_url ? <a href={hold.item.source_url} target="_blank" rel="noreferrer">#{hold.item.source_id}</a> : `#${hold.item.source_id}`} in Service Desk.
+          </p>
+        )}
+        {hold?.item.owner && !hold.item.ownerFromSource && (
           <label className="toggle" style={{ alignSelf: 'flex-start' }}>
             <input type="checkbox" checked={holdRelease} onChange={(e) => setHoldRelease(e.target.checked)} />
             Release {findPerson(state.config, hold.item.owner)?.name ?? hold.item.owner} so anyone can pick it up

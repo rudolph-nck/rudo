@@ -91,9 +91,14 @@ export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; init
 
       <dl className="kv">
         <dt>Owner</dt>
-        <dd className="row">
-          <Avatar user={item.owner} config={cfg} />
-          {grader && !readOnly ? (
+        <dd className="row wrap">
+          <Avatar user={item.owner} config={cfg} external={item.owner ? undefined : item.source_owner} />
+          {item.ownerFromSource ? (
+            <span>
+              {item.owner ? name(item.owner) : item.source_owner}
+              <span className="small muted"> · assigned in Service Desk{item.owner ? '' : ' (not on the hub)'}</span>
+            </span>
+          ) : grader && !readOnly ? (
             <select className="input" style={{ maxWidth: 220 }} aria-label="Owner" value={item.owner ?? ''} onChange={(e) => commit([{ type: 'item.update', item: item.id, data: { owner: e.target.value || null } }])}>
               <option value="">No owner</option>
               {assignable(cfg).map((p) => (
@@ -105,7 +110,12 @@ export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; init
           ) : (
             <span>{name(item.owner)}</span>
           )}
-          {!item.owner && !readOnly && !grader && (
+          {item.ownerFromSource && item.source_url && !readOnly && (
+            <a className="btn sm" href={item.source_url} target="_blank" rel="noreferrer">
+              Reassign in Service Desk <Icon name="link" size={14} />
+            </a>
+          )}
+          {!item.owner && !item.ownerFromSource && !readOnly && !grader && (
             <button className="btn sm" onClick={() => commit([{ type: 'item.update', item: item.id, data: { owner: me } }])}>
               Take it
             </button>
@@ -116,6 +126,18 @@ export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; init
             </button>
           )}
           {item.owner && item.acked && <span className="chip ok">Acknowledged</span>}
+          {item.source === 'SD' && item.owner && !item.ownerFromSource && (
+            <span className="small" style={{ color: 'var(--warn)', fontWeight: 600, flexBasis: '100%' }}>
+              Not assigned in Service Desk yet. Set the technician to {name(item.owner)} there too
+              {item.source_url && (
+                <>
+                  {' '}
+                  (<a href={item.source_url} target="_blank" rel="noreferrer">open #{item.source_id}</a>)
+                </>
+              )}
+              .
+            </span>
+          )}
         </dd>
         <dt>
           <label htmlFor="nud">Next update due</label>

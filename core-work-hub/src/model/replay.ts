@@ -1,4 +1,5 @@
-import { computeScore, findPerson, mapSourcePriority, roleOf, canGrade } from './logic';
+import { computeScore, mapSourcePriority, roleOf, canGrade, personForSourceName, systemForCategory } from './logic';
+import { fillLink } from './csv';
 import type { AuditEntry, Bucket, Conflict, HubConfig, HubEvent, HubState, SourceTicket, TicketsSnapshot, TimeEntry, WorkItem } from './types';
 import { BUCKETS, RANKED_COLUMNS, isRanked } from './types';
 
@@ -20,31 +21,35 @@ export function sortEvents(events: SourcedEvent[]): SourcedEvent[] {
 /** Column a source status puts a card in, from config.statusColumns (exact or "Prefix*", case-insensitive). */
 export function statusColumn(config: HubConfig, status: string): WorkItem['column'] | undefined {
   const s = status.trim().toLowerCase();
-  for (const [k, col] of Object.entries(config.statusColumns ?? {})) {
-    const key = k.trim().toLowerCase();
-    if (key.endsWith('*') ? s.startsWith(key.slice(0, -1)) : s === key) return col;
-  }
-  return undefined;
+  const entries = Object.entries(config.statusColumns ?? {});
+  // Exact names win over "Prefix*" patterns, so "Waiting for CORE": null can opt out of "Waiting*".
+  const exact = entries.find(([k]) => !k.endsWith('*') && k.trim().toLowerCase() === s);
+  if (exact) return exact[1] ?? undefined;
+  const pre = entries.find(([k]) => k.endsWith('*') && s.startsWith(k.trim().toLowerCase().slice(0, -1)));
+  return pre?.[1] ?? undefined;
 }
 
 /** Link to the item in its source system: its own link, or the configured pattern for that source. */
 export function linkFor(config: HubConfig, source: string, id?: string, own?: string) {
   if (own) return own;
-  const tpl = config.ticketUrls?.[source as keyof HubConfig['ticketUrls']];
-  return tpl && id ? tpl.replace('{id}', encodeURIComponent(id)) : undefined;
+  return fillLink(config.ticketUrls?.[source as keyof HubConfig['ticketUrls']], id);
 }
 
 /** True when Service Desk status, not the hub, decides whether a synced ticket sits in this column. */
 export const sourceDrives = (config: HubConfig, it: { source: string; stale?: boolean }, col: WorkItem['column'], synced: boolean) =>
   synced && it.source === 'SD' && (config.sourceDrivenColumns ?? []).includes(col);
 
-function isStatus(list: string[], status: string) {
+/** Status list match, case-insensitive; "Closed*" matches "Closed - Moved to Project" etc. */
+export function isStatus(list: string[], status: string) {
   const s = status.trim().toLowerCase();
-  return list.some((x) => x.toLowerCase() === s);
+  return list.some((x) => {
+    const k = x.trim().toLowerCase();
+    return k.endsWith('*') ? s.startsWith(k.slice(0, -1)) : k === s;
+  });
 }
 
 function fromTicket(t: SourceTicket, config: HubConfig): WorkItem {
-  const owner = findPerson(config, t.source_owner)?.username;
+  const owner = personForSourceName(config, t.source_owner)?.username;
   return {
     id: itemIdFor(t.source, t.source_id),
     source: t.source,
@@ -56,7 +61,11 @@ function fromTicket(t: SourceTicket, config: HubConfig): WorkItem {
     source_owner: t.source_owner,
     column: 'Intake',
     priority: mapSourcePriority(t.source_priority),
+    // Seeded from the SD sub-category through the ownership map's aliases; grading can change it.
+    system: systemForCategory(config, t.subcategory, t.category),
+    subcategory: t.subcategory,
     owner,
+    ownerFromSource: !!t.source_owner,
     // A technician assigned in Service Desk is not a hub acknowledgment.
     acked: false,
     created: t.created,
@@ -120,6 +129,8 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
   /** When/by whom the hub last set owner / priority, for sync conflict detection. */
   const hubSet = new Map<string, { owner?: { ts: string; user: string }; priority?: { ts: string; user: string } }>();
   const tickets = new Map<string, SourceTicket>();
+  /** Who has acknowledged each item (so an SD-assigned owner's earlier ack still counts). */
+  const ackers = new Map<string, Set<string>>();
 
   for (const t of snapshot?.items ?? []) {
     const it = fromTicket(t, config);
@@ -264,6 +275,7 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
       }
       case 'item.ack':
         it!.acked = true;
+        ackers.set(it!.id, (ackers.get(it!.id) ?? new Set()).add(file));
         break;
       case 'item.comment':
         it!.comments.push({ id: e.id, ts: e.ts, user: file, text: e.data.text });
@@ -277,6 +289,7 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
         const p = config.people.find((x) => x.username === e.data.username);
         if (p) {
           if (e.data.wipLimit !== undefined) p.wipLimit = e.data.wipLimit;
+          if (e.data.sdName !== undefined) p.sdName = e.data.sdName || undefined;
           if (e.data.bucketWip !== undefined) p.bucketWip = e.data.bucketWip;
         }
         break;
@@ -304,12 +317,18 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
   for (const [id, t] of tickets) {
     const w = items.get(id)!;
     const h = hubSet.get(id);
-    const srcOwner = findPerson(config, t.source_owner)?.username;
-    if (t.changed?.source_owner && h?.owner && t.changed.source_owner > h.owner.ts && srcOwner !== w.owner) {
-      conflicts.push({ ts: t.changed.source_owner, item: id, field: 'owner', hubValue: w.owner, sourceValue: srcOwner ?? t.source_owner, hubUser: h.owner.user });
-      w.owner = srcOwner;
-      w.acked = false;
-    }
+    // Service Desk assigns the work: when SD has a technician, that person owns the card. The hub only
+    // assigns tickets that are unassigned in SD (and reminds you to set the same person there).
+    if (t.source_owner && !/^(not assigned|unassigned|-)$/i.test(t.source_owner.trim())) {
+      const srcOwner = personForSourceName(config, t.source_owner)?.username;
+      if (h?.owner && srcOwner !== w.owner)
+        conflicts.push({ ts: t.changed?.source_owner ?? snapshot?.generatedAt ?? h.owner.ts, item: id, field: 'owner', hubValue: w.owner, sourceValue: srcOwner ?? t.source_owner, hubUser: h.owner.user });
+      if (srcOwner !== w.owner) w.owner = srcOwner;
+      w.ownerFromSource = true;
+      w.acked = !!srcOwner && (ackers.get(id)?.has(srcOwner) ?? false);
+    } else w.ownerFromSource = false;
+    // Settings changes (aliases added later) apply to ungraded tickets too.
+    if (!w.graded) w.system = systemForCategory(config, t.subcategory, t.category) ?? w.system;
     const srcPri = mapSourcePriority(t.source_priority);
     if (t.changed?.source_priority && h?.priority && t.changed.source_priority > h.priority.ts && srcPri && srcPri !== w.priority) {
       conflicts.push({ ts: t.changed.source_priority, item: id, field: 'priority', hubValue: w.priority, sourceValue: srcPri, hubUser: h.priority.user });

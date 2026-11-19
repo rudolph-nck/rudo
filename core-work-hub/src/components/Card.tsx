@@ -10,7 +10,7 @@ import { Avatar, BucketDot, Icon, PriorityChip, SourceBadge } from './ui';
 export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNode }) {
   const { state, me, readOnly } = useHub();
   const { openItem, pickUp } = useUi();
-  const canPick = item.column === 'Ready' && !readOnly && (!item.owner || item.owner === me);
+  const canPick = item.column === 'Ready' && !readOnly && (item.owner === me || (!item.owner && !item.ownerFromSource));
   const overdue = isOverdue(item);
   const sys = systemName(state.config.systems, item.system);
   return (
@@ -40,7 +40,7 @@ export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNod
       )}
       {(sys || item.parent_id) && <div className="meta">{[sys, item.parent_id ? 'Task' : undefined].filter(Boolean).join(' · ')}</div>}
       <div className="foot">
-        <Avatar user={item.owner} config={state.config} />
+        <Avatar user={item.owner} config={state.config} external={item.owner ? undefined : item.source_owner} />
         {item.owner && !item.acked && item.column !== 'Done' && item.column !== 'Intake' && <span className="chip warn">Not acked</span>}
         <span title={`Opened ${new Date(item.created).toLocaleDateString()}`}>
           <span className="sr-only">Age </span>

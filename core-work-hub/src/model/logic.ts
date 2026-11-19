@@ -57,7 +57,7 @@ export function mapSourcePriority(raw?: string): Priority | undefined {
   const m = s.match(/\bp\s*([1-4])\b/);
   if (m) return ('P' + m[1]) as Priority;
   if (/(critical|urgent|emergency|highest)/.test(s)) return 'P1';
-  if (/high/.test(s)) return 'P2';
+  if (/(high|vip)/.test(s)) return 'P2';
   if (/(medium|normal|moderate)/.test(s)) return 'P3';
   if (/(low|lowest|planning)/.test(s)) return 'P4';
   return undefined;
@@ -71,6 +71,39 @@ export function findPerson(config: HubConfig, key?: string): Person | undefined 
   return config.people.find(
     (p) => p.username.toLowerCase() === k || p.name.toLowerCase() === k || (p.sdName && p.sdName.toLowerCase() === k),
   );
+}
+
+/**
+ * Hub person for a Service Desk technician name ("Wesley Wilson", "Cathy E. Garcia"). Tries sdName, then
+ * username/name, then a unique first-name match among non-viewers ("Wes" ~ "Wesley"). Undefined when the
+ * technician isn't on the hub (e.g. someone on another team).
+ */
+export function personForSourceName(config: HubConfig, raw?: string): Person | undefined {
+  const name = raw?.trim();
+  if (!name || /^(not assigned|-|unassigned)$/i.test(name)) return undefined;
+  const k = name.toLowerCase().replace(/^retained until [\d/]+ - /, '');
+  const bySd = config.people.find((p) => p.sdName && p.sdName.trim().toLowerCase() === k);
+  if (bySd) return bySd;
+  const direct = findPerson(config, name);
+  if (direct) return direct;
+  const first = k.split(/\s+/)[0];
+  const hits = config.people.filter((p) => {
+    if (p.role === 'viewer' || p.sdName) return false;
+    const n = p.name.trim().toLowerCase();
+    return first === n || (n.length >= 3 && first.startsWith(n)) || (first.length >= 3 && n.startsWith(first));
+  });
+  return hits.length === 1 ? hits[0] : undefined;
+}
+
+/** System from the ownership map whose name or aliases match an SD sub-category (or category). */
+export function systemForCategory(config: HubConfig, ...cats: (string | undefined)[]) {
+  for (const c of cats) {
+    const k = c?.trim().toLowerCase();
+    if (!k) continue;
+    const s = config.systems.find((x) => x.name.toLowerCase() === k || x.aliases?.some((a) => a.trim().toLowerCase() === k));
+    if (s) return s.id;
+  }
+  return undefined;
 }
 
 export const analysts = (config: HubConfig) => config.people.filter((p) => p.role === 'analyst');
@@ -221,7 +254,7 @@ export function needsAck(state: HubState, me: string, role: Role | undefined) {
   );
 }
 export function noOwner(state: HubState) {
-  return [...state.items.values()].filter((i) => !i.stale && !i.owner && i.column !== 'Done' && i.column !== 'Intake');
+  return [...state.items.values()].filter((i) => !i.stale && !i.owner && !i.source_owner && i.column !== 'Done' && i.column !== 'Intake');
 }
 export function readyToClose(state: HubState, me: string, role: Role | undefined) {
   const items = [...state.items.values()];

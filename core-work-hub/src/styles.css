@@ -308,3 +308,4 @@ dialog.drawer { margin: 0 0 0 auto; height: 100vh; max-height: 100vh; width: min
 .chip.src.link { color: var(--accent-text); text-decoration: none; gap: 4px; }
 .chip.src.link:hover { border-color: var(--accent); text-decoration: underline; }
 .chip.sd-status { background: var(--surface-2); color: var(--text-2); border: 1px dashed var(--border-strong); }
+.avatar.ext { background: var(--surface); color: var(--text-2); border: 1.5px solid var(--border-strong); }

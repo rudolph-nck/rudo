@@ -25,7 +25,8 @@ export const draftFrom = (i: WorkItem): Draft => ({
   effort: i.effort,
   system: i.system,
   owner: i.owner,
-  ownerTouched: !!i.owner,
+  // An SD-assigned ticket keeps its technician: never let grading suggest someone else.
+  ownerTouched: !!i.owner || !!i.ownerFromSource,
 });
 
 export function effectiveGrade(d: Draft, suggestedOwner?: string): Grade | undefined {
@@ -100,9 +101,9 @@ export function GradeForm({ item, draft, onChange, disabled }: { item: WorkItem;
           </select>
         </label>
         <label className="field">
-          <span>Owner</span>
-          <select className="input" value={owner ?? ''} disabled={disabled} onChange={(e) => set({ owner: e.target.value || undefined, ownerTouched: true })}>
-            <option value="">No owner</option>
+          <span>Owner{item.ownerFromSource ? ' (assigned in Service Desk)' : ''}</span>
+          <select className="input" value={owner ?? ''} disabled={disabled || item.ownerFromSource} onChange={(e) => set({ owner: e.target.value || undefined, ownerTouched: true })}>
+            <option value="">{item.ownerFromSource && item.source_owner ? `${item.source_owner} (not on the hub)` : 'No owner'}</option>
             {assignable(cfg).map((p) => (
               <option key={p.username} value={p.username}>
                 {p.name}
@@ -114,17 +115,23 @@ export function GradeForm({ item, draft, onChange, disabled }: { item: WorkItem;
       </div>
       {sys && (
         <div className="suggest">
-          <Avatar user={sug?.username} config={cfg} />
+          <Avatar user={item.ownerFromSource ? item.owner : sug?.username} config={cfg} external={item.ownerFromSource && !item.owner ? item.source_owner : undefined} />
           <div className="grow">
             <div style={{ fontWeight: 700 }}>
-              {sug ? <>Next in rotation: {ownerName(sug.username)} <span className="muted">({sug.slot})</span></> : 'No owners on the map for this system'}
+              {item.ownerFromSource ? (
+                <>Assigned in Service Desk to {item.owner ? ownerName(item.owner) : item.source_owner}</>
+              ) : sug ? (
+                <>Next in rotation: {ownerName(sug.username)} <span className="muted">({sug.slot})</span></>
+              ) : (
+                'No owners on the map for this system'
+              )}
             </div>
             <div className="small muted">
-              {sug?.reason}. Map: {ownerName(sys.primary) ?? '–'} → {ownerName(sys.secondary) ?? '–'}
+              {item.ownerFromSource ? (sug ? `Rotation would have suggested ${ownerName(sug.username)}. Reassign in Service Desk if needed.` : '') : `${sug?.reason ?? ''}.`} Map: {ownerName(sys.primary) ?? '–'} → {ownerName(sys.secondary) ?? '–'}
               {sys.third ? ` → ${ownerName(sys.third)}` : ''}
             </div>
           </div>
-          {sug && owner !== sug.username && (
+          {sug && owner !== sug.username && !item.ownerFromSource && (
             <button type="button" className="btn sm" disabled={disabled} onClick={() => set({ owner: sug.username, ownerTouched: true })}>
               Use {ownerName(sug.username)}
             </button>
