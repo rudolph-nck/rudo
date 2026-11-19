@@ -1,6 +1,6 @@
 # Core Work Hub — Administrator Setup Guide
 
-For the person setting up the hub for IT Core (shared folder, permissions, Service Desk API key, scheduled sync, Teams). Allow about an hour. Nothing is installed on users' PCs and nothing is hosted: the hub is one web page in a shared folder, opened in Microsoft Edge.
+For the person setting up the hub for IT Core (shared folder, permissions, Service Desk API key, scheduled sync, Teams). Allow about an hour. Nothing is hosted: the hub is one web page in a shared folder. Each person opens it from a **desktop icon** that starts a small Python helper on their own PC; the helper reads and writes the shared folder for the page. (Opening the page directly in Edge still works as a fallback, see step 5b.)
 
 ---
 
@@ -10,6 +10,10 @@ For the person setting up the hub for IT Core (shared folder, permissions, Servi
 CoreWorkHub-v1.x/
   CoreWorkHub/                 ← copy this folder to the shared drive
     index.html                 the app (one self-contained file, no internet needed)
+    Core Work Hub.bat          starts the hub (what the desktop icon runs)
+    Install desktop icon.bat   each person double-clicks this once
+    app/hub_server.py          the local helper (Python standard library only)
+    app/Install-DesktopIcon.ps1, app/CoreWorkHub.ico
     hub-config.json            settings: people, roles, rotation, standards (edit this)
     changes/                   each person's change file is created here automatically
   Setup/
@@ -20,13 +24,14 @@ CoreWorkHub-v1.x/
     sync/Test-WrikeAccess.ps1  checks whether the Wrike license allows API access
 ```
 
-**How it works:** every browser reads `tickets.json` (written by the sync) and every file in `changes/`, every 20 seconds. Each person's browser writes only to their own `changes/<username>.jsonl`. No database, no server.
+**How it works:** the desktop icon runs `app\hub_server.py` from the shared folder with the PC's Python. It listens only on `127.0.0.1` (the PC itself, not the network), opens the hub in Edge, and does the file work: it reads `tickets.json` (written by the sync) and every file in `changes/` every 20 seconds, and appends the person's changes to `changes\<Windows username>.jsonl`. The **Windows sign-in** decides who you are, so nobody picks a name. No database, no shared server; the helper stops by itself after 30 minutes with no hub tab open.
 
 ## 2. Requirements
 
 | Item | Detail |
 |---|---|
-| Browser | Microsoft Edge (Chromium) 122 or later on every user's PC |
+| Python | **Python 3.8 or later** on every user's PC (`python --version`). Standard library only: no `pip install`. Either the python.org installer or the Microsoft Store version works. |
+| Browser | Microsoft Edge (any current version) |
 | Shared folder | A folder on an internal file share the IT Core team can reach |
 | Sync PC | One always-on-during-business-hours Windows PC (Nick's) with **PowerShell 7** (`winget install Microsoft.PowerShell`) |
 | Service Desk | A **read-only** API key for a dedicated technician account that can view the Core group queues |
@@ -56,8 +61,8 @@ Nobody else needs access. The folder's normal backup covers the hub; `changes/` 
 
 | Field | What to put |
 |---|---|
-| `people[].username` | The person's **Windows username** (as in `DOMAIN\username`). It names their change file. Use lowercase. |
-| `people[].name` | Display name (what they pick from the list on first open). |
+| `people[].username` | The person's **Windows username** (as in `DOMAIN\username`), lowercase. The launcher signs people in with it and names their change file with it, so it must match exactly. To check: `echo %USERNAME%` on their PC. |
+| `people[].name` | Display name. |
 | `people[].role` | `manager` (Nick), `analyst`, or `viewer` (Matt: read-only). |
 | `people[].works` | `true` for a manager who also takes tickets (Nick). |
 | `people[].sdName` | Their name exactly as it appears as *Technician* in Service Desk, e.g. `"Wesley Wilson"`. |
@@ -74,13 +79,25 @@ Nobody else needs access. The folder's normal backup covers the hub; `changes/` 
 
 The other `commStandard` values encode the IT Core Team Communication Standards (first response P1 2 business hours / 1 business day; updates P1 every 2 business hours / weekly; requester follow-ups 48 h; escalation to support after 1 business day, to Nick after 2). Change them here if the standard changes.
 
-## 5. Check that Edge can use the folder (day-one test)
+## 5. Install the desktop icon (each PC, once)
 
-1. On a team PC, open `\\fileserver\IT\CoreWorkHub\index.html` in Edge.
+1. On the team member's PC, open the shared folder in File Explorer and double-click **Install desktop icon.bat**. A **Core Work Hub** icon appears on the desktop.
+2. Double-click the icon. Edge opens the hub, already signed in as that person (from Windows).
+3. Drag any card and confirm `changes\<their username>.jsonl` appears in the folder.
+
+Notes:
+- The installer runs PowerShell with `-ExecutionPolicy Bypass` for that one script only (it only creates the shortcut). If PowerShell is blocked, create the shortcut by hand: right-click **Core Work Hub.bat** → **Send to → Desktop (create shortcut)**.
+- “You're not on the hub yet” means that Windows username isn't in `hub-config.json` `people`. Add it.
+- If Python isn't found, the .bat shows a message. Install Python 3.8+ (tick “Add python.exe to PATH”) and try again.
+- Security review (for Lee): the helper binds to `127.0.0.1` only, refuses requests from other websites (Origin check) and requests without the random per-launch key, can read only `hub-config.json`, `tickets.json` and `changes\*.jsonl`, and can write only `hub-config.json` / `tickets.json` (Nick's settings, imports) and the person's **own** change file. It holds no passwords or API keys. Log: `%LOCALAPPDATA%\CoreWorkHub\launcher.log`.
+
+### 5b. Fallback: open the page directly in Edge (no Python)
+
+1. Open `\\fileserver\IT\CoreWorkHub\index.html` in Edge.
 2. Click **Choose the shared folder**, select the CoreWorkHub folder, and **Allow** edits (tick “Allow on every visit” if offered).
-3. Pick your name, drag any card, and confirm `changes\<your username>.jsonl` appears in the folder.
+3. Pick your name from the list (remembered on that PC).
 
-**If Edge blocks it:** the File System Access API is controlled by Edge policies. Ask the endpoint team to allow it for the hub’s address, using the policies `FileSystemReadAskForUrls` and `FileSystemWriteAskForUrls` (add `file:///` or the hub’s exact `file://` address), or set `DefaultFileSystemReadGuardSetting` / `DefaultFileSystemWriteGuardSetting` to **Ask (3)**. Confirm current policy names in Microsoft’s Edge policy reference. If folder access can’t be allowed, the fallback is hosting the same page on SharePoint or as a Power Apps code app (decide with Security).
+**If Edge blocks it:** the File System Access API is controlled by Edge policies. Ask the endpoint team to allow it for the hub’s address, using the policies `FileSystemReadAskForUrls` and `FileSystemWriteAskForUrls` (add `file:///` or the hub’s exact `file://` address), or set `DefaultFileSystemReadGuardSetting` / `DefaultFileSystemWriteGuardSetting` to **Ask (3)**. Confirm current policy names in Microsoft’s Edge policy reference.
 
 ## 6. Service Desk API key (read-only) — on the sync PC only
 
@@ -143,29 +160,31 @@ If any check fails, the license limits the API: Wrike items are entered by hand 
 
 ## 10. First run
 
-1. Nick opens the hub, chooses the folder, picks his name, and imports the first **Core - All** CSV in **Settings → Ticket data** (skip if the sync already ran). He confirms the technician name matches.
-2. Each team member opens the same `index.html` address in Edge, allows the folder once, and picks their name from the list. The choice is remembered on that PC. “Not you?” in the sidebar changes it (with a confirmation).
+1. Nick installs the icon, opens the hub, and imports the first **Core - All** CSV in **Settings → Ticket data** (skip if the sync already ran). He confirms the technician name matches.
+2. Each team member runs **Install desktop icon.bat** once, then uses the icon. They are signed in from Windows.
 3. Matt does the same; he sees everything read-only.
-4. Bookmark the hub or set it as Edge’s start page.
 
 ## 11. Updating the app
 
-Replace **only** `index.html` in the shared folder with the new one. `hub-config.json`, `tickets.json` and `changes/` stay as they are; everyone’s board picks up the new version on their next reload.
+Replace `index.html` (and the `app\` folder, if the release notes say it changed) in the shared folder. Desktop icons don't need reinstalling. `hub-config.json`, `tickets.json` and `changes/` stay as they are; everyone’s board picks up the new version on their next reload.
 
 ## 12. Data, privacy and security
 
 - **Stored:** ticket metadata only (ID, subject, status, technician, dates, SLA, department, sub-category). No descriptions or notes. Card/account-number patterns in subjects are masked.
 - **Token:** only in Credential Manager on the sync PC; read-only technician.
 - **Access:** NTFS on the folder (IT Core modify, Matt read).
-- **Identity:** people pick their name from a fixed list (honor system); every change file’s owner on disk also shows who wrote it, and the **Audit log** shows every change with before → after.
+- **Identity:** with the desktop icon, from the Windows sign-in (each helper writes only its own user's file). In the Edge fallback, people pick their name from a fixed list (honor system). Either way the change file’s owner on disk shows who wrote it, and the **Audit log** shows every change with before → after.
 - **Backups:** covered by the share’s backup. Size grows slowly (a few MB a year).
 
 ## 13. Troubleshooting
 
 | Symptom | Fix |
 |---|---|
-| “Open this page in Microsoft Edge” | It was opened in another browser. Use Edge. |
-| Folder prompt every time | Choose “Allow on every visit”; or the Edge policy resets permissions (see step 5). |
+| Icon does nothing | Run `Core Work Hub.bat` from the shared folder to see the message; usually Python is missing. Check `%LOCALAPPDATA%\CoreWorkHub\launcher.log`. |
+| “You're not on the hub yet” | Add their Windows username to `people` in `hub-config.json`. |
+| “Lost connection to the hub helper” / blank page | The helper stopped (idle 30 min, or PC asleep). Double-click the icon again. |
+| “Open this page in Microsoft Edge” | Edge fallback only: it was opened in another browser. Use Edge. |
+| Folder prompt every time (fallback) | Choose “Allow on every visit”; or the Edge policy resets permissions (see step 5). |
 | “Could not save your change” | The person lacks Modify on the folder (Matt is read-only by design). |
 | No tickets / stale tickets | Check `%LOCALAPPDATA%\CoreWorkHub\sync.log` on the sync PC; run the sync with `-Test`. |
 | Sync error 401/403 | Key expired or the technician lacks view rights to the queue. Regenerate / fix the role, rerun `cmdkey`. |

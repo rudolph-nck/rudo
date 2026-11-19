@@ -1,0 +1,327 @@
+"""
+Core Work Hub launcher (Python 3.8+, standard library only).
+
+Started by "Core Work Hub.bat" from the desktop icon. It serves the hub page from the shared folder at
+http://127.0.0.1:<port>/ and does the reading and writing in that folder for the browser, so there is no Edge
+folder permission, no Edge policy to change, and no name to pick: changes are written as the logged-in Windows
+user.
+
+Safety:
+  * Listens on 127.0.0.1 only: other PCs can't reach it.
+  * Every API call must carry the one-time key the launcher gave the browser it opened (X-Hub-Key), and requests
+    from other web pages (another Origin) are refused, so other sites or local apps can't drive it.
+  * It writes only: changes/<your Windows username>.jsonl (append-only), and, for the manager's screens,
+    hub-config.json and tickets.json. Nothing else in the folder can be touched.
+  * It stops by itself after 30 minutes with no browser activity. The icon starts it again.
+
+Usage (the .bat does this):  pythonw hub_server.py [--folder <shared folder>] [--browser edge|default]
+"""
+
+import argparse
+import getpass
+import http.server
+import json
+import os
+import re
+import secrets
+import socket
+import socketserver
+import subprocess
+import sys
+import threading
+import time
+import urllib.parse
+import webbrowser
+
+IDLE_EXIT_SECONDS = 30 * 60
+STATE_DIR = os.path.join(os.environ.get("LOCALAPPDATA") or os.path.expanduser("~"), "CoreWorkHub")
+STATE_FILE = os.path.join(STATE_DIR, "launcher.json")
+WHOLE_FILES = {"hub-config.json", "tickets.json"}
+SAFE_NAME = re.compile(r"^[a-z0-9._-]+$")
+
+
+def windows_username():
+    """DOMAIN\\user -> user, lowercase: the same rule the hub uses for change files."""
+    name = os.environ.get("USERNAME") or getpass.getuser()
+    return re.sub(r"[^a-z0-9._-]", "_", name.split("\\")[-1].lower())
+
+
+def log(msg):
+    try:
+        os.makedirs(STATE_DIR, exist_ok=True)
+        with open(os.path.join(STATE_DIR, "launcher.log"), "a", encoding="utf-8") as f:
+            f.write(time.strftime("%Y-%m-%d %H:%M:%S ") + msg + "\n")
+    except OSError:
+        pass
+
+
+class Hub:
+    def __init__(self, folder, user):
+        self.folder = os.path.abspath(folder)
+        self.user = user
+        self.key = secrets.token_urlsafe(24)
+        self.last_seen = time.time()
+        self.lock = threading.Lock()
+
+    def path(self, name):
+        return os.path.join(self.folder, name)
+
+
+def make_handler(hub, port):
+    origin_ok = {f"http://127.0.0.1:{port}", f"http://localhost:{port}"}
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        server_version = "CoreWorkHub/1.0"
+
+        def log_message(self, fmt, *args):  # keep quiet; errors go to launcher.log
+            pass
+
+        # ---------------------------------------------------------------- helpers
+        def send(self, code, body=b"", ctype="application/json; charset=utf-8", extra=None):
+            if isinstance(body, str):
+                body = body.encode("utf-8")
+            self.send_response(code)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("Referrer-Policy", "no-referrer")
+            for k, v in (extra or {}).items():
+                self.send_header(k, v)
+            self.end_headers()
+            if self.command != "HEAD":
+                self.wfile.write(body)
+
+        def json(self, code, obj):
+            self.send(code, json.dumps(obj))
+
+        def authorized(self):
+            origin = self.headers.get("Origin")
+            if origin and origin not in origin_ok:
+                return False
+            return secrets.compare_digest(self.headers.get("X-Hub-Key", ""), hub.key)
+
+        def body(self, limit=20 * 1024 * 1024):
+            n = int(self.headers.get("Content-Length") or 0)
+            if n > limit:
+                raise ValueError("request too large")
+            return self.rfile.read(n)
+
+        # ---------------------------------------------------------------- routes
+        def do_GET(self):
+            hub.last_seen = time.time()
+            url = urllib.parse.urlparse(self.path)
+            q = urllib.parse.parse_qs(url.query)
+            if url.path in ("/", "/index.html"):
+                # The page itself, straight from the shared folder (so an index.html update reaches everyone).
+                try:
+                    with open(hub.path("index.html"), "rb") as f:
+                        return self.send(200, f.read(), "text/html; charset=utf-8", {"Content-Security-Policy": "frame-ancestors 'none'"})
+                except OSError as e:
+                    return self.send(500, f"Cannot read index.html in {hub.folder}: {e}", "text/plain; charset=utf-8")
+            if url.path == "/favicon.ico":
+                return self.send(204)
+            if not url.path.startswith("/api/"):
+                return self.send(404, "{}")
+            if not self.authorized():
+                return self.json(403, {"error": "This hub session belongs to another window. Use the desktop icon."})
+            try:
+                if url.path == "/api/whoami":
+                    writable = os.access(hub.folder, os.W_OK)
+                    return self.json(200, {"username": hub.user, "folder": hub.folder, "label": os.path.basename(hub.folder.rstrip("\\/")) or hub.folder, "writable": writable})
+                if url.path == "/api/ping":
+                    return self.json(200, {"ok": True})
+                if url.path == "/api/file":
+                    name = (q.get("name") or [""])[0]
+                    if name not in WHOLE_FILES:
+                        return self.json(400, {"error": "not allowed"})
+                    try:
+                        with open(hub.path(name), "rb") as f:
+                            return self.send(200, f.read())
+                    except FileNotFoundError:
+                        return self.json(404, {"error": "not found"})
+                if url.path == "/api/changes":
+                    # List of change files with sizes, so the page reads only what's new.
+                    d = hub.path("changes")
+                    out = []
+                    if os.path.isdir(d):
+                        for fn in sorted(os.listdir(d)):
+                            if fn.endswith(".jsonl") and SAFE_NAME.match(fn[:-6]):
+                                st = os.stat(os.path.join(d, fn))
+                                out.append({"user": fn[:-6], "size": st.st_size, "mtime": int(st.st_mtime * 1000)})
+                    return self.json(200, out)
+                if url.path == "/api/changes/read":
+                    user = (q.get("user") or [""])[0]
+                    offset = int((q.get("offset") or ["0"])[0])
+                    if not SAFE_NAME.match(user):
+                        return self.json(400, {"error": "bad name"})
+                    p = os.path.join(hub.path("changes"), user + ".jsonl")
+                    with open(p, "rb") as f:
+                        f.seek(max(0, offset))
+                        return self.send(200, f.read(), "text/plain; charset=utf-8")
+            except Exception as e:  # noqa: BLE001 - report, don't crash the server
+                log(f"GET {url.path} failed: {e!r}")
+                return self.json(500, {"error": str(e)})
+            return self.json(404, {"error": "unknown"})
+
+        def do_PUT(self):
+            hub.last_seen = time.time()
+            url = urllib.parse.urlparse(self.path)
+            q = urllib.parse.parse_qs(url.query)
+            if not self.authorized():
+                return self.json(403, {"error": "forbidden"})
+            name = (q.get("name") or [""])[0]
+            if url.path != "/api/file" or name not in WHOLE_FILES:
+                return self.json(400, {"error": "not allowed"})
+            try:
+                data = self.body()
+                json.loads(data.decode("utf-8"))  # must be valid JSON
+                tmp = hub.path(f"{name}.tmp-{secrets.token_hex(4)}")
+                with open(tmp, "wb") as f:
+                    f.write(data)
+                os.replace(tmp, hub.path(name))  # swap in whole, so readers never see half a file
+                return self.json(200, {"ok": True})
+            except Exception as e:  # noqa: BLE001
+                log(f"PUT {name} failed: {e!r}")
+                return self.json(500, {"error": str(e)})
+
+        def do_POST(self):
+            hub.last_seen = time.time()
+            url = urllib.parse.urlparse(self.path)
+            if not self.authorized():
+                return self.json(403, {"error": "forbidden"})
+            if url.path != "/api/changes/append":
+                return self.json(404, {"error": "unknown"})
+            try:
+                lines = self.body(2 * 1024 * 1024).decode("utf-8")
+                # Every line must be a JSON event; the file is always the logged-in user's own.
+                for ln in lines.splitlines():
+                    if ln.strip():
+                        json.loads(ln)
+                d = hub.path("changes")
+                os.makedirs(d, exist_ok=True)
+                p = os.path.join(d, hub.user + ".jsonl")
+                with hub.lock:
+                    prefix = ""
+                    if os.path.exists(p) and os.path.getsize(p) > 0:
+                        with open(p, "rb") as f:
+                            f.seek(-1, os.SEEK_END)
+                            if f.read(1) != b"\n":
+                                prefix = "\n"
+                    with open(p, "a", encoding="utf-8", newline="\n") as f:
+                        f.write(prefix + lines if lines.endswith("\n") else prefix + lines + "\n")
+                        f.flush()
+                        os.fsync(f.fileno())
+                return self.json(200, {"ok": True, "file": f"changes/{hub.user}.jsonl"})
+            except Exception as e:  # noqa: BLE001
+                log(f"append failed: {e!r}")
+                return self.json(500, {"error": str(e)})
+
+        def do_HEAD(self):
+            return self.do_GET()
+
+    return Handler
+
+
+class Server(socketserver.ThreadingMixIn, http.server.HTTPServer):
+    daemon_threads = True
+    allow_reuse_address = False
+
+
+def free_port(preferred=47615):
+    for p in [preferred] + list(range(preferred + 1, preferred + 40)):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(("127.0.0.1", p))
+                return p
+            except OSError:
+                continue
+    raise RuntimeError("no free local port")
+
+
+def open_browser(url, which):
+    if which == "edge" and sys.platform == "win32":
+        try:
+            subprocess.Popen(["cmd", "/c", "start", "", "msedge", url], creationflags=0x08000000)
+            return
+        except OSError:
+            pass
+    if which != "none":
+        webbrowser.open(url)
+
+
+def already_running(user):
+    """If this user's launcher is already up, reuse it (one per person per PC)."""
+    try:
+        with open(STATE_FILE, encoding="utf-8") as f:
+            st = json.load(f)
+        if st.get("user") != user:
+            return None
+        import urllib.request
+
+        req = urllib.request.Request(f"http://127.0.0.1:{st['port']}/api/ping", headers={"X-Hub-Key": st["key"]})
+        with urllib.request.urlopen(req, timeout=2) as r:
+            if r.status == 200:
+                return st
+    except Exception:  # noqa: BLE001
+        return None
+    return None
+
+
+def main():
+    here = os.path.dirname(os.path.abspath(__file__))
+    ap = argparse.ArgumentParser(description="Core Work Hub launcher")
+    ap.add_argument("--folder", default=os.environ.get("CWH_FOLDER") or os.path.dirname(here), help="shared hub folder (default: the folder above this script)")
+    ap.add_argument("--browser", default=os.environ.get("CWH_BROWSER", "edge"), choices=["edge", "default", "none"])
+    ap.add_argument("--port", type=int, default=int(os.environ.get("CWH_PORT", "0") or 0))
+    ap.add_argument("--user", default=os.environ.get("CWH_USER"), help=argparse.SUPPRESS)  # tests only
+    args = ap.parse_args()
+
+    user = args.user or windows_username()
+    if not os.path.isfile(os.path.join(args.folder, "index.html")):
+        log(f"index.html not found in {args.folder}")
+        print(f"index.html not found in {args.folder}", file=sys.stderr)
+        sys.exit(2)
+
+    st = already_running(user) if not args.port else None
+    if st:
+        open_browser(f"http://127.0.0.1:{st['port']}/#key={st['key']}", args.browser)
+        return
+
+    hub = Hub(args.folder, user)
+    port = args.port or free_port()
+    httpd = Server(("127.0.0.1", port), make_handler(hub, port))
+    try:
+        os.makedirs(STATE_DIR, exist_ok=True)
+        with open(STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump({"port": port, "key": hub.key, "user": user, "folder": hub.folder, "pid": os.getpid()}, f)
+    except OSError:
+        pass
+    log(f"started for {user} on 127.0.0.1:{port}, folder {hub.folder}")
+
+    def idle_watch():
+        while True:
+            time.sleep(30)
+            if time.time() - hub.last_seen > IDLE_EXIT_SECONDS:
+                log("idle: stopping")
+                httpd.shutdown()
+                return
+
+    threading.Thread(target=idle_watch, daemon=True).start()
+    url = f"http://127.0.0.1:{port}/#key={hub.key}"
+    print(f"CWH_READY {url}", flush=True)
+    open_browser(url, args.browser)
+    try:
+        httpd.serve_forever(poll_interval=0.5)
+    finally:
+        httpd.server_close()
+        try:
+            with open(STATE_FILE, encoding="utf-8") as f:
+                if json.load(f).get("pid") == os.getpid():
+                    os.remove(STATE_FILE)
+        except Exception:  # noqa: BLE001
+            pass
+
+
+if __name__ == "__main__":
+    main()

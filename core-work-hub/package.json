@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "contrast": "node scripts/contrast.mjs",
-    "e2e": "node tests/e2e/multi-user.cjs && node tests/e2e/reprioritize.cjs && node tests/e2e/overview.cjs && node tests/e2e/timeoff.cjs && node tests/e2e/priorities.cjs && node tests/e2e/teamscore.cjs && node tests/e2e/comms.cjs && node tests/e2e/expedite.cjs",
+    "e2e": "node tests/e2e/multi-user.cjs && node tests/e2e/reprioritize.cjs && node tests/e2e/overview.cjs && node tests/e2e/timeoff.cjs && node tests/e2e/priorities.cjs && node tests/e2e/teamscore.cjs && node tests/e2e/comms.cjs && node tests/e2e/expedite.cjs && node tests/e2e/launcher.cjs",
     "package": "npm run build && npx vite-node scripts/write-config.mts && node scripts/package.mjs"
   },
   "dependencies": {

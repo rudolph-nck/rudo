@@ -12,7 +12,9 @@ import type { HubConfig, HubEvent, TicketsSnapshot } from '../model/types';
  *     changes/<user>.jsonl  one append-only file per person; nobody writes anyone else's file
  */
 export interface HubStore {
-  kind: 'folder' | 'opfs' | 'demo';
+  kind: 'folder' | 'opfs' | 'demo' | 'launcher';
+  /** Set when the store knows the signed-in Windows user (Python launcher): no name to pick. */
+  user?: string;
   label: string;
   writable: boolean;
   readConfig(): Promise<HubConfig | undefined>;
@@ -306,5 +308,119 @@ export async function loadIdentity(): Promise<string | undefined> {
     });
   } catch {
     return undefined;
+  }
+}
+
+// ------------------------------------------------------------------------------------ Python launcher
+
+/** True when the page was opened by the desktop launcher (http://127.0.0.1:<port>). */
+export const launcherMode = () => typeof location !== 'undefined' && location.protocol === 'http:' && (location.hostname === '127.0.0.1' || location.hostname === 'localhost') && !!launcherKey();
+
+/** The launcher passes a one-time key in the address (#key=…); keep it for this tab and take it out of the address bar. */
+export function launcherKey(): string | undefined {
+  try {
+    const m = location.hash.match(/^#key=([A-Za-z0-9_-]+)/);
+    if (m) {
+      sessionStorage.setItem('cwh.key', m[1]);
+      history.replaceState(null, '', location.pathname + location.search);
+      return m[1];
+    }
+    return sessionStorage.getItem('cwh.key') ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Reads and writes the shared folder through the local Python launcher (it writes as the Windows user). */
+export const LAUNCHER_DOWN = 'The hub helper on this PC isn’t running. Double-click the Core Work Hub icon on your desktop to start it again.';
+
+export class LauncherStore implements HubStore {
+  kind = 'launcher' as const;
+  label = 'Shared folder';
+  writable = true;
+  user?: string;
+  private offsets = new Map<string, { size: number; events: SourcedEvent[]; problems: string[]; consumed: number }>();
+  private snap?: { text: string; snap?: TicketsSnapshot };
+
+  constructor(private key: string) {}
+
+  private async call(path: string, init: RequestInit = {}) {
+    let r: Response;
+    try {
+      r = await fetch(path, { ...init, headers: { 'X-Hub-Key': this.key, ...(init.headers ?? {}) }, cache: 'no-store' });
+    } catch {
+      throw new Error(LAUNCHER_DOWN);
+    }
+    if (r.status === 403) throw new Error('This window lost its connection to the hub. Close it and use the desktop icon.');
+    return r;
+  }
+
+  async init() {
+    const r = await this.call('/api/whoami');
+    const w = (await r.json()) as { username: string; label: string; writable: boolean };
+    this.user = w.username;
+    this.label = w.label;
+    this.writable = w.writable;
+    return this;
+  }
+
+  async readConfig() {
+    const r = await this.call('/api/file?name=hub-config.json');
+    if (r.status === 404) return undefined;
+    if (!r.ok) throw new Error('Could not read hub-config.json');
+    return normalizeConfig(await r.json());
+  }
+  async writeConfig(c: HubConfig) {
+    const r = await this.call('/api/file?name=hub-config.json', { method: 'PUT', body: JSON.stringify(c, null, 2) + '\n' });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error ?? 'Could not save hub-config.json');
+  }
+  async readSnapshot() {
+    const r = await this.call('/api/file?name=tickets.json');
+    if (r.status === 404) return undefined;
+    if (!r.ok) return this.snap?.snap;
+    const text = await r.text();
+    if (this.snap?.text === text) return this.snap.snap;
+    try {
+      this.snap = { text, snap: text.trim() ? (JSON.parse(text) as TicketsSnapshot) : undefined };
+    } catch {
+      return this.snap?.snap; // mid-write: keep the last good copy
+    }
+    return this.snap.snap;
+  }
+  async writeSnapshot(s: TicketsSnapshot) {
+    const r = await this.call('/api/file?name=tickets.json', { method: 'PUT', body: JSON.stringify(s, null, 1) + '\n' });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error ?? 'Could not save tickets.json');
+    this.snap = undefined;
+  }
+  async readEvents() {
+    const list = (await (await this.call('/api/changes')).json()) as { user: string; size: number }[];
+    const events: SourcedEvent[] = [];
+    const problems: string[] = [];
+    const seen = new Set<string>();
+    for (const f of list) {
+      seen.add(f.user);
+      let c = this.offsets.get(f.user);
+      if (!c || f.size < c.consumed) c = { size: 0, events: [], problems: [], consumed: 0 };
+      if (f.size !== c.size) {
+        const tail = await (await this.call(`/api/changes/read?user=${encodeURIComponent(f.user)}&offset=${c.consumed}`)).text();
+        const lastNl = tail.lastIndexOf('\n');
+        if (lastNl >= 0) {
+          const whole = tail.slice(0, lastNl + 1);
+          c.events = c.events.concat(parseLines(whole, f.user, c.events.length + c.problems.length, c.problems));
+          c.consumed += new TextEncoder().encode(whole).length;
+        }
+        c.size = f.size;
+        this.offsets.set(f.user, c);
+      }
+      events.push(...c.events);
+      problems.push(...c.problems);
+    }
+    for (const k of this.offsets.keys()) if (!seen.has(k)) this.offsets.delete(k);
+    return { events, problems };
+  }
+  async append(user: string, evs: HubEvent[]) {
+    if (user !== this.user) throw new Error('You can only save as yourself.');
+    const r = await this.call('/api/changes/append', { method: 'POST', body: evs.map((e) => JSON.stringify(e)).join('\n') + '\n' });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error ?? 'Could not save your change');
   }
 }

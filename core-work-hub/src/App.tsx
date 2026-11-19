@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { HubProvider, useHub } from './store/hub';
-import { DemoStore, FolderStore, fsAccessSupported, loadHandle, loadIdentity, saveHandle, saveIdentity, type HubStore } from './store/storage';
+import { DemoStore, FolderStore, fsAccessSupported, LauncherStore, launcherKey, launcherMode, loadHandle, loadIdentity, saveHandle, saveIdentity, type HubStore } from './store/storage';
 import { defaultConfig } from './model/config';
 import { currentDispatch, findPerson, nextDispatch, fmtShortDate, offOn, todayISO } from './model/logic';
 import type { HubConfig } from './model/types';
@@ -138,7 +138,7 @@ function Sidebar() {
         <div className="row">
           <Avatar user={me} config={cfg} />
           <span className="grow" style={{ fontWeight: 700 }}>{meP?.name ?? me}</span>
-          <button className="btn sm ghost" onClick={signOut} title="Change who you are on this PC">Not you?</button>
+          {store.kind !== 'launcher' && <button className="btn sm ghost" onClick={signOut} title="Change who you are on this PC">Not you?</button>}
         </div>
       </div>
     </aside>
@@ -193,6 +193,7 @@ function Shell() {
 
 type Gate =
   | { k: 'loading' }
+  | { k: 'helper'; err: string }
   | { k: 'connect'; unsupported: boolean; err?: string }
   | { k: 'reconnect'; handle: FileSystemDirectoryHandle }
   | { k: 'noconfig'; store: HubStore }
@@ -224,6 +225,12 @@ export function App() {
   useEffect(() => {
     (async () => {
       try {
+        // Desktop icon: the Python launcher serves the page and writes the folder as the Windows user.
+        if (launcherMode()) {
+          const ls = await new LauncherStore(launcherKey()!).init();
+          setMe(ls.user);
+          return withStore(ls);
+        }
         if (params.has('demo') || localStorage.getItem('cwh.mode') === 'demo') return withStore(new DemoStore(demoSeed));
         if (params.get('store') === 'opfs') {
           const root = await (await navigator.storage.getDirectory()).getDirectoryHandle('hub', { create: true });
@@ -237,6 +244,7 @@ export function App() {
         if ((await h.queryPermission({ mode: 'read' })) === 'granted') return withStore(new FolderStore(h, 'folder', false));
         setGate({ k: 'reconnect', handle: h });
       } catch (e) {
+        if (launcherMode()) return setGate({ k: 'helper', err: (e as Error).message });
         setGate({ k: 'connect', unsupported: !fsAccessSupported(), err: (e as Error).message });
       }
     })();
@@ -261,6 +269,17 @@ export function App() {
   };
 
   if (gate.k === 'loading') return <div className="gate"><span className="muted">Loading…</span></div>;
+
+  if (gate.k === 'helper')
+    return (
+      <div className="gate">
+        <div className="gate-card">
+          <div className="brand"><span className="brand-mark" aria-hidden>CW</span>Core Work Hub</div>
+          <h1>Start the hub from your desktop icon</h1>
+          <p style={{ margin: 0 }}>{gate.err}</p>
+        </div>
+      </div>
+    );
 
   if (gate.k === 'connect' || gate.k === 'reconnect')
     return (
@@ -315,6 +334,18 @@ export function App() {
 
   const config = gate.config;
   const person = me ? findPerson(config, me) : undefined;
+  if (!person && gate.store.kind === 'launcher')
+    return (
+      <div className="gate">
+        <div className="gate-card">
+          <div className="brand"><span className="brand-mark" aria-hidden>CW</span>Core Work Hub</div>
+          <h1>You’re not on the hub yet</h1>
+          <p style={{ margin: 0 }}>
+            You’re signed in to Windows as <code>{gate.store.user}</code>, but that username isn’t in <code>hub-config.json</code>. Ask Nick to add it (people → username), then open the hub again.
+          </p>
+        </div>
+      </div>
+    );
   if (!person)
     return (
       <div className="gate">

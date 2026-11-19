@@ -1,6 +1,6 @@
 # Core Work Hub
 
-One Kanban board for every IT Core work item from Service Desk Plus and Wrike. Rank work, limit work in progress, and see each analyst's load at a glance. It runs from the team's shared folder in Edge: no server, no install, nothing to host.
+One Kanban board for every IT Core work item from Service Desk Plus and Wrike. Rank work, limit work in progress, and see each analyst's load at a glance. It runs from the team's shared folder: each person opens it from a desktop icon that starts a small Python helper (`launcher/hub_server.py`, standard library only, listens on 127.0.0.1) which reads and writes the shared folder and signs them in from Windows. Nothing to host. Opening `index.html` directly in Edge (File System Access API) still works as a fallback.
 
 **Status:** Phase 0 is built (board, intake and grading, triage, analyst view, WIP limits, audit log, CSV import), plus Phase 1's sync script and an early Metrics view with CSV exports. The sync scripts are written but **have not been run against Service Desk or Wrike** (see [What hasn't been tested](#what-hasnt-been-tested)).
 
@@ -70,7 +70,7 @@ Score → suggested priority: ≥15 P1, ≥8 P2, ≥3 P3, otherwise P4. When a c
 
 ### Day one: three checks before anything else
 
-1. **Edge folder access.** Copy `release/index.html` and `deploy/hub-config.json` into the shared folder. Open `index.html` in Edge on a team PC → **Choose the shared folder** → pick that folder → allow edits. Move a card, then check that `changes\<you>.jsonl` appeared. If company policy blocks this, the fallback is a Power Apps code app or SharePoint, to be decided with Lee.
+1. **Desktop icon.** On a team PC with Python 3.8+, double-click `Install desktop icon.bat` in the shared folder, then the new icon: Edge opens signed in as that Windows user. Move a card and check that `changes\<username>.jsonl` appeared. (Fallback: **Edge folder access.**) Copy `release/index.html` and `deploy/hub-config.json` into the shared folder. Open `index.html` in Edge on a team PC → **Choose the shared folder** → pick that folder → allow edits. Move a card, then check that `changes\<you>.jsonl` appeared. If company policy blocks this, the fallback is a Power Apps code app or SharePoint, to be decided with Lee.
 2. **Service Desk token.** On Nick's PC:
    ```powershell
    cmdkey /generic:CoreWorkHub-SDP /user:token /pass:<read-only technician key>
