@@ -105,7 +105,6 @@ const check = (c, m) => { if (!c) { console.log('FAIL', m); process.exitCode = 1
   const drag = async (cellLabel) => {
     const card = wes.locator('article.card', { hasText: 'Bravo' });
     const target = wes.locator(`.cell[aria-label="${cellLabel}"]`);
-    await target.scrollIntoViewIfNeeded(); await card.scrollIntoViewIfNeeded();
     const cb = await card.boundingBox(), tb = await target.boundingBox();
     await wes.mouse.move(cb.x + 40, cb.y + 20); await wes.mouse.down();
     await wes.mouse.move(cb.x + 60, cb.y + 40, { steps: 5 });

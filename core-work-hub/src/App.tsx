@@ -1,16 +1,17 @@
 import { BrandMark } from './components/logo';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { ProfileDialog } from './components/Profile';
+import { splash } from './components/Splash';
+import { ProfileDialog, toAvatarPhoto } from './components/Profile';
 import { useCallback, useEffect, useState } from 'react';
 import { HubProvider, useHub } from './store/hub';
 import { DemoStore, FolderStore, fsAccessSupported, LauncherStore, launcherKey, launcherMode, loadHandle, loadIdentity, saveHandle, saveIdentity, type HubStore } from './store/storage';
 import { defaultConfig } from './model/config';
-import { currentDispatch, findPerson, nextDispatch, fmtShortDate, offOn, todayISO } from './model/logic';
+import { currentDispatch, findPerson, nextDispatch, fmtShortDate, offOn, todayISO, initials } from './model/logic';
 import type { HubConfig } from './model/types';
 import { demoSeed } from './demo';
 import { NavCtx, parseHash, useNav, type View } from './nav';
 import { UiProvider } from './components/actions';
-import { Avatar, Icon, Toaster, useCopyLinks } from './components/ui';
+import { Avatar, avatarColor, Icon, Toaster, useCopyLinks } from './components/ui';
 import { Board } from './views/Board';
 import { Triage } from './views/Triage';
 import { Team } from './views/Team';
@@ -153,7 +154,24 @@ function Sidebar() {
 }
 
 function Shell() {
-  const { error, role } = useHub();
+  const { error, role, state, me, lastSync, store, readOnly, commit } = useHub();
+  const meP = findPerson(state.config, me);
+  useEffect(() => {
+    if (meP) splash.user(meP.name, initials(meP, me), avatarColor(me, state.config), meP.avatar);
+    if (lastSync) splash.ready();
+  }, [meP, me, state.config, lastSync]);
+  // First time on the desktop icon with no avatar chosen: use the Windows account picture (they can change it).
+  useEffect(() => {
+    if (!lastSync || readOnly || !store.windowsPicture || !meP || meP.avatar !== undefined) return;
+    const key = 'cwh.winpicTried.' + me;
+    try { if (localStorage.getItem(key)) return; localStorage.setItem(key, '1'); } catch { return; }
+    void (async () => {
+      try {
+        const blob = await store.windowsPicture!();
+        if (blob) await commit([{ type: 'profile.set', data: { photo: await toAvatarPhoto(blob) } }]);
+      } catch { /* keep initials */ }
+    })();
+  }, [lastSync, readOnly, store, meP, me, commit]);
   useDesktopAlerts();
   useCopyLinks();
   const [route, setRoute] = useState(() => (location.hash.length > 2 ? parseHash(location.hash) : { view: (role === 'analyst' ? 'board' : 'overview') as View, param: undefined }));
@@ -273,6 +291,11 @@ export function App() {
     try { localStorage.setItem('cwh.mode', 'demo'); } catch { /* ignore */ }
     void withStore(new DemoStore(demoSeed));
   };
+  const showsHub = gate.k === 'ready' && !!(me && findPerson(gate.config, me));
+  useEffect(() => {
+    if (gate.k !== 'loading' && !showsHub) splash.ready();
+  }, [gate.k, showsHub]);
+
   const leaveDemo = () => {
     localStorage.removeItem('cwh.mode');
     location.search = '';

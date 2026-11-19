@@ -7,6 +7,7 @@ import '@fontsource/plus-jakarta-sans/latin-800.css';
 import './styles.css';
 import { App } from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { Splash, splashEnabled } from './components/Splash';
 import { watchFavicon } from './components/logo';
 import { launcherKey } from './store/storage';
 
@@ -16,5 +17,6 @@ watchFavicon();
 createRoot(document.getElementById('root')!).render(
   <ErrorBoundary>
     <App />
+    {splashEnabled() && <Splash />}
   </ErrorBoundary>,
 );

@@ -31,6 +31,13 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   await w.waitForTimeout(300);
   const badges = await w.locator('.card .chip.bucket-badge').allInnerTexts();
   check(badges.length > 0 && badges.every((t) => t.trim() === 'Support'), 'the Support filter shows only Support cards');
+  // Welcome entrance (shown to people; automated browsers only with ?splash)
+  const sp = await b.newPage({ viewport: { width: 1200, height: 800 } });
+  await sp.goto(file + '?demo&as=nick&splash');
+  await sp.waitForSelector('.splash');
+  check(/Welcome/.test(await sp.locator('.splash').innerText()), 'welcome screen greets the person');
+  await sp.waitForSelector('.splash', { state: 'detached', timeout: 10000 });
+  check((await sp.locator('.sidebar').count()) === 1, 'welcome screen gives way to the hub once loaded');
   console.log('errors', errs);
   if (errs.length) process.exitCode = 1;
   await b.close();
