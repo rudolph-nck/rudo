@@ -72,7 +72,7 @@ Nobody else needs access. The folder's normal backup covers the hub; `changes/` 
 | `people[].wipLimit` | Items allowed in Doing at once (start at 2). |
 | `systems` | Ownership map: system name, Service Desk sub-categories (`aliases`), primary/secondary/third owner usernames. |
 | `rotation` | Level 1 support order, shift length (`week`, `2weeks`, `month`), who is on now and their last day, escalation (`nick`), anyone out. |
-| `ticketUrls.SD` | Link pattern to open a ticket. Open any ticket in Service Desk, copy its address, and replace the number with `{num}` (digits only, e.g. 79744) or `{id}` (full ID, e.g. INC-79744). |
+| `ticketUrls.SD` | Link pattern to open a ticket from a **CSV import**: `{num}` = digits only (e.g. 79744), `{id}` = full ID (e.g. INC-79744). On-premises: copy any ticket's address and put `{num}` in place of the number. Cloud ticket pages (`…/ui/requests/160433000056590076/details`) use a long internal ID that CSV exports don't include, so use a pattern that works from the number instead and test it with one ticket, e.g. `<Base URL>/WorkOrder.do?woMode=viewWO&woID={num}`. The API sync builds exact links itself. |
 | `teamsChannelUrl` | In Teams: channel → **⋯** → **Get link to channel**. Used by “Post digest to Teams”. |
 | `commStandard.holidays` | Business holidays as `"YYYY-MM-DD"`. The communication-standard clock pauses on these. |
 | `commStandard.enforceFrom` | **Go-live date** (`"YYYY-MM-DD"`). Response and update clocks start no earlier than this, so tickets that went quiet before the hub existed don't all escalate on day one. Set it to the day the team starts using the hub. |
@@ -159,7 +159,7 @@ pwsh -File .\Sync-ServiceDesk.ps1 -HubFolder '\\fileserver\IT\CoreWorkHub' `
      -BaseUrl 'https://sdpondemand.manageengine.com/app/itdesk' -Edition Cloud -Groups 'Core Team' -Test
 ```
 
-8. In `hub-config.json`, set `ticketUrls.SD` to `<Base URL>/ui/requests/{id}/details` so cards link to the ticket. Open one ticket in your browser to confirm the pattern.
+8. Ticket links: the sync links each card to `<Base URL>/ui/requests/<long internal ID>/details` by itself (the long ID, e.g. `160433000056590076`, comes from the API). `ticketUrls.SD` in `hub-config.json` is only used for CSV imports, which don't contain that long ID; see the `ticketUrls.SD` row in step 4.
 
 Use `-Edition Cloud` in step 7 (scheduling) too. **To revoke:** API Console → Self Client → delete it (or Zoho Accounts → Connected Apps). **To reconnect:** generate a new code and run `Connect-ZohoServiceDesk.ps1` again.
 

@@ -39,7 +39,8 @@ param(
   [ValidateSet('OnPrem', 'Cloud')] [string] $Edition = 'OnPrem',
   [string] $CredentialName = 'CoreWorkHub-SDP',
   [int] $ClosedDays = 90,
-  # Link pattern for a ticket; {id} is replaced with the request number.
+  # Link pattern for a ticket. {id} = request number (e.g. INC-157761), {num} = its digits (157761),
+  # {rid} = Service Desk's long internal ID (e.g. 160433000056590076), which Cloud ticket pages use.
   [string] $TicketUrl = '',
   [string] $StateFile = (Join-Path $env:LOCALAPPDATA 'CoreWorkHub\sync-state.json'),
   [string] $LogFile = (Join-Path $env:LOCALAPPDATA 'CoreWorkHub\sync.log'),
@@ -52,7 +53,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if (-not $TicketUrl) {
-  $TicketUrl = if ($Edition -eq 'Cloud') { "$($BaseUrl.TrimEnd('/'))/ui/requests/{id}/details" } else { "$($BaseUrl.TrimEnd('/'))/WorkOrder.do?woMode=viewWO&woID={id}" }
+  $TicketUrl = if ($Edition -eq 'Cloud') { "$($BaseUrl.TrimEnd('/'))/ui/requests/{rid}/details" } else { "$($BaseUrl.TrimEnd('/'))/WorkOrder.do?woMode=viewWO&woID={id}" }
 }
 
 function Write-Log([string] $Message) {
@@ -221,7 +222,7 @@ $items = foreach ($r in $rows) {
   $o = [ordered]@{
     source          = 'SD'
     source_id       = $id
-    source_url      = $TicketUrl.Replace('{id}', [uri]::EscapeDataString($id))
+    source_url      = $TicketUrl.Replace('{rid}', [uri]::EscapeDataString([string](Get-Val $r 'id'))).Replace('{num}', [uri]::EscapeDataString(($id -replace '\D', ''))).Replace('{id}', [uri]::EscapeDataString($id))
     title           = Hide-Numbers ([string](Get-Val $r 'subject'))
     requester       = Get-Name (Get-Val $r 'requester')
     source_status   = (Get-Name (Get-Val $r 'status')) ?? 'Open'
