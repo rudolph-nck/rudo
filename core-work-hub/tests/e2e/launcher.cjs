@@ -72,7 +72,9 @@ function start(user, port, extraEnv = {}) {
   await sel.getByRole('button', { name: /Send to To Do/ }).click();
   await pn.waitForTimeout(400);
   check(fs.existsSync(path.join(hub, 'changes/nick.jsonl')), 'Nick’s change is written to changes/nick.jsonl in the shared folder');
-  check(/"type":"profile.set","data":\{"photo":"data:image\/jpeg/.test(fs.readFileSync(path.join(hub, 'changes/nick.jsonl'), 'utf8')), 'first open: Nick’s Windows picture becomes his avatar automatically');
+  const hasPic = () => /"type":"profile.set","data":\{"photo":"data:image\/jpeg/.test(fs.readFileSync(path.join(hub, 'changes/nick.jsonl'), 'utf8'));
+  for (let i = 0; i < 25 && !hasPic(); i++) await pn.waitForTimeout(200); // saved just after the first sync
+  check(hasPic(), 'first open: Nick’s Windows picture becomes his avatar automatically');
 
   const pw = await ctx.newPage(); pw.on('pageerror', (e) => errs.push(e.message));
   await pw.goto(wes.url); await pw.waitForSelector('.sidebar');

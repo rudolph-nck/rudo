@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -85,41 +86,72 @@ export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNod
 function MoveMenu({ item }: { item: WorkItem }) {
   const { readOnly } = useHub();
   const { requestMove, openItem } = useUi();
-  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; left: number }>();
+  const open = !!pos;
   const ref = useRef<HTMLDivElement>(null);
+  const btn = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  const close = () => setPos(undefined);
+  // The menu floats above the board (fixed position, outside the card), so a scrolling column never cuts it off.
+  const place = () => {
+    const r = btn.current!.getBoundingClientRect();
+    const w = 200;
+    const h = menu.current?.offsetHeight ?? 330;
+    const left = Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8));
+    const below = r.bottom + 4;
+    const top = below + h > window.innerHeight - 8 && r.top - h - 4 > 8 ? r.top - h - 4 : Math.min(below, Math.max(8, window.innerHeight - h - 8));
+    setPos({ top, left });
+  };
   useEffect(() => {
     if (!open) return;
-    const close = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
+    place(); // re-place once the menu's real height is known
+    const outside = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && !menu.current?.contains(e.target as Node) && close();
+    // Follow the button when something scrolls; close only once the button has scrolled out of view.
+    const onScroll = (e: Event) => {
+      if (menu.current?.contains(e.target as Node) || !btn.current) return;
+      const r = btn.current.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > window.innerHeight || r.width === 0) close();
+      else place();
+    };
+    document.addEventListener('mousedown', outside);
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', close);
+    return () => {
+      document.removeEventListener('mousedown', outside);
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', close);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
   if (readOnly) return null;
   return (
-    <div ref={ref} className="card-menu" onPointerDown={(e) => e.stopPropagation()} onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}>
-      <button className="menu-btn" aria-haspopup="menu" aria-expanded={open} aria-label={`Actions for ${item.title}`} onClick={() => setOpen((o) => !o)}>
+    <div ref={ref} className="card-menu" onPointerDown={(e) => e.stopPropagation()} onKeyDown={(e) => e.key === 'Escape' && close()}>
+      <button ref={btn} className="menu-btn" aria-haspopup="menu" aria-expanded={open} aria-label={`Actions for ${item.title}`} onClick={() => (open ? close() : place())}>
         <Icon name="more" />
       </button>
-      {open && (
-        <div className="menu" role="menu">
-          <div className="menu-label">Move to</div>
-          {COLUMNS.filter((c) => c !== item.column).map((c) => (
-            <button
-              key={c}
-              role="menuitem"
-              onClick={() => {
-                setOpen(false);
-                void requestMove(item, c);
-              }}
-            >
-              {COLUMN_LABEL[c]}
+      {pos &&
+        createPortal(
+          <div ref={menu} className="menu floating" role="menu" style={{ top: pos.top, left: pos.left }} onPointerDown={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Escape') { close(); btn.current?.focus(); } }}>
+            <div className="menu-label">Move to</div>
+            {COLUMNS.filter((c) => c !== item.column).map((c) => (
+              <button
+                key={c}
+                role="menuitem"
+                onClick={() => {
+                  close();
+                  void requestMove(item, c);
+                }}
+              >
+                {COLUMN_LABEL[c]}
+              </button>
+            ))}
+            <div className="nav-sep" />
+            <button role="menuitem" onClick={() => { close(); openItem(item.id); }}>
+              Open details
             </button>
-          ))}
-          <div className="nav-sep" />
-          <button role="menuitem" onClick={() => { setOpen(false); openItem(item.id); }}>
-            Open details
-          </button>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

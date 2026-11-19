@@ -60,7 +60,7 @@ export function Splash() {
   // Walk the stages; loop the middle ones while data is still loading.
   useEffect(() => {
     if (still) { setSeqDone(true); return; }
-    const per = first ? 560 : 420;
+    const per = first ? 1400 : 1100; // time on each shape
     let i = 0;
     const t = setInterval(() => {
       i++;
@@ -84,13 +84,13 @@ export function Splash() {
   // Leave once the sequence has landed back on the logo and the data is in.
   useEffect(() => {
     if (!(seqDone && b.ready) || leaving) return;
-    const t = setTimeout(() => setLeaving(true), still ? 150 : 650);
+    const t = setTimeout(() => setLeaving(true), still ? 150 : 1300);
     return () => clearTimeout(t);
   }, [seqDone, b.ready, leaving, still]);
   useEffect(() => {
     if (!leaving) return;
     try { localStorage.setItem('cwh.seenSplash', '1'); } catch { /* ignore */ }
-    const t = setTimeout(() => setGone(true), 420);
+    const t = setTimeout(() => setGone(true), 700);
     return () => clearTimeout(t);
   }, [leaving]);
 

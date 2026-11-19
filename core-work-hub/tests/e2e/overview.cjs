@@ -36,7 +36,7 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   await sp.goto(file + '?demo&as=nick&splash');
   await sp.waitForSelector('.splash');
   check(/Welcome/.test(await sp.locator('.splash').innerText()), 'welcome screen greets the person');
-  await sp.waitForSelector('.splash', { state: 'detached', timeout: 10000 });
+  await sp.waitForSelector('.splash', { state: 'detached', timeout: 25000 });
   check((await sp.locator('.sidebar').count()) === 1, 'welcome screen gives way to the hub once loaded');
   console.log('errors', errs);
   if (errs.length) process.exitCode = 1;
