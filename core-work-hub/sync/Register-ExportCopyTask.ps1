@@ -18,6 +18,17 @@ param(
 $ErrorActionPreference = 'Stop'
 if (-not (Test-Path -LiteralPath $Source)) { throw "Can't see $Source. Sync the SharePoint folder to this PC first (SharePoint -> Sync), then copy the file's path (right-click -> Copy as path)." }
 if (-not (Test-Path -LiteralPath $HubFolder -PathType Container)) { throw "Can't reach the hub folder $HubFolder." }
+# A mapped drive (e.g. I:\Core\Hub) may not exist for a scheduled task: use the network path behind it.
+if ($HubFolder -match '^([A-Za-z]):(.*)$') {
+  $drive = Get-PSDrive -Name $Matches[1] -PSProvider FileSystem -ErrorAction SilentlyContinue
+  if ($drive -and $drive.DisplayRoot -like '\\*') {
+    $unc = $drive.DisplayRoot.TrimEnd('\') + $Matches[2]
+    if (Test-Path -LiteralPath $unc -PathType Container) {
+      Write-Host "Using the network path for ${HubFolder}: $unc"
+      $HubFolder = $unc
+    }
+  }
+}
 if (-not (Test-Path -LiteralPath (Join-Path $HubFolder 'index.html'))) { Write-Warning "$HubFolder has no index.html. Is this the Core Work Hub folder?" }
 if (Test-Path -LiteralPath $Source -PathType Container) {
   $found = Get-ChildItem -LiteralPath $Source -File -Filter $Pattern | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1

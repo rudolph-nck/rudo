@@ -120,7 +120,7 @@ powershell -ExecutionPolicy Bypass -File .\Register-ExportCopyTask.ps1 `
   -HubFolder '\\fileserver\IT\CoreWorkHub'
 ```
 
-It copies only when the export changed, skips a file still being written, and swaps the new file in whole. Log: `%LOCALAPPDATA%\CoreWorkHub\export-copy.log`. No credentials are involved; it runs as Nick, only while he's signed in.
+A mapped drive letter for the hub folder (e.g. `I:\Core\Hub`) is fine: the task is set up with the network path behind it. It copies only when the export changed, skips a file still being written, and swaps the new file in whole. Log: `%LOCALAPPDATA%\CoreWorkHub\export-copy.log`. No credentials are involved; it runs as Nick, only while he's signed in.
 
 **When the API sync goes live:** remove the task (`Unregister-ScheduledTask 'Core Work Hub - copy Service Desk export'`), delete `import\Core - All.csv`, and set `"autoImport": { "enabled": false }` in `hub-config.json`.
 
