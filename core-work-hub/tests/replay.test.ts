@@ -5,6 +5,7 @@ import { analysts, checkWip, computeScore, coverageGaps, currentDispatch, nextDi
 import { importTicketsCsv, maskNumbers, mergeSnapshot, parseCsv } from '../src/model/csv';
 import type { HubEvent, TicketsSnapshot, WorkItem } from '../src/model/types';
 import { heldUp, overview, priorityConflicts, shiftStats } from '../src/model/analytics';
+import { nextFreeAbove, teamBoard } from '../src/model/teamscore';
 import { demoSeed } from '../src/demo';
 
 let n = 0;
@@ -493,5 +494,48 @@ describe('priority conflicts', () => {
     expect(c.map((x) => x.kind)).toEqual(['lower-first', 'unowned', 'rank-inversion']);
     expect(c[0]).toMatchObject({ item: { id: 'SD:100' }, other: { id: 'SD:101' } });
     expect(c[2].text).toMatch(/#1 is P4 but #2 is P1/);
+  });
+});
+
+describe('team score', () => {
+  const proj = (id: string, min: number) => [
+    ev('nick', min, { type: 'item.create', item: id, data: { source: 'Hub', title: id } }),
+    ev('nick', min + 1, { type: 'item.grade', item: id, data: { bucket: 'Project', priority: 'P2', impact: 3, urgency: 3, effort: 3 } }),
+    ev('nick', min + 2, { type: 'item.move', item: id, data: { column: 'To Do' } }),
+  ];
+  const rate = (file: string, min: number, item: string, r: Record<string, number>) => ev(file, min, { type: 'team.rate', item, data: { ratings: r } });
+  const all = (n: number) => ({ value: n, risk: n, urgency: n, reach: n, effort: 6 - n });
+
+  it('averages the team’s ratings into a 0–100 score; the latest rating per person counts', () => {
+    const s = replay(defaultConfig(), snap([]), [...proj('A', 1), rate('wes', 10, 'A', all(5)), rate('cathy', 11, 'A', all(1)), rate('cathy', 12, 'A', all(5))]);
+    const b = teamBoard(s);
+    expect(b.rows[0].ts).toMatchObject({ base: 100, score: 100, raters: ['wes', 'cathy'] });
+  });
+
+  it('flags ties, and a recorded decision breaks them', () => {
+    let evs = [...proj('A', 1), ...proj('B', 5), rate('wes', 10, 'A', all(3)), rate('wes', 11, 'B', all(3))];
+    let b = teamBoard(replay(defaultConfig(), snap([]), evs));
+    expect(b.ties).toHaveLength(1);
+    const tied = b.ties[0][0].ts.score!;
+    evs = [...evs, ev('nick', 20, { type: 'team.score', item: 'B', data: { score: nextFreeAbove(tied, [tied]), reason: 'Tie-break' } })];
+    b = teamBoard(replay(defaultConfig(), snap([]), evs));
+    expect(b.ties).toHaveLength(0);
+    expect(b.scored.map((r) => [r.item.id, r.ts.score])).toEqual([['B', tied + 0.1], ['A', tied]]);
+  });
+
+  it('refuses a set score another project already has, and analysts can rate but not set', () => {
+    const s = replay(defaultConfig(), snap([]), [
+      ...proj('A', 1), ...proj('B', 5),
+      rate('wes', 10, 'A', all(4)),
+      ev('nick', 20, { type: 'team.score', item: 'B', data: { score: 75 } }),
+      ev('cathy', 21, { type: 'team.score', item: 'A', data: { score: 90 } }),
+    ]);
+    const b = teamBoard(s);
+    expect(b.rows.find((r) => r.item.id === 'A')!.ts.score).toBe(75);
+    expect(b.rows.find((r) => r.item.id === 'B')!.ts.score).toBeUndefined();
+    expect(s.audit.filter((a) => a.rejected).map((a) => a.rejected)).toEqual([
+      expect.stringMatching(/already “A”; scores must be unique/),
+      expect.stringMatching(/Only Nick/),
+    ]);
   });
 });

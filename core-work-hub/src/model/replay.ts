@@ -1,5 +1,6 @@
 import { computeScore, mapSourcePriority, roleOf, canGrade, personForSourceName, systemForCategory } from './logic';
 import { fillLink } from './csv';
+import { computeTeamScore, criteriaOf, isProject } from './teamscore';
 import type { AuditEntry, Bucket, Conflict, HubConfig, HubEvent, HubState, SourceTicket, TicketsSnapshot, TimeEntry, WorkItem } from './types';
 import { BUCKETS, RANKED_COLUMNS, isRanked } from './types';
 
@@ -92,7 +93,10 @@ export function rejectReason(config: HubConfig, file: string, e: HubEvent, item?
     case 'item.comment':
     case 'item.reply':
     case 'time.log':
+    case 'team.rate':
       return undefined;
+    case 'team.score':
+      return grader ? undefined : 'Only Nick (or the person on support) records the team’s decision';
     case 'item.ack':
       return item?.owner === file ? undefined : 'Only the owner can acknowledge';
     case 'item.grade':
@@ -174,6 +178,14 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
     if (e.type === 'item.move' && it && tickets.has(it.id) && (sourceDrives(config, it, e.data.column, true) || sourceDrives(config, it, it.column, true))) {
       audit.push({ event: e, file, rejected: `Service Desk status controls ${sourceDrives(config, it, e.data.column, true) ? e.data.column : it.column} for tickets` });
       continue;
+    }
+    if (e.type === 'team.score' && e.data.score !== null && it) {
+      const s = Math.round(e.data.score * 10) / 10;
+      const clash = [...items.values()].find((o) => o.id !== it.id && isProject(o) && computeTeamScore(o, criteriaOf(config)).score === s);
+      if (clash) {
+        audit.push({ event: e, file, rejected: `Team score ${s} is already “${clash.title}”; scores must be unique` });
+        continue;
+      }
     }
     const why = rejectReason(config, file, e, it);
     if (why) {
@@ -284,6 +296,22 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
         break;
       case 'item.reply':
         break;
+      case 'team.rate': {
+        const w = it!;
+        const clean: Record<string, number> = {};
+        for (const [k, v] of Object.entries(e.data.ratings)) if (Number.isInteger(v) && v >= 1 && v <= 5) clean[k] = v;
+        w.team = { ...(w.team ?? { ratings: {} }), ratings: { ...(w.team?.ratings ?? {}), [file]: { ...(w.team?.ratings[file] ?? {}), ...clean } } };
+        break;
+      }
+      case 'team.score': {
+        const w = it!;
+        if (e.data.score === null) {
+          if (w.team) w.team = { ...w.team, set: undefined };
+        } else {
+          w.team = { ...(w.team ?? { ratings: {} }), set: { score: Math.round(e.data.score * 10) / 10, by: file, ts: e.ts, reason: e.data.reason } };
+        }
+        break;
+      }
       case 'time.log':
         time.push({ id: e.id, ts: e.ts, user: file, item: e.item, ...e.data });
         break;

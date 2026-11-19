@@ -105,6 +105,16 @@ export interface DispatchShift {
   to: string;
 }
 
+export interface TeamCriterion {
+  key: string;
+  label: string;
+  hint?: string;
+  /** Relative weight; weights don't need to add to 100. */
+  weight: number;
+  /** Higher rating = lower score (effort). */
+  invert?: boolean;
+}
+
 export type TimeOffKind = 'pto' | 'holiday' | 'training' | 'partial' | 'out';
 export const TIME_OFF_KINDS: { key: TimeOffKind; label: string }[] = [
   { key: 'pto', label: 'Time off' },
@@ -152,6 +162,8 @@ export interface HubConfig {
   timeOff: TimeOff[];
   /** The person on support may grade and rank during their shift (triage is the support job). Default true. */
   supportCanTriage?: boolean;
+  /** Team score criteria for projects. Defaults to value, risk, urgency, reach, effort. */
+  teamCriteria?: TeamCriterion[];
   /** Team-wide Doing limit per bucket (sum over everyone). */
   bucketWip: Partial<Record<Bucket, number>>;
   defaultWipLimit: number;
@@ -217,6 +229,8 @@ export type HubEvent = EventBase &
     | { type: 'config.dispatch'; data: { shifts: DispatchShift[] } }
     | { type: 'config.rotation'; data: Rotation }
     | { type: 'config.timeoff'; data: TimeOff & { deleted?: boolean } }
+    | { type: 'team.rate'; item: string; data: { ratings: Record<string, number> } }
+    | { type: 'team.score'; item: string; data: { score: number | null; reason?: string } }
     | { type: 'config.system'; data: SystemOwnership & { deleted?: boolean } }
   );
 
@@ -264,6 +278,8 @@ export interface WorkItem {
   done?: string;
   /** Service Desk SLA due date. */
   due_by?: string;
+  /** Team score inputs (projects): latest ratings per person, and a score the team set. */
+  team?: { ratings: Record<string, Record<string, number>>; set?: { score: number; by: string; ts: string; reason?: string } };
   /** When the card entered its current column (for "stuck for N days"). */
   columnSince?: string;
   /** Last time anything happened to the item (any event or source change). */

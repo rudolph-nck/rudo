@@ -5,6 +5,7 @@ import { useHub } from '../store/hub';
 import { useUi } from './actions';
 import { addDays, fmtAge, fmtShortDate, isOverdue, offOn, systemName } from '../model/logic';
 import { COLUMNS, COLUMN_LABEL, type WorkItem } from '../model/types';
+import { computeTeamScore, criteriaOf, isProject } from '../model/teamscore';
 import { Avatar, BucketDot, Icon, PriorityChip, SourceBadge } from './ui';
 
 export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNode }) {
@@ -20,6 +21,9 @@ export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNod
         <BucketDot b={item.bucket} />
         <PriorityChip p={item.priority} />
         <SourceBadge item={item} />
+        {isProject(item) && computeTeamScore(item, criteriaOf(state.config)).score !== undefined && (
+          <span className="chip ts-chip" title="Team score">★ {computeTeamScore(item, criteriaOf(state.config)).score}</span>
+        )}
         {menu}
       </div>
       <button className="title" onClick={() => openItem(item.id)} onPointerDown={(e) => e.stopPropagation()}>

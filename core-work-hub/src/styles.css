@@ -457,3 +457,24 @@ table.cal td.sup { background: var(--accent-soft); }
 .pri-table th:nth-child(6) { width: 140px; }
 .pri-table th:nth-child(7) { width: 210px; }
 .pri-table td { overflow-wrap: anywhere; }
+
+/* ---------- team score */
+.criteria { padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; }
+.crit { display: inline-flex; gap: 6px; align-items: baseline; padding: 6px 10px; border-radius: 10px; background: var(--surface-2); font-size: 13px; }
+.banner.tie { flex-wrap: wrap; }
+.ts-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.ts-row { display: grid; grid-template-columns: 44px 104px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 18px; }
+.ts-row.tied { border-color: var(--danger); }
+.ts-pos { font-size: 16px; white-space: nowrap; font-weight: 800; color: var(--accent-text); text-align: center; }
+.ts-score { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 6px; border-radius: 12px; background: var(--accent-soft); }
+.ts-score strong { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; color: var(--text); font-variant-numeric: tabular-nums; }
+.ts-score span { font-size: 11px; font-weight: 700; color: var(--text-2); }
+.ts-crit { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px 16px; margin-top: 8px; }
+.ts-c { display: grid; grid-template-columns: 118px 1fr 26px; gap: 6px; align-items: center; }
+.ts-side { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.ts-raters { display: flex; align-items: center; gap: 2px; }
+.ts-raters .avatar { margin-left: -6px; box-shadow: 0 0 0 2px var(--surface); }
+.ts-raters .small { margin-left: 8px; }
+.ts-rate { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 12px; background: var(--surface-2); }
+.chip.ts-chip { background: var(--accent-soft); color: var(--accent-text); }
+@media (max-width: 1000px) { .ts-row { grid-template-columns: 44px 90px 1fr; } .ts-side { grid-column: 1 / -1; align-items: flex-start; } }

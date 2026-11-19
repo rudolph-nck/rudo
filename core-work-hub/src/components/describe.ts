@@ -55,6 +55,10 @@ export function describeEvent(e: HubEvent, cfg: HubConfig): string {
       return `updated the support rotation (${e.data.order.map((u) => who(u)).join(' → ')}, ${e.data.shift === 'month' ? 'monthly' : e.data.shift === 'week' ? 'weekly' : 'every 2 weeks'})`;
     case 'config.timeoff':
       return `${e.data.deleted ? 'removed' : 'set'} time off for ${who(e.data.username)}: ${e.data.from}${e.data.to !== e.data.from ? ` to ${e.data.to}` : ''}${e.data.cover && !e.data.deleted ? `, ${who(e.data.cover)} covering` : ''}`;
+    case 'team.rate':
+      return `rated it for the team score (${Object.entries(e.data.ratings).map(([k, v]) => `${k} ${v}`).join(', ')})`;
+    case 'team.score':
+      return e.data.score === null ? 'cleared the team’s set score' : `set the team score to ${e.data.score}${e.data.reason ? ` — “${e.data.reason}”` : ''}`;
     case 'config.system':
       return `${e.data.deleted ? 'removed' : 'updated'} system “${e.data.name}” on the ownership map`;
   }

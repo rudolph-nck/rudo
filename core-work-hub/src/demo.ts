@@ -158,6 +158,17 @@ export function demoSeed(): { config: HubConfig; snapshot: TicketsSnapshot; even
   events.push(ev('trey', 0, { type: 'item.reply', item: 'SD:48207', data: { via: 'Service Desk' } } as never));
   events.push(ev('trey', 0, { type: 'item.comment', item: 'SD:48190', data: { text: 'Printer queue restarted; watching it.' } } as never));
 
+  // Team score ratings for the demo projects. Backup runbook and Wi-Fi survey come out tied, to show a tie-break.
+  const tr = (user: string, item: string, r: number[]) =>
+    events.push(ev(user, 1, { type: 'team.rate', item, data: { ratings: { value: r[0], risk: r[1], urgency: r[2], reach: r[3], effort: r[4] } } } as never));
+  tr('nick', 'hub-sp-migration', [4, 3, 3, 5, 4]);
+  tr('wes', 'hub-sp-migration', [5, 3, 4, 5, 4]);
+  tr('cathy', 'hub-sp-migration', [4, 2, 3, 4, 5]);
+  tr('nick', 'hub-backup-docs', [3, 5, 3, 2, 2]);
+  tr('noelle', 'hub-backup-docs', [3, 5, 3, 2, 2]);
+  tr('nick', 'hub-wifi', [3, 5, 3, 2, 2]);
+  tr('trey', 'hub-wifi', [3, 5, 3, 2, 2]);
+
   events.push(ev('wes', 4, { type: 'item.comment', item: 'hub-sp-migration', data: { text: 'Lending pilot scheduled for next Thursday after hours.' } } as never));
   events.push(ev('trey', 3, { type: 'item.comment', item: 'SD:48188', data: { text: 'CSR submitted to the CA, waiting on validation email.' } } as never));
   const logs: [string, string, number, number][] = [
