@@ -782,3 +782,26 @@ describe('avatars (profile.set)', () => {
     expect(s.audit.find((a) => a.event.type === 'profile.set')!.rejected).toBeFalsy();
   });
 });
+
+describe('ownership map with several people per role', () => {
+  const today = new Date().toISOString().slice(0, 10);
+  const cfgWith = (off: string[]) => {
+    const c = defaultConfig();
+    c.systems = [{ id: 'opcon', name: 'OpCon', primary: 'wes', secondary: 'noelle', third: ['michael', 'trey', 'cathy'], criticality: 'Critical' }];
+    c.timeOff = off.map((u, i) => ({ id: `t${i}`, username: u, from: today, to: today, kind: 'pto' }) as never);
+    return c;
+  };
+  it('suggests primary first', () => {
+    expect(suggestOwner(replay(cfgWith([]), undefined, []), 'opcon')!.username).toBe('wes');
+  });
+  it('walks the third-backup list in order when people are off', () => {
+    expect(suggestOwner(replay(cfgWith(['wes', 'noelle']), undefined, []), 'opcon')!.username).toBe('michael');
+    expect(suggestOwner(replay(cfgWith(['wes', 'noelle', 'michael']), undefined, []), 'opcon')!.username).toBe('trey');
+  });
+  it('a list in secondary alternates with its first person', () => {
+    const c = cfgWith([]);
+    c.systems[0] = { id: 'sym', name: 'Symitar (Configuration)', primary: 'cathy', secondary: ['trey', 'noelle'], third: 'michael' };
+    const s = replay(c, snap([{ source_id: '1', subcategory: 'x' }]), [ev('nick', 1, { type: 'item.grade', item: 'SD:1', data: { bucket: 'Support', impact: 2, urgency: 2, effort: 2, system: 'sym', owner: 'cathy' } })]);
+    expect(suggestOwner(s, 'sym')!.username).toBe('trey');
+  });
+});

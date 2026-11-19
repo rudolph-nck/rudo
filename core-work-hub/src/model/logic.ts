@@ -327,7 +327,7 @@ function suggestOwnerRaw(state: HubState, systemId?: string, excludeItem?: strin
   const sys = state.config.systems.find((s) => s.id === systemId);
   if (!sys) return undefined;
   const primary = sys.primary;
-  const secondary = sys.secondary;
+  const secondary = ownerList(sys.secondary)[0];
   if (!primary && !secondary) return undefined;
   if (!secondary) return { username: primary!, slot: 'primary', reason: 'Only owner on the map' };
   if (!primary) return { username: secondary, slot: 'secondary', reason: 'No primary on the map' };
@@ -355,10 +355,17 @@ export function suggestOwner(state: HubState, systemId?: string, excludeItem?: s
   const sys = state.config.systems.find((x) => x.id === systemId)!;
   const name = (u: string) => findPerson(state.config, u)?.name ?? u;
   const off = offOn(state.config, s.username)!;
-  const alts: [string | undefined, OwnerSuggestion['slot']][] = [[sys.primary, 'primary'], [sys.secondary, 'secondary'], [sys.third, 'third']];
+  const alts: [string | undefined, OwnerSuggestion['slot']][] = [
+    [sys.primary, 'primary'],
+    ...ownerList(sys.secondary).map((u): [string, OwnerSuggestion['slot']] => [u, 'secondary']),
+    ...ownerList(sys.third).map((u): [string, OwnerSuggestion['slot']] => [u, 'third']),
+  ];
   const alt = alts.find(([u]) => u && u !== s.username && !offOn(state.config, u));
   return alt ? { username: alt[0]!, slot: alt[1], reason: `${name(s.username)} is off until ${fmtShortDate(off.to)}` } : s;
 }
+
+/** A map slot as a list: "wes", ["trey", "noelle"] or nothing. */
+export const ownerList = (v?: string | string[]) => (Array.isArray(v) ? v : v ? [v] : []).filter(Boolean);
 
 export const systemName = (systems: SystemOwnership[], id?: string) => systems.find((s) => s.id === id)?.name ?? id;
 

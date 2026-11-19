@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useHub } from '../store/hub';
 import { srcName } from './ui';
-import { assignable, computeScore, suggestOwner, suggestPriority, findPerson } from '../model/logic';
+import { assignable, computeScore, suggestOwner, suggestPriority, findPerson, ownerList } from '../model/logic';
 import { BUCKETS, BUCKET_LABEL, PRIORITIES, type Bucket, type Grade, type Priority, type WorkItem } from '../model/types';
 import { Avatar, BucketDot, Pick } from './ui';
 import { EFFORT_LEVELS, EFFORT_SHORT, IMPACT_LEVELS, ScalePick, URGENCY_LEVELS } from './Scale';
@@ -138,8 +138,8 @@ export function GradeForm({ item, draft, onChange, disabled }: { item: WorkItem;
               )}
             </div>
             <div className="small muted">
-              {item.ownerFromSource ? (sug ? `Rotation would have suggested ${ownerName(sug.username)}. Reassign in ${srcName(item)} if needed.` : '') : `${sug?.reason ?? ''}.`} Map: {ownerName(sys.primary) ?? '–'} → {ownerName(sys.secondary) ?? '–'}
-              {sys.third ? ` → ${ownerName(sys.third)}` : ''}
+              {item.ownerFromSource ? (sug ? `Rotation would have suggested ${ownerName(sug.username)}. Reassign in ${srcName(item)} if needed.` : '') : `${sug?.reason ?? ''}.`} Map: {ownerName(sys.primary) ?? '–'} → {ownerList(sys.secondary).map((u) => ownerName(u)).join(' / ') || '–'}
+              {ownerList(sys.third).length ? ` → ${ownerList(sys.third).map((u) => ownerName(u)).join(' / ')}` : ''}
             </div>
           </div>
           {sug && owner !== sug.username && !item.ownerFromSource && (

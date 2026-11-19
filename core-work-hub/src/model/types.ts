@@ -108,9 +108,11 @@ export interface SystemOwnership {
   /** Service Desk sub-categories (or categories) that belong to this system, e.g. ["Symitar Quest", "SymXchange"]. */
   aliases?: string[];
   primary?: string;
-  secondary?: string;
-  third?: string;
-  criticality?: 'High' | 'Medium' | 'Low';
+  /** One person, or several in order (e.g. "Trey / Noelle"). The first is used for alternating with primary. */
+  secondary?: string | string[];
+  /** Third backup: one person or several in order (e.g. "Michael / Trey / Cathy"). */
+  third?: string | string[];
+  criticality?: 'Critical' | 'High' | 'Medium' | 'Low';
 }
 
 export interface DispatchShift {

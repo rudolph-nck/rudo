@@ -562,3 +562,4 @@ fieldset.holds { border: 1px solid var(--border); border-radius: 12px; padding: 
 fieldset.holds legend { font-size: 12px; font-weight: 700; color: var(--text-2); padding: 0 4px; }
 fieldset.holds ul { list-style: none; margin: 0; padding: 0; max-height: 240px; overflow: auto; }
 fieldset.holds input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); }
+section[aria-labelledby='sys-h'] select.input { min-width: 112px; }

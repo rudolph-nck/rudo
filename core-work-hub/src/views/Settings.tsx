@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useHub } from '../store/hub';
 import { Avatar, download, Icon, toast } from '../components/ui';
-import { analysts, assignable, findPerson, personForSourceName, personWipLimit } from '../model/logic';
+import { analysts, assignable, findPerson, personForSourceName, personWipLimit, ownerList } from '../model/logic';
 import { isStatus } from '../model/replay';
 import { DEFAULT_IMPORT_FILE } from '../store/autoimport';
 import { importTicketRows, importTicketsCsv, mergeSnapshot, type CsvImportResult } from '../model/csv';
@@ -252,6 +252,21 @@ function SystemsSettings() {
       {people.map((p) => <option key={p.username} value={p.username}>{p.name}</option>)}
     </select>
   );
+  // A slot that can hold several people in order: one picker per person, plus "add".
+  const OwnersSel = ({ v, on, label }: { v?: string | string[]; on: (x?: string | string[]) => void; label: string }) => {
+    const list = ownerList(v);
+    const set = (next: string[]) => on(next.length > 1 ? next : next[0]);
+    return (
+      <div className="stack" style={{ gap: 4 }}>
+        {(list.length ? list : ['']).map((u, i) => (
+          <PersonSel key={i} label={`${label} ${i + 1}`} v={u || undefined} on={(x) => set(x ? Object.assign([...list], { [i]: x }) : list.filter((_, j) => j !== i))} />
+        ))}
+        {list.length > 0 && list.length < 4 && <button className="btn sm ghost" style={{ alignSelf: 'flex-start' }} onClick={() => set([...list, people.find((p) => !list.includes(p.username) && p.username !== draft?.primary)?.username ?? list[0]])}>+ add</button>}
+      </div>
+    );
+  };
+  const names = (v?: string | string[]) => ownerList(v).map((u) => findPerson(cfg, u)?.name ?? u).join(' / ') || '—';
+  const critClass = (c?: string) => (c === 'Critical' ? 'p1' : c === 'High' ? 'p2' : c === 'Medium' ? 'p3' : 'p4');
   return (
     <section className="panel" aria-labelledby="sys-h">
       <div className="panel-head"><h2 id="sys-h" className="grow">Ownership map</h2><span className="small muted">Grading suggests owners from this map, alternating primary and secondary.</span></div>
@@ -265,9 +280,9 @@ function SystemsSettings() {
                   <td><input className="input" aria-label="System name" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} /></td>
                   <td><input className="input" aria-label="Service Desk sub-categories, comma separated" placeholder="Symitar Quest, SymXchange" value={(draft.aliases ?? []).join(', ')} onChange={(e) => setDraft({ ...draft, aliases: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) })} /></td>
                   <td><PersonSel label="Primary" v={draft.primary} on={(x) => setDraft({ ...draft, primary: x })} /></td>
-                  <td><PersonSel label="Secondary" v={draft.secondary} on={(x) => setDraft({ ...draft, secondary: x })} /></td>
-                  <td><PersonSel label="Third backup" v={draft.third} on={(x) => setDraft({ ...draft, third: x })} /></td>
-                  <td><select className="input" aria-label="Criticality" value={draft.criticality ?? ''} onChange={(e) => setDraft({ ...draft, criticality: (e.target.value || undefined) as SystemOwnership['criticality'] })}><option value="">—</option><option>High</option><option>Medium</option><option>Low</option></select></td>
+                  <td><OwnersSel label="Secondary" v={draft.secondary} on={(x) => setDraft({ ...draft, secondary: x })} /></td>
+                  <td><OwnersSel label="Third backup" v={draft.third} on={(x) => setDraft({ ...draft, third: x })} /></td>
+                  <td><select className="input" aria-label="Criticality" value={draft.criticality ?? ''} onChange={(e) => setDraft({ ...draft, criticality: (e.target.value || undefined) as SystemOwnership['criticality'] })}><option value="">—</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></td>
                   <td className="row">
                     <button className="btn sm primary" onClick={async () => { if (await commit([{ type: 'config.system', data: draft }])) setDraft(null); }}>Save</button>
                     <button className="btn sm" onClick={() => setDraft(null)}>Cancel</button>
@@ -278,9 +293,9 @@ function SystemsSettings() {
                   <td><strong>{s.name}</strong></td>
                   <td className="small muted">{s.aliases?.join(', ') || '—'}</td>
                   <td>{findPerson(cfg, s.primary)?.name ?? '—'}</td>
-                  <td>{findPerson(cfg, s.secondary)?.name ?? '—'}</td>
-                  <td>{findPerson(cfg, s.third)?.name ?? '—'}</td>
-                  <td>{s.criticality ? <span className={`chip ${s.criticality === 'High' ? 'p1' : s.criticality === 'Medium' ? 'p2' : 'p4'}`}>{s.criticality}</span> : '—'}</td>
+                  <td>{names(s.secondary)}</td>
+                  <td>{names(s.third)}</td>
+                  <td>{s.criticality ? <span className={`chip ${critClass(s.criticality)}`}>{s.criticality}</span> : '—'}</td>
                   <td>{edit && <div className="row"><button className="btn sm" onClick={() => setDraft({ ...s })}>Edit</button><button className="btn sm ghost danger" onClick={() => confirm(`Remove ${s.name} from the map?`) && commit([{ type: 'config.system', data: { ...s, deleted: true } }])}>Remove</button></div>}</td>
                 </tr>
               ),
@@ -297,7 +312,7 @@ function SystemsSettings() {
         <div className="row wrap" style={{ padding: 14 }}>
           <label className="field grow"><span>Name</span><input className="input" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} /></label>
           <label className="field"><span>Primary</span><PersonSel label="Primary" v={draft.primary} on={(x) => setDraft({ ...draft, primary: x })} /></label>
-          <label className="field"><span>Secondary</span><PersonSel label="Secondary" v={draft.secondary} on={(x) => setDraft({ ...draft, secondary: x })} /></label>
+          <label className="field"><span>Secondary</span><OwnersSel label="Secondary" v={draft.secondary} on={(x) => setDraft({ ...draft, secondary: x })} /></label>
           <button className="btn primary" style={{ alignSelf: 'flex-end' }} onClick={async () => { if (draft.name.trim() && (await commit([{ type: 'config.system', data: draft }]))) setDraft(null); }}>Add</button>
           <button className="btn" style={{ alignSelf: 'flex-end' }} onClick={() => setDraft(null)}>Cancel</button>
         </div>
