@@ -133,6 +133,7 @@ class Hub:
         self.user = user
         self.key = secrets.token_urlsafe(24)
         self.last_seen = time.time()
+        self.stop = None
         self.lock = threading.Lock()
 
     def path(self, name):
@@ -280,6 +281,13 @@ def make_handler(hub, port):
             url = urllib.parse.urlparse(self.path)
             if not self.authorized():
                 return self.json(403, {"error": "forbidden"})
+            if url.path == "/api/stop":
+                # A newer launch for a different hub folder replaces this one.
+                log("asked to stop by a newer launch")
+                self.json(200, {"ok": True})
+                if hub.stop:
+                    threading.Thread(target=hub.stop, daemon=True).start()
+                return None
             if url.path != "/api/changes/append":
                 return self.json(404, {"error": "unknown"})
             try:
@@ -340,14 +348,25 @@ def open_browser(url, which):
         webbrowser.open(url)
 
 
-def already_running(user):
-    """If this user's launcher is already up, reuse it (one per person per PC)."""
+def already_running(user, folder):
+    """If this user's launcher is already up for this hub folder, reuse it (one per person per PC).
+    One left running for a different folder (e.g. the hub was moved) is told to stop."""
     try:
         with open(STATE_FILE, encoding="utf-8") as f:
             st = json.load(f)
         if st.get("user") != user:
             return None
         import urllib.request
+
+        same = os.path.normcase(os.path.abspath(st.get("folder", ""))) == os.path.normcase(os.path.abspath(folder))
+        if not same:
+            try:
+                req = urllib.request.Request(f"http://127.0.0.1:{st['port']}/api/stop", data=b"", method="POST", headers={"X-Hub-Key": st["key"]})
+                urllib.request.urlopen(req, timeout=2).close()
+                log(f"stopped the helper for {st.get('folder')} (now {folder})")
+            except Exception:  # noqa: BLE001
+                pass
+            return None
 
         req = urllib.request.Request(f"http://127.0.0.1:{st['port']}/api/ping", headers={"X-Hub-Key": st["key"]})
         with urllib.request.urlopen(req, timeout=2) as r:
@@ -373,7 +392,7 @@ def main():
         print(f"index.html not found in {args.folder}", file=sys.stderr)
         sys.exit(2)
 
-    st = already_running(user) if not args.port else None
+    st = already_running(user, args.folder) if not args.port else None
     if st:
         open_browser(f"http://127.0.0.1:{st['port']}/#key={st['key']}", args.browser)
         return
@@ -381,6 +400,7 @@ def main():
     hub = Hub(args.folder, user)
     port = args.port or free_port()
     httpd = Server(("127.0.0.1", port), make_handler(hub, port))
+    hub.stop = httpd.shutdown
     try:
         os.makedirs(STATE_DIR, exist_ok=True)
         with open(STATE_FILE, "w", encoding="utf-8") as f:
