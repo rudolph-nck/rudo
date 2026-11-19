@@ -7,9 +7,11 @@ import '@fontsource/plus-jakarta-sans/latin-800.css';
 import './styles.css';
 import { App } from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { watchFavicon } from './components/logo';
 import { launcherKey } from './store/storage';
 
 launcherKey();
+watchFavicon();
 
 createRoot(document.getElementById('root')!).render(
   <ErrorBoundary>

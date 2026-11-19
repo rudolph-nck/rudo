@@ -1,3 +1,4 @@
+import { BrandMark } from './components/logo';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ProfileDialog } from './components/Profile';
 import { useCallback, useEffect, useState } from 'react';
@@ -92,7 +93,7 @@ function Sidebar() {
   return (
     <aside className="sidebar" aria-label="Main">
       <div className="brand">
-        <span className="brand-mark" aria-hidden>CW</span>
+        <BrandMark />
         Core Work Hub
       </div>
       <nav className="nav" aria-label="Views">
@@ -283,7 +284,7 @@ export function App() {
     return (
       <div className="gate">
         <div className="gate-card">
-          <div className="brand"><span className="brand-mark" aria-hidden>CW</span>Core Work Hub</div>
+          <div className="brand"><BrandMark />Core Work Hub</div>
           <h1>Start the hub from your desktop icon</h1>
           <p style={{ margin: 0 }}>{gate.err}</p>
         </div>
@@ -294,7 +295,7 @@ export function App() {
     return (
       <div className="gate">
         <div className="gate-card">
-          <div className="brand"><span className="brand-mark" aria-hidden>CW</span>Core Work Hub</div>
+          <div className="brand"><BrandMark />Core Work Hub</div>
           {gate.k === 'reconnect' ? (
             <>
               <h1>Reconnect to the shared folder</h1>
@@ -347,7 +348,7 @@ export function App() {
     return (
       <div className="gate">
         <div className="gate-card">
-          <div className="brand"><span className="brand-mark" aria-hidden>CW</span>Core Work Hub</div>
+          <div className="brand"><BrandMark />Core Work Hub</div>
           <h1>You’re not on the hub yet</h1>
           <p style={{ margin: 0 }}>
             You’re signed in to Windows as <code>{gate.store.user}</code>, but that username isn’t in <code>hub-config.json</code>. Ask Nick to add it (people → username), then open the hub again.
@@ -359,7 +360,7 @@ export function App() {
     return (
       <div className="gate">
         <div className="gate-card">
-          <div className="brand"><span className="brand-mark" aria-hidden>CW</span>Core Work Hub</div>
+          <div className="brand"><BrandMark />Core Work Hub</div>
           <h1>Who are you?</h1>
           <p className="muted" style={{ margin: 0 }}>Your changes are saved to your own file, <code>changes/&lt;your username&gt;.jsonl</code>, and signed with your name in the audit log.</p>
           <div className="people">
