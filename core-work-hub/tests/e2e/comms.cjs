@@ -18,11 +18,14 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   check(await nick.locator('.nav .count.alert').count() === 1, 'sidebar badge turns red when something is late');
   const trey = await open('trey', 'notifications');
   const before = await trey.locator('.notice').count();
+  const firstTitle = (await trey.locator('.notice').first().innerText()).split('\n').find((l) => /SD #\d+/.test(l)) ?? '';
+  const lateFor = async (t) => (await trey.locator('.notice').allInnerTexts()).filter((x) => x.includes(t) && /Escalated|Overdue|late/.test(x)).length;
   await trey.locator('.notice').first().getByRole('button', { name: /Log update|Follow up/ }).click();
   check(/IT Core/.test(await trey.locator('dialog[open] textarea').inputValue()), 'log dialog offers a ready-to-paste note');
   await trey.getByRole('button', { name: 'I posted it in Service Desk' }).click();
   await trey.waitForTimeout(300);
-  check((await trey.locator('.notice').count()) === before - 1, 'logging the update clears the notification');
+  // The late notice goes; a P1 may come straight back as "Due soon" for its next 2-hour update, depending on the time of day.
+  check((await trey.locator('.notice').count()) <= before && (await lateFor(firstTitle)) === 0, 'logging the update clears the late notification');
   const board = await open('nick', 'board');
   check((await board.locator('.card .chip', { hasText: /Escalated|late|due/ }).count()) >= 1, 'cards show communication status');
   const ov = await open('nick', 'overview');

@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import type { Bucket, Priority, WorkItem } from '../model/types';
 import { findPerson, initials } from '../model/logic';
@@ -185,23 +186,45 @@ export function Pick<T extends string | number>({ label, value, options, onChang
  */
 export function Tip({ content, children, className, place = 'top', label }: { content: ReactNode; children: ReactNode; className?: string; place?: 'top' | 'bottom'; label?: string }) {
   const id = useId();
-  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = useState<{ x: number; y: number; side: 'top' | 'bottom' }>();
+  // The tip floats above everything (fixed position, only while shown), so it never widens or gets clipped by a
+  // scrolling column, table or dialog.
+  const show = () => {
+    const r = ref.current?.getBoundingClientRect();
+    if (!r) return;
+    const side = place === 'bottom' || r.top < 140 ? 'bottom' : 'top';
+    const x = Math.min(Math.max(r.left + r.width / 2, 170), window.innerWidth - 170);
+    setPos({ x, y: side === 'top' ? r.top - 8 : r.bottom + 8, side });
+  };
+  const hide = () => setPos(undefined);
+  useEffect(() => {
+    if (!pos) return;
+    window.addEventListener('scroll', hide, true);
+    return () => window.removeEventListener('scroll', hide, true);
+  }, [pos]);
   return (
     <span
+      ref={ref}
       className={`tip-wrap ${className ?? ''}`}
       tabIndex={0}
       aria-describedby={id}
       aria-label={label}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-      onFocus={() => setOpen(true)}
-      onBlur={() => setOpen(false)}
-      onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
+      onMouseEnter={show}
+      onMouseLeave={hide}
+      onFocus={show}
+      onBlur={hide}
+      onKeyDown={(e) => e.key === 'Escape' && hide()}
     >
       {children}
-      <span role="tooltip" id={id} className={`tip ${place} ${open ? 'open' : ''}`}>
-        {content}
-      </span>
+      <span id={id} hidden>{content}</span>
+      {pos &&
+        createPortal(
+          <span role="tooltip" className={`tip fixed ${pos.side} open`} style={{ left: pos.x, top: pos.y }}>
+            {content}
+          </span>,
+          document.body,
+        )}
     </span>
   );
 }

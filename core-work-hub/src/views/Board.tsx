@@ -35,6 +35,8 @@ const collision: CollisionDetection = (args) => {
   }
   return closestCorners(args);
 };
+/** The board shows graded work only; Intake has its own page (a button above the board shows how many wait there). */
+const BOARD_COLS = COLUMNS.filter((c) => c !== 'Intake');
 const cellId = (lane: Lane, col: Column) => `cell|${lane}|${col}`;
 const parseCell = (id: string) => {
   const [, lane, col] = id.split('|');
@@ -109,11 +111,12 @@ export function Board() {
   }, [state.items, f]);
 
   const swim = bucket === 'all' && lanes;
+  const intakeCount = visible.filter((i) => i.column === 'Intake' && (bucket === 'all' || !i.bucket || i.bucket === bucket)).length;
   const laneList: Lane[] = bucket !== 'all' ? [bucket] : swim ? [...BUCKETS] : ['all'];
-  /** Every rendered cell. In swimlane mode one shared Intake cell spans all lanes. */
+  /** Every rendered cell (Intake is not on the board). */
   const cells: [Lane, Column][] = swim
-    ? [['intake', 'Intake'], ...BUCKETS.flatMap((b) => COLUMNS.filter((c) => c !== 'Intake').map((c) => [b, c] as [Lane, Column]))]
-    : laneList.flatMap((l) => COLUMNS.map((c) => [l, c] as [Lane, Column]));
+    ? BUCKETS.flatMap((b) => BOARD_COLS.map((c) => [b, c] as [Lane, Column]))
+    : laneList.flatMap((l) => BOARD_COLS.map((c) => [l, c] as [Lane, Column]));
   const cellItems = (lane: Lane, col: Column) =>
     sortCell(
       visible.filter((i) => {
@@ -270,13 +273,22 @@ export function Board() {
         </div>
       </div>
 
+      {intakeCount > 0 && (
+        <button className="intake-pill" onClick={() => go('triage')}>
+          <Icon name="inbox" />
+          <strong>Intake</strong>
+          <span className="count">{intakeCount}</span>
+          <span className="muted">waiting to be graded</span>
+          <span className="go">Open Intake →</span>
+        </button>
+      )}
       <DndContext sensors={sensors} collisionDetection={collision} onDragStart={onStart} onDragOver={onOver} onDragEnd={onEnd} onDragCancel={() => { setActive(undefined); setOverCell(undefined); }}>
         <div className="board-scroll">
           <div className="board" role="presentation">
-            {COLUMNS.map((c) => (
+            {BOARD_COLS.map((c) => (
               <div key={c} className="col-head">
                 {COLUMN_LABEL[c]}
-                <span className="n">{visible.filter((i) => i.column === c && (bucket === 'all' || i.bucket === bucket || (c === 'Intake' && !i.bucket))).length}</span>
+                <span className="n">{visible.filter((i) => i.column === c && (bucket === 'all' || i.bucket === bucket)).length}</span>
                 {c === 'Doing' && (
                   <span className={`wip chip ${bucketLimit !== undefined && doingTotal > bucketLimit ? 'bad' : 'src'}`} title="Work in progress">
                     WIP {doingTotal}
@@ -289,17 +301,14 @@ export function Board() {
           </div>
           {swim ? (
             <div className="board">
-              <div className="intake-span" style={{ gridColumn: 1, gridRow: `1 / span ${BUCKETS.length * 2}` }}>
-                <Cell lane="intake" col="Intake" items={cellItemsFor('intake', 'Intake')} readOnly={readOnly} highlight={overCell === cellId('intake', 'Intake') ? 'ok' : undefined} />
-              </div>
               {BUCKETS.map((b, k) => (
                 <Fragment key={b}>
-                  <div className="lane-head" style={{ gridColumn: `2 / ${COLUMNS.length + 1}`, gridRow: k * 2 + 1, marginTop: k ? 10 : 0 }}>
+                  <div className="lane-head" style={{ gridColumn: '1 / -1', gridRow: k * 2 + 1, marginTop: k ? 10 : 0 }}>
                     <span className={`dot ${b}`} />
                     {BUCKET_LABEL[b]}
                   </div>
-                  {COLUMNS.filter((c) => c !== 'Intake').map((c, n) => (
-                    <div key={c} className="lane-slot" style={{ gridColumn: n + 2, gridRow: k * 2 + 2, display: 'flex' }}>
+                  {BOARD_COLS.map((c, n) => (
+                    <div key={c} className="lane-slot" style={{ gridColumn: n + 1, gridRow: k * 2 + 2, display: 'flex' }}>
                       <Cell lane={b} col={c} items={cellItemsFor(b, c)} readOnly={readOnly} highlight={overCell === cellId(b, c) ? 'ok' : undefined} />
                     </div>
                   ))}
