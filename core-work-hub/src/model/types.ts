@@ -113,6 +113,13 @@ export interface TeamCriterion {
   weight: number;
   /** Higher rating = lower score (effort). */
   invert?: boolean;
+  /** What each rating means, for 1..5 (index 0 = rating 1). */
+  levels?: string[];
+  /** Short button captions for 1..5, e.g. "≤2 days" for effort. */
+  short?: string[];
+  /** Effort only: points per rating (velocity) and hands-on hours [min, max] per rating. */
+  points?: number[];
+  hours?: [number, number | null][];
 }
 
 export type TimeOffKind = 'pto' | 'holiday' | 'training' | 'partial' | 'out';

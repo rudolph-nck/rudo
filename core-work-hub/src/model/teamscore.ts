@@ -11,14 +11,97 @@ import type { HubConfig, HubState, TeamCriterion, WorkItem } from './types';
  */
 
 export const DEFAULT_CRITERIA: TeamCriterion[] = [
-  { key: 'value', label: 'Business value', hint: 'How much it helps members, staff or the business', weight: 30 },
-  { key: 'risk', label: 'Risk & compliance', hint: 'Exam findings, security, audit, outage risk', weight: 25 },
-  { key: 'urgency', label: 'Urgency', hint: 'Deadlines, contracts, end-of-life dates', weight: 20 },
-  { key: 'reach', label: 'Reach', hint: 'How many people or systems it touches', weight: 15 },
-  { key: 'effort', label: 'Effort', hint: '1 = small, 5 = very large (less effort scores higher)', weight: 10, invert: true },
+  {
+    key: 'value',
+    label: 'Business value',
+    hint: 'How much it helps members, staff or the business',
+    weight: 30,
+    levels: [
+      'Nice to have. Little measurable benefit.',
+      'Helps one team or one process a little.',
+      'Clear benefit to a department or a key process.',
+      'Major benefit to several departments, or directly to members.',
+      'Strategic: organization-wide or a leadership priority.',
+    ],
+  },
+  {
+    key: 'risk',
+    label: 'Risk & compliance',
+    hint: 'Exam findings, security, audit, outage risk if we don’t do it',
+    weight: 25,
+    levels: [
+      'No real risk if it waits.',
+      'Minor risk; a workaround exists.',
+      'Moderate: security or audit improvement, or an aging system.',
+      'High: open audit finding, security gap, or a likely outage.',
+      'Critical: exam or regulatory deadline, active exposure, or end of vendor support.',
+    ],
+  },
+  {
+    key: 'urgency',
+    label: 'Urgency',
+    hint: 'When it’s needed',
+    weight: 20,
+    levels: [
+      'No date. Any time this year.',
+      'Wanted within 6 months.',
+      'Needed this quarter (within 3 months).',
+      'Needed within a month.',
+      'Hard deadline within 2 weeks, or already late.',
+    ],
+    short: ['this yr', '≤6 mo', '≤3 mo', '≤1 mo', '≤2 wk'],
+  },
+  {
+    key: 'reach',
+    label: 'Reach',
+    hint: 'How many people or systems it touches',
+    weight: 15,
+    levels: [
+      'One person or a single system.',
+      'One team (under 10 people).',
+      'One department, or several systems.',
+      'Several departments or the branch network.',
+      'The whole organization, or members directly.',
+    ],
+  },
+  {
+    key: 'effort',
+    label: 'Effort',
+    hint: 'Total hands-on work for the team, not calendar time. Less effort scores higher.',
+    weight: 10,
+    invert: true,
+    levels: [
+      'XS · up to 2 days of work (≤16 hours).',
+      'S · about a week of work (2–5 days, 16–40 hours).',
+      'M · 1–3 weeks of work (40–120 hours).',
+      'L · 1–2 months of work (120–320 hours).',
+      'XL · more than 2 months (320+ hours). Split it into smaller projects.',
+    ],
+    short: ['≤2 days', '~1 week', '1–3 wks', '1–2 mos', '2+ mos'],
+    points: [1, 2, 3, 5, 8],
+    hours: [[0, 16], [16, 40], [40, 120], [120, 320], [320, null]],
+  },
 ];
 
-export const criteriaOf = (config: HubConfig) => (config.teamCriteria?.length ? config.teamCriteria : DEFAULT_CRITERIA);
+/** Built-in scale text, used when a config's criterion has none of its own. */
+const BUILTIN = new Map(DEFAULT_CRITERIA.map((c) => [c.key, c]));
+const withDefaults = (c: TeamCriterion): TeamCriterion => ({ ...BUILTIN.get(c.key), ...c, levels: c.levels ?? BUILTIN.get(c.key)?.levels, short: c.short ?? BUILTIN.get(c.key)?.short, points: c.points ?? BUILTIN.get(c.key)?.points, hours: c.hours ?? BUILTIN.get(c.key)?.hours });
+
+/** Effort criterion (the one with points), if configured. */
+export const effortCriterion = (criteria: TeamCriterion[]) => criteria.find((c) => c.points?.length === 5);
+
+/** Effort points for a team-average effort rating (rounded to the nearest level). */
+export function effortPoints(c: TeamCriterion, avg: number) {
+  return c.points![Math.min(4, Math.max(0, Math.round(avg) - 1))];
+}
+
+/** Plain-language time for a team-average effort rating, e.g. "1–3 weeks of work". */
+export function effortLabel(c: TeamCriterion, avg: number) {
+  const lvl = Math.min(4, Math.max(0, Math.round(avg) - 1));
+  return c.levels?.[lvl]?.replace(/^\w+ · /, '').replace(/\.$/, '') ?? '';
+}
+
+export const criteriaOf = (config: HubConfig) => (config.teamCriteria?.length ? config.teamCriteria.map(withDefaults) : DEFAULT_CRITERIA);
 
 /** Open, top-level work in the Projects bucket (tasks under a project share its score). */
 export const isProject = (i: WorkItem) => i.bucket === 'Project' && !i.parent_id && i.column !== 'Done' && !i.stale;
@@ -106,4 +189,49 @@ export function usedScores(state: HubState, exceptId?: string) {
     .filter((i) => isProject(i) && i.id !== exceptId)
     .map((i) => computeTeamScore(i, criteria).score)
     .filter((s): s is number => s !== undefined);
+}
+
+// ---------------------------------------------------------------- velocity
+
+export interface Velocity {
+  /** Two-week periods, oldest first: effort points of projects finished in each. */
+  periods: { from: string; to: string; points: number; projects: number }[];
+  /** Average points per two weeks over the periods. */
+  average: number;
+  /** Points of projects in Doing right now. */
+  inProgress: number;
+  /** Points of projects in To Do and Ready. */
+  queued: number;
+}
+
+/**
+ * Project velocity in effort points per two weeks (the rotation cadence). Uses the team's effort rating; a
+ * finished project with no effort rating counts as unknown and is left out.
+ */
+export function velocity(state: HubState, periods = 6, now = new Date()): Velocity | undefined {
+  const criteria = criteriaOf(state.config);
+  const ec = effortCriterion(criteria);
+  if (!ec) return undefined;
+  const all = [...state.items.values()].filter((i) => i.bucket === 'Project' && !i.parent_id && !i.stale);
+  const pts = (i: WorkItem) => {
+    const a = computeTeamScore(i, criteria).avg[ec.key];
+    return a === undefined ? undefined : effortPoints(ec, a);
+  };
+  const day = (d: Date) => d.toISOString().slice(0, 10);
+  const end = new Date(now);
+  const out: Velocity['periods'] = [];
+  for (let k = periods - 1; k >= 0; k--) {
+    const to = new Date(end.getTime() - k * 14 * 864e5);
+    const from = new Date(to.getTime() - 13 * 864e5);
+    const done = all.filter((i) => i.column === 'Done' && i.done && i.done.slice(0, 10) >= day(from) && i.done.slice(0, 10) <= day(to));
+    const known = done.map(pts).filter((p): p is number => p !== undefined);
+    out.push({ from: day(from), to: day(to), points: known.reduce((a, b) => a + b, 0), projects: done.length });
+  }
+  const sum = (xs: WorkItem[]) => xs.map(pts).filter((p): p is number => p !== undefined).reduce((a, b) => a + b, 0);
+  return {
+    periods: out,
+    average: Math.round((out.reduce((s, p) => s + p.points, 0) / out.length) * 10) / 10,
+    inProgress: sum(all.filter((i) => i.column === 'Doing')),
+    queued: sum(all.filter((i) => i.column === 'To Do' || i.column === 'Ready')),
+  };
 }

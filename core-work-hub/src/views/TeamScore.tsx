@@ -1,17 +1,17 @@
 import { useMemo, useState } from 'react';
 import { useHub } from '../store/hub';
 import { useUi } from '../components/actions';
-import { Avatar, Icon, Modal, Pick, PriorityChip, SourceBadge, toast } from '../components/ui';
+import { Avatar, Icon, Modal, PriorityChip, SourceBadge, toast } from '../components/ui';
 import { analysts, findPerson, rankedList } from '../model/logic';
-import { nextFreeAbove, teamBoard, usedScores, type TeamRow } from '../model/teamscore';
+import { effortCriterion, effortLabel, effortPoints, nextFreeAbove, teamBoard, usedScores, velocity, type TeamRow } from '../model/teamscore';
+import { ScalePick } from '../components/Scale';
 import { COLUMN_LABEL, type NewEvent, type TeamCriterion } from '../model/types';
-
-const SCALE = [1, 2, 3, 4, 5] as const;
 
 export function TeamScore() {
   const { state, me, grader, readOnly, commit, role } = useHub();
   const cfg = state.config;
   const b = useMemo(() => teamBoard(state), [state]);
+  const vel = useMemo(() => velocity(state), [state]);
   const [rating, setRating] = useState<string | null>(null);
   const [setting, setSetting] = useState<TeamRow | null>(null);
   const name = (u?: string) => findPerson(cfg, u)?.name ?? u ?? '';
@@ -67,7 +67,49 @@ export function TeamScore() {
           ))}
         </div>
         <div className="small muted">Score = weighted team average, 0–100. Ties go to the daily meeting; the decision is recorded.</div>
+        <details className="scale-guide">
+          <summary>What each number means</summary>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr><th>Criterion</th>{[1, 2, 3, 4, 5].map((n) => <th key={n}>{n}</th>)}</tr>
+              </thead>
+              <tbody>
+                {b.criteria.map((c) => (
+                  <tr key={c.key}>
+                    <th scope="row">{c.label}<div className="small muted" style={{ fontWeight: 500, textTransform: 'none', letterSpacing: 0 }}>{c.hint}</div></th>
+                    {[0, 1, 2, 3, 4].map((n) => (
+                      <td key={n} className="small">
+                        {c.levels?.[n] ?? ''}
+                        {c.points && <div className="pts">{c.points[n]} pt{c.points[n] === 1 ? '' : 's'}</div>}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
       </section>
+      {vel && (
+        <section className="panel velocity" aria-labelledby="vel-h">
+          <div className="grow" style={{ minWidth: 260, flexBasis: 320 }}>
+            <h2 id="vel-h" style={{ fontSize: 15 }}>Project velocity</h2>
+            <div className="small muted">Effort points finished per 2 weeks (the rotation cadence). 1 pt ≈ up to 2 days of work, 2 ≈ a week, 3 ≈ 1–3 weeks, 5 ≈ 1–2 months, 8 ≈ 2+ months.</div>
+          </div>
+          <div className="vel-stat"><strong>{vel.average}</strong><span>pts / 2 weeks (avg)</span></div>
+          <div className="vel-stat"><strong>{vel.inProgress}</strong><span>pts in Doing</span></div>
+          <div className="vel-stat"><strong>{vel.queued}</strong><span>pts queued</span></div>
+          <div className="vel-stat"><strong>{vel.average > 0 ? `~${Math.ceil(((vel.inProgress + vel.queued) / vel.average) * 2)} wks` : '—'}</strong><span>to clear at this pace</span></div>
+          <div className="vel-bars" role="img" aria-label={vel.periods.map((p) => `${p.from} to ${p.to}: ${p.points} points`).join('; ')}>
+            {vel.periods.map((p) => (
+              <span key={p.from} title={`${p.from} – ${p.to}: ${p.points} pts, ${p.projects} project${p.projects === 1 ? '' : 's'} done`}>
+                <i style={{ height: `${Math.max(4, (p.points / Math.max(1, ...vel.periods.map((x) => x.points))) * 100)}%` }} />
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
 
       {b.ties.map((group) => (
         <div key={group[0].ts.score} className="banner warn tie" role="alert">
@@ -156,6 +198,16 @@ function TeamRowView({ r, criteria, teamSize, canRate, canDecide, rating, onRate
             );
           })}
         </div>
+        {(() => {
+          const ec = effortCriterion(criteria);
+          const a = ec ? r.ts.avg[ec.key] : undefined;
+          return ec && a !== undefined ? (
+            <div className="small" style={{ marginTop: 6 }}>
+              <strong>Est. effort:</strong> {effortLabel(ec, a)} · {effortPoints(ec, a)} pt{effortPoints(ec, a) === 1 ? '' : 's'}
+              {(r.ts.spread[ec.key] ?? 0) >= 2 && <span className="muted"> (the team’s estimates differ: discuss)</span>}
+            </div>
+          ) : null;
+        })()}
         {r.ts.set && (
           <div className="small muted" style={{ marginTop: 4 }}>
             Set by {name(r.ts.set.by)}{r.ts.set.reason ? `: ${r.ts.set.reason}` : ''}. Ratings alone say {r.ts.base ?? '—'}.
@@ -185,13 +237,19 @@ function RateForm({ r, criteria, onDone }: { r: TeamRow; criteria: TeamCriterion
   return (
     <div className="ts-rate">
       {criteria.map((c) => (
-        <div key={c.key} className="grade-row">
-          <span className="label" style={{ width: 150 }}>
+        <div key={c.key} className="grade-row" style={{ alignItems: 'flex-start' }}>
+          <span className="label" style={{ width: 170, paddingTop: 8 }}>
             {c.label}
             <span className="small muted" style={{ display: 'block', fontWeight: 500 }}>{c.hint}</span>
           </span>
-          <Pick label={`${c.label}, 1 to 5`} value={v[c.key]} options={SCALE} onChange={(x) => setV({ ...v, [c.key]: x })} />
-          <span className="small muted">team {r.ts.avg[c.key]?.toFixed(1) ?? '—'}</span>
+          <ScalePick
+            label={c.label}
+            value={v[c.key]}
+            onChange={(x) => setV({ ...v, [c.key]: x })}
+            levels={c.levels}
+            short={c.short}
+            extra={<span className="small muted">team {r.ts.avg[c.key]?.toFixed(1) ?? '—'}</span>}
+          />
         </div>
       ))}
       <div className="row">

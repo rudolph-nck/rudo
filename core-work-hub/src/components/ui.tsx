@@ -140,11 +140,11 @@ export function Modal({ open, onClose, title, children, footer, drawer, labelled
 }
 
 /** Radio-style button group (role=radiogroup) used for grading. */
-export function Pick<T extends string | number>({ label, value, options, onChange, render, disabled }: { label: string; value?: T; options: readonly T[]; onChange: (v: T) => void; render?: (v: T) => ReactNode; disabled?: boolean }) {
+export function Pick<T extends string | number>({ label, value, options, onChange, render, disabled, describe }: { label: string; value?: T; options: readonly T[]; onChange: (v: T) => void; render?: (v: T) => ReactNode; disabled?: boolean; describe?: (v: T) => string | undefined }) {
   return (
     <div className="pick" role="radiogroup" aria-label={label}>
       {options.map((o) => (
-        <button key={String(o)} type="button" role="radio" aria-checked={value === o} disabled={disabled} onClick={() => onChange(o)}>
+        <button key={String(o)} type="button" role="radio" aria-checked={value === o} disabled={disabled} onClick={() => onChange(o)} title={describe?.(o)} aria-label={describe ? String(o) : undefined} aria-description={describe?.(o)}>
           {render ? render(o) : String(o)}
         </button>
       ))}

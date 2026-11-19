@@ -5,7 +5,7 @@ import { analysts, checkWip, computeScore, coverageGaps, currentDispatch, nextDi
 import { importTicketsCsv, maskNumbers, mergeSnapshot, parseCsv } from '../src/model/csv';
 import type { HubEvent, TicketsSnapshot, WorkItem } from '../src/model/types';
 import { heldUp, overview, priorityConflicts, shiftStats } from '../src/model/analytics';
-import { nextFreeAbove, teamBoard } from '../src/model/teamscore';
+import { criteriaOf, DEFAULT_CRITERIA, effortCriterion, effortLabel, effortPoints, nextFreeAbove, teamBoard, velocity } from '../src/model/teamscore';
 import { demoSeed } from '../src/demo';
 
 let n = 0;
@@ -537,5 +537,28 @@ describe('team score', () => {
       expect.stringMatching(/already “A”; scores must be unique/),
       expect.stringMatching(/Only Nick/),
     ]);
+  });
+});
+
+describe('effort time and velocity', () => {
+  it('maps effort ratings to time and points', () => {
+    const ec = effortCriterion(DEFAULT_CRITERIA)!;
+    expect([1, 2, 3, 4, 5].map((n) => effortPoints(ec, n))).toEqual([1, 2, 3, 5, 8]);
+    expect(effortLabel(ec, 2.6)).toBe('1–3 weeks of work (40–120 hours)');
+    expect(effortLabel(ec, 1)).toBe('up to 2 days of work (≤16 hours)');
+  });
+  it('counts points of finished projects per two weeks', () => {
+    const d = demoSeed();
+    const s = replay(d.config, d.snapshot, d.events.map((event) => ({ event, file: event.user })));
+    const v = velocity(s, 6)!;
+    expect(v.periods).toHaveLength(6);
+    expect(v.inProgress).toBeGreaterThan(0); // the SharePoint migration is in Doing
+  });
+  it('a config criterion without scale text gets the built-in descriptions', () => {
+    const cfg = defaultConfig();
+    cfg.teamCriteria = [{ key: 'effort', label: 'Effort', weight: 50, invert: true }, { key: 'value', label: 'Value', weight: 50 }];
+    const c = criteriaOf(cfg);
+    expect(c[0].points).toEqual([1, 2, 3, 5, 8]);
+    expect(c[1].levels?.[4]).toMatch(/Strategic/);
   });
 });

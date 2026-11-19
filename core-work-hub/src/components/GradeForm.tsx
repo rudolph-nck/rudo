@@ -3,6 +3,7 @@ import { useHub } from '../store/hub';
 import { assignable, computeScore, suggestOwner, suggestPriority, findPerson } from '../model/logic';
 import { BUCKETS, BUCKET_LABEL, PRIORITIES, type Bucket, type Grade, type Priority, type WorkItem } from '../model/types';
 import { Avatar, BucketDot, Pick } from './ui';
+import { EFFORT_LEVELS, EFFORT_SHORT, IMPACT_LEVELS, ScalePick, URGENCY_LEVELS } from './Scale';
 
 export interface Draft {
   bucket?: Bucket;
@@ -36,8 +37,6 @@ export function effectiveGrade(d: Draft, suggestedOwner?: string): Grade | undef
   return { bucket: d.bucket, priority, impact: d.impact, urgency: d.urgency, effort: d.effort, system: d.system, owner: d.ownerTouched ? d.owner : d.owner ?? suggestedOwner };
 }
 
-const SCALE = [1, 2, 3, 4, 5] as const;
-
 /** One-click grading: bucket, 1–5 impact/urgency/effort, live score and suggested priority, system and owner. */
 export function GradeForm({ item, draft, onChange, disabled }: { item: WorkItem; draft: Draft; onChange: (d: Draft) => void; disabled?: boolean }) {
   const { state } = useHub();
@@ -59,15 +58,15 @@ export function GradeForm({ item, draft, onChange, disabled }: { item: WorkItem;
       </div>
       <div className="grade-row">
         <span className="label">Impact</span>
-        <Pick label="Impact, 1 to 5" value={draft.impact} options={SCALE} onChange={(v) => set({ impact: v })} disabled={disabled} />
+        <ScalePick label="Impact" value={draft.impact} onChange={(v) => set({ impact: v })} disabled={disabled} levels={IMPACT_LEVELS} />
       </div>
       <div className="grade-row">
         <span className="label">Urgency</span>
-        <Pick label="Urgency, 1 to 5" value={draft.urgency} options={SCALE} onChange={(v) => set({ urgency: v })} disabled={disabled} />
+        <ScalePick label="Urgency" value={draft.urgency} onChange={(v) => set({ urgency: v })} disabled={disabled} levels={URGENCY_LEVELS} />
       </div>
       <div className="grade-row">
         <span className="label">Effort</span>
-        <Pick label="Effort, 1 to 5" value={draft.effort} options={SCALE} onChange={(v) => set({ effort: v })} disabled={disabled} />
+        <ScalePick label="Effort" value={draft.effort} onChange={(v) => set({ effort: v })} disabled={disabled} levels={EFFORT_LEVELS} short={EFFORT_SHORT} />
       </div>
       <div className="scorebox" aria-live="polite">
         <div>
