@@ -20,6 +20,7 @@ CoreWorkHub-v1.x/
     ADMIN-GUIDE.md             this guide
     USER-GUIDE.md              one page for the team
     sync/Sync-ServiceDesk.ps1  reads Service Desk every 15 minutes (runs on one PC)
+    sync/Connect-ZohoServiceDesk.ps1  one-time Zoho sign-in (Service Desk Plus Cloud only)
     sync/Register-SyncTask.ps1 schedules it in Task Scheduler
     sync/Test-WrikeAccess.ps1  checks whether the Wrike license allows API access
 ```
@@ -34,7 +35,7 @@ CoreWorkHub-v1.x/
 | Browser | Microsoft Edge (any current version) |
 | Shared folder | A folder on an internal file share the IT Core team can reach |
 | Sync PC | One always-on-during-business-hours Windows PC (Nick's) with **PowerShell 7** (`winget install Microsoft.PowerShell`) |
-| Service Desk | A **read-only** API key for a dedicated technician account that can view the Core group queues |
+| Service Desk | **Cloud:** a Zoho Self Client with scope `SDPOnDemand.requests.READ` (step 6A). **On-premises:** a read-only technician API key (step 6B). |
 | Teams (optional) | Each person's work email (Teams sign-in), and a link to the team channel |
 | Wrike (optional) | A permanent API token, if the license allows API access |
 
@@ -103,10 +104,45 @@ Notes:
 
 The key is stored in **Windows Credential Manager on the sync PC**. It is never written to the shared folder, the page, or the code.
 
+**Which one are you on?** If Service Desk's address is `sdpondemand.manageengine.com` (or `.eu`, `.in`, `.com.au`) or a custom domain hosted by ManageEngine/Zoho, you're on **Cloud**: follow 6A. If it's a server inside the company, follow 6B.
+
+### 6A. Cloud (Zoho): Self Client and refresh token
+
+Zoho access tokens last only 1 hour, so the sync stores a **refresh token** instead and gets a fresh access token on every run.
+
+1. **Sign in to the Zoho API Console as the account the sync should act as:** https://api-console.zoho.com (`.eu`, `.in`… for other data centres). Ideally a dedicated account that can only *view* Core requests. If you use your own account, the read-only scope below still stops the sync from changing anything, but it can see whatever you can see.
+2. **Choose a Client Type → Self Client → CREATE NOW → OK.** (Self Client is for a script you run yourself; none of the other types fit and none need a redirect URL.)
+3. **Client Secret tab:** keep the **Client ID** and **Client Secret** handy. Treat the secret like a password.
+4. **Generate Code tab:**
+   - **Scope:** `SDPOnDemand.requests.READ`. Read-only: requests and their notes. Don't add any write scopes.
+   - **Time Duration:** 10 minutes
+   - **Scope Description:** `Core Work Hub sync (read-only)`
+   - Click **CREATE**, pick the Service Desk portal if asked, and copy the code.
+5. **Straight away, on the sync PC** (the code works once and expires), in PowerShell 7:
+
+```powershell
+cd <package>\Setup\sync
+pwsh -File .\Connect-ZohoServiceDesk.ps1
+# EU/India/Australia data centre: add -AccountsUrl https://accounts.zoho.eu (or .in, .com.au)
+```
+
+   Paste the Client ID, Client Secret and code when asked. It prints “Connected” and stores everything in Credential Manager as `CoreWorkHub-SDP`, for this Windows user only.
+6. **Find your Base URL:** open any request in Service Desk and copy the address up to and including the portal name, e.g. `https://sdpondemand.manageengine.com/app/itdesk` (custom domains look like `https://servicedesk.yourcompany.com/app/itdesk`).
+7. **Test it** (reads one page of open Core requests; writes nothing):
+
+```powershell
+pwsh -File .\Sync-ServiceDesk.ps1 -HubFolder '\\fileserver\IT\CoreWorkHub' `
+     -BaseUrl 'https://sdpondemand.manageengine.com/app/itdesk' -Edition Cloud -Groups 'Core Team' -Test
+```
+
+8. In `hub-config.json`, set `ticketUrls.SD` to `<Base URL>/ui/requests/{id}/details` so cards link to the ticket. Open one ticket in your browser to confirm the pattern.
+
+Use `-Edition Cloud` in step 7 (scheduling) too. **To revoke:** API Console → Self Client → delete it (or Zoho Accounts → Connected Apps). **To reconnect:** generate a new code and run `Connect-ZohoServiceDesk.ps1` again.
+
+### 6B. On-premises: technician API key
+
 1. **Create a dedicated technician** in Service Desk Plus (e.g. “Core Hub Sync”) with a role that can **only view** requests in the Core group queues. No edit, close, or admin rights.
-2. **Generate its API key:**
-   - *On-premises SDP:* sign in as that technician (or as an admin) → **Admin → Technicians** → edit the technician → **Generate API Key** (set an expiry per policy). Copy the key.
-   - *SDP Cloud (Zoho):* create an OAuth self-client in the Zoho API Console for scope `SDPOnDemand.requests.READ`, generate a token, and use `-Edition Cloud`. Token refresh may need an extra step; ask the Service Desk admin.
+2. **Generate its API key:** sign in as that technician (or as an admin) → **Admin → Technicians** → edit the technician → **Generate API Key** (set an expiry per policy). Copy the key.
 3. **Store it** on the sync PC, signed in as the account the scheduled task will run as:
 
 ```powershell
@@ -121,19 +157,21 @@ pwsh -File .\Sync-ServiceDesk.ps1 -HubFolder '\\fileserver\IT\CoreWorkHub' `
      -BaseUrl 'https://servicedesk.yourcompany.com' -Groups 'Core Team' -Test
 ```
 
+### Both
+
 You should see “TEST: OK — N open requests visible” and sample subjects. The Core report’s group is **Core Team**; add other queue names if Core owns more.
 
-5. **Run it once for real** (same command without `-Test`) and check that `tickets.json` appears in the shared folder. Open the hub: tickets appear within 20 seconds.
+**Run it once for real** (same command without `-Test`) and check that `tickets.json` appears in the shared folder. Open the hub: tickets appear within 20 seconds.
 
 The sync also reads each open ticket’s first-response time and its latest requester-visible note (one extra API call per open ticket), so the hub can enforce the communication standard. Add `-SkipNotes` if the API is rate-limited.
 
-**To rotate the key:** generate a new one, run the `cmdkey` line again, done.
+**To rotate the key (on-premises):** generate a new one, run the `cmdkey` line again, done.
 
 ## 7. Schedule the sync
 
 ```powershell
 pwsh -File .\Register-SyncTask.ps1 -HubFolder '\\fileserver\IT\CoreWorkHub' `
-     -BaseUrl 'https://servicedesk.yourcompany.com' -Groups 'Core Team'
+     -BaseUrl 'https://servicedesk.yourcompany.com' -Groups 'Core Team'      # Cloud: your /app/<portal> Base URL and -Edition Cloud
 Start-ScheduledTask -TaskName 'Core Work Hub - Service Desk sync'
 ```
 
@@ -188,6 +226,9 @@ Replace `index.html` (and the `app\` folder, if the release notes say it changed
 | Folder prompt every time (fallback) | Choose “Allow on every visit”; or the Edge policy resets permissions (see step 5). |
 | “Could not save your change” | The person lacks Modify on the folder (Matt is read-only by design). |
 | No tickets / stale tickets | Check `%LOCALAPPDATA%\CoreWorkHub\sync.log` on the sync PC; run the sync with `-Test`. |
+| Cloud: “Zoho refused: invalid_code” | The grant code expired (10 min) or was used. Generate a new one and rerun `Connect-ZohoServiceDesk.ps1` straight away. |
+| Cloud: “invalid_client” | Wrong ID/secret, or wrong data centre: add `-AccountsUrl https://accounts.zoho.eu` (or `.in`, `.com.au`). |
+| Cloud: “Zoho refused the refresh token” | The Self Client was deleted or access revoked. Reconnect (step 6A). |
 | Sync error 401/403 | Key expired or the technician lacks view rights to the queue. Regenerate / fix the role, rerun `cmdkey`. |
 | Owner shows initials only | That Service Desk technician isn’t matched to a hub person: set `sdName`, or match it in the import screen. |
 | Wrong ticket links | Fix `ticketUrls.SD` (`{num}` vs `{id}`). |

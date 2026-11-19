@@ -8,9 +8,11 @@
   Service Desk Plus REST API v3 and writes tickets.json into the shared hub folder.
 
   * Read-only: never writes to Service Desk.
-  * The API token is read from Windows Credential Manager on this PC. It is never written to the
+  * The API credential is read from Windows Credential Manager on this PC. It is never written to the
     shared folder, the page, the logs or the code. Store it once with:
-        cmdkey /generic:CoreWorkHub-SDP /user:token /pass:<the read-only technician key>
+        On-premises:  cmdkey /generic:CoreWorkHub-SDP /user:token /pass:<the read-only technician key>
+        Cloud (Zoho): pwsh -File Connect-ZohoServiceDesk.ps1   (stores a refresh token; each run gets a
+                      fresh 1-hour access token from it)
   * Metadata only: ID, subject, requester, status, priority, technician, group, category, dates.
     Descriptions and notes are never requested. Card/account-number patterns in subjects are masked.
   * Keeps non-Service-Desk rows already in tickets.json (e.g. a Wrike CSV import).
@@ -20,6 +22,10 @@
 .EXAMPLE
   # Day-one check: can the token read the queues? Writes nothing.
   pwsh -File Sync-ServiceDesk.ps1 -HubFolder '\\server\share\CoreWorkHub' -BaseUrl 'https://servicedesk.example.com' -Groups 'IT Core' -Test
+
+.EXAMPLE
+  # Cloud: BaseUrl is the Service Desk address up to and including the portal name.
+  pwsh -File Sync-ServiceDesk.ps1 -HubFolder '\\server\share\CoreWorkHub' -BaseUrl 'https://sdpondemand.manageengine.com/app/itdesk' -Edition Cloud -Groups 'Core Team' -Test
 
 .EXAMPLE
   pwsh -File Sync-ServiceDesk.ps1 -HubFolder '\\server\share\CoreWorkHub' -BaseUrl 'https://servicedesk.example.com' -Groups 'IT Core','IT Core - Network'
@@ -45,7 +51,9 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-if (-not $TicketUrl) { $TicketUrl = "$($BaseUrl.TrimEnd('/'))/WorkOrder.do?woMode=viewWO&woID={id}" }
+if (-not $TicketUrl) {
+  $TicketUrl = if ($Edition -eq 'Cloud') { "$($BaseUrl.TrimEnd('/'))/ui/requests/{id}/details" } else { "$($BaseUrl.TrimEnd('/'))/WorkOrder.do?woMode=viewWO&woID={id}" }
+}
 
 function Write-Log([string] $Message) {
   $line = '{0:u}  {1}' -f (Get-Date), $Message
@@ -78,10 +86,31 @@ public static string Read(string target) {
 '@ -UsingNamespace System.Runtime.InteropServices
 
 $token = [CoreWorkHub.Cred]::Read($CredentialName)
-if (-not $token) { throw "No credential '$CredentialName' in Windows Credential Manager. Run: cmdkey /generic:$CredentialName /user:token /pass:<key>" }
+if (-not $token) {
+  if ($Edition -eq 'Cloud') { throw "No credential '$CredentialName' in Windows Credential Manager. Run Connect-ZohoServiceDesk.ps1 first." }
+  throw "No credential '$CredentialName' in Windows Credential Manager. Run: cmdkey /generic:$CredentialName /user:token /pass:<key>"
+}
 
 $headers = @{ Accept = 'application/vnd.manageengine.sdp.v3+json' }
-if ($Edition -eq 'OnPrem') { $headers['authtechnician'] = $token } else { $headers['Authorization'] = "Zoho-oauthtoken $token" }
+if ($Edition -eq 'OnPrem') {
+  $headers['authtechnician'] = $token
+} else {
+  # Cloud: the stored credential is the refresh token from Connect-ZohoServiceDesk.ps1. Swap it for a
+  # 1-hour access token now (Zoho allows about 10 of these per 10 minutes; a 15-minute sync uses 1).
+  try { $z = $token | ConvertFrom-Json } catch { $z = $null }
+  if (-not $z -or -not $z.PSObject.Properties['refresh_token']) {
+    throw "'$CredentialName' doesn't hold a Zoho refresh token (an access token expires after an hour). Run Connect-ZohoServiceDesk.ps1."
+  }
+  $tok = Invoke-RestMethod -Method Post -Uri "$($z.accounts)/oauth/v2/token" -TimeoutSec 30 -Body @{
+    grant_type = 'refresh_token'; refresh_token = $z.refresh_token; client_id = $z.client_id; client_secret = $z.client_secret
+  }
+  if ($tok.PSObject.Properties['error'] -or -not $tok.PSObject.Properties['access_token']) {
+    $e = if ($tok.PSObject.Properties['error']) { $tok.error } else { 'no access token returned' }
+    throw "Zoho refused the refresh token ($e). If the Self Client was deleted or access revoked, run Connect-ZohoServiceDesk.ps1 again."
+  }
+  $headers['Authorization'] = "Zoho-oauthtoken $($tok.access_token)"
+  Remove-Variable tok, z
+}
 $api = "$($BaseUrl.TrimEnd('/'))/api/v3/requests"
 
 function Get-Requests([hashtable] $SearchCriteria) {
