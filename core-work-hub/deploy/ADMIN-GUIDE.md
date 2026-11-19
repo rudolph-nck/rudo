@@ -110,13 +110,13 @@ Until the API connection is approved, the hub can import the **Core - All** repo
 **If the export must stay in SharePoint:** copy it across every 15 minutes from Nick's PC.
 
 1. In SharePoint, open the folder with the export and click **Sync** (or **Add shortcut to My files**). In File Explorer, right-click the folder → **Always keep on this device**.
-2. Right-click `Core - All.csv` → **Copy as path**. It looks like `C:\Users\nick\<Company>\<Site> - Documents\...\Core - All.csv`.
+2. Copy the synced folder's path from File Explorer's address bar (or right-click the file → **Copy as path**). It looks like `C:\Users\nick\<Company>\<Site> - Documents\...`. With a folder, the task takes the newest `Core - All*.csv` in it (or, failing that, the newest CSV, and logs which one).
 3. In a normal PowerShell window (Windows PowerShell is fine):
 
 ```powershell
 cd <package>\Setup\sync
 powershell -ExecutionPolicy Bypass -File .\Register-ExportCopyTask.ps1 `
-  -Source 'C:\Users\nick\<Company>\<Site> - Documents\Exports\Core - All.csv' `
+  -Source 'C:\Users\nick\<Company>\<Site> - Documents\Exports' `
   -HubFolder '\\fileserver\IT\CoreWorkHub'
 ```
 

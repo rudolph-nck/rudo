@@ -10,11 +10,13 @@
   * Works in Windows PowerShell 5.1 (built into Windows) and PowerShell 7. No credentials involved.
 
 .EXAMPLE
-  powershell -File .\Copy-ExportToHub.ps1 -Source 'C:\Users\nick\Contoso\IT - Documents\Exports\Core - All.csv' -HubFolder '\\fileserver\IT\CoreWorkHub'
+  powershell -File .\Copy-ExportToHub.ps1 -Source 'C:\Users\nick\Contoso\IT - Documents\Exports' -HubFolder '\\fileserver\IT\CoreWorkHub'
 #>
 param(
+  # The export file, or the synced SharePoint folder it lands in (then the newest file matching -Pattern is used).
   [Parameter(Mandatory)] [string] $Source,
   [Parameter(Mandatory)] [string] $HubFolder,
+  [string] $Pattern = 'Core - All*.csv',
   # Name the hub looks for (hub-config.json autoImport.file; default "Core - All.csv").
   [string] $Name = 'Core - All.csv',
   [string] $LogFile = (Join-Path $env:LOCALAPPDATA 'CoreWorkHub\export-copy.log')
@@ -27,7 +29,17 @@ function Write-Log([string] $Message) {
 }
 try {
   if (-not (Test-Path -LiteralPath $Source)) { Write-Log "Export not found: $Source (is the SharePoint folder synced on this PC?)"; exit 1 }
-  $src = Get-Item -LiteralPath $Source
+  if (Test-Path -LiteralPath $Source -PathType Container) {
+    $src = Get-ChildItem -LiteralPath $Source -File -Filter $Pattern | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+    if (-not $src) {
+      # Fall back to the newest CSV in the folder, and say which one.
+      $src = Get-ChildItem -LiteralPath $Source -File -Filter '*.csv' | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+      if (-not $src) { Write-Log "No CSV export in $Source yet."; exit 0 }
+      Write-Log "No file matching '$Pattern'; using the newest CSV: $($src.Name)"
+    }
+  } else {
+    $src = Get-Item -LiteralPath $Source
+  }
   if (((Get-Date).ToUniversalTime() - $src.LastWriteTimeUtc).TotalSeconds -lt 30) { Write-Log 'Export is still being written; will copy next run.'; exit 0 }
 
   $destDir = Join-Path $HubFolder 'import'
@@ -38,10 +50,10 @@ try {
     if ($d.Length -eq $src.Length -and $d.LastWriteTimeUtc -eq $src.LastWriteTimeUtc) { exit 0 }  # unchanged
   }
   $tmp = "$dest.copying"   # not .csv, so the hub ignores it
-  Copy-Item -LiteralPath $Source -Destination $tmp -Force
+  Copy-Item -LiteralPath $src.FullName -Destination $tmp -Force
   (Get-Item -LiteralPath $tmp).LastWriteTimeUtc = $src.LastWriteTimeUtc
   Move-Item -LiteralPath $tmp -Destination $dest -Force
-  Write-Log ("Copied export ({0:N0} bytes, exported {1:u}) to {2}" -f $src.Length, $src.LastWriteTime, $dest)
+  Write-Log ("Copied {0} ({1:N0} bytes, exported {2:u}) to {3}" -f $src.Name, $src.Length, $src.LastWriteTime, $dest)
 } catch {
   Write-Log "FAILED: $($_.Exception.Message)"
   exit 1
