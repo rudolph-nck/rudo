@@ -24,7 +24,8 @@ const pairs = [
 ];
 // Non-text UI (3:1): bucket dots, slot borders.
 const ui = [['b-project', 'surface'], ['b-maintenance', 'surface'], ['b-support', 'surface'], ['b-project', 'surface-2'], ['b-maintenance', 'surface-2'], ['b-support', 'surface-2'], ['accent', 'surface']];
-const avatars = ['#3346D3', '#0B7363', '#A33A00', '#7135B8', '#A1206A', '#28652A', '#155E99', '#5A5F6E'];
+const avatars = [...readFileSync(new URL('../src/model/avatar.ts', import.meta.url), 'utf8').matchAll(/color: '(#[0-9A-Fa-f]{6})'/g)].map((m) => m[1]);
+if (avatars.length < 12) throw new Error('avatar palette not found');
 let fail = 0;
 for (const [name, t] of [['light', light], ['dark', dark]]) {
   for (const [f, b] of pairs) {

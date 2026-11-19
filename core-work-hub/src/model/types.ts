@@ -68,6 +68,15 @@ export interface TicketsSnapshot {
   items: SourceTicket[];
 }
 
+export interface AvatarStyle {
+  /** One of AVATAR_COLORS. */
+  color?: string;
+  /** Shown instead of initials. */
+  emoji?: string;
+  /** Small square image as a data: URL (about 128 px). Wins over emoji. */
+  photo?: string;
+}
+
 export interface Person {
   /** Windows username; names the change file changes/<username>.jsonl. */
   username: string;
@@ -75,6 +84,8 @@ export interface Person {
   role: Role;
   /** Initials override for the avatar. */
   initials?: string;
+  /** Set by the person themselves (profile.set): colour, emoji instead of initials, or a small photo. */
+  avatar?: AvatarStyle;
   /** Doing limit for this analyst. */
   wipLimit?: number;
   /** A manager who also takes tickets: shows in the Team view, capacity strip and WIP limits. */
@@ -284,6 +295,7 @@ export type HubEvent = EventBase &
     | { type: 'item.comment'; item: string; data: { text: string } }
     | { type: 'item.reply'; item: string; data: { via: string; kind?: 'first' | 'update' | 'follow-up' | 'internal'; nextUpdate?: string; note?: string } }
     | { type: 'time.log'; item?: string; data: { bucket: TimeBucket; hours: number; date: string; note?: string } }
+    | { type: 'profile.set'; data: { color?: string | null; emoji?: string | null; photo?: string | null } }
     | { type: 'config.person'; data: { username: string; wipLimit?: number; bucketWip?: Partial<Record<Bucket, number>>; sdName?: string; aliases?: string[] } }
     | { type: 'config.bucketWip'; data: Partial<Record<Bucket, number>> }
     | { type: 'config.dispatch'; data: { shifts: DispatchShift[] } }

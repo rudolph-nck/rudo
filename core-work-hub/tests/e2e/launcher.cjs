@@ -16,9 +16,22 @@ fs.writeFileSync(path.join(hub, 'tickets.json'), JSON.stringify({ generatedAt: n
   { source: 'SD', source_id: 'INC-1', title: 'Launcher test ticket', source_status: 'Open', created: now },
 ] }));
 
-function start(user, port) {
+// A tiny solid-colour PNG, standing in for a Windows account picture.
+function png(w, h, [r, g, b]) {
+  const zlib = require('zlib');
+  const crcT = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+  const crc = (buf) => { let c = 0xffffffff; for (const x of buf) c = crcT[(c ^ x) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+  const chunk = (t, d) => { const l = Buffer.alloc(4); l.writeUInt32BE(d.length); const td = Buffer.concat([Buffer.from(t), d]); const c = Buffer.alloc(4); c.writeUInt32BE(crc(td)); return Buffer.concat([l, td, c]); };
+  const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 2;
+  const raw = Buffer.alloc((w * 3 + 1) * h); for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) raw.set([r, g, b], y * (w * 3 + 1) + 1 + x * 3);
+  return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
+}
+const picDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cwh-pic-'));
+fs.writeFileSync(path.join(picDir, '{ABC}-Image192.png'), png(240, 180, [230, 120, 20]));
+
+function start(user, port, extraEnv = {}) {
   return new Promise((resolve, reject) => {
-    const env = { ...process.env, LOCALAPPDATA: fs.mkdtempSync(path.join(os.tmpdir(), `cwh-${user}-`)) };
+    const env = { ...process.env, ...extraEnv, LOCALAPPDATA: fs.mkdtempSync(path.join(os.tmpdir(), `cwh-${user}-`)) };
     const p = spawn('python3', [path.join(root, 'launcher/hub_server.py'), '--folder', hub, '--browser', 'none', '--port', String(port), '--user', user], { env });
     p.stdout.on('data', (d) => { const m = String(d).match(/CWH_READY (\S+)/); if (m) resolve({ p, url: m[1] }); });
     p.stderr.on('data', (d) => process.stderr.write(d));
@@ -28,7 +41,7 @@ function start(user, port) {
 
 (async () => {
   const P = 48000 + Math.floor(Math.random() * 1000) * 2;
-  const nick = await start('nick', P);
+  const nick = await start('nick', P, { CWH_PICTURE_DIR: picDir });
   const wes = await start('wes', P + 1);
   const key = (u) => u.split('#key=')[1];
   const api = async (port, p, opts = {}) => fetch(`http://127.0.0.1:${port}${p}`, opts);
@@ -67,6 +80,39 @@ function start(user, port) {
   const pt = await ctx.newPage();
   await pt.goto(wes.url.split('#')[0]); await pt.waitForTimeout(800);
   check(!(await pt.locator('.sidebar').count()), 'a tab opened without the key does not get in');
+  // Avatars: Nick uses his Windows picture; Wes picks a colour and an emoji. Each sees the other's.
+  await pn.bringToFront();
+  await pn.getByRole('button', { name: /change my avatar/ }).click();
+  await pn.getByRole('button', { name: 'Use my Windows picture' }).click();
+  await pn.locator('dialog[open] .profile-preview img.avatar.xl').waitFor();
+  await pn.getByRole('button', { name: 'Save' }).click();
+  await pn.waitForTimeout(300);
+  check(/"type":"profile.set"/.test(fs.readFileSync(path.join(hub, 'changes/nick.jsonl'), 'utf8')), 'Nick’s avatar is saved to his own change file');
+  await pw.bringToFront();
+  await pw.getByRole('button', { name: /change my avatar/ }).click();
+  await pw.getByRole('radio', { name: 'Red' }).click();
+  await pw.getByRole('radio', { name: 'Emoji' }).click();
+  await pw.getByRole('button', { name: 'Emoji 🦊' }).click();
+  if (process.env.SHOT) await pw.locator('dialog[open]').screenshot({ path: process.env.SHOT });
+  await pw.getByRole('button', { name: 'Save' }).click();
+  await pw.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await pw.waitForTimeout(600);
+  await pw.goto(wes.url.split('#')[0] + '#/team'); await pw.waitForTimeout(800);
+  check(await pw.locator('img.avatar[alt="Nick"]').count() > 0, 'Wes sees Nick’s photo (Team page)');
+  const wesSelf = pw.locator('.sidebar-foot .avatar');
+  check((await wesSelf.innerText()) === '🦊' && (await wesSelf.evaluate((e) => getComputedStyle(e).backgroundColor)) === 'rgb(180, 35, 24)', 'Wes’s own avatar shows the fox on red');
+  await pn.bringToFront();
+  await pn.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await pn.goto(nick.url.split('#')[0] + '#/team'); await pn.waitForTimeout(800);
+  check(await pn.locator('.avatar.emoji', { hasText: '🦊' }).count() > 0, 'Nick sees Wes’s fox avatar on the Team page');
+  // Windows has no picture: a clear message instead
+  fs.rmSync(path.join(picDir, '{ABC}-Image192.png'));
+  await pn.getByRole('button', { name: /change my avatar/ }).click();
+  await pn.getByRole('button', { name: 'Use my Windows picture' }).click();
+  await pn.waitForTimeout(500);
+  check(await pn.getByRole('alert').filter({ hasText: 'Upload one instead' }).count() === 1, 'no Windows picture → “upload one instead”');
+  await pn.getByRole('button', { name: 'Cancel' }).click();
+
   // Helper stopped while the tab is open (e.g. it was closed): the page says how to start it again
   wes.p.kill(); await new Promise((r) => setTimeout(r, 300));
   await pw.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));

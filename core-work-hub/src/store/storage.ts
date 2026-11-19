@@ -24,6 +24,8 @@ export interface HubStore {
   /** All events from all change files. Incremental under the hood. */
   readEvents(): Promise<{ events: SourcedEvent[]; problems: string[] }>;
   append(user: string, events: HubEvent[]): Promise<void>;
+  /** Python launcher only: the signed-in user's Windows account picture, if Windows has one. */
+  windowsPicture?(): Promise<Blob | undefined>;
 }
 
 export const CONFIG_FILE = 'hub-config.json';
@@ -373,6 +375,10 @@ export class LauncherStore implements HubStore {
   async writeConfig(c: HubConfig) {
     const r = await this.call('/api/file?name=hub-config.json', { method: 'PUT', body: JSON.stringify(c, null, 2) + '\n' });
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error ?? 'Could not save hub-config.json');
+  }
+  async windowsPicture() {
+    const r = await this.call('/api/windows-picture');
+    return r.ok ? await r.blob() : undefined;
   }
   async readSnapshot() {
     const r = await this.call('/api/file?name=tickets.json');

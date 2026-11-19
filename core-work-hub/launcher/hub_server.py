@@ -55,6 +55,76 @@ def log(msg):
         pass
 
 
+# ---------------------------------------------------------------- Windows account picture
+def _sid():
+    """The signed-in user's SID, e.g. S-1-5-21-..., via whoami (Windows only)."""
+    try:
+        out = subprocess.run(["whoami", "/user", "/fo", "csv", "/nh"], capture_output=True, text=True, timeout=5,
+                             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0)).stdout
+        m = re.search(r"S-1-[0-9-]+", out)
+        return m.group(0) if m else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _jpegs_in(blob):
+    """JPEGs embedded in an .accountpicture-ms file: each runs from one SOI marker to the last EOI before the next."""
+    starts = [m.start() for m in re.finditer(rb"\xff\xd8\xff", blob)]
+    out = []
+    for i, a in enumerate(starts):
+        b = starts[i + 1] if i + 1 < len(starts) else len(blob)
+        end = blob.rfind(b"\xff\xd9", a, b)
+        if end > a:
+            out.append(blob[a:end + 2])
+    return out
+
+
+def windows_picture():
+    """(bytes, content type) of the user's Windows account picture, or None.
+
+    Windows keeps it in C:\\Users\\Public\\AccountPictures\\<SID>\\{id}-Image<size>.jpg, and the source in
+    %APPDATA%\\Microsoft\\Windows\\AccountPictures\\*.accountpicture-ms. Only these fixed places are read."""
+    dirs = []
+    if os.environ.get("CWH_PICTURE_DIR"):  # tests
+        dirs.append(os.environ["CWH_PICTURE_DIR"])
+    elif os.name == "nt":
+        sid = _sid()
+        public = os.environ.get("PUBLIC", r"C:\Users\Public")
+        if sid:
+            dirs.append(os.path.join(public, "AccountPictures", sid))
+        if os.environ.get("APPDATA"):
+            dirs.append(os.path.join(os.environ["APPDATA"], "Microsoft", "Windows", "AccountPictures"))
+    best = None  # (score, bytes, type): prefer the size closest to 192 px
+    for d in dirs:
+        try:
+            names = os.listdir(d)
+        except OSError:
+            continue
+        for fn in names:
+            p = os.path.join(d, fn)
+            low = fn.lower()
+            try:
+                if low.endswith((".jpg", ".jpeg", ".png")) and os.path.getsize(p) < 5_000_000:
+                    m = re.search(r"image(\d+)", low)
+                    size = int(m.group(1)) if m else 448
+                    with open(p, "rb") as f:
+                        data = f.read()
+                    cand = (abs(size - 192), data, "image/png" if low.endswith(".png") else "image/jpeg")
+                elif low.endswith(".accountpicture-ms") and os.path.getsize(p) < 10_000_000:
+                    with open(p, "rb") as f:
+                        jp = _jpegs_in(f.read())
+                    if not jp:
+                        continue
+                    cand = (100, max(jp, key=len), "image/jpeg")  # the larger of the two (usually 448 px)
+                else:
+                    continue
+            except OSError:
+                continue
+            if best is None or cand[0] < best[0]:
+                best = cand
+    return (best[1], best[2]) if best else None
+
+
 class Hub:
     def __init__(self, folder, user):
         self.folder = os.path.abspath(folder)
@@ -131,6 +201,11 @@ def make_handler(hub, port):
                     return self.json(200, {"username": hub.user, "folder": hub.folder, "label": os.path.basename(hub.folder.rstrip("\\/")) or hub.folder, "writable": writable})
                 if url.path == "/api/ping":
                     return self.json(200, {"ok": True})
+                if url.path == "/api/windows-picture":
+                    pic = windows_picture()
+                    if not pic:
+                        return self.json(404, {"error": "No Windows account picture found on this PC."})
+                    return self.send(200, pic[0], pic[1])
                 if url.path == "/api/file":
                     name = (q.get("name") or [""])[0]
                     if name not in WHOLE_FILES:

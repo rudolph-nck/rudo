@@ -1,8 +1,9 @@
 import { computeScore, mapSourcePriority, roleOf, canGrade, ownersFromSource, systemForCategory } from './logic';
 import { fillLink } from './csv';
 import { computeTeamScore, criteriaOf, isProject } from './teamscore';
-import type { AuditEntry, Bucket, Conflict, HubConfig, HubEvent, HubState, SourceTicket, TicketsSnapshot, TimeEntry, WorkItem } from './types';
+import type { AuditEntry, AvatarStyle, Bucket, Conflict, HubConfig, HubEvent, HubState, SourceTicket, TicketsSnapshot, TimeEntry, WorkItem } from './types';
 import { BUCKETS, RANKED_COLUMNS, isRanked } from './types';
+import { validColor, validEmoji, validPhoto } from './avatar';
 
 export interface SourcedEvent {
   event: HubEvent;
@@ -91,6 +92,7 @@ function fromTicket(t: SourceTicket, config: HubConfig): WorkItem {
 export function rejectReason(config: HubConfig, file: string, e: HubEvent, item?: WorkItem): string | undefined {
   const role = roleOf(config, file);
   if (!role) return `"${file}" is not in hub-config.json`;
+  if (e.type === 'profile.set') return undefined; // everyone styles their own avatar (always applied to the file's owner)
   if (role === 'viewer') return 'Viewers are read-only';
   if (role === 'manager') return undefined;
   const grader = canGrade(config, file, e.ts.slice(0, 10));
@@ -339,6 +341,22 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
       case 'time.log':
         time.push({ id: e.id, ts: e.ts, user: file, item: e.item, ...e.data });
         break;
+      case 'profile.set': {
+        // Applies to whoever wrote the file: nobody can restyle someone else.
+        const p = config.people.find((x) => x.username === file);
+        if (p) {
+          const a: AvatarStyle = { ...p.avatar };
+          const d = e.data;
+          if (d.color === null) delete a.color;
+          else if (validColor(d.color)) a.color = d.color;
+          if (d.emoji === null) delete a.emoji;
+          else if (validEmoji(d.emoji)) a.emoji = d.emoji;
+          if (d.photo === null) delete a.photo;
+          else if (validPhoto(d.photo)) a.photo = d.photo;
+          p.avatar = a;
+        }
+        break;
+      }
       case 'config.person': {
         const p = config.people.find((x) => x.username === e.data.username);
         if (p) {

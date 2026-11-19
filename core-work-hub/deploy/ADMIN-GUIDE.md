@@ -174,6 +174,7 @@ Replace `index.html` (and the `app\` folder, if the release notes say it changed
 - **Token:** only in Credential Manager on the sync PC; read-only technician.
 - **Access:** NTFS on the folder (IT Core modify, Matt read).
 - **Identity:** with the desktop icon, from the Windows sign-in (each helper writes only its own user's file). In the Edge fallback, people pick their name from a fixed list (honor system). Either way the change file’s owner on disk shows who wrote it, and the **Audit log** shows every change with before → after.
+- **Avatars:** people can pick a colour, emoji or photo for themselves (never for someone else). A photo is cropped and shrunk to 128 px (about 10 KB) and stored in that person's change file. “Use my Windows picture” reads only the account picture Windows keeps for the signed-in user (`C:\Users\Public\AccountPictures\<SID>` or `%APPDATA%\Microsoft\Windows\AccountPictures`); it is not uploaded anywhere else.
 - **Backups:** covered by the share’s backup. Size grows slowly (a few MB a year).
 
 ## 13. Troubleshooting

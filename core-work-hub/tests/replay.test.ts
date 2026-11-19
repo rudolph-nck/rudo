@@ -752,3 +752,33 @@ describe('communication standard go-live date', () => {
     expect(c.due).toEqual(addBusinessDays(DEFAULT_STANDARD, new Date(2026, 10, 23), 5));
   });
 });
+
+describe('avatars (profile.set)', () => {
+  const photo = 'data:image/jpeg;base64,' + 'A'.repeat(200);
+  it('applies colour, emoji and photo to the person who wrote the file, and clears with null', () => {
+    const s = replay(defaultConfig(), undefined, [
+      ev('wes', 1, { type: 'profile.set', data: { color: '#B42318', emoji: '🦊' } }),
+      ev('wes', 2, { type: 'profile.set', data: { photo } }),
+    ]);
+    expect(s.config.people.find((p) => p.username === 'wes')!.avatar).toEqual({ color: '#B42318', emoji: '🦊', photo });
+    const s2 = replay(defaultConfig(), undefined, [
+      ev('wes', 1, { type: 'profile.set', data: { color: '#B42318', emoji: '🦊', photo } }),
+      ev('wes', 2, { type: 'profile.set', data: { photo: null, emoji: null } }),
+    ]);
+    expect(s2.config.people.find((p) => p.username === 'wes')!.avatar).toEqual({ color: '#B42318' });
+  });
+  it('can only change your own avatar, and ignores unsafe values', () => {
+    const s = replay(defaultConfig(), undefined, [
+      ev('wes', 1, { type: 'profile.set', data: { username: 'nick', color: '#7135B8' } }),
+      ev('nick', 2, { type: 'profile.set', data: { color: '#123456', emoji: '<b>', photo: 'javascript:alert(1)' } }),
+    ]);
+    expect(s.config.people.find((p) => p.username === 'wes')!.avatar).toEqual({ color: '#7135B8' });
+    expect(s.config.people.find((p) => p.username === 'nick')!.avatar).toEqual({});
+  });
+  it('viewers can style their own avatar too', () => {
+    const viewer = defaultConfig().people.find((p) => p.role === 'viewer')!.username;
+    const s = replay(defaultConfig(), undefined, [ev(viewer, 1, { type: 'profile.set', data: { emoji: '🎯' } })]);
+    expect(s.config.people.find((p) => p.username === viewer)!.avatar?.emoji).toBe('🎯');
+    expect(s.audit.find((a) => a.event.type === 'profile.set')!.rejected).toBeFalsy();
+  });
+});

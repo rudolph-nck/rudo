@@ -1,3 +1,4 @@
+import { ProfileDialog } from './components/Profile';
 import { useCallback, useEffect, useState } from 'react';
 import { HubProvider, useHub } from './store/hub';
 import { DemoStore, FolderStore, fsAccessSupported, LauncherStore, launcherKey, launcherMode, loadHandle, loadIdentity, saveHandle, saveIdentity, type HubStore } from './store/storage';
@@ -68,6 +69,7 @@ function Sidebar() {
   const disp = currentDispatch(cfg);
   const next = nextDispatch(cfg);
   const meP = findPerson(cfg, me);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [, tick] = useState(0);
   useEffect(() => {
     const t = setInterval(() => tick((x) => x + 1), 5000);
@@ -136,8 +138,11 @@ function Sidebar() {
         </div>
         <ThemeToggle />
         <div className="row">
-          <Avatar user={me} config={cfg} />
-          <span className="grow" style={{ fontWeight: 700 }}>{meP?.name ?? me}</span>
+          <button className="me-btn" onClick={() => setProfileOpen(true)} title="Change your avatar: colour, emoji or photo" aria-label={`${meP?.name ?? me}: change my avatar`}>
+            <Avatar user={me} config={cfg} />
+            <span className="grow" style={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meP?.name ?? me}</span>
+          </button>
+          <ProfileDialog open={profileOpen} onClose={() => setProfileOpen(false)} />
           {store.kind !== 'launcher' && <button className="btn sm ghost" onClick={signOut} title="Change who you are on this PC">Not you?</button>}
         </div>
       </div>

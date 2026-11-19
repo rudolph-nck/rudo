@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import type { Bucket, Priority, WorkItem } from '../model/types';
 import { findPerson, initials } from '../model/logic';
+import { DEFAULT_AVATAR_ORDER } from '../model/avatar';
 import type { HubConfig } from '../model/types';
 
 // ---------------------------------------------------------------- icons (inline, no network)
@@ -44,12 +45,11 @@ export function Icon({ name, size = 18, label }: { name: keyof typeof paths | st
 }
 
 // ---------------------------------------------------------------- avatars & chips
-const AVATAR_COLORS = ['#3346D3', '#0B7363', '#A33A00', '#7135B8', '#A1206A', '#28652A', '#155E99', '#5A5F6E'];
 export function avatarColor(username: string, config: HubConfig) {
   const i = config.people.findIndex((p) => p.username === username);
-  return AVATAR_COLORS[(i < 0 ? username.length : i) % AVATAR_COLORS.length];
+  return config.people[i]?.avatar?.color ?? DEFAULT_AVATAR_ORDER[(i < 0 ? username.length : i) % DEFAULT_AVATAR_ORDER.length];
 }
-export function Avatar({ user, config, size, external }: { user?: string; config: HubConfig; size?: 'lg'; external?: string }) {
+export function Avatar({ user, config, size, external }: { user?: string; config: HubConfig; size?: 'lg' | 'xl'; external?: string }) {
   if (!user && external) {
     const clean = external.replace(/^retained until [\d/]+ - /i, '');
     const ini = clean.split(/\s+/).filter(Boolean).map((w) => w[0]).filter((c) => /[a-z]/i.test(c));
@@ -66,9 +66,12 @@ export function Avatar({ user, config, size, external }: { user?: string; config
       </span>
     );
   const p = findPerson(config, user);
+  const a = p?.avatar;
+  if (a?.photo)
+    return <img className={`avatar photo ${size ?? ''}`} src={a.photo} alt={p?.name ?? user} title={p?.name ?? user} style={{ background: avatarColor(user, config) }} />;
   return (
-    <span className={`avatar ${size ?? ''}`} role="img" aria-label={p?.name ?? user} title={p?.name ?? user} style={{ background: avatarColor(user, config) }}>
-      {initials(p, user)}
+    <span className={`avatar ${a?.emoji ? 'emoji' : ''} ${size ?? ''}`} role="img" aria-label={p?.name ?? user} title={p?.name ?? user} style={{ background: avatarColor(user, config) }}>
+      {a?.emoji ?? initials(p, user)}
     </span>
   );
 }

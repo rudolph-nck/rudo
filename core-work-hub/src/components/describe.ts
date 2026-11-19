@@ -1,3 +1,4 @@
+import { AVATAR_COLORS } from '../model/avatar';
 import { findPerson, systemName } from '../model/logic';
 import type { HubConfig, HubEvent } from '../model/types';
 
@@ -45,6 +46,15 @@ export function describeEvent(e: HubEvent, cfg: HubConfig): string {
       return `replied to the requester (${e.data.via})`;
     case 'time.log':
       return `logged ${e.data.hours}h to ${e.data.bucket.replace('_', ' ')} on ${e.data.date}`;
+    case 'profile.set': {
+      const d = e.data;
+      const parts = [
+        d.photo !== undefined && (d.photo ? 'a new photo' : 'no photo'),
+        d.emoji !== undefined && (d.emoji ? `emoji ${d.emoji}` : 'no emoji'),
+        d.color !== undefined && (d.color ? `colour ${AVATAR_COLORS.find((c) => c.color === d.color)?.name ?? d.color}` : 'default colour'),
+      ].filter(Boolean);
+      return `changed their avatar${parts.length ? ': ' + parts.join(', ') : ''}`;
+    }
     case 'config.person':
       return `set ${who(e.data.username)}'s WIP limit to ${fmt(e.data.wipLimit)}`;
     case 'config.bucketWip':
