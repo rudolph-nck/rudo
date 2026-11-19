@@ -9,7 +9,7 @@ export function defaultConfig(): HubConfig {
   return {
     teamName: 'IT Core',
     people: [
-      { username: 'nick', name: 'Nick', role: 'manager', wipLimit: 2 },
+      { username: 'nick', name: 'Nick', role: 'manager', works: true, wipLimit: 2 },
       { username: 'wes', name: 'Wes', role: 'analyst', wipLimit: 2 },
       { username: 'cathy', name: 'Cathy', role: 'analyst', wipLimit: 2 },
       { username: 'noelle', name: 'Noelle', role: 'analyst', wipLimit: 2 },

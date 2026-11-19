@@ -77,7 +77,7 @@ Score → suggested priority: ≥15 P1, ≥8 P2, ≥3 P3, otherwise P4. When a c
 ### Configure
 
 Edit `hub-config.json` in the shared folder:
-- `people[].username`: replace the placeholders with real **Windows usernames**. Add `sdName` if the Service Desk technician name differs from `name`.
+- `people[].username`: replace the placeholders with real **Windows usernames**. Nick is the manager and also carries work (`"works": true`), so he appears in the Team view, the capacity strip and WIP limits; Matt is a read-only viewer. Add `sdName` if the Service Desk technician name differs from `name`.
 - `systems`: the sample ownership map is placeholder data. Replace it with the real map (or edit it in Settings).
 - `wipLimit` per analyst (starts at 2), `capacityModel` (weekly hours per bucket, from the communication standards), `closedStatuses` and `resolvedStatuses` to match your Service Desk statuses.
 

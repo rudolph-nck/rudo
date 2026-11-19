@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { defaultConfig } from '../src/model/config';
 import { replay, type SourcedEvent } from '../src/model/replay';
-import { checkWip, computeScore, rankKeyAt, rankedList, suggestOwner, suggestPriority, mapSourcePriority, personForSourceName } from '../src/model/logic';
+import { analysts, checkWip, computeScore, rankKeyAt, rankedList, suggestOwner, suggestPriority, mapSourcePriority, personForSourceName } from '../src/model/logic';
 import { importTicketsCsv, maskNumbers, mergeSnapshot, parseCsv } from '../src/model/csv';
 import type { HubEvent, TicketsSnapshot } from '../src/model/types';
 import { demoSeed } from '../src/demo';
@@ -359,5 +359,11 @@ describe('Service Desk "Core - All" report format', () => {
     expect(personForSourceName(c, 'Cathy E. Garcia')).toBeUndefined();
     expect(personForSourceName(defaultConfig(), 'Matt Johnson')).toBeUndefined(); // viewers are never matched by first name
     expect(personForSourceName(defaultConfig(), 'Noelle I. Belhumeur')?.username).toBe('noelle');
+  });
+});
+
+describe('team', () => {
+  it('Nick carries work alongside the six analysts; Matt does not', () => {
+    expect(analysts(defaultConfig()).map((p) => p.username)).toEqual(['nick', 'wes', 'cathy', 'noelle', 'trey', 'michael', 'tabitha']);
   });
 });

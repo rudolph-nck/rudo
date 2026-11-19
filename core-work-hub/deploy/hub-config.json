@@ -5,6 +5,7 @@
       "username": "nick",
       "name": "Nick",
       "role": "manager",
+      "works": true,
       "wipLimit": 2
     },
     {

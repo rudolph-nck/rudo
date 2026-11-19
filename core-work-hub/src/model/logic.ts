@@ -106,7 +106,8 @@ export function systemForCategory(config: HubConfig, ...cats: (string | undefine
   return undefined;
 }
 
-export const analysts = (config: HubConfig) => config.people.filter((p) => p.role === 'analyst');
+/** People who carry work: every analyst, plus a manager marked `works: true` (Nick). Team view, capacity and WIP use this. */
+export const analysts = (config: HubConfig) => config.people.filter((p) => p.role === 'analyst' || (p.role === 'manager' && p.works));
 export const assignable = (config: HubConfig) => config.people.filter((p) => p.role !== 'viewer');
 
 export const roleOf = (config: HubConfig, username: string): Role | undefined => findPerson(config, username)?.role;

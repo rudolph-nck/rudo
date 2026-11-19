@@ -71,6 +71,8 @@ export interface Person {
   initials?: string;
   /** Doing limit for this analyst. */
   wipLimit?: number;
+  /** A manager who also takes tickets: shows in the Team view, capacity strip and WIP limits. */
+  works?: boolean;
   /** Optional per-bucket Doing limit for this analyst. */
   bucketWip?: Partial<Record<Bucket, number>>;
   /** Name/username as it appears in Service Desk, to map technician -> analyst. */
