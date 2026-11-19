@@ -149,10 +149,10 @@ const check = (c, m) => { if (!c) { console.log('FAIL', m); process.exitCode = 1
   await matt.goto(URL + '&as=matt#/board');
   await matt.waitForSelector('.card');
   check(await matt.getByText('Read-only').count() > 0 && await matt.getByRole('button', { name: 'New work' }).count() === 0, 'Matt sees read-only board');
-  await matt.screenshot({ path: (process.env.SHOTS || '.') + '/matt.png' });
+  await matt.screenshot({ path: (process.env.SHOTS || require('os').tmpdir()) + '/matt.png' });
   await nick.goto(URL + '&as=nick#/board');
   await nick.waitForSelector('.card');
-  await nick.screenshot({ path: (process.env.SHOTS || '.') + '/e2e-board.png', fullPage: true });
+  await nick.screenshot({ path: (process.env.SHOTS || require('os').tmpdir()) + '/e2e-board.png', fullPage: true });
   console.log('page errors:', errs);
   await b.close();
 })();
