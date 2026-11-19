@@ -1,4 +1,5 @@
 import { addDays, analysts, daysBetween, isOverdue, personWipLimit, todayISO } from './logic';
+import { commStatus } from './comms';
 import { BUCKETS, type Bucket, type Column, type HubState, type WorkItem } from './types';
 
 /** Doing items untouched this long count as held up. */
@@ -139,7 +140,11 @@ export function overview(state: HubState, f: Filter = {}, weeks = 12, now = new 
     const doing = mine.filter((i) => i.column === 'Doing').length;
     const limit = personWipLimit(state.config, p.username);
     const stale = mine.filter((i) => heldUp(i, now)?.kind === 'stale').length;
-    const overdue = mine.filter((i) => isOverdue(i, today)).length;
+    // Late against the communication standard (tickets), or past a promised next-update date (other work).
+    const overdue = mine.filter((i) => {
+      const c = commStatus(state, i, now);
+      return c ? c.lateMinutes > 0 : isOverdue(i, today);
+    }).length;
     const myDone = all.filter((i) => i.owner === p.username && i.column === 'Done');
     const row: PersonRow = {
       username: p.username,

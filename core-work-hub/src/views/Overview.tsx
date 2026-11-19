@@ -4,6 +4,7 @@ import { useUi } from '../components/actions';
 import { Avatar, BucketDot, download, Icon, PriorityChip, SourceBadge } from '../components/ui';
 import { BUCKET_SERIES, ChartCard, GroupedColumns, Meter, RankedBars, StackedColumns, StackedRows, type Series } from '../components/charts';
 import { overview, shiftStats, STALE_DAYS } from '../model/analytics';
+import { commSummary } from '../model/comms';
 import { addDays, analysts, currentDispatch, findPerson, fmtShortDate, nextDispatch, offOn, todayISO } from '../model/logic';
 import { itemsCsv, toCsv } from '../model/csv';
 import { BUCKETS, BUCKET_LABEL, COLUMN_LABEL, type Bucket } from '../model/types';
@@ -129,7 +130,19 @@ export function Overview() {
           <Stat label="Doing vs WIP slots" value={`${k.doing}`} unit={` / ${k.slots}`} note={k.doing > k.slots ? 'Over the team’s WIP' : `${k.slots - k.doing} slots free`} tone={k.doing > k.slots ? 'bad' : 'ok'} icon={k.doing > k.slots ? 'bell' : 'check'} />
           <Stat label="Closed this week" value={k.doneThisWeek} note={`${delta >= 0 ? '+' : ''}${delta} vs last week · ${k.openedThisWeek} opened`} />
           <Stat label="Held up" value={k.held} note={`Waiting, on hold, or Doing with no update in ${STALE_DAYS}+ days`} tone={k.held ? 'warn' : 'ok'} />
-          <Stat label="Overdue next updates" value={k.overdue} note={k.overdue ? 'Requesters are owed an update' : 'All updates on time'} tone={k.overdue ? 'bad' : 'ok'} icon={k.overdue ? 'clock' : 'check'} />
+          {(() => {
+            const c = commSummary(state);
+            return (
+              <Stat
+                label="Communication standard"
+                value={`${c.pct}%`}
+                unit=" on time"
+                note={c.late ? `${c.late} late · ${c.escalated} escalated · ${c.firstOverdue} awaiting first response` : `All ${c.tracked} open tickets on time`}
+                tone={c.escalated ? 'bad' : c.late ? 'warn' : 'ok'}
+                icon={c.late ? 'bell' : 'check'}
+              />
+            );
+          })()}
           <Stat label="Cycle time (median)" value={d1(k.medianCycle)} unit=" days" note={`Start → done, last 30 days · lead time ${d1(k.medianLead)}d`} />
           <Stat label="Past SLA due date" value={k.slaOverdue} note={k.slaOverdue ? 'Service Desk due-by has passed' : 'Nothing past its due-by'} tone={k.slaOverdue ? 'warn' : 'ok'} icon={k.slaOverdue ? 'clock' : 'check'} />
         </div>
@@ -231,7 +244,7 @@ export function Overview() {
                   <td>
                     <div className="row wrap" style={{ gap: 4 }}>
                       {r.doing > r.limit && <span className="chip bad"><Icon name="bell" size={12} />Over WIP</span>}
-                      {r.overdue > 0 && <span className="chip bad"><Icon name="clock" size={12} />{r.overdue} overdue</span>}
+                      {r.overdue > 0 && <span className="chip bad"><Icon name="clock" size={12} />{r.overdue} updates late</span>}
                       {r.stale > 0 && <span className="chip warn">{r.stale} stalled</span>}
                       {r.unacked > 0 && <span className="chip warn">{r.unacked} not acked</span>}
                       {offOn(cfg, r.username) && <span className="chip bad">Off · back {fmtShortDate(addDays(offOn(cfg, r.username)!.to, 1))}</span>}

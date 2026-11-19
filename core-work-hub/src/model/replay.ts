@@ -66,6 +66,9 @@ function fromTicket(t: SourceTicket, config: HubConfig): WorkItem {
     system: systemForCategory(config, t.subcategory, t.category),
     subcategory: t.subcategory,
     due_by: t.due_by,
+    sd_responded: t.responded,
+    sd_last_note: t.last_note,
+    sd_last_modified: t.last_modified,
     owner,
     ownerFromSource: !!t.source_owner,
     // A technician assigned in Service Desk is not a hub acknowledgment.
@@ -294,8 +297,12 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
       case 'item.comment':
         it!.comments.push({ id: e.id, ts: e.ts, user: file, text: e.data.text });
         break;
-      case 'item.reply':
+      case 'item.reply': {
+        const w = it!;
+        w.commLog = [...(w.commLog ?? []), { ts: e.ts, user: file, kind: e.data.kind ?? 'update', note: e.data.note }];
+        if (e.data.nextUpdate) w.next_update_due = e.data.nextUpdate;
         break;
+      }
       case 'team.rate': {
         const w = it!;
         const clean: Record<string, number> = {};

@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-export type View = 'overview' | 'board' | 'priorities' | 'teamscore' | 'mine' | 'triage' | 'team' | 'rotation' | 'timeoff' | 'metrics' | 'audit' | 'settings' | 'list';
+export type View = 'overview' | 'notifications' | 'board' | 'priorities' | 'teamscore' | 'mine' | 'triage' | 'team' | 'rotation' | 'timeoff' | 'metrics' | 'audit' | 'settings' | 'list';
 export interface Nav {
   view: View;
   param?: string;
@@ -11,7 +11,7 @@ export const useNav = () => useContext(NavCtx);
 
 export function parseHash(h: string): { view: View; param?: string } {
   const [v, p] = h.replace(/^#\/?/, '').split('/');
-  const views: View[] = ['overview', 'board', 'priorities', 'teamscore', 'mine', 'triage', 'team', 'rotation', 'timeoff', 'metrics', 'audit', 'settings', 'list'];
+  const views: View[] = ['overview', 'notifications', 'board', 'priorities', 'teamscore', 'mine', 'triage', 'team', 'rotation', 'timeoff', 'metrics', 'audit', 'settings', 'list'];
   // Metrics grew into the Overview dashboard; keep old links working.
   const view = v === 'metrics' ? 'overview' : ((views.includes(v as View) ? v : 'board') as View);
   return { view, param: p ? decodeURIComponent(p) : undefined };

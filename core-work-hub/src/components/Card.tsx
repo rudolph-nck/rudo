@@ -5,6 +5,7 @@ import { useHub } from '../store/hub';
 import { useUi } from './actions';
 import { addDays, fmtAge, fmtShortDate, isOverdue, offOn, systemName } from '../model/logic';
 import { COLUMNS, COLUMN_LABEL, type WorkItem } from '../model/types';
+import { CommChip } from './Comm';
 import { computeTeamScore, criteriaOf, isProject } from '../model/teamscore';
 import { Avatar, BucketDot, Icon, PriorityChip, SourceBadge } from './ui';
 
@@ -54,6 +55,7 @@ export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNod
           {fmtAge(item.created)}
         </span>
         <span className="grow" />
+        <CommChip item={item} />
         {canPick && (
           <button className="btn sm primary pickup" onClick={() => void pickUp(item)} onPointerDown={(e) => e.stopPropagation()} aria-label={`Pick up ${item.title}`}>
             Pick up

@@ -5,6 +5,7 @@ import { analysts, checkWip, computeScore, coverageGaps, currentDispatch, nextDi
 import { importTicketsCsv, maskNumbers, mergeSnapshot, parseCsv } from '../src/model/csv';
 import type { HubEvent, TicketsSnapshot, WorkItem } from '../src/model/types';
 import { heldUp, overview, priorityConflicts, shiftStats } from '../src/model/analytics';
+import { addBusinessMinutes, businessMinutesBetween, commStatus, DEFAULT_STANDARD, noticesFor } from '../src/model/comms';
 import { criteriaOf, DEFAULT_CRITERIA, effortCriterion, effortLabel, effortPoints, nextFreeAbove, teamBoard, velocity } from '../src/model/teamscore';
 import { demoSeed } from '../src/demo';
 
@@ -560,5 +561,98 @@ describe('effort time and velocity', () => {
     const c = criteriaOf(cfg);
     expect(c[0].points).toEqual([1, 2, 3, 5, 8]);
     expect(c[1].levels?.[4]).toMatch(/Strategic/);
+  });
+});
+
+describe('communication standard', () => {
+  const L = (d: number, h: number, m = 0) => new Date(2026, 10, d, h, m); // local time, Nov 2026 (16 = Mon)
+  const std = DEFAULT_STANDARD;
+  const tick = (over: Record<string, unknown>) => ({ source: 'SD', source_id: '9001', title: 'T', source_status: 'Open', ...over });
+  const st = (cfg: ReturnType<typeof defaultConfig>, t: Record<string, unknown>, evs: SourcedEvent[], now: Date) => {
+    const s = replay(cfg, { generatedAt: at(0), generatedBy: 't', mode: 'csv', items: [tick(t) as never] }, evs);
+    return { s, c: commStatus(s, s.items.get('SD:9001')!, now)! };
+  };
+
+  it('business hours: Thursday starts at 10:00, nights and weekends pause the clock', () => {
+    expect(addBusinessMinutes(std, L(18, 17, 0), 60)).toEqual(L(19, 10, 30)); // Wed 5pm + 1h -> Thu 10:30
+    expect(addBusinessMinutes(std, L(20, 17, 0), 120)).toEqual(L(23, 10, 0)); // Fri 5pm + 2h -> Mon 10:00
+    expect(businessMinutesBetween(std, L(20, 17, 0), L(23, 9, 30))).toBe(90);
+  });
+
+  it('first response: P1 within 2 business hours, others within 1 business day', () => {
+    const cfg = defaultConfig();
+    const p1 = st(cfg, { created: L(18, 16, 30).toISOString(), source_priority: 'Critical SLA' }, [], L(18, 16, 45)).c;
+    expect([p1.kind, p1.critical, p1.due]).toEqual(['first', true, L(19, 11, 0)]); // 1h Wed + 1h Thu from 10:00
+    const n = st(cfg, { created: L(16, 14, 0).toISOString(), source_priority: 'Low SLA' }, [], L(16, 15, 0)).c;
+    expect([n.kind, n.due]).toEqual(['first', L(17, 14, 0)]);
+  });
+
+  it('weekly update after a logged response, and escalation owner -> support -> Nick', () => {
+    const cfg = defaultConfig();
+    cfg.commStandard = { sdLastUpdatedCountsAsUpdate: false };
+    const evs = [
+      ev('nick', 1, { type: 'item.grade', item: 'SD:9001', data: { bucket: 'Support', priority: 'P3', impact: 2, urgency: 2, effort: 1, owner: 'wes' } }),
+      { file: 'wes', event: { id: 'r', ts: L(16, 10, 0).toISOString(), user: 'wes', type: 'item.reply', item: 'SD:9001', data: { via: 'Service Desk', kind: 'first' } } as HubEvent },
+    ];
+    const base = { created: L(16, 9, 0).toISOString() };
+    const due = st(cfg, base, evs, L(16, 11)).c.due;
+    expect(due).toEqual(L(23, 10, 0)); // same time, 5 business days later
+    expect(st(cfg, base, evs, L(23, 9, 0)).c).toMatchObject({ level: 'soon', responsible: 'wes' });
+    expect(st(cfg, base, evs, L(23, 12, 0)).c).toMatchObject({ level: 'overdue', responsible: 'wes' });
+    expect(st(cfg, base, evs, L(24, 12, 0)).c).toMatchObject({ level: 'support', responsible: 'trey' }); // Trey is on support until Nov 30
+    expect(st(cfg, base, evs, L(25, 12, 0)).c).toMatchObject({ level: 'manager', responsible: 'nick' });
+    const { s: state } = st(cfg, base, evs, L(24, 12, 0));
+    expect(noticesFor(state, 'trey', L(24, 12)).map((n) => n.role)).toEqual(['support']);
+    expect(noticesFor(state, 'wes', L(24, 12)).map((n) => n.role)).toEqual(['owner']);
+    expect(noticesFor(state, 'nick', L(24, 12))).toHaveLength(1);
+  });
+
+  it('promised next-update date wins when earlier; logging an update resets the clock', () => {
+    const cfg = defaultConfig();
+    cfg.commStandard = { sdLastUpdatedCountsAsUpdate: false };
+    const evs = [
+      ev('nick', 1, { type: 'item.grade', item: 'SD:9001', data: { bucket: 'Support', priority: 'P3', impact: 2, urgency: 2, effort: 1, owner: 'wes' } }),
+      { file: 'wes', event: { id: 'r', ts: L(16, 10, 0).toISOString(), user: 'wes', type: 'item.reply', item: 'SD:9001', data: { via: 'SD', kind: 'first', nextUpdate: '2026-11-18' } } as HubEvent },
+    ];
+    expect(st(cfg, { created: L(16, 9).toISOString() }, evs, L(16, 11)).c.due).toEqual(L(18, 17, 30));
+  });
+
+  it('requester follow-ups every 48 hours while Waiting for Requester, counting attempts', () => {
+    const cfg = defaultConfig();
+    const evs = [
+      ev('nick', 1, { type: 'item.grade', item: 'SD:9001', data: { bucket: 'Support', priority: 'P3', impact: 2, urgency: 2, effort: 1, owner: 'wes' } }),
+      ev('nick', 2, { type: 'item.move', item: 'SD:9001', data: { column: 'To Do' } }),
+      { file: 'wes', event: { id: 'f1', ts: L(16, 10).toISOString(), user: 'wes', type: 'item.reply', item: 'SD:9001', data: { via: 'SD', kind: 'follow-up' } } as HubEvent },
+    ];
+    const c = st(cfg, { created: L(10, 9).toISOString(), source_status: 'Waiting for Requester', responded: L(10, 10).toISOString() }, evs, L(17, 9)).c;
+    expect(c.kind).toBe('follow-up');
+    expect(c.label).toMatch(/attempt 2 of 3/);
+    expect(c.due).toEqual(L(18, 10));
+  });
+
+  it('no owner, or owner off: support handles it from the start', () => {
+    const cfg = defaultConfig();
+    const c = st(cfg, { created: L(19, 10).toISOString() }, [], L(19, 11)).c;
+    expect(c.responsible).toBe(currentDispatch(cfg, '2026-11-19')!.analyst);
+    expect(c.why).toMatch(/support/);
+  });
+
+  it('importer reads first-response and last-note columns', () => {
+    const r = importTicketsCsv('RequestID,Subject,Request Status,Created Time,Responded Time,Last Note Time,Last Updated Time\nINC-1,X,Open,11-16-2026 09:00,11-16-2026 09:30,11-17-2026 14:00,11-18-2026 08:00\n', 'SD', { now: new Date('2026-11-19T12:00:00') });
+    expect(r.tickets[0]).toMatchObject({ responded: new Date(2026, 10, 16, 9, 30).toISOString(), last_note: new Date(2026, 10, 17, 14).toISOString(), last_modified: new Date(2026, 10, 18, 8).toISOString() });
+  });
+});
+
+describe('communication escalation edge cases', () => {
+  it('when the owner is the person on support, an escalation goes straight to the manager', () => {
+    const L = (d: number, h: number) => new Date(2026, 10, d, h);
+    const cfg = defaultConfig();
+    cfg.commStandard = { sdLastUpdatedCountsAsUpdate: false };
+    const s = replay(cfg, { generatedAt: at(0), generatedBy: 't', mode: 'csv', items: [{ source: 'SD', source_id: '7', title: 'x', source_status: 'Open', created: L(2, 9).toISOString(), responded: L(2, 10).toISOString() }] }, [
+      ev('nick', 1, { type: 'item.grade', item: 'SD:7', data: { bucket: 'Support', priority: 'P3', impact: 2, urgency: 2, effort: 1, owner: 'trey' } }),
+    ]);
+    const c = commStatus(s, s.items.get('SD:7')!, L(18, 12))!; // Trey owns it and is on support
+    expect(c).toMatchObject({ level: 'manager', responsible: 'nick' });
+    expect(noticesFor(s, 'nick', L(18, 12))[0].role).toBe('manager');
   });
 });

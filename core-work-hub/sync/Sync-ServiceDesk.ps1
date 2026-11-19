@@ -37,6 +37,9 @@ param(
   [string] $TicketUrl = '',
   [string] $StateFile = (Join-Path $env:LOCALAPPDATA 'CoreWorkHub\sync-state.json'),
   [string] $LogFile = (Join-Path $env:LOCALAPPDATA 'CoreWorkHub\sync.log'),
+  # Read each open ticket's latest requester-visible note so the hub can enforce the communication standard.
+  # One extra API call per open ticket; turn off with -SkipNotes if the API is rate-limited.
+  [switch] $SkipNotes,
   [switch] $Test
 )
 
@@ -92,7 +95,7 @@ function Get-Requests([hashtable] $SearchCriteria) {
       sort_order      = 'desc'
       get_total_count = $true
       search_criteria = $SearchCriteria
-      fields_required = @('id', 'display_id', 'subject', 'requester', 'status', 'priority', 'technician', 'group', 'category', 'created_time', 'completed_time', 'resolved_time')
+      fields_required = @('id', 'display_id', 'subject', 'requester', 'status', 'priority', 'technician', 'group', 'category', 'created_time', 'completed_time', 'resolved_time', 'responded_time', 'last_updated_time', 'due_by_time')
     }
     $inputData = @{ list_info = $listInfo } | ConvertTo-Json -Depth 10 -Compress
     $uri = "$api`?input_data=$([uri]::EscapeDataString($inputData))"
@@ -124,6 +127,25 @@ function Get-Time($obj) {
 function Hide-Numbers([string] $Text) {
   if (-not $Text) { return $Text }
   return [regex]::Replace($Text, '\b\d(?:[ -]?\d){7,18}\b', { param($m) '••••' + (($m.Value -replace '\D', '')[-4..-1] -join '') })
+}
+
+# Latest note on a request that the requester can see (show_to_requester), as ISO time. $null if none or on error.
+function Get-LastRequesterNote([string] $RequestId) {
+  if (-not $RequestId) { return $null }
+  try {
+    $li = @{ list_info = @{ row_count = 20; start_index = 1; sort_field = 'created_time'; sort_order = 'desc' } } | ConvertTo-Json -Depth 5 -Compress
+    $resp = Invoke-RestMethod -Method Get -Uri "$api/$RequestId/notes?input_data=$([uri]::EscapeDataString($li))" -Headers $headers -TimeoutSec 30
+    foreach ($n in @(Get-Val $resp 'notes')) {
+      if (-not $n) { continue }
+      $public = Get-Val $n 'show_to_requester'
+      if ($public -eq $false) { continue }
+      $t = Get-Time (Get-Val $n 'created_time')
+      if ($t) { return $t }
+    }
+  } catch {
+    Write-Log "WARN: could not read notes for request $RequestId : $($_.Exception.Message)"
+  }
+  return $null
 }
 
 $groupCrit = @{ field = 'group.name'; condition = 'is'; values = $Groups }
@@ -181,6 +203,17 @@ $items = foreach ($r in $rows) {
     created         = (Get-Time (Get-Val $r 'created_time')) ?? $now
   }
   if ($closed) { $o['closed'] = $closed }
+  # Communication standard inputs: first response, last change, last requester-visible note.
+  $responded = Get-Time (Get-Val $r 'responded_time')
+  if ($responded) { $o['responded'] = $responded }
+  $modified = Get-Time (Get-Val $r 'last_updated_time')
+  if ($modified) { $o['last_modified'] = $modified }
+  $dueBy = Get-Time (Get-Val $r 'due_by_time')
+  if ($dueBy) { $o['due_by'] = $dueBy }
+  if (-not $SkipNotes -and -not $closed) {
+    $note = Get-LastRequesterNote ([string](Get-Val $r 'id'))
+    if ($note) { $o['last_note'] = $note }
+  }
   if ($changed.Count) { $o['changed'] = $changed }
   [pscustomobject]$o
 }

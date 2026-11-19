@@ -6,6 +6,7 @@ import { COLUMNS, COLUMN_LABEL, TIME_BUCKETS, type TimeBucket, type WorkItem } f
 import { Avatar, BucketDot, Icon, Modal, PriorityChip, SourceBadge, toast } from './ui';
 import { GradeForm, draftFrom, effectiveGrade, type Draft } from './GradeForm';
 import { describeEvent } from './describe';
+import { CommSection } from './Comm';
 
 export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; initialTab?: 'grade'; onClose: () => void }) {
   const { state, me, grader, readOnly, commit } = useHub();
@@ -169,6 +170,8 @@ export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; init
         )}
       </dl>
       {item.description && <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{item.description}</p>}
+
+      <CommSection item={item} />
 
       {grader && !readOnly && (
         <section className="stack">

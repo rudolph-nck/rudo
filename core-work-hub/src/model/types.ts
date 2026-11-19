@@ -48,6 +48,12 @@ export interface SourceTicket {
   department?: string;
   /** Service Desk SLA due date. */
   due_by?: string;
+  /** Service Desk first-response time ("Responded Time"). */
+  responded?: string;
+  /** Last requester-visible note/reply in Service Desk (API sync, or a report column). */
+  last_note?: string;
+  /** Service Desk "Last Updated Time": any change, not only comments. */
+  last_modified?: string;
   created: string;
   closed?: string;
   /** Per-field timestamps of when the *source* last changed that field (set by the sync), used for conflicts. */
@@ -103,6 +109,31 @@ export interface DispatchShift {
   /** ISO dates, inclusive. */
   from: string;
   to: string;
+}
+
+export interface CommStandard {
+  /** Business hours per weekday (0 = Sunday), as [start, end] minutes after midnight, local time. */
+  hours: Partial<Record<number, [number, number]>>;
+  /** ISO dates with no business hours. */
+  holidays: string[];
+  p1FirstResponseHours: number;
+  firstResponseBusinessDays: number;
+  p1UpdateHours: number;
+  updateBusinessDays: number;
+  /** Requester follow-up gap, wall-clock hours. */
+  followUpHours: number;
+  p1FollowUpHours: number;
+  followUpAttempts: number;
+  /** Remind the owner this long (business time) before a deadline. */
+  dueSoonHours: number;
+  p1DueSoonMinutes: number;
+  /** Business time late before it escalates to support, then to the manager. */
+  escalateToSupportAfterHours: number;
+  escalateToManagerAfterHours: number;
+  p1EscalateToSupportAfterMinutes: number;
+  p1EscalateToManagerAfterMinutes: number;
+  /** Without note times from Service Desk, treat its "Last Updated Time" as the last update. */
+  sdLastUpdatedCountsAsUpdate: boolean;
 }
 
 export interface TeamCriterion {
@@ -171,6 +202,8 @@ export interface HubConfig {
   supportCanTriage?: boolean;
   /** Team score criteria for projects. Defaults to value, risk, urgency, reach, effort. */
   teamCriteria?: TeamCriterion[];
+  /** Communication standard (response and update targets, business hours, escalation). */
+  commStandard?: Partial<CommStandard>;
   /** Team-wide Doing limit per bucket (sum over everyone). */
   bucketWip: Partial<Record<Bucket, number>>;
   defaultWipLimit: number;
@@ -229,7 +262,7 @@ export type HubEvent = EventBase &
     | { type: 'item.update'; item: string; data: { owner?: string | null; priority?: Priority; next_update_due?: string | null; title?: string; description?: string; parent_id?: string | null; bucket?: Bucket; system?: string } }
     | { type: 'item.ack'; item: string; data: Record<string, never> }
     | { type: 'item.comment'; item: string; data: { text: string } }
-    | { type: 'item.reply'; item: string; data: { via: string } }
+    | { type: 'item.reply'; item: string; data: { via: string; kind?: 'first' | 'update' | 'follow-up' | 'internal'; nextUpdate?: string; note?: string } }
     | { type: 'time.log'; item?: string; data: { bucket: TimeBucket; hours: number; date: string; note?: string } }
     | { type: 'config.person'; data: { username: string; wipLimit?: number; bucketWip?: Partial<Record<Bucket, number>>; sdName?: string } }
     | { type: 'config.bucketWip'; data: Partial<Record<Bucket, number>> }
@@ -284,6 +317,12 @@ export interface WorkItem {
   started?: string;
   done?: string;
   /** Service Desk SLA due date. */
+  /** Communication-standard inputs from Service Desk. */
+  sd_responded?: string;
+  sd_last_note?: string;
+  sd_last_modified?: string;
+  /** Requester communication logged in the hub ("I posted the update"). */
+  commLog?: { ts: string; user: string; kind: 'first' | 'update' | 'follow-up' | 'internal'; note?: string }[];
   due_by?: string;
   /** Team score inputs (projects): latest ratings per person, and a score the team set. */
   team?: { ratings: Record<string, Record<string, number>>; set?: { score: number; by: string; ts: string; reason?: string } };

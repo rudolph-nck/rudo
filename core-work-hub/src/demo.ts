@@ -55,6 +55,9 @@ export function demoSeed(): { config: HubConfig; snapshot: TicketsSnapshot; even
     group: 'IT Core',
     created: ago(age, 3),
     closed: status === 'Closed' ? ago(Math.max(0, age - 3)) : undefined,
+    // Communication standard: most tickets have a first response and a recent note; a few are behind.
+    responded: ['48211', '48207', '48190'].includes(id) || age < 1 ? undefined : ago(age, 2),
+    last_note: ({ '48174': ago(9), '48151': ago(8), '48118': ago(6) } as Record<string, string>)[id] ?? (age > 2 ? ago(2) : undefined),
   }));
 
   const events: HubEvent[] = [];

@@ -16,6 +16,8 @@ import { Rotation } from './views/Rotation';
 import { TimeOff } from './views/TimeOff';
 import { Priorities } from './views/Priorities';
 import { TeamScore } from './views/TeamScore';
+import { Notifications, useDesktopAlerts, useNow } from './views/Notifications';
+import { noticesFor } from './model/comms';
 import { Audit } from './views/Audit';
 import { Settings } from './views/Settings';
 import { MyWork, NeedsList } from './views/Lists';
@@ -60,6 +62,9 @@ function Sidebar() {
   const cfg = state.config;
   const intake = [...state.items.values()].filter((i) => i.column === 'Intake' && !i.stale).length;
   const outToday = (cfg.timeOff ?? []).filter((t) => t.from <= todayISO() && todayISO() <= t.to).length;
+  const now = useNow();
+  const myNotices = noticesFor(state, me, now);
+  const escalated = myNotices.some((n) => n.status.lateMinutes > 0);
   const disp = currentDispatch(cfg);
   const next = nextDispatch(cfg);
   const meP = findPerson(cfg, me);
@@ -70,6 +75,7 @@ function Sidebar() {
   }, []);
   const ago = lastSync ? Math.round((Date.now() - lastSync.getTime()) / 1000) : undefined;
   const items: [View, string, string, number?][] = [
+    ['notifications', 'bell', 'Notifications', myNotices.length],
     ['overview', 'chart', 'Overview'],
     ['board', 'board', 'Board'],
     ['priorities', 'flag', 'Priorities'],
@@ -91,7 +97,11 @@ function Sidebar() {
           <button key={v} aria-current={view === v ? 'page' : undefined} onClick={() => go(v)}>
             <Icon name={icon} />
             {label}
-            {count ? <span className="count" aria-label={v === 'timeoff' ? `${count} out today` : `${count} waiting`}>{count}</span> : null}
+            {count ? (
+              <span className={`count ${v === 'notifications' && escalated ? 'alert' : ''}`} aria-label={v === 'timeoff' ? `${count} out today` : v === 'notifications' ? `${count} notifications` : `${count} waiting`}>
+                {count}
+              </span>
+            ) : null}
           </button>
         ))}
         <div className="nav-sep" />
@@ -137,6 +147,7 @@ function Sidebar() {
 
 function Shell() {
   const { error, role } = useHub();
+  useDesktopAlerts();
   const [route, setRoute] = useState(() => (location.hash.length > 2 ? parseHash(location.hash) : { view: (role === 'analyst' ? 'board' : 'overview') as View, param: undefined }));
   useEffect(() => {
     const on = () => setRoute(parseHash(location.hash));
@@ -147,7 +158,7 @@ function Shell() {
     location.hash = `/${v}${p ? '/' + encodeURIComponent(p) : ''}`;
   }, []);
   useEffect(() => {
-    document.title = `${{ overview: 'Overview', rotation: 'Rotation', timeoff: 'Time off', priorities: 'Priorities', teamscore: 'Team score', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
+    document.title = `${{ overview: 'Overview', rotation: 'Rotation', timeoff: 'Time off', priorities: 'Priorities', teamscore: 'Team score', notifications: 'Notifications', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
     (document.querySelector('main') as HTMLElement | null)?.focus({ preventScroll: true });
   }, [route.view]);
   return (
@@ -166,6 +177,7 @@ function Shell() {
             {route.view === 'timeoff' && <TimeOff />}
             {route.view === 'priorities' && <Priorities />}
             {route.view === 'teamscore' && <TeamScore />}
+            {route.view === 'notifications' && <Notifications />}
             {route.view === 'audit' && <Audit />}
             {route.view === 'settings' && <Settings />}
             {route.view === 'list' && <NeedsList />}

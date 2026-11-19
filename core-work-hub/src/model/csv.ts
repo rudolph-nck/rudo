@@ -66,6 +66,8 @@ const HEADERS = {
   created: /^(created\s*(time|date|on)?|date\s*created|opened)$/i,
   closed: /^(completed\s*(time|date)|closed\s*(time|date)|resolved\s*(time|date))$/i,
   updated: /^last\s*updated\s*(time|date)?$/i,
+  responded: /^(responded|first\s*response)\s*(time|date|on)?$/i,
+  last_note: /^last\s*(note|conversation|reply|public\s*note|technician\s*reply)\s*(time|date|added)?$/i,
   due_by: /^due\s*by\s*(time|date)?$/i,
 };
 type HeaderKey = keyof typeof HEADERS;
@@ -178,6 +180,9 @@ export function importTicketsCsv(text: string, source: Source, opts: CsvImportOp
       created: created ?? new Date().toISOString(),
       closed: closedAt,
       due_by: parseDate(get(r, 'due_by')),
+      responded: parseDate(get(r, 'responded')),
+      last_note: parseDate(get(r, 'last_note')),
+      last_modified: parseDate(get(r, 'updated')),
     });
   });
   return { tickets, warnings, columns, skippedOldClosed };
