@@ -3,13 +3,14 @@ import { useHub } from '../store/hub';
 import { Avatar, download, Icon, toast } from '../components/ui';
 import { analysts, assignable, findPerson, personForSourceName, personWipLimit } from '../model/logic';
 import { isStatus } from '../model/replay';
+import { DEFAULT_IMPORT_FILE } from '../store/autoimport';
 import { importTicketRows, importTicketsCsv, mergeSnapshot, type CsvImportResult } from '../model/csv';
 import { readXlsx } from '../model/xlsx';
 import { BUCKETS, BUCKET_LABEL, type Bucket, type NewEvent, type Source, type SystemOwnership } from '../model/types';
 import { DemoStore } from '../store/storage';
 
 function DataImport() {
-  const { state, me, role, readOnly, writeSnapshot, store, commit } = useHub();
+  const { state, me, role, readOnly, writeSnapshot, store, commit, importStatus: ai } = useHub();
   const [source, setSource] = useState<Source>('SD');
   const [tpl, setTpl] = useState(() => localStorage.getItem('cwh.urlTpl.SD') ?? state.config.ticketUrls.SD ?? '');
   const [res, setRes] = useState<CsvImportResult>();
@@ -23,6 +24,21 @@ function DataImport() {
           <dt>Folder</dt><dd>{store.label}</dd>
           <dt>tickets.json</dt>
           <dd>{snap ? `${snap.items.length} items · ${snap.mode} · written ${new Date(snap.generatedAt).toLocaleString()} by ${snap.generatedBy}` : 'Not found yet. Import a CSV or run the sync script.'}</dd>
+          <dt>Auto-import</dt>
+          <dd data-testid="autoimport-status">
+            {state.config.autoImport?.enabled === false ? (
+              'Off (autoImport.enabled is false in hub-config.json).'
+            ) : !ai ? (
+              <>Waiting for <code>import\{state.config.autoImport?.file || DEFAULT_IMPORT_FILE}</code> in the hub folder. When a scheduled export drops it there, any open hub imports it within about 20 seconds of each change.</>
+            ) : (
+              <>
+                <code>import\{ai.file}</code>
+                {ai.lastModified ? ` · exported ${new Date(ai.lastModified).toLocaleString()}` : ''}
+                {ai.error ? <span className="danger-text"> · {ai.error}</span> : ai.waiting ? ' · new file, importing shortly…' : ai.importedAt ? ` · imported ${new Date(ai.importedAt).toLocaleString()}${ai.count ? ` (${ai.count} tickets, ${ai.open} open)` : ''}` : ''}
+                {ai.lastModified && Date.now() - ai.lastModified > 3 * 3600_000 && <span className="danger-text"> · over 3 hours old: check the scheduled export.</span>}
+              </>
+            )}
+          </dd>
         </dl>
         {manager ? (
           <>

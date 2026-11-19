@@ -10,7 +10,9 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
 const root = path.resolve(__dirname, '../..');
 const hub = fs.mkdtempSync(path.join(os.tmpdir(), 'cwh-hub-'));
 fs.copyFileSync(path.join(root, 'dist/index.html'), path.join(hub, 'index.html'));
-fs.copyFileSync(path.join(root, 'deploy/hub-config.json'), path.join(hub, 'hub-config.json'));
+const cfg = JSON.parse(fs.readFileSync(path.join(root, 'deploy/hub-config.json'), 'utf8'));
+cfg.autoImport = { settleSeconds: 0 }; // tests: import as soon as the file appears
+fs.writeFileSync(path.join(hub, 'hub-config.json'), JSON.stringify(cfg));
 const now = new Date().toISOString();
 fs.writeFileSync(path.join(hub, 'tickets.json'), JSON.stringify({ generatedAt: now, generatedBy: 'test', mode: 'csv', items: [
   { source: 'SD', source_id: 'INC-1', title: 'Launcher test ticket', source_status: 'Open', created: now },
@@ -80,6 +82,30 @@ function start(user, port, extraEnv = {}) {
   const pt = await ctx.newPage();
   await pt.goto(wes.url.split('#')[0]); await pt.waitForTimeout(800);
   check(!(await pt.locator('.sidebar').count()), 'a tab opened without the key does not get in');
+  // Auto-import: the hourly export lands in import\Core - All.csv; an open hub imports it, then re-imports when it's overwritten.
+  const csv = (rows) => ['IT Service Desk', 'Total records : ' + rows.length, '', 'Request ID,Subject,Requester,Status,Priority,Technician,Group,Created Time',
+    ...rows.map((r) => `${r[0]},${r[1]},Pat Q,${r[2]},High,Wes,Core Team,${new Date().toLocaleDateString('en-US')} 09:00 AM`)].join('\r\n');
+  fs.mkdirSync(path.join(hub, 'import'), { recursive: true });
+  const drop = (rows) => { fs.writeFileSync(path.join(hub, 'import', 'Core - All.csv.copying'), csv(rows)); fs.renameSync(path.join(hub, 'import', 'Core - All.csv.copying'), path.join(hub, 'import', 'Core - All.csv')); };
+  drop([['90001', 'Printer queue stuck', 'Open'], ['90002', 'VPN token reset', 'Open']]);
+  await pn.bringToFront();
+  await pn.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await pn.waitForTimeout(1200);
+  let tj = JSON.parse(fs.readFileSync(path.join(hub, 'tickets.json'), 'utf8'));
+  check(tj.mode === 'csv-auto' && tj.importedFrom?.file === 'Core - All.csv' && tj.items.some((t) => t.source_id === '90001'), 'export dropped in import\\ is imported automatically');
+  check(!tj.items.some((t) => t.source_id === 'INC-1'), 'the export replaces the previous Service Desk tickets');
+  await new Promise((r) => setTimeout(r, 1100)); // new file time
+  drop([['90001', 'Printer queue stuck', 'Closed'], ['90002', 'VPN token reset', 'Open'], ['90003', 'New laptop image', 'Open']]);
+  await pw.bringToFront();
+  await pw.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await pw.waitForTimeout(1200);
+  tj = JSON.parse(fs.readFileSync(path.join(hub, 'tickets.json'), 'utf8'));
+  check(tj.items.some((t) => t.source_id === '90003'), 'an overwritten export is imported again (by whoever has the hub open)');
+  await pw.goto(wes.url.split('#')[0] + '#/settings'); await pw.waitForTimeout(800);
+  check(/imported .*\(2 tickets, 2 open\)/.test(await pw.getByTestId('autoimport-status').innerText()), 'Settings shows when the export was imported');
+  const st = await api(P, '/api/import?name=..%5Chub-config.json', { headers: { 'X-Hub-Key': key(nick.url) } });
+  check(st.status === 400, 'import\\ can’t be used to read other files');
+
   // Avatars: Nick uses his Windows picture; Wes picks a colour and an emoji. Each sees the other's.
   await pn.bringToFront();
   await pn.getByRole('button', { name: /change my avatar/ }).click();

@@ -26,7 +26,14 @@ export interface HubStore {
   append(user: string, events: HubEvent[]): Promise<void>;
   /** Python launcher only: the signed-in user's Windows account picture, if Windows has one. */
   windowsPicture?(): Promise<Blob | undefined>;
+  /** A file in the hub folder's import\ folder: size and time without reading it, then its bytes. */
+  statImport?(name: string): Promise<{ lastModified: number; size: number } | undefined>;
+  readImport?(name: string): Promise<ArrayBuffer>;
 }
+
+export const IMPORT_DIR = 'import';
+/** Export file names allowed in import\: plain names, .csv or .xlsx. */
+export const safeImportName = (n: string) => /^[\w .()&+-]{1,120}\.(csv|xlsx)$/i.test(n) && !n.includes('..');
 
 export const CONFIG_FILE = 'hub-config.json';
 export const TICKETS_FILE = 'tickets.json';
@@ -97,6 +104,23 @@ export class FolderStore implements HubStore {
   }
   async writeConfig(c: HubConfig) {
     await this.writeText(this.root, CONFIG_FILE, JSON.stringify(c, null, 2) + '\n');
+  }
+
+  private async importFile(name: string) {
+    if (!safeImportName(name)) throw new Error('Not an allowed export file name');
+    const dir = await this.root.getDirectoryHandle(IMPORT_DIR);
+    return (await dir.getFileHandle(name)).getFile();
+  }
+  async statImport(name: string) {
+    try {
+      const f = await this.importFile(name);
+      return { lastModified: f.lastModified, size: f.size };
+    } catch {
+      return undefined;
+    }
+  }
+  async readImport(name: string) {
+    return (await this.importFile(name)).arrayBuffer();
   }
 
   async readSnapshot() {
@@ -375,6 +399,15 @@ export class LauncherStore implements HubStore {
   async writeConfig(c: HubConfig) {
     const r = await this.call('/api/file?name=hub-config.json', { method: 'PUT', body: JSON.stringify(c, null, 2) + '\n' });
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error ?? 'Could not save hub-config.json');
+  }
+  async statImport(name: string) {
+    const r = await this.call(`/api/import?stat=1&name=${encodeURIComponent(name)}`);
+    return r.ok ? ((await r.json()) as { lastModified: number; size: number }) : undefined;
+  }
+  async readImport(name: string) {
+    const r = await this.call(`/api/import?name=${encodeURIComponent(name)}`);
+    if (!r.ok) throw new Error('Could not read the export file');
+    return r.arrayBuffer();
   }
   async windowsPicture() {
     const r = await this.call('/api/windows-picture');

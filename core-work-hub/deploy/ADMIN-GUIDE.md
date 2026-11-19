@@ -22,6 +22,7 @@ CoreWorkHub-v1.x/
     sync/Sync-ServiceDesk.ps1  reads Service Desk every 15 minutes (runs on one PC)
     sync/Connect-ZohoServiceDesk.ps1  one-time Zoho sign-in (Service Desk Plus Cloud only)
     sync/Register-SyncTask.ps1 schedules it in Task Scheduler
+    sync/Copy-ExportToHub.ps1, Register-ExportCopyTask.ps1   interim: hourly export from SharePoint → hub
     sync/Test-WrikeAccess.ps1  checks whether the Wrike license allows API access
 ```
 
@@ -99,6 +100,29 @@ Notes:
 3. Pick your name from the list (remembered on that PC).
 
 **If Edge blocks it:** the File System Access API is controlled by Edge policies. Ask the endpoint team to allow it for the hub’s address, using the policies `FileSystemReadAskForUrls` and `FileSystemWriteAskForUrls` (add `file:///` or the hub’s exact `file://` address), or set `DefaultFileSystemReadGuardSetting` / `DefaultFileSystemWriteGuardSetting` to **Ask (3)**. Confirm current policy names in Microsoft’s Edge policy reference.
+
+## 5c. Interim (no API yet): automatic import of the hourly export
+
+Until the API connection is approved, the hub can import the **Core - All** report export automatically. Anything that puts the file at `<hub folder>\import\Core - All.csv` works; whenever that file changes, the first open hub imports it (same rules as **Settings → Ticket data**: metadata only, numbers masked, technicians matched) and everyone sees it within about 20 seconds. **Settings → Ticket data → Auto-import** shows when it was last exported and imported, and warns if the file is over 3 hours old.
+
+**Easiest:** point the hourly export at the hub's `import\` folder (or have the export script also copy it there).
+
+**If the export must stay in SharePoint:** copy it across every 15 minutes from Nick's PC.
+
+1. In SharePoint, open the folder with the export and click **Sync** (or **Add shortcut to My files**). In File Explorer, right-click the folder → **Always keep on this device**.
+2. Right-click `Core - All.csv` → **Copy as path**. It looks like `C:\Users\nick\<Company>\<Site> - Documents\...\Core - All.csv`.
+3. In a normal PowerShell window (Windows PowerShell is fine):
+
+```powershell
+cd <package>\Setup\sync
+powershell -ExecutionPolicy Bypass -File .\Register-ExportCopyTask.ps1 `
+  -Source 'C:\Users\nick\<Company>\<Site> - Documents\Exports\Core - All.csv' `
+  -HubFolder '\\fileserver\IT\CoreWorkHub'
+```
+
+It copies only when the export changed, skips a file still being written, and swaps the new file in whole. Log: `%LOCALAPPDATA%\CoreWorkHub\export-copy.log`. No credentials are involved; it runs as Nick, only while he's signed in.
+
+**When the API sync goes live:** remove the task (`Unregister-ScheduledTask 'Core Work Hub - copy Service Desk export'`), delete `import\Core - All.csv`, and set `"autoImport": { "enabled": false }` in `hub-config.json`.
 
 ## 6. Service Desk API key (read-only) — on the sync PC only
 
@@ -225,6 +249,7 @@ Replace `index.html` (and the `app\` folder, if the release notes say it changed
 | “Open this page in Microsoft Edge” | Edge fallback only: it was opened in another browser. Use Edge. |
 | Folder prompt every time (fallback) | Choose “Allow on every visit”; or the Edge policy resets permissions (see step 5). |
 | “Could not save your change” | The person lacks Modify on the folder (Matt is read-only by design). |
+| Auto-import shows “over 3 hours old” | The hourly export or the copy task stopped. Check `%LOCALAPPDATA%\CoreWorkHub\export-copy.log` and that OneDrive is syncing. |
 | No tickets / stale tickets | Check `%LOCALAPPDATA%\CoreWorkHub\sync.log` on the sync PC; run the sync with `-Test`. |
 | Cloud: “Zoho refused: invalid_code” | The grant code expired (10 min) or was used. Generate a new one and rerun `Connect-ZohoServiceDesk.ps1` straight away. |
 | Cloud: “invalid_client” | Wrong ID/secret, or wrong data centre: add `-AccountsUrl https://accounts.zoho.eu` (or `.in`, `.com.au`). |

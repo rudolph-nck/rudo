@@ -1,3 +1,4 @@
+import { autoImport, DEFAULT_IMPORT_FILE, type ImportStatus } from './autoimport';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { replay, type SourcedEvent } from '../model/replay';
 import type { HubConfig, HubEvent, HubState, NewEvent, Role, TicketsSnapshot } from '../model/types';
@@ -22,6 +23,8 @@ interface HubCtx {
   commit: (events: NewEvent[]) => Promise<boolean>;
   refresh: () => Promise<void>;
   writeSnapshot: (s: TicketsSnapshot) => Promise<void>;
+  /** Auto-import of import\<export>.csv: last seen/imported, or an error. */
+  importStatus?: ImportStatus;
   signOut: () => void;
 }
 
@@ -45,6 +48,7 @@ export function HubProvider({ store, config, me, onSignOut, children }: { store:
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string>();
   const [problems, setProblems] = useState<string[]>([]);
+  const [importStatus, setImportStatus] = useState<ImportStatus>();
   const busy = useRef(false);
 
   const refresh = useCallback(async () => {
@@ -52,7 +56,14 @@ export function HubProvider({ store, config, me, onSignOut, children }: { store:
     busy.current = true;
     setSyncing(true);
     try {
-      const [snap, ev] = await Promise.all([store.readSnapshot(), store.readEvents()]);
+      let [snap, ev] = await Promise.all([store.readSnapshot(), store.readEvents()]);
+      try {
+        const ai = await autoImport(store, config, snap, me);
+        if (ai.snap) snap = ai.snap;
+        setImportStatus(ai.status);
+      } catch (e) {
+        setImportStatus({ file: config.autoImport?.file || DEFAULT_IMPORT_FILE, error: (e as Error).message });
+      }
       setSnapshot(snap);
       setEvents(ev.events);
       setProblems(ev.problems);
@@ -69,7 +80,7 @@ export function HubProvider({ store, config, me, onSignOut, children }: { store:
       busy.current = false;
       setSyncing(false);
     }
-  }, [store]);
+  }, [store, config, me]);
 
   useEffect(() => {
     void refresh();
@@ -150,6 +161,7 @@ export function HubProvider({ store, config, me, onSignOut, children }: { store:
     commit,
     refresh,
     writeSnapshot,
+    importStatus,
     signOut: onSignOut,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

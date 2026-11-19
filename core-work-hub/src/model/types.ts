@@ -66,6 +66,8 @@ export interface TicketsSnapshot {
   /** "api" (sync script), "csv" (import) or "demo". */
   mode: string;
   items: SourceTicket[];
+  /** Set by auto-import: which export file this snapshot came from, so it's only imported once. */
+  importedFrom?: { file: string; lastModified: number; size: number };
 }
 
 export interface AvatarStyle {
@@ -246,6 +248,11 @@ export interface HubConfig {
   resolvedStatuses: string[];
   /** Link pattern per source; {id} is the ticket/task number. Used when a row has no link of its own. */
   ticketUrls: Partial<Record<Source, string>>;
+  /**
+   * Auto-import of a Service Desk export dropped in the hub folder's import\ folder (e.g. by an hourly
+   * scheduled export). Any open hub imports it when it changes. On by default; set enabled: false once the API sync runs.
+   */
+  autoImport?: { enabled?: boolean; file?: string; settleSeconds?: number };
   /**
    * Service Desk statuses that put a card in a column automatically (case-insensitive; a trailing * matches
    * any ending, e.g. "Waiting*"). Closed statuses always mean Done.

@@ -38,6 +38,8 @@ STATE_DIR = os.path.join(os.environ.get("LOCALAPPDATA") or os.path.expanduser("~
 STATE_FILE = os.path.join(STATE_DIR, "launcher.json")
 WHOLE_FILES = {"hub-config.json", "tickets.json"}
 SAFE_NAME = re.compile(r"^[a-z0-9._-]+$")
+# Export files dropped in <hub>\import\ for auto-import (read-only for the page).
+IMPORT_NAME = re.compile(r"^[\w .()&+-]{1,120}\.(csv|xlsx)$", re.IGNORECASE)
 
 
 def windows_username():
@@ -201,6 +203,19 @@ def make_handler(hub, port):
                     return self.json(200, {"username": hub.user, "folder": hub.folder, "label": os.path.basename(hub.folder.rstrip("\\/")) or hub.folder, "writable": writable})
                 if url.path == "/api/ping":
                     return self.json(200, {"ok": True})
+                if url.path == "/api/import":
+                    name = (q.get("name") or [""])[0]
+                    if not IMPORT_NAME.match(name) or ".." in name:
+                        return self.json(400, {"error": "not allowed"})
+                    p = os.path.join(hub.path("import"), name)
+                    try:
+                        st = os.stat(p)
+                    except FileNotFoundError:
+                        return self.json(404, {"error": "not found"})
+                    if q.get("stat"):
+                        return self.json(200, {"lastModified": int(st.st_mtime * 1000), "size": st.st_size})
+                    with open(p, "rb") as f:
+                        return self.send(200, f.read(), "application/octet-stream")
                 if url.path == "/api/windows-picture":
                     pic = windows_picture()
                     if not pic:
