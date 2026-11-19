@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { HubProvider, useHub } from './store/hub';
 import { DemoStore, FolderStore, fsAccessSupported, loadHandle, saveHandle, type HubStore } from './store/storage';
 import { defaultConfig } from './model/config';
-import { currentDispatch, findPerson, nextDispatch, fmtShortDate } from './model/logic';
+import { currentDispatch, findPerson, nextDispatch, fmtShortDate, offOn, todayISO } from './model/logic';
 import type { HubConfig } from './model/types';
 import { demoSeed } from './demo';
 import { NavCtx, parseHash, useNav, type View } from './nav';
@@ -13,6 +13,7 @@ import { Triage } from './views/Triage';
 import { Team } from './views/Team';
 import { Overview } from './views/Overview';
 import { Rotation } from './views/Rotation';
+import { TimeOff } from './views/TimeOff';
 import { Audit } from './views/Audit';
 import { Settings } from './views/Settings';
 import { MyWork, NeedsList } from './views/Lists';
@@ -56,6 +57,7 @@ function Sidebar() {
   const { view, go } = useNav();
   const cfg = state.config;
   const intake = [...state.items.values()].filter((i) => i.column === 'Intake' && !i.stale).length;
+  const outToday = (cfg.timeOff ?? []).filter((t) => t.from <= todayISO() && todayISO() <= t.to).length;
   const disp = currentDispatch(cfg);
   const next = nextDispatch(cfg);
   const meP = findPerson(cfg, me);
@@ -72,6 +74,7 @@ function Sidebar() {
     ['triage', 'inbox', 'Intake', intake],
     ['team', 'team', 'Team'],
     ['rotation', 'clock', 'Rotation'],
+    ['timeoff', 'calendar', 'Time off', outToday],
   ];
   return (
     <aside className="sidebar" aria-label="Main">
@@ -84,7 +87,7 @@ function Sidebar() {
           <button key={v} aria-current={view === v ? 'page' : undefined} onClick={() => go(v)}>
             <Icon name={icon} />
             {label}
-            {count ? <span className="count" aria-label={`${count} waiting`}>{count}</span> : null}
+            {count ? <span className="count" aria-label={v === 'timeoff' ? `${count} out today` : `${count} waiting`}>{count}</span> : null}
           </button>
         ))}
         <div className="nav-sep" />
@@ -100,6 +103,7 @@ function Sidebar() {
               <Avatar user={disp.analyst} config={cfg} />
               {findPerson(cfg, disp.analyst)?.name ?? disp.analyst}
             </div>
+            {offOn(cfg, disp.analyst) && <div className="chip bad" style={{ marginBottom: 4 }}>Off today: set a cover</div>}
             <div className="small muted">Until {fmtShortDate(disp.to)}{disp.escalation ? ` · escalation ${findPerson(cfg, disp.escalation)?.name ?? disp.escalation}` : ''}</div>
           </>
         ) : (
@@ -139,7 +143,7 @@ function Shell() {
     location.hash = `/${v}${p ? '/' + encodeURIComponent(p) : ''}`;
   }, []);
   useEffect(() => {
-    document.title = `${{ overview: 'Overview', rotation: 'Rotation', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
+    document.title = `${{ overview: 'Overview', rotation: 'Rotation', timeoff: 'Time off', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
     (document.querySelector('main') as HTMLElement | null)?.focus({ preventScroll: true });
   }, [route.view]);
   return (
@@ -155,6 +159,7 @@ function Shell() {
             {route.view === 'team' && <Team />}
             {route.view === 'overview' && <Overview />}
             {route.view === 'rotation' && <Rotation />}
+            {route.view === 'timeoff' && <TimeOff />}
             {route.view === 'audit' && <Audit />}
             {route.view === 'settings' && <Settings />}
             {route.view === 'list' && <NeedsList />}

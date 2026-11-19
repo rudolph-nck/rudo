@@ -3,7 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useHub } from '../store/hub';
 import { useUi } from './actions';
-import { fmtAge, fmtShortDate, isOverdue, systemName } from '../model/logic';
+import { addDays, fmtAge, fmtShortDate, isOverdue, offOn, systemName } from '../model/logic';
 import { COLUMNS, COLUMN_LABEL, type WorkItem } from '../model/types';
 import { Avatar, BucketDot, Icon, PriorityChip, SourceBadge } from './ui';
 
@@ -42,6 +42,9 @@ export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNod
       <div className="foot">
         <Avatar user={item.owner} config={state.config} external={item.owner ? undefined : item.source_owner} />
         {item.owner && !item.acked && item.column !== 'Done' && item.column !== 'Intake' && <span className="chip warn">Not acked</span>}
+        {item.owner && item.column !== 'Done' && offOn(state.config, item.owner) && (
+          <span className="chip bad" title="Owner is off today">Off · back {fmtShortDate(addDays(offOn(state.config, item.owner)!.to, 1))}</span>
+        )}
         <span title={`Opened ${new Date(item.created).toLocaleDateString()}`}>
           <span className="sr-only">Age </span>
           {fmtAge(item.created)}

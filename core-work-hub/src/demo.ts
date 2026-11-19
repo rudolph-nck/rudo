@@ -9,6 +9,12 @@ export function demoSeed(): { config: HubConfig; snapshot: TicketsSnapshot; even
   const monday = addDays(today, -((new Date().getDay() + 6) % 7));
   // Demo rotation: the same running order, with the current shift ending this coming Sunday.
   config.rotation = { ...config.rotation!, shift: 'week', current: { analyst: 'trey', until: addDays(monday, 6) } };
+  // Demo time off: Noelle out today with Michael covering; Tabitha off during her support week (no cover yet).
+  config.timeOff = [
+    { id: 'off-1', username: 'noelle', from: addDays(today, -1), to: addDays(today, 2), kind: 'pto', cover: 'michael' },
+    { id: 'off-2', username: 'tabitha', from: addDays(monday, 9), to: addDays(monday, 10), kind: 'training' },
+    { id: 'off-3', username: 'wes', from: addDays(monday, 18), to: addDays(monday, 22), kind: 'holiday', cover: 'cathy' },
+  ];
   config.bucketWip = { Project: 4 };
 
   const now = Date.now();
@@ -146,6 +152,11 @@ export function demoSeed(): { config: HubConfig; snapshot: TicketsSnapshot; even
   // Reprioritized: Wi-Fi survey was in Doing, taken off Trey's plate for the cert renewal.
   move('trey', 'hub-wifi', 10, 'Doing');
   events.push(ev('nick', 3, { type: 'item.move', item: 'hub-wifi', data: { column: 'On Hold', reason: 'Paused for the TLS renewal and Patch Tuesday; resume after Dec 5' } } as never));
+
+  // Trey is on support this week: he replied to two new tickets and assigned one to himself.
+  events.push(ev('trey', 0, { type: 'item.reply', item: 'SD:48211', data: { via: 'Service Desk' } } as never));
+  events.push(ev('trey', 0, { type: 'item.reply', item: 'SD:48207', data: { via: 'Service Desk' } } as never));
+  events.push(ev('trey', 0, { type: 'item.comment', item: 'SD:48190', data: { text: 'Printer queue restarted; watching it.' } } as never));
 
   events.push(ev('wes', 4, { type: 'item.comment', item: 'hub-sp-migration', data: { text: 'Lending pilot scheduled for next Thursday after hours.' } } as never));
   events.push(ev('trey', 3, { type: 'item.comment', item: 'SD:48188', data: { text: 'CSR submitted to the CA, waiting on validation email.' } } as never));

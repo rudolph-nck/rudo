@@ -3,8 +3,8 @@ import { useHub } from '../store/hub';
 import { useUi } from '../components/actions';
 import { Avatar, BucketDot, download, Icon, PriorityChip, SourceBadge } from '../components/ui';
 import { BUCKET_SERIES, ChartCard, GroupedColumns, Meter, RankedBars, StackedColumns, StackedRows, type Series } from '../components/charts';
-import { overview, STALE_DAYS } from '../model/analytics';
-import { analysts, currentDispatch, findPerson, fmtShortDate, nextDispatch, todayISO } from '../model/logic';
+import { overview, shiftStats, STALE_DAYS } from '../model/analytics';
+import { addDays, analysts, currentDispatch, findPerson, fmtShortDate, nextDispatch, offOn, todayISO } from '../model/logic';
 import { itemsCsv, toCsv } from '../model/csv';
 import { BUCKETS, BUCKET_LABEL, COLUMN_LABEL, type Bucket } from '../model/types';
 import { useNav } from '../nav';
@@ -144,6 +144,16 @@ export function Overview() {
                   <div className="small muted">until {fmtShortDate(disp.to)}</div>
                 </div>
               </div>
+              {(() => {
+                const st = shiftStats(state, disp.analyst, disp.from, todayISO());
+                return (
+                  <div className="shift-stats" aria-label="This shift so far">
+                    <div><strong>{st.cameIn}</strong><span>came in</span></div>
+                    <div><strong>{st.triaged}</strong><span>triaged</span></div>
+                    <div><strong>{st.closed}</strong><span>closed</span></div>
+                  </div>
+                );
+              })()}
               <dl className="kv small" style={{ gridTemplateColumns: '84px 1fr', marginTop: 12 }}>
                 <dt>Escalation</dt><dd>{name(disp.escalation)}</dd>
                 <dt>Next up</dt><dd>{next ? `${name(next.analyst)} · ${fmtShortDate(next.from)}` : '—'}</dd>
@@ -224,6 +234,7 @@ export function Overview() {
                       {r.overdue > 0 && <span className="chip bad"><Icon name="clock" size={12} />{r.overdue} overdue</span>}
                       {r.stale > 0 && <span className="chip warn">{r.stale} stalled</span>}
                       {r.unacked > 0 && <span className="chip warn">{r.unacked} not acked</span>}
+                      {offOn(cfg, r.username) && <span className="chip bad">Off · back {fmtShortDate(addDays(offOn(cfg, r.username)!.to, 1))}</span>}
                       {r.attention === 0 && <span className="chip ok"><Icon name="check" size={12} />On track</span>}
                     </div>
                   </td>

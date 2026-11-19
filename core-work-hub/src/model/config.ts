@@ -29,6 +29,8 @@ export function defaultConfig(): HubConfig {
       { id: 'print', name: 'Printing & scanning', primary: 'tabitha', secondary: 'cathy', criticality: 'Low' },
     ],
     dispatch: [],
+    timeOff: [],
+    supportCanTriage: true,
     // Level 1 support rotation. Nick is the escalation point. Cathy is out of the rotation until further notice.
     rotation: {
       order: ['trey', 'tabitha', 'michael', 'wes', 'noelle', 'cathy'],
@@ -65,6 +67,8 @@ export function normalizeConfig(raw: Partial<HubConfig>): HubConfig {
     people: raw.people?.length ? raw.people : d.people,
     systems: raw.systems ?? d.systems,
     dispatch: raw.dispatch ?? [],
+    timeOff: raw.timeOff ?? [],
+    supportCanTriage: raw.supportCanTriage ?? true,
     rotation: raw.rotation ?? d.rotation,
     bucketWip: raw.bucketWip ?? {},
     capacityModel: { ...d.capacityModel, ...(raw.capacityModel ?? {}) },

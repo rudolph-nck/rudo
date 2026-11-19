@@ -84,7 +84,7 @@ export function rejectReason(config: HubConfig, file: string, e: HubEvent, item?
   if (!role) return `"${file}" is not in hub-config.json`;
   if (role === 'viewer') return 'Viewers are read-only';
   if (role === 'manager') return undefined;
-  const grader = canGrade(config, file);
+  const grader = canGrade(config, file, e.ts.slice(0, 10));
   const own = !!item && (item.owner === file || (!item.owner && e.type === 'item.move'));
   switch (e.type) {
     case 'item.create':
@@ -231,7 +231,7 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
       case 'item.move': {
         const w = it!;
         const from = w.column;
-        setColumn(w, e.data.column, e.ts, canGrade(config, file) ? e.data.rankKey : undefined);
+        setColumn(w, e.data.column, e.ts, canGrade(config, file, e.ts.slice(0, 10)) ? e.data.rankKey : undefined);
         // Taking work off someone's plate: keep the reason on the card until it moves on.
         if (e.data.column === 'On Hold' || (e.data.reason && from === 'Doing' && isRanked(e.data.column)))
           w.hold = { reason: e.data.reason ?? '', since: e.ts, user: file, from };
@@ -306,6 +306,12 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
       case 'config.rotation':
         config.rotation = e.data;
         break;
+      case 'config.timeoff': {
+        const { deleted, ...t } = e.data;
+        config.timeOff = (config.timeOff ?? []).filter((x) => x.id !== t.id);
+        if (!deleted) config.timeOff.push(t);
+        break;
+      }
       case 'config.system': {
         const { deleted, ...sys } = e.data;
         const idx = config.systems.findIndex((s) => s.id === sys.id);

@@ -141,7 +141,7 @@ export function HubProvider({ store, config, me, onSignOut, children }: { store:
     state,
     me,
     role,
-    grader: canGrade(config, me),
+    grader: canGrade(state.config, me),
     readOnly,
     lastSync,
     syncing,

@@ -97,9 +97,33 @@ export interface DispatchShift {
   escalation?: string;
   /** True for shifts computed from the rotation (not a hand-entered cover/swap). */
   generated?: boolean;
+  /** For a cover: whose shift it replaces, and a short note. */
+  coverFor?: string;
+  note?: string;
   /** ISO dates, inclusive. */
   from: string;
   to: string;
+}
+
+export type TimeOffKind = 'pto' | 'holiday' | 'training' | 'partial' | 'out';
+export const TIME_OFF_KINDS: { key: TimeOffKind; label: string }[] = [
+  { key: 'pto', label: 'Time off' },
+  { key: 'holiday', label: 'Holiday' },
+  { key: 'training', label: 'Training / conference' },
+  { key: 'partial', label: 'Partial day' },
+  { key: 'out', label: 'Out of office' },
+];
+export interface TimeOff {
+  id: string;
+  username: string;
+  /** ISO dates, inclusive. */
+  from: string;
+  to: string;
+  kind: TimeOffKind;
+  /** Who covers their work while they're out. */
+  cover?: string;
+  /** Visible to the whole team: keep personal details out. */
+  note?: string;
 }
 
 export type ShiftLength = 'week' | '2weeks' | 'month';
@@ -124,6 +148,10 @@ export interface HubConfig {
   dispatch: DispatchShift[];
   /** Level 1 support rotation: computed shift by shift from this. */
   rotation?: Rotation;
+  /** Team time off, visible to everyone; Nick maintains it. */
+  timeOff: TimeOff[];
+  /** The person on support may grade and rank during their shift (triage is the support job). Default true. */
+  supportCanTriage?: boolean;
   /** Team-wide Doing limit per bucket (sum over everyone). */
   bucketWip: Partial<Record<Bucket, number>>;
   defaultWipLimit: number;
@@ -188,6 +216,7 @@ export type HubEvent = EventBase &
     | { type: 'config.bucketWip'; data: Partial<Record<Bucket, number>> }
     | { type: 'config.dispatch'; data: { shifts: DispatchShift[] } }
     | { type: 'config.rotation'; data: Rotation }
+    | { type: 'config.timeoff'; data: TimeOff & { deleted?: boolean } }
     | { type: 'config.system'; data: SystemOwnership & { deleted?: boolean } }
   );
 

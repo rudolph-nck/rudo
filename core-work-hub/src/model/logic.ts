@@ -112,10 +112,23 @@ export const assignable = (config: HubConfig) => config.people.filter((p) => p.r
 
 export const roleOf = (config: HubConfig, username: string): Role | undefined => findPerson(config, username)?.role;
 
-export const canGrade = (config: HubConfig, username: string) => {
+/**
+ * Manager always; analysts when analystsCanGrade; and whoever is on level 1 support on `date` (triage is the
+ * support job), unless supportCanTriage is false.
+ */
+export const canGrade = (config: HubConfig, username: string, date = todayISO()) => {
   const r = roleOf(config, username);
-  return r === 'manager' || (r === 'analyst' && config.analystsCanGrade);
+  if (r === 'manager' || (r === 'analyst' && config.analystsCanGrade)) return true;
+  return r === 'analyst' && config.supportCanTriage !== false && currentDispatch(config, date)?.analyst === username;
 };
+
+/** Time-off entry covering `date` for this person, if any. */
+export const offOn = (config: HubConfig, username: string | undefined, date = todayISO()) =>
+  username ? (config.timeOff ?? []).find((t) => t.username === username && t.from <= date && date <= t.to) : undefined;
+
+/** Time-off entries that overlap a date range. */
+export const offDuring = (config: HubConfig, username: string, from: string, to: string) =>
+  (config.timeOff ?? []).filter((t) => t.username === username && t.from <= to && t.to >= from);
 
 export const initials = (p?: Person, fallback?: string) => {
   if (p?.initials) return p.initials;
@@ -174,11 +187,60 @@ export function rotationShifts(config: HubConfig, count = 12): DispatchShift[] {
   return out;
 }
 
-/** The schedule people see: rotation shifts with hand-entered covers/swaps laid over them. */
-export function schedule(config: HubConfig, count = 12): DispatchShift[] {
-  const rot = rotationShifts(config, count);
-  const manual = config.dispatch.map((s) => ({ ...s, escalation: s.escalation ?? config.rotation?.escalation }));
-  return [...manual, ...rot].sort((a, b) => a.from.localeCompare(b.from) || Number(!!a.generated) - Number(!!b.generated));
+/** The `n` shifts before the current one, walking the running order backwards (for shift history). */
+export function pastShifts(config: HubConfig, n = 6): DispatchShift[] {
+  const r = config.rotation;
+  if (!r || !r.order.length || !r.current?.analyst) return [];
+  const out: DispatchShift[] = [];
+  let idx = r.order.indexOf(r.current.analyst);
+  let to = addDays(shiftStart(r.current.until, r.shift), -1);
+  for (let k = 0; k < n; k++) {
+    const from = shiftStart(to, r.shift);
+    let guard = 0;
+    do {
+      idx = (idx - 1 + r.order.length) % r.order.length;
+    } while (isOut(r, r.order[idx], from) && ++guard <= r.order.length);
+    out.unshift({ analyst: r.order[idx], from, to, escalation: r.escalation, generated: true });
+    to = addDays(from, -1);
+  }
+  return out;
+}
+
+/**
+ * The schedule people see: rotation shifts with covers and swaps cut into them. A cover replaces the rotation for
+ * exactly its dates; the rest of the original shift stays with the rotation person.
+ */
+export function schedule(config: HubConfig, count = 12, back = 0): DispatchShift[] {
+  const covers = config.dispatch.map((s) => ({ ...s, generated: false, escalation: s.escalation ?? config.rotation?.escalation })).sort((a, b) => a.from.localeCompare(b.from));
+  const out: DispatchShift[] = [];
+  const base = [...pastShifts(config, back), ...rotationShifts(config, count)];
+  for (const shift of base) {
+    let cursor = shift.from;
+    for (const c of covers.filter((c) => c.from <= shift.to && c.to >= shift.from)) {
+      if (c.from > cursor) out.push({ ...shift, from: cursor, to: addDays(c.from, -1) });
+      cursor = addDays(c.to, 1) > cursor ? addDays(c.to, 1) : cursor;
+    }
+    if (cursor <= shift.to) out.push({ ...shift, from: cursor });
+  }
+  covers.forEach((c) => {
+    const under = base.find((s) => s.from <= c.from && c.from <= s.to);
+    out.push({ ...c, coverFor: c.coverFor ?? under?.analyst });
+  });
+  return out.sort((a, b) => a.from.localeCompare(b.from));
+}
+
+/** Upcoming shifts whose person has time off during it with no cover in place for those days. */
+export function coverageGaps(config: HubConfig, count = 12, today = todayISO()) {
+  return schedule(config, count)
+    .filter((s) => s.to >= today)
+    .flatMap((s) =>
+      offDuring(config, s.analyst, s.from, s.to).map((t) => ({
+        shift: s,
+        off: t,
+        from: t.from > s.from ? t.from : s.from,
+        to: t.to < s.to ? t.to : s.to,
+      })),
+    );
 }
 
 export function currentDispatch(config: HubConfig, today = todayISO()): DispatchShift | undefined {
@@ -241,7 +303,7 @@ export interface OwnerSuggestion {
  * Suggests the owner for a system from the ownership map, alternating between primary and secondary.
  * Whoever owns fewer graded items for the system is next; ties go to whoever did not get the most recent one.
  */
-export function suggestOwner(state: HubState, systemId?: string, excludeItem?: string): OwnerSuggestion | undefined {
+function suggestOwnerRaw(state: HubState, systemId?: string, excludeItem?: string): OwnerSuggestion | undefined {
   const sys = state.config.systems.find((s) => s.id === systemId);
   if (!sys) return undefined;
   const primary = sys.primary;
@@ -264,6 +326,18 @@ export function suggestOwner(state: HubState, systemId?: string, excludeItem?: s
   return pc < sc
     ? { username: primary, slot: 'primary', reason: `${nameOf(primary)} ${pc} vs ${nameOf(secondary)} ${sc} on ${sys.name}` }
     : { username: secondary, slot: 'secondary', reason: `${nameOf(secondary)} ${sc} vs ${nameOf(primary)} ${pc} on ${sys.name}` };
+}
+
+/** Owner suggestion from the map, skipping anyone who's off today (falls to the other owner, then the third backup). */
+export function suggestOwner(state: HubState, systemId?: string, excludeItem?: string): OwnerSuggestion | undefined {
+  const s = suggestOwnerRaw(state, systemId, excludeItem);
+  if (!s || !offOn(state.config, s.username)) return s;
+  const sys = state.config.systems.find((x) => x.id === systemId)!;
+  const name = (u: string) => findPerson(state.config, u)?.name ?? u;
+  const off = offOn(state.config, s.username)!;
+  const alts: [string | undefined, OwnerSuggestion['slot']][] = [[sys.primary, 'primary'], [sys.secondary, 'secondary'], [sys.third, 'third']];
+  const alt = alts.find(([u]) => u && u !== s.username && !offOn(state.config, u));
+  return alt ? { username: alt[0]!, slot: alt[1], reason: `${name(s.username)} is off until ${fmtShortDate(off.to)}` } : s;
 }
 
 export const systemName = (systems: SystemOwnership[], id?: string) => systems.find((s) => s.id === id)?.name ?? id;

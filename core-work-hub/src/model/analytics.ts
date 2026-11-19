@@ -188,3 +188,48 @@ export function overview(state: HubState, f: Filter = {}, weeks = 12, now = new 
 }
 
 export type Overview = ReturnType<typeof overview>;
+
+// ---------------------------------------------------------------- support shift tracking
+
+export interface ShiftStats {
+  /** Items opened during the shift (the intake the support person faced). */
+  cameIn: number;
+  /** Distinct items the support person triaged: graded, moved out of Intake, assigned, or replied to. */
+  triaged: number;
+  /** Distinct items the support person touched in any way (moves, comments, time, acks...). */
+  worked: number;
+  /** Items they own that reached Done during the shift. */
+  closed: number;
+  /** Hours they logged to the Dispatch capacity bucket during the shift. */
+  dispatchHours: number;
+  /** Items that came in during the shift and are still in Intake. */
+  stillInIntake: number;
+}
+
+/** What the person on support did during a shift (from the audit trail, the items and the time log). */
+export function shiftStats(state: HubState, analyst: string, from: string, to: string): ShiftStats {
+  const inShift = (iso?: string) => !!iso && iso.slice(0, 10) >= from && iso.slice(0, 10) <= to;
+  const mine = state.audit.filter((a) => !a.rejected && a.file === analyst && inShift(a.event.ts));
+  const triaged = new Set<string>();
+  const worked = new Set<string>();
+  for (const { event: e } of mine) {
+    if (!('item' in e) || !e.item) continue;
+    worked.add(e.item);
+    const triage =
+      e.type === 'item.grade' ||
+      e.type === 'item.reply' ||
+      (e.type === 'item.move' && e.before?.column === 'Intake') ||
+      (e.type === 'item.update' && e.data.owner !== undefined);
+    if (triage) triaged.add(e.item);
+  }
+  const items = [...state.items.values()];
+  const came = items.filter((i) => inShift(i.created));
+  return {
+    cameIn: came.length,
+    triaged: triaged.size,
+    worked: worked.size,
+    closed: items.filter((i) => i.owner === analyst && i.column === 'Done' && inShift(i.done)).length,
+    dispatchHours: state.time.filter((t) => t.user === analyst && t.bucket === 'dispatch' && t.date >= from && t.date <= to).reduce((s, t) => s + t.hours, 0),
+    stillInIntake: came.filter((i) => i.column === 'Intake').length,
+  };
+}

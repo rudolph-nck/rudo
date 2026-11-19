@@ -53,6 +53,8 @@ export function describeEvent(e: HubEvent, cfg: HubConfig): string {
       return `updated the dispatch rotation (${e.data.shifts.length} shifts)`;
     case 'config.rotation':
       return `updated the support rotation (${e.data.order.map((u) => who(u)).join(' → ')}, ${e.data.shift === 'month' ? 'monthly' : e.data.shift === 'week' ? 'weekly' : 'every 2 weeks'})`;
+    case 'config.timeoff':
+      return `${e.data.deleted ? 'removed' : 'set'} time off for ${who(e.data.username)}: ${e.data.from}${e.data.to !== e.data.from ? ` to ${e.data.to}` : ''}${e.data.cover && !e.data.deleted ? `, ${who(e.data.cover)} covering` : ''}`;
     case 'config.system':
       return `${e.data.deleted ? 'removed' : 'updated'} system “${e.data.name}” on the ownership map`;
   }

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { defaultConfig } from '../src/model/config';
 import { replay, type SourcedEvent } from '../src/model/replay';
-import { analysts, checkWip, computeScore, currentDispatch, nextDispatch, rotationShifts, rankKeyAt, rankedList, suggestOwner, suggestPriority, mapSourcePriority, personForSourceName } from '../src/model/logic';
+import { analysts, checkWip, computeScore, coverageGaps, currentDispatch, nextDispatch, offOn, rotationShifts, schedule, rankKeyAt, rankedList, suggestOwner, suggestPriority, mapSourcePriority, personForSourceName } from '../src/model/logic';
 import { importTicketsCsv, maskNumbers, mergeSnapshot, parseCsv } from '../src/model/csv';
 import type { HubEvent, TicketsSnapshot, WorkItem } from '../src/model/types';
-import { heldUp, overview } from '../src/model/analytics';
+import { heldUp, overview, shiftStats } from '../src/model/analytics';
 import { demoSeed } from '../src/demo';
 
 let n = 0;
@@ -426,5 +426,55 @@ describe('overview analytics', () => {
     expect(heldUp({ ...base, column: 'Doing', touched: '2026-11-10T00:00:00Z' }, now)?.kind).toBe('stale');
     expect(heldUp({ ...base, column: 'Doing', touched: '2026-11-17T00:00:00Z' }, now)).toBeUndefined();
     expect(heldUp({ ...base, column: 'Waiting', statusDriven: 'Waiting', source_status: 'Waiting for 3rd Party', touched: '2026-11-01T00:00:00Z' }, now)?.why).toBe('Waiting for 3rd Party');
+  });
+});
+
+describe('rotation overrides, time off and support tracking', () => {
+  it('a cover cuts into the shift; the rest stays with the rotation person', () => {
+    const cfg = defaultConfig();
+    cfg.dispatch = [{ analyst: 'wes', from: '2026-12-10', to: '2026-12-12', note: 'Swap' }];
+    const dec = schedule(cfg, 3).filter((s) => s.from >= '2026-12-01' && s.to <= '2026-12-31');
+    expect(dec.map((s) => [s.analyst, s.from, s.to, s.coverFor ?? null])).toEqual([
+      ['tabitha', '2026-12-01', '2026-12-09', null],
+      ['wes', '2026-12-10', '2026-12-12', 'tabitha'],
+      ['tabitha', '2026-12-13', '2026-12-31', null],
+    ]);
+  });
+  it('flags a support shift where the person has time off', () => {
+    const cfg = defaultConfig();
+    cfg.timeOff = [{ id: 't1', username: 'tabitha', from: '2026-12-22', to: '2026-12-26', kind: 'holiday' }];
+    const gaps = coverageGaps(cfg, 3, '2026-11-19');
+    expect(gaps.map((g) => [g.shift.analyst, g.from, g.to])).toEqual([['tabitha', '2026-12-22', '2026-12-26']]);
+  });
+  it('time off events: set, edit, delete (manager only)', () => {
+    const t = { id: 'a', username: 'wes', from: '2026-12-01', to: '2026-12-03', kind: 'pto' };
+    let s = replay(defaultConfig(), snap([]), [ev('nick', 1, { type: 'config.timeoff', data: t }), ev('wes', 2, { type: 'config.timeoff', data: { ...t, to: '2026-12-30' } })]);
+    expect(s.config.timeOff).toEqual([t]);
+    expect(offOn(s.config, 'wes', '2026-12-02')?.id).toBe('a');
+    s = replay(defaultConfig(), snap([]), [ev('nick', 1, { type: 'config.timeoff', data: t }), ev('nick', 2, { type: 'config.timeoff', data: { ...t, deleted: true } })]);
+    expect(s.config.timeOff).toEqual([]);
+  });
+  it('owner suggestion skips someone who is off today', () => {
+    const cfg = defaultConfig(); // ad: primary cathy, secondary wes
+    cfg.timeOff = [{ id: 'x', username: 'cathy', from: '2000-01-01', to: '2099-01-01', kind: 'out' }];
+    const s = replay(cfg, snap([]), []);
+    expect(suggestOwner(s, 'ad')?.username).toBe('wes');
+  });
+  it('the person on support can grade during their shift; others cannot', () => {
+    const t = (min: number) => new Date(Date.UTC(2026, 10, 20, 9, min)).toISOString();
+    const e = (file: string, id: string): SourcedEvent => ({ file, event: { id, ts: t(1), user: file, type: 'item.grade', item: 'SD:100', data: { bucket: 'Support', priority: 'P3', impact: 3, urgency: 3, effort: 1 } } as HubEvent });
+    const s = replay(defaultConfig(), snap([{}]), [e('wes', 'w'), e('trey', 't')]); // Trey is on support until Nov 30
+    expect(s.audit.map((a) => [a.file, !!a.rejected])).toEqual([['trey', false], ['wes', true]]);
+  });
+  it('counts what came in, what support triaged, worked and closed during a shift', () => {
+    const items = [{ created: '2026-11-20T10:00:00Z', source_status: 'Closed', closed: '2026-11-21T09:00:00Z' }, { created: '2026-11-21T10:00:00Z' }, { created: '2026-10-01T10:00:00Z' }];
+    const s = replay(defaultConfig(), snap(items), [
+      { file: 'trey', event: { id: 'a', ts: '2026-11-20T11:00:00Z', user: 'trey', type: 'item.grade', item: 'SD:100', data: { bucket: 'Support', priority: 'P3', impact: 3, urgency: 3, effort: 1, owner: 'trey' } } as HubEvent },
+      { file: 'trey', event: { id: 'b', ts: '2026-11-20T11:01:00Z', user: 'trey', type: 'item.move', item: 'SD:100', data: { column: 'To Do' }, before: { column: 'Intake' } } as HubEvent },
+      { file: 'trey', event: { id: 'c', ts: '2026-11-20T15:00:00Z', user: 'trey', type: 'item.move', item: 'SD:100', data: { column: 'Doing' }, before: { column: 'To Do' } } as HubEvent },
+      { file: 'trey', event: { id: 'e', ts: '2026-11-21T09:00:00Z', user: 'trey', type: 'item.comment', item: 'SD:101', data: { text: 'looking' } } as HubEvent },
+      { file: 'trey', event: { id: 'f', ts: '2026-11-21T09:00:00Z', user: 'trey', type: 'time.log', data: { bucket: 'dispatch', hours: 3, date: '2026-11-21' } } as HubEvent },
+    ]);
+    expect(shiftStats(s, 'trey', '2026-11-16', '2026-11-30')).toEqual({ cameIn: 2, triaged: 1, worked: 2, closed: 1, dispatchHours: 3, stillInIntake: 1 });
   });
 });
