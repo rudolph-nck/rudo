@@ -57,6 +57,28 @@ def log(msg):
         pass
 
 
+def replace_file(tmp, dest, tries=15):
+    """Swap tmp in for dest. On a network share Windows refuses the swap while anyone has dest open (the hub
+    reading it, Notepad, Explorer's preview, antivirus), so retry for a few seconds, then write dest in place."""
+    for i in range(tries):
+        try:
+            os.replace(tmp, dest)
+            return
+        except PermissionError:
+            time.sleep(0.2 * (i + 1) if i < 5 else 0.5)
+    with open(tmp, "rb") as src:
+        data = src.read()
+    with open(dest, "r+b" if os.path.exists(dest) else "wb") as f:
+        f.write(data)
+        f.truncate()
+        f.flush()
+        os.fsync(f.fileno())
+    try:
+        os.remove(tmp)
+    except OSError:
+        pass
+
+
 # ---------------------------------------------------------------- Windows account picture
 def _sid():
     """The signed-in user's SID, e.g. S-1-5-21-..., via whoami (Windows only)."""
@@ -270,7 +292,7 @@ def make_handler(hub, port):
                 tmp = hub.path(f"{name}.tmp-{secrets.token_hex(4)}")
                 with open(tmp, "wb") as f:
                     f.write(data)
-                os.replace(tmp, hub.path(name))  # swap in whole, so readers never see half a file
+                replace_file(tmp, hub.path(name))  # swap in whole, so readers never see half a file
                 return self.json(200, {"ok": True})
             except Exception as e:  # noqa: BLE001
                 log(f"PUT {name} failed: {e!r}")
