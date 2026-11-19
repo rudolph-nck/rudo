@@ -579,19 +579,19 @@ describe('communication standard', () => {
     expect(businessMinutesBetween(std, L(20, 17, 0), L(23, 9, 30))).toBe(90);
   });
 
-  it('first response: P1 within 2 business hours, others within 1 business day', () => {
+  it('first response: P1 within 1 business hour, P4 within 1 business day', () => {
     const cfg = defaultConfig();
     const p1 = st(cfg, { created: L(18, 16, 30).toISOString(), source_priority: 'Critical SLA' }, [], L(18, 16, 45)).c;
-    expect([p1.kind, p1.critical, p1.due]).toEqual(['first', true, L(19, 11, 0)]); // 1h Wed + 1h Thu from 10:00
+    expect([p1.kind, p1.critical, p1.due]).toEqual(['first', true, L(18, 17, 30)]); // the last hour of Wednesday
     const n = st(cfg, { created: L(16, 14, 0).toISOString(), source_priority: 'Low SLA' }, [], L(16, 15, 0)).c;
     expect([n.kind, n.due]).toEqual(['first', L(17, 14, 0)]);
   });
 
-  it('weekly update after a logged response, and escalation owner -> support -> Nick', () => {
+  it('weekly update (P4) after a logged response, and escalation owner -> support -> Nick', () => {
     const cfg = defaultConfig();
     cfg.commStandard = { sdLastUpdatedCountsAsUpdate: false };
     const evs = [
-      ev('nick', 1, { type: 'item.grade', item: 'SD:9001', data: { bucket: 'Support', priority: 'P3', impact: 2, urgency: 2, effort: 1, owner: 'wes' } }),
+      ev('nick', 1, { type: 'item.grade', item: 'SD:9001', data: { bucket: 'Support', priority: 'P4', impact: 2, urgency: 2, effort: 1, owner: 'wes' } }),
       { file: 'wes', event: { id: 'r', ts: L(16, 10, 0).toISOString(), user: 'wes', type: 'item.reply', item: 'SD:9001', data: { via: 'Service Desk', kind: 'first' } } as HubEvent },
     ];
     const base = { created: L(16, 9, 0).toISOString() };
@@ -611,7 +611,7 @@ describe('communication standard', () => {
     const cfg = defaultConfig();
     cfg.commStandard = { sdLastUpdatedCountsAsUpdate: false };
     const evs = [
-      ev('nick', 1, { type: 'item.grade', item: 'SD:9001', data: { bucket: 'Support', priority: 'P3', impact: 2, urgency: 2, effort: 1, owner: 'wes' } }),
+      ev('nick', 1, { type: 'item.grade', item: 'SD:9001', data: { bucket: 'Support', priority: 'P4', impact: 2, urgency: 2, effort: 1, owner: 'wes' } }),
       { file: 'wes', event: { id: 'r', ts: L(16, 10, 0).toISOString(), user: 'wes', type: 'item.reply', item: 'SD:9001', data: { via: 'SD', kind: 'first', nextUpdate: '2026-11-18' } } as HubEvent },
     ];
     expect(st(cfg, { created: L(16, 9).toISOString() }, evs, L(16, 11)).c.due).toEqual(L(18, 17, 30));

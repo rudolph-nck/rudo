@@ -1,8 +1,10 @@
 import { BrandMark } from './components/logo';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { splash } from './components/Splash';
+import { Standup } from './views/Standup';
+import { standup } from './model/priority';
 import { ProfileDialog, toAvatarPhoto } from './components/Profile';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { HubProvider, useHub } from './store/hub';
 import { DemoStore, FolderStore, fsAccessSupported, LauncherStore, launcherKey, launcherMode, loadHandle, loadIdentity, saveHandle, saveIdentity, type HubStore } from './store/storage';
 import { defaultConfig } from './model/config';
@@ -71,6 +73,7 @@ function Sidebar() {
   const escalated = myNotices.some((n) => n.status.lateMinutes > 0);
   const disp = currentDispatch(cfg);
   const next = nextDispatch(cfg);
+  const mustDiscuss = useMemo(() => standup(state, now).mustDiscuss, [state, now]);
   const meP = findPerson(cfg, me);
   const [profileOpen, setProfileOpen] = useState(false);
   const [, tick] = useState(0);
@@ -81,6 +84,7 @@ function Sidebar() {
   const ago = lastSync ? Math.round((Date.now() - lastSync.getTime()) / 1000) : undefined;
   const items: [View, string, string, number?][] = [
     ['notifications', 'bell', 'Notifications', myNotices.length],
+    ['standup', 'standup', 'Stand-up', mustDiscuss],
     ['overview', 'chart', 'Overview'],
     ['board', 'board', 'Board'],
     ['priorities', 'flag', 'Priorities'],
@@ -184,7 +188,7 @@ function Shell() {
     location.hash = `/${v}${p ? '/' + encodeURIComponent(p) : ''}`;
   }, []);
   useEffect(() => {
-    document.title = `${{ overview: 'Overview', rotation: 'Rotation', timeoff: 'Time off', priorities: 'Priorities', teamscore: 'Team score', notifications: 'Notifications', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
+    document.title = `${{ overview: 'Overview', rotation: 'Rotation', timeoff: 'Time off', priorities: 'Priorities', teamscore: 'Team score', notifications: 'Notifications', standup: 'Stand-up', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
     (document.querySelector('main') as HTMLElement | null)?.focus({ preventScroll: true });
   }, [route.view]);
   return (
@@ -203,6 +207,7 @@ function Shell() {
               {route.view === 'rotation' && <Rotation />}
               {route.view === 'timeoff' && <TimeOff />}
               {route.view === 'priorities' && <Priorities />}
+              {route.view === 'standup' && <Standup />}
               {route.view === 'teamscore' && <TeamScore />}
               {route.view === 'notifications' && <Notifications />}
               {route.view === 'audit' && <Audit />}

@@ -42,6 +42,8 @@ export const sourceDrives = (config: HubConfig, it: { source: string; stale?: bo
   synced && it.source === 'SD' && (config.sourceDrivenColumns ?? []).includes(col);
 
 /** Status list match, case-insensitive; "Closed*" matches "Closed - Moved to Project" etc. */
+const PRANK: Record<string, number> = { P1: 1, P2: 2, P3: 3, P4: 4 };
+
 export function isStatus(list: string[], status: string) {
   const s = status.trim().toLowerCase();
   return list.some((x) => {
@@ -69,6 +71,7 @@ function fromTicket(t: SourceTicket, config: HubConfig): WorkItem {
     // Seeded from the SD sub-category through the ownership map's aliases; grading can change it.
     system: systemForCategory(config, t.subcategory, t.category),
     subcategory: t.subcategory,
+    department: t.department,
     suggested_bucket,
     source_owners: ownersFromSource(config, t.source_owner).names,
     due_by: t.due_by,
@@ -109,6 +112,10 @@ export function rejectReason(config: HubConfig, file: string, e: HubEvent, item?
       return grader ? undefined : 'Only Nick (or the person on support) records the team’s decision';
     case 'item.expedite':
       return 'Only Nick can force a priority';
+    case 'item.reprioritize':
+      return grader ? undefined : 'Only Nick (or the person on support) changes priority';
+    case 'item.commit':
+      return grader || item?.owner === file ? undefined : 'Only the owner, support or Nick sets a commitment';
     case 'item.ack':
       return item?.owner === file ? undefined : 'Only the owner can acknowledge';
     case 'item.grade':
@@ -159,6 +166,12 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
     let m = 0;
     for (const i of items.values()) if (i.column === column && i.bucket === bucket && i.rankKey !== undefined) m = Math.max(m, i.rankKey);
     return m;
+  };
+  /** Passed over: picked-up work ranked below it, jumped in the ranking, or priority lowered. */
+  const bump = (w: WorkItem, ts: string, by: string, why: string) => {
+    if (w.column === 'Done' || w.sourceClosed) return;
+    w.bumps = (w.bumps ?? 0) + 1;
+    w.bumpLog = [...(w.bumpLog ?? []), { ts, by, why }].slice(-10);
   };
   const markHubSet = (id: string, field: 'owner' | 'priority', ts: string, user: string) => {
     const h = hubSet.get(id) ?? {};
@@ -235,6 +248,10 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
       case 'item.grade': {
         const g = e.data;
         const w = it!;
+        if (w.graded && w.priority && g.priority && PRANK[g.priority] !== PRANK[w.priority]) {
+          w.priorityLog = [...(w.priorityLog ?? []), { ts: e.ts, user: file, from: w.priority, to: g.priority }];
+          if (PRANK[g.priority] > PRANK[w.priority]) bump(w, e.ts, file, `Lowered ${w.priority} → ${g.priority}`);
+        }
         const bucketChanged = w.bucket !== g.bucket;
         w.bucket = g.bucket;
         w.priority = g.priority;
@@ -255,6 +272,14 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
       case 'item.move': {
         const w = it!;
         const from = w.column;
+        // Picking up work passes over everything ranked above it in the same bucket.
+        if (e.data.column === 'Doing' && isRanked(from) && w.bucket) {
+          for (const y of items.values()) {
+            if (y === w || y.bucket !== w.bucket || !isRanked(y.column)) continue;
+            const ahead = (y.column === 'Ready' && (from !== 'Ready' || (y.rankKey ?? 0) < (w.rankKey ?? 0))) || (y.column === 'To Do' && from === 'To Do' && (y.rankKey ?? 0) < (w.rankKey ?? 0));
+            if (ahead) bump(y, e.ts, file, `Passed over for ${w.source_id ? '#' + w.source_id : w.title}`);
+          }
+        }
         setColumn(w, e.data.column, e.ts, canGrade(config, file, e.ts.slice(0, 10)) ? e.data.rankKey : undefined);
         // Taking work off someone's plate: keep the reason on the card until it moves on.
         if (e.data.column === 'On Hold' || (e.data.reason && from === 'Doing' && isRanked(e.data.column)))
@@ -267,9 +292,19 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
         }
         break;
       }
-      case 'item.rank':
-        if (isRanked(it!.column)) it!.rankKey = e.data.rankKey;
+      case 'item.rank': {
+        const w = it!;
+        if (!isRanked(w.column)) break;
+        const before = w.rankKey ?? 0;
+        const after = e.data.rankKey;
+        // Moved up over others: they were bumped. Moved down: this one was bumped.
+        if (after < before) {
+          for (const y of items.values())
+            if (y !== w && y.bucket === w.bucket && y.column === w.column && (y.rankKey ?? 0) >= after && (y.rankKey ?? 0) < before) bump(y, e.ts, file, `Jumped by ${w.source_id ? '#' + w.source_id : w.title}`);
+        } else if (after > before) bump(w, e.ts, file, 'Ranked lower');
+        w.rankKey = after;
         break;
+      }
       case 'rank.normalize':
         e.data.order.forEach((id, i) => {
           const x = items.get(id);
@@ -285,6 +320,10 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
           markHubSet(w.id, 'owner', e.ts, file);
         }
         if (d.priority !== undefined) {
+          if (w.priority && d.priority !== w.priority) {
+            w.priorityLog = [...(w.priorityLog ?? []), { ts: e.ts, user: file, from: w.priority, to: d.priority }];
+            if (PRANK[d.priority] > PRANK[w.priority]) bump(w, e.ts, file, `Lowered ${w.priority} → ${d.priority}`);
+          }
           w.priority = d.priority;
           markHubSet(w.id, 'priority', e.ts, file);
         }
@@ -341,6 +380,27 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
       case 'time.log':
         time.push({ id: e.id, ts: e.ts, user: file, item: e.item, ...e.data });
         break;
+      case 'item.reprioritize': {
+        const w = it!;
+        const d = e.data;
+        w.priorityLog = [...(w.priorityLog ?? []), { ts: e.ts, user: file, from: w.priority, to: d.priority, reason: d.reason, toldRequester: d.toldRequester, managerAware: d.managerAware }];
+        if (w.priority && PRANK[d.priority] > PRANK[w.priority]) bump(w, e.ts, file, `Lowered ${w.priority} → ${d.priority}: ${d.reason}`);
+        w.priority = d.priority;
+        markHubSet(w.id, 'priority', e.ts, file);
+        break;
+      }
+      case 'item.commit': {
+        const w = it!;
+        w.commitment = e.data.date ? { date: e.data.date, by: file, ts: e.ts, note: e.data.note } : undefined;
+        break;
+      }
+      case 'config.priorityStandard': {
+        const cur = config.priorityStandard ?? {};
+        const next = { ...cur, ...e.data } as typeof cur;
+        for (const k of ['P1', 'P2', 'P3', 'P4'] as const) if (e.data[k]) next[k] = { ...(cur[k] ?? {}), ...e.data[k] } as never;
+        config.priorityStandard = next;
+        break;
+      }
       case 'profile.set': {
         // Applies to whoever wrote the file: nobody can restyle someone else.
         const p = config.people.find((x) => x.username === file);

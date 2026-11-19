@@ -46,6 +46,12 @@ export function describeEvent(e: HubEvent, cfg: HubConfig): string {
       return `replied to the requester (${e.data.via})`;
     case 'time.log':
       return `logged ${e.data.hours}h to ${e.data.bucket.replace('_', ' ')} on ${e.data.date}`;
+    case 'item.reprioritize':
+      return `changed priority to ${e.data.priority}: ${e.data.reason}${e.data.toldRequester ? ' (requester told)' : ''}${e.data.managerAware ? ' (discussed with Matt)' : ''}`;
+    case 'item.commit':
+      return e.data.date ? `committed to ${e.data.date}${e.data.note ? `: ${e.data.note}` : ''}` : 'cleared the commitment date';
+    case 'config.priorityStandard':
+      return `changed the priority standard${e.data.startFrom !== undefined ? ` (start date ${e.data.startFrom || 'none'})` : ''}`;
     case 'profile.set': {
       const d = e.data;
       const parts = [

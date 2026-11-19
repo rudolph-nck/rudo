@@ -9,11 +9,15 @@ import { GradeForm, draftFrom, effectiveGrade, type Draft } from './GradeForm';
 import { describeEvent } from './describe';
 import { CommSection } from './Comm';
 import { ExpediteBanner, ExpediteDialog } from './Expedite';
+import { CommitDialog, ReprioritizeDialog } from './PriorityActions';
+import { ageOf, dayNo } from '../model/priority';
 import { TeamsButton } from './Teams';
 
 export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; initialTab?: 'grade'; onClose: () => void }) {
   const { state, me, grader, readOnly, commit, role } = useHub();
   const [forcing, setForcing] = useState(false);
+  const [repri, setRepri] = useState(false);
+  const [committing, setCommitting] = useState(false);
   const { requestMove, openNew, openItem, pickUp } = useUi();
   const cfg = state.config;
   const [draft, setDraft] = useState<Draft>(() => draftFrom(item));
@@ -176,7 +180,26 @@ export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; init
       </dl>
       {item.description && <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{item.description}</p>}
 
+      {(() => {
+        const a = ageOf(state, item);
+        if (!a && !item.priorityLog?.length && !item.bumps) return null;
+        return (
+          <div className="small muted" style={{ display: 'grid', gap: 2 }}>
+            {a && <span>Target: {a.target} business day{a.target === 1 ? '' : 's'} · day {dayNo(a)}{a.backlog ? ' (backlog: clock started on the standard’s start date)' : ''}{a.raised ? ` · aging raised it to ${a.effective}` : ''}{item.commitment ? ` · committed for ${item.commitment.date}` : ''}</span>}
+            {item.bumps ? <span>Bumped {item.bumps}×: {item.bumpLog?.slice(-3).map((b) => b.why).join('; ')}</span> : null}
+            {item.priorityLog?.map((l) => (
+              <span key={l.ts}>{new Date(l.ts).toLocaleDateString()}: {l.from ?? '—'} → {l.to} by {findPerson(cfg, l.user)?.name ?? l.user}{l.reason ? `: ${l.reason}` : ''}{l.toldRequester ? ' · requester told' : ''}{l.managerAware ? ' · manager aware' : ''}</span>
+            ))}
+          </div>
+        );
+      })()}
       <div className="row wrap">
+        {grader && !readOnly && item.column !== 'Done' && item.priority && (
+          <>
+            <button className="btn sm" onClick={() => setRepri(true)}>Change priority</button>
+            <button className="btn sm" onClick={() => setCommitting(true)}>Commit date</button>
+          </>
+        )}
         {role === 'manager' && !readOnly && !item.expedite && item.column !== 'Done' && (
           <button className="btn sm" onClick={() => setForcing(true)}><Icon name="flag" size={14} /> Force priority</button>
         )}
@@ -185,6 +208,8 @@ export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; init
         )}
       </div>
       {forcing && <ExpediteDialog item={item} onClose={() => setForcing(false)} />}
+      {repri && <ReprioritizeDialog item={item} onClose={() => setRepri(false)} />}
+      {committing && <CommitDialog item={item} onClose={() => setCommitting(false)} />}
 
       <CommSection item={item} />
 

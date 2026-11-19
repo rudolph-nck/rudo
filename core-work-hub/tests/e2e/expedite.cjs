@@ -31,7 +31,7 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   // Teams links
   await p.goto(file + '?demo&as=nick#/notifications'); await p.waitForSelector('h1');
   const nudge = p.getByRole('link', { name: /^Nudge/ }).first();
-  check(/teams\.microsoft\.com\/l\/chat\/0\/0\?users=.*%40example\.com&message=.*P1%20update/.test(await nudge.getAttribute('href')), 'Nudge opens a Teams chat with the message filled in');
+  check(/teams\.microsoft\.com\/l\/chat\/0\/0\?users=.*%40example\.com&message=.*P1%20hourly%20update/.test(await nudge.getAttribute('href')), 'Nudge opens a Teams chat with the message filled in');
   // One-time identity: pick once, survives clearing localStorage (kept in IndexedDB too)
   const q = await ctx.newPage(); p.on('pageerror', (e) => errs.push(e.message));
   await q.goto(file + '?demo'); await q.evaluate(() => localStorage.removeItem('cwh.me'));

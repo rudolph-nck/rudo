@@ -36,6 +36,7 @@ const paths: Record<string, ReactNode> = {
   star: <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" />,
   flag: <><path d="M5 21V4" /><path d="M5 4h11l-2 4 2 4H5" /></>,
   triage: <><path d="M4 6h16M7 12h10M10 18h4" /></>,
+  standup: <><path d="M10 6h11M10 12h11M10 18h11" /><path d="M3 6l1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17" /></>,
 };
 export function Icon({ name, size = 18, label }: { name: keyof typeof paths | string; size?: number; label?: string }) {
   return (

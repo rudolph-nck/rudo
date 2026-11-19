@@ -221,6 +221,36 @@ export interface Rotation {
   out: { username: string; until?: string }[];
 }
 
+/** Per-priority communication and resolution targets (the IT Core priority standard). Business time. */
+export interface PriorityTarget {
+  /** First response: amount and unit (business hours or business days). */
+  respond: number;
+  respondUnit: 'h' | 'd';
+  /** Updates while open. */
+  update: number;
+  updateUnit: 'h' | 'd';
+  /** Target to resolve, in business days (P1 1 = by the end of the business day). */
+  resolveDays: number;
+}
+export interface PriorityStandard {
+  P1: PriorityTarget;
+  P2: PriorityTarget;
+  P3: PriorityTarget;
+  P4: PriorityTarget;
+  /** Resolution clocks start no earlier than this date (YYYY-MM-DD); older tickets are the backlog. */
+  startFrom?: string;
+  /** Share of the target after which an item is "at risk" (0.5 = halfway). */
+  atRiskPct: number;
+  /** Times an item can be passed over before it's flagged as repeatedly bumped. */
+  bumpFlag: number;
+  /** Flag a department whose work hasn't been touched in this many business days. */
+  deptIdleDays: number;
+  /** Backlog tickets to clear each week (the backlog has its own goal instead of all going "past target" at once). */
+  backlogWeeklyGoal: number;
+  /** How many backlog tickets go on the daily must-discuss list. */
+  backlogDaily: number;
+}
+
 export interface HubConfig {
   teamName: string;
   people: Person[];
@@ -239,6 +269,8 @@ export interface HubConfig {
   teamCriteria?: TeamCriterion[];
   /** Communication standard (response and update targets, business hours, escalation). */
   commStandard?: Partial<CommStandard>;
+  /** Priority standard (P1-P4 response, update and resolution targets; aging and bump rules). */
+  priorityStandard?: Partial<PriorityStandard>;
   /** Team-wide Doing limit per bucket (sum over everyone). */
   bucketWip: Partial<Record<Bucket, number>>;
   defaultWipLimit: number;
@@ -313,6 +345,9 @@ export type HubEvent = EventBase &
     | { type: 'team.rate'; item: string; data: { ratings: Record<string, number> } }
     | { type: 'team.score'; item: string; data: { score: number | null; reason?: string } }
     | { type: 'item.expedite'; item: string; data: Expedite | { clear: true; reason?: string } }
+    | { type: 'item.reprioritize'; item: string; data: { priority: Priority; reason: string; toldRequester?: boolean; managerAware?: boolean } }
+    | { type: 'item.commit'; item: string; data: { date: string | null; note?: string } }
+    | { type: 'config.priorityStandard'; data: Partial<PriorityStandard> }
     | { type: 'config.system'; data: SystemOwnership & { deleted?: boolean } }
   );
 
@@ -372,6 +407,13 @@ export interface WorkItem {
   source_owners?: string[];
   /** Forced priority: "drop everything" from leadership. Wins over grades, ranks and team scores. */
   expedite?: Expedite & { ts: string; by: string };
+  /** Times this item was passed over: someone picked up work ranked below it, it was jumped in the ranking, or its priority was lowered. */
+  bumps?: number;
+  bumpLog?: { ts: string; by: string; why: string }[];
+  /** Every priority change after grading, with the reason. */
+  priorityLog?: { ts: string; user: string; from?: Priority; to: Priority; reason?: string; toldRequester?: boolean; managerAware?: boolean }[];
+  /** A date the team committed to at stand-up (YYYY-MM-DD). */
+  commitment?: { date: string; by: string; ts: string; note?: string };
   /** Team score inputs (projects): latest ratings per person, and a score the team set. */
   team?: { ratings: Record<string, Record<string, number>>; set?: { score: number; by: string; ts: string; reason?: string } };
   /** When the card entered its current column (for "stuck for N days"). */
@@ -387,6 +429,8 @@ export interface WorkItem {
   /** Owner comes from the Service Desk technician (reassign in Service Desk, not here). */
   ownerFromSource?: boolean;
   subcategory?: string;
+  /** Requester's department (Service Desk), for spotting departments whose work keeps waiting. */
+  department?: string;
   /** Set when the card's column comes from its Service Desk status (it can't be moved in the hub). */
   statusDriven?: Column;
 }

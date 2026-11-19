@@ -1,5 +1,6 @@
 import { currentDispatch, findPerson, offOn, todayISO } from './logic';
 import { isStatus } from './replay';
+import { addBusiness, fmtTarget, priorityStandardOf } from './priority';
 import type { CommStandard, HubConfig, HubState, WorkItem } from './types';
 
 /*
@@ -100,7 +101,18 @@ export function businessMinutesBetween(std: CommStandard, a: Date, b: Date): num
   return total;
 }
 
-const workdayMinutes = (std: CommStandard) => {
+/** Close of business on the day of `d`, or of the next business day when `d` is at or after that day's close. */
+export function endOfBusinessDay(std: CommStandard, d: Date): Date {
+  let cur = new Date(d);
+  for (let guard = 0; guard < 30; guard++) {
+    const w = window(std, cur);
+    if (w && minsOf(cur) < w[1]) return at(cur, w[1]);
+    cur = nextDay(cur);
+  }
+  return cur;
+}
+
+export const workdayMinutes = (std: CommStandard) => {
   const spans = Object.values(std.hours).filter(Boolean).map((w) => w![1] - w![0]);
   return spans.length ? Math.max(...spans) : 540;
 };
@@ -156,6 +168,8 @@ export function commStatus(state: HubState, i: WorkItem, now = new Date()): Comm
   if (i.source !== 'SD' || i.stale || i.column === 'Done' || i.sourceClosed || isStatus(cfg.closedStatuses, i.source_status)) return undefined;
   const std = standardOf(cfg);
   const critical = isCritical(i);
+  // Response and update times come from the priority standard (an ungraded ticket follows P4).
+  const pt = priorityStandardOf(cfg)[i.priority ?? 'P4'];
   // Before go-live nothing was being tracked: clocks start no earlier than enforceFrom.
   const floor = std.enforceFrom ? new Date(std.enforceFrom + 'T00:00:00') : undefined;
   const atLeastFloor = (d: Date) => (floor && d < floor ? floor : d);
@@ -177,7 +191,7 @@ export function commStatus(state: HubState, i: WorkItem, now = new Date()): Comm
   let attempts: number | undefined;
   if (!firstDone) {
     kind = 'first';
-    due = critical ? addBusinessMinutes(std, created, std.p1FirstResponseHours * 60) : addBusinessDays(std, created, std.firstResponseBusinessDays);
+    due = addBusiness(std, created, pt.respond, pt.respondUnit);
   } else if (waitingOnRequester(i)) {
     kind = 'follow-up';
     const since = i.columnSince ? new Date(i.columnSince) : last?.at ?? created;
@@ -187,7 +201,7 @@ export function commStatus(state: HubState, i: WorkItem, now = new Date()): Comm
   } else {
     kind = 'update';
     const base = atLeastFloor(last?.at ?? created);
-    due = critical ? addBusinessMinutes(std, base, std.p1UpdateHours * 60) : addBusinessDays(std, base, std.updateBusinessDays);
+    due = addBusiness(std, base, pt.update, pt.updateUnit);
   }
   // A promised next-update date earlier than the standard wins (end of that business day).
   if (i.next_update_due && kind !== 'first') {
@@ -229,7 +243,7 @@ export function commStatus(state: HubState, i: WorkItem, now = new Date()): Comm
     responsible = manager;
     if (!why.startsWith('Owner is on support')) why = 'Escalated to the manager';
   }
-  const label = kind === 'first' ? 'First response' : kind === 'follow-up' ? `Requester follow-up${attempts !== undefined ? ` (attempt ${Math.min(attempts + 1, std.followUpAttempts)} of ${std.followUpAttempts})` : ''}` : critical ? 'P1 update' : 'Weekly update';
+  const label = kind === 'first' ? 'First response' : kind === 'follow-up' ? `Requester follow-up${attempts !== undefined ? ` (attempt ${Math.min(attempts + 1, std.followUpAttempts)} of ${std.followUpAttempts})` : ''}` : critical ? 'P1 hourly update' : `${i.priority ?? 'P4'} update (${fmtTarget(pt.update, pt.updateUnit)})`;
   return { kind, due, last, level, lateMinutes: late, responsible, why, critical, attempts, label };
 }
 

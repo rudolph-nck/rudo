@@ -661,3 +661,21 @@ section[aria-labelledby='sys-h'] select.input { min-width: 112px; }
 .intake-pill:hover { border-color: var(--accent); }
 .intake-pill .count { min-width: 26px; height: 22px; padding: 0 8px; border-radius: 11px; background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
 .intake-pill .go { margin-left: auto; font-weight: 700; color: var(--accent-text); }
+
+/* ---- Stand-up */
+.su-tiles .tile.static { cursor: default; }
+.su-tiles .tile.static:hover { border-color: var(--border); }
+.su-table td { vertical-align: middle; }
+.su-table .su-pri { width: 1%; white-space: nowrap; }
+.su-table .su-owner { white-space: nowrap; }
+.su-table .su-why { font-weight: 600; font-size: 13px; color: var(--text-2); }
+.su-table .su-why.past, .su-table .su-why.double { color: var(--danger); }
+.su-table .su-why.risk { color: var(--warn); }
+.su-table .su-act { width: 1%; white-space: nowrap; }
+details.su-owners > summary { cursor: pointer; list-style: none; }
+details.su-owners > summary::-webkit-details-marker { display: none; }
+details.su-owners > summary h2::before { content: '▸ '; color: var(--text-3); }
+details.su-owners[open] > summary h2::before { content: '▾ '; }
+
+.backlog-bar { display: inline-block; width: 140px; height: 8px; border-radius: 4px; background: var(--surface-3); overflow: hidden; }
+.backlog-bar > span { display: block; height: 100%; background: var(--success); border-radius: 4px; }

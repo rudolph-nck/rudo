@@ -1,0 +1,78 @@
+// Browser test: Stand-up page, re-prioritize with a reason, commit dates, the priority standard settings.
+// Run after `npm run build`.
+const { chromium } = require('playwright');
+const file = 'file://' + require('path').resolve(__dirname, '../../dist/index.html');
+const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.exitCode = 1; };
+(async () => {
+  const b = await chromium.launch();
+  const ctx = await b.newContext({ viewport: { width: 1440, height: 1000 } });
+  await ctx.grantPermissions(['clipboard-read', 'clipboard-write']);
+  const errs = [];
+  const p = await ctx.newPage(); p.on('pageerror', (e) => errs.push(e.message));
+  await p.goto(file + '?demo&as=nick');
+  await p.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('cwh.demo.')).forEach((k) => localStorage.removeItem(k)));
+  await p.goto(file + '?demo&as=nick#/standup'); await p.reload(); await p.waitForSelector('h1');
+  check((await p.locator('h1').first().innerText()) === 'Stand-up', 'Stand-up page opens');
+  const navCount = Number(await p.locator('.nav button', { hasText: 'Stand-up' }).locator('.count').innerText());
+  check(navCount > 0, `sidebar shows how many items must be discussed (${navCount})`);
+  const past = p.locator('section', { has: p.locator('h2#su-past') });
+  const pastBefore = await past.locator('tbody tr').count();
+  check(pastBefore > 0, `past-target items listed (${pastBefore})`);
+  check((await p.locator('section', { has: p.locator('h2#su-p1') }).locator('tbody tr').count()) > 0, 'open P1s listed');
+
+  // Commit a date: it leaves "past target"
+  const first = past.locator('tbody tr').first();
+  const title1 = (await first.locator('.linkish').innerText()).trim();
+  await first.getByRole('button', { name: 'Commit date' }).click();
+  const future = new Date(Date.now() + 5 * 864e5).toISOString().slice(0, 10);
+  await p.locator('dialog[open] input[type=date]').fill(future);
+  await p.locator('dialog[open]').getByRole('button', { name: 'Commit' }).click();
+  await p.waitForTimeout(300);
+  check(!(await past.locator('tbody tr').allInnerTexts()).some((t) => t.includes(title1)), 'committing a date takes it off "past target"');
+
+  // Re-prioritize down: reason required, logged with requester told / manager aware
+  // A P2 a few days past its 3-day target: as a P4 (20-day target, counted from when it opened) it's back on track.
+  const row = past.locator('tbody tr').filter({ hasText: /Day [4-9] of 3/ }).first();
+  const title2 = (await row.locator('.linkish').innerText()).trim();
+  await row.getByRole('button', { name: 'Re-prioritize' }).click();
+  const dlg = p.locator('dialog[open]');
+  await dlg.getByRole('radio', { name: 'P4' }).click();
+  await dlg.getByRole('button', { name: 'Change to P4' }).click();
+  await p.waitForTimeout(200);
+  check((await p.locator('dialog[open]').count()) === 1, 'lowering without a reason is refused');
+  await dlg.locator('textarea').fill('P1 outage this week; requester agreed it can wait');
+  await dlg.getByLabel('Requester told').check();
+  await dlg.getByLabel('Discussed with my manager').check();
+  await dlg.getByRole('button', { name: 'Change to P4' }).click();
+  await p.waitForTimeout(400);
+  check(!(await past.locator('tbody tr').allInnerTexts()).some((t) => t.includes(title2)), 'downgraded item drops off "past target"');
+  await p.goto(file + '?demo&as=nick#/audit'); await p.waitForTimeout(400);
+  check(/changed priority to P4: P1 outage this week; requester agreed it can wait \(requester told\) \(discussed with Matt\)/.test(await p.locator('main').innerText()), 'audit log records the change, reason, requester told and manager aware');
+
+  // Copy for Teams
+  await p.goto(file + '?demo&as=nick#/standup'); await p.waitForSelector('h1');
+  await p.getByRole('button', { name: 'Copy for Teams' }).click();
+  const text = await p.evaluate(() => navigator.clipboard.readText());
+  check(/IT Core stand-up/.test(text) && /Open P1s/.test(text), 'Copy for Teams puts a stand-up summary on the clipboard');
+
+  // Priority standard: set the start date -> backlog appears, old tickets stop being "past target"
+  await p.goto(file + '?demo&as=nick#/settings'); await p.waitForSelector('#ps-h');
+  const ps = p.locator('section', { has: p.locator('#ps-h') });
+  check((await ps.getByLabel('P1 respond').inputValue()) === '1' && (await ps.getByLabel('P4 resolveDays').inputValue()) === '20', 'standard defaults: P1 1h response, P4 20 days');
+  await ps.getByLabel(/Start date/).fill(new Date().toISOString().slice(0, 10));
+  await ps.getByRole('button', { name: 'Save' }).click();
+  await p.waitForTimeout(300);
+  await p.goto(file + '?demo&as=nick#/standup'); await p.waitForSelector('h1');
+  const backlogN = Number(await p.locator('h2#su-backlog .chip').innerText());
+  check(backlogN > 0, `with a start date, older tickets become the backlog (${backlogN})`);
+  check((await past.locator('tbody tr').count()) === 0, 'and nothing from the backlog is "past target" on day one');
+
+  // Analysts see the page but can't re-prioritize
+  const w = await ctx.newPage(); w.on('pageerror', (e) => errs.push(e.message));
+  await w.goto(file + '?demo&as=wes#/standup'); await w.waitForSelector('h1');
+  check((await w.getByRole('button', { name: 'Re-prioritize' }).count()) === 0, 'analysts see stand-up but cannot re-prioritize');
+
+  console.log('errors', errs);
+  if (errs.length) process.exitCode = 1;
+  await b.close();
+})();

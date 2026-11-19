@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
+import { ageOf, dayNo } from '../model/priority';
 import { CSS } from '@dnd-kit/utilities';
 import { useHub } from '../store/hub';
 import { useUi } from './actions';
@@ -64,6 +65,7 @@ export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNod
           <span className="sr-only">Age </span>
           {fmtAge(item.created)}
         </span>
+        <AgeChip item={item} />
         <span className="grow" />
         <CommChip item={item} />
         {canPick && (
@@ -79,6 +81,20 @@ export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNod
         )}
       </div>
     </>
+  );
+}
+
+/** Resolution clock: shown once an item is halfway to its target ("Day 4 of 3"), with any aging raise. */
+function AgeChip({ item }: { item: WorkItem }) {
+  const { state } = useHub();
+  const a = ageOf(state, item);
+  if (!a || a.stage === 'ok' || a.stage === 'waiting') return null;
+  const late = a.stage === 'past' || a.stage === 'double';
+  const label = `Day ${late ? Math.max(dayNo(a), a.target + 1) : dayNo(a)} of ${a.target}`;
+  return (
+    <span className={`chip ${late ? 'bad' : 'warn'}`} title={`${a.priority} target: ${a.target} business day${a.target === 1 ? '' : 's'}${a.backlog ? ' (clock started on the standard’s start date)' : ''}. Due ${a.due.toLocaleString()}.${a.raised ? ` Aging raised it to ${a.effective}.` : ''}${item.bumps ? ` Bumped ${item.bumps}×.` : ''}`}>
+      {label}{a.raised ? ` · ↑${a.effective}` : ''}
+    </span>
   );
 }
 

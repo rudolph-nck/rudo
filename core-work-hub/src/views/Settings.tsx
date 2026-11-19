@@ -3,10 +3,11 @@ import { useHub } from '../store/hub';
 import { Avatar, download, Icon, toast } from '../components/ui';
 import { analysts, assignable, findPerson, personForSourceName, personWipLimit, ownerList } from '../model/logic';
 import { isStatus } from '../model/replay';
+import { priorityStandardOf } from '../model/priority';
 import { DEFAULT_IMPORT_FILE } from '../store/autoimport';
 import { importTicketRows, importTicketsCsv, mergeSnapshot, type CsvImportResult } from '../model/csv';
 import { readXlsx } from '../model/xlsx';
-import { BUCKETS, BUCKET_LABEL, type Bucket, type NewEvent, type Source, type SystemOwnership } from '../model/types';
+import { BUCKETS, BUCKET_LABEL, PRIORITIES, type Bucket, type NewEvent, type Priority, type PriorityStandard, type PriorityTarget, type Source, type SystemOwnership } from '../model/types';
 import { DemoStore } from '../store/storage';
 
 function DataImport() {
@@ -358,6 +359,65 @@ function PeopleSettings() {
   );
 }
 
+function PriorityStandardSettings() {
+  const { state, role, readOnly, commit } = useHub();
+  const ps = priorityStandardOf(state.config);
+  const edit = role === 'manager' && !readOnly;
+  const [draft, setDraft] = useState<PriorityStandard | null>(null);
+  const d = draft ?? ps;
+  const setP = (p: Priority, k: keyof PriorityTarget, v: string) => setDraft({ ...d, [p]: { ...d[p], [k]: String(k).endsWith('Unit') ? v : Number(v) } });
+  const save = async () => {
+    if (!draft) return;
+    if (await commit([{ type: 'config.priorityStandard', data: draft }])) {
+      toast('Priority standard saved.');
+      setDraft(null);
+    }
+  };
+  const unit = (p: Priority, k: 'respondUnit' | 'updateUnit') => (
+    <select className="input" aria-label={`${p} ${k === 'respondUnit' ? 'response' : 'update'} unit`} value={d[p][k]} disabled={!edit} onChange={(e) => setP(p, k, e.target.value)} style={{ width: 'auto' }}>
+      <option value="h">business hours</option>
+      <option value="d">business days</option>
+    </select>
+  );
+  const num = (p: Priority, k: 'respond' | 'update' | 'resolveDays', step = 1) => (
+    <input className="input" type="number" min={step} step={step} aria-label={`${p} ${k}`} value={d[p][k]} disabled={!edit} onChange={(e) => setP(p, k, e.target.value)} style={{ width: 70 }} />
+  );
+  return (
+    <section className="panel" aria-labelledby="ps-h">
+      <div className="panel-head"><h2 id="ps-h" className="grow">Priority standard</h2><span className="small muted">Response, update and resolution targets per priority (business time). Drives Notifications and Stand-up.</span></div>
+      <div className="table-wrap">
+        <table className="table">
+          <thead><tr><th>Priority</th><th>First response</th><th>Updates every</th><th>Target to resolve</th></tr></thead>
+          <tbody>
+            {PRIORITIES.map((p) => (
+              <tr key={p}>
+                <td><span className={`chip ${p.toLowerCase()}`}>{p}</span></td>
+                <td><div className="row" style={{ gap: 6 }}>{num(p, 'respond', 0.5)}{unit(p, 'respondUnit')}</div></td>
+                <td><div className="row" style={{ gap: 6 }}>{num(p, 'update', 0.5)}{unit(p, 'updateUnit')}</div></td>
+                <td><div className="row" style={{ gap: 6 }}>{num(p, 'resolveDays')} business day{d[p].resolveDays === 1 ? '' : 's'}{p === 'P1' && d[p].resolveDays === 1 ? <span className="small muted"> (same day)</span> : null}</div></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="row wrap" style={{ gap: 14, padding: 14 }}>
+        <label className="field"><span>Start date (older tickets are the backlog)</span><input className="input" type="date" value={d.startFrom ?? ''} disabled={!edit} onChange={(e) => setDraft({ ...d, startFrom: e.target.value || undefined })} /></label>
+        <label className="field"><span>At risk after (% of target)</span><input className="input" type="number" min={10} max={95} step={5} value={Math.round(d.atRiskPct * 100)} disabled={!edit} onChange={(e) => setDraft({ ...d, atRiskPct: Number(e.target.value) / 100 })} style={{ width: 90 }} /></label>
+        <label className="field"><span>Flag after being bumped</span><input className="input" type="number" min={1} value={d.bumpFlag} disabled={!edit} onChange={(e) => setDraft({ ...d, bumpFlag: Number(e.target.value) })} style={{ width: 90 }} /></label>
+        <label className="field"><span>Backlog: clear per week</span><input className="input" type="number" min={1} value={d.backlogWeeklyGoal} disabled={!edit} onChange={(e) => setDraft({ ...d, backlogWeeklyGoal: Number(e.target.value) })} style={{ width: 90 }} /></label>
+        <label className="field"><span>Backlog items on the daily list</span><input className="input" type="number" min={0} value={d.backlogDaily} disabled={!edit} onChange={(e) => setDraft({ ...d, backlogDaily: Number(e.target.value) })} style={{ width: 90 }} /></label>
+        <label className="field"><span>Department waiting after (business days)</span><input className="input" type="number" min={1} value={d.deptIdleDays} disabled={!edit} onChange={(e) => setDraft({ ...d, deptIdleDays: Number(e.target.value) })} style={{ width: 90 }} /></label>
+        {edit && draft && (
+          <div className="row" style={{ gap: 8, alignSelf: 'flex-end' }}>
+            <button className="btn" onClick={() => setDraft(null)}>Cancel</button>
+            <button className="btn primary" onClick={() => void save()}>Save</button>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export function Settings() {
   const { role } = useHub();
   return (
@@ -369,6 +429,7 @@ export function Settings() {
         </div>
       </div>
       <DataImport />
+      <PriorityStandardSettings />
       <WipSettings />
       <SystemsSettings />
       <PeopleSettings />

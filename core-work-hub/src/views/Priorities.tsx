@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useHub } from '../store/hub';
 import { useUi } from '../components/actions';
-import { Avatar, BucketDot, Icon, Modal, PriorityChip, SourceBadge, toast } from '../components/ui';
+import { Avatar, BucketDot, Icon, PriorityChip, SourceBadge, toast } from '../components/ui';
 import { ExpediteDialog } from '../components/Expedite';
+import { ReprioritizeDialog } from '../components/PriorityActions';
 import { heldUp, priorityConflicts, type PriorityConflict } from '../model/analytics';
 import { analysts, daysBetween, findPerson, fmtShortDate, isOverdue, offOn, rankedList } from '../model/logic';
-import { BUCKETS, BUCKET_LABEL, COLUMN_LABEL, PRIORITIES, type Bucket, type Column, type NewEvent, type Priority, type WorkItem } from '../model/types';
+import { BUCKETS, BUCKET_LABEL, COLUMN_LABEL, PRIORITIES, type Bucket, type Column, type Priority, type WorkItem } from '../model/types';
 
 const COL_ORDER: Column[] = ['Doing', 'Waiting', 'On Hold', 'Ready', 'To Do', 'Intake'];
 const PRI_NOTE: Record<Priority, string> = { P1: 'Drop everything', P2: 'Next up', P3: 'Planned', P4: 'When there’s room' };
@@ -234,52 +235,7 @@ export function Priorities() {
       )}
 
       {forcing && <ExpediteDialog item={forcing} onClose={() => setForcing(null)} />}
-      {change && <PriorityDialog item={change.item} to={change.to} onClose={() => setChange(null)} />}
+      {change && <ReprioritizeDialog item={change.item} to={change.to} onClose={() => setChange(null)} />}
     </div>
-  );
-}
-
-/** Priority change with an optional reason (kept as a comment on the card; the audit log keeps before → after). */
-function PriorityDialog({ item, to, onClose }: { item: WorkItem; to: Priority; onClose: () => void }) {
-  const { state, commit } = useHub();
-  const [reason, setReason] = useState('');
-  const [reRank, setReRank] = useState(item.column === 'To Do' || item.column === 'Ready');
-  const up = (item.priority ?? 'P9') > to;
-  const save = async () => {
-    const ev: NewEvent[] = [{ type: 'item.update', item: item.id, data: { priority: to } }];
-    if (reason.trim()) ev.push({ type: 'item.comment', item: item.id, data: { text: `Priority ${item.priority ?? '—'} → ${to}: ${reason.trim()}` } });
-    if (reRank && item.bucket && (item.column === 'To Do' || item.column === 'Ready')) {
-      // Place it after the last item of equal or higher priority in its list.
-      const list = rankedList(state, item.bucket, item.column).filter((x) => x.id !== item.id);
-      const idx = list.findIndex((x) => (x.priority ?? 'P9') > to);
-      const order = [...list];
-      order.splice(idx === -1 ? order.length : idx, 0, item);
-      ev.push({ type: 'rank.normalize', data: { bucket: item.bucket, column: item.column, order: order.map((x) => x.id) } });
-    }
-    if (await commit(ev)) {
-      toast(`${item.title}: ${item.priority ?? '—'} → ${to}.`);
-      onClose();
-    }
-  };
-  return (
-    <Modal
-      open
-      onClose={onClose}
-      title={`${up ? 'Raise' : 'Lower'} to ${to}`}
-      footer={<><button className="btn" onClick={onClose}>Cancel</button><button className="btn primary" onClick={save}>Change to {to}</button></>}
-    >
-      <p style={{ margin: 0 }}><strong>{item.title}</strong> · now {item.priority ?? 'no priority'}</p>
-      <label className="field">
-        <span>Why? (optional, saved as a comment on the card)</span>
-        <textarea className="input" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Exam finding due Friday; moved ahead of the Wi-Fi survey" autoFocus />
-      </label>
-      {(item.column === 'To Do' || item.column === 'Ready') && (
-        <label className="toggle" style={{ alignSelf: 'flex-start' }}>
-          <input type="checkbox" checked={reRank} onChange={(e) => setReRank(e.target.checked)} />
-          Move it in the {COLUMN_LABEL[item.column]} rank to match (currently #{item.rank})
-        </label>
-      )}
-      {item.source === 'SD' && <p className="small muted" style={{ margin: 0 }}>The hub priority changes here; Service Desk’s own priority isn’t touched.</p>}
-    </Modal>
   );
 }

@@ -79,6 +79,8 @@ Nobody else needs access. The folder's normal backup covers the hub; `changes/` 
 | `people[].aliases` | Other spellings of the person's name in Wrike or other exports (e.g. `["Catherine Garcia"]`). The import screen adds these for you when you match names. |
 | `closedStatuses`, `statusColumns` | Already set for the Core report’s statuses. Change only if Service Desk statuses change. |
 
+**Priority standard** (Settings → Priority standard; stored in the change files, so no file editing): P1–P4 first response, update cadence and target to resolve; the **start date** (older tickets become the backlog with a weekly clear-down goal instead of all going overdue at once); at-risk point, bump flag, and department idle days. Defaults: P1 1 hour / hourly / same day, P2 4 hours / daily / 3 days, P3 1 day / twice a week / 10 days, P4 1 day / weekly / 20 days.
+
 The other `commStandard` values encode the IT Core Team Communication Standards (first response P1 2 business hours / 1 business day; updates P1 every 2 business hours / weekly; requester follow-ups 48 h; escalation to support after 1 business day, to Nick after 2). Change them here if the standard changes.
 
 ## 5. Install the desktop icon (each PC, once)

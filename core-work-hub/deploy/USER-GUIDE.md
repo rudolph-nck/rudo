@@ -11,16 +11,24 @@
 4. After you comment on a ticket in Service Desk, the hub sees it on the next sync. Need it cleared now, or want the ready-made wording? Use **Log update** on the card.
 5. Log time against the capacity buckets in **My work**.
 
-## The communication standard (from our standard)
-| | Critical (P1) | Everything else |
-|---|---|---|
-| First response (your name, ticket #, next-update date) | 2 business hours | 1 business day |
-| Updates | every 2 business hours until resolved | at least weekly |
-| Requester not responding | follow up every 2 h | every 48 h; copy their manager on the 2nd try; close as “Requester Unresponsive” after the 3rd |
+## The priority standard
+Business hours: Mon/Tue/Wed/Fri 8:30–5:30, Thu 10:00–5:30. All times are business time.
+
+| | What it means | First response | Updates | Target to resolve |
+|---|---|---|---|---|
+| **P1 Critical** | Core or member-facing system down / badly impaired, no workaround; regulatory or money-movement risk | 1 hour | every hour (after hours: on-call, on any change, and first thing next morning) | same business day; all hands |
+| **P2 High** | One department or process significantly affected; member-facing with a workaround; hard deadline | same day (4 business hours) | daily | 3 business days |
+| **P3 Medium** | One team or user affected, workaround exists | 1 business day | twice a week | 10 business days |
+| **P4 Low** | Requests, questions, minor changes | 1 business day | weekly | 20 business days |
+
+Requester not responding: follow up every 48 h (P1 every 2 h); copy their manager on the 2nd try; close as “Requester Unresponsive” after the 3rd.
+
+**Nothing gets neglected:** past its target, a P3 or P4 is treated one level higher (two at twice the target, never P1 automatically). Work that keeps getting passed over is flagged after 3 bumps. Departments whose work hasn't been touched in 10 business days are flagged.
 
 If an update is missed, it goes to **you**, then to **whoever is on support** after a business day, then to **Nick**.
 
-## Standup
+## Stand-up
+- **Stand-up page** (run by Nick and whoever is on support): open P1s, past target, missed commitments, due within a business day, repeatedly bumped, departments waiting, and the backlog to clear next. Each row: **Commit date** or **Re-prioritize** (lowering needs a reason; tick “Requester told”). **Copy for Teams** posts the list.
 - **Intake (Triage):** grade new tickets and Wrike projects (projects use the project effort scale: days to months): bucket, impact, urgency, effort (hover any number to see what it means). Shortcuts: **J/K** move, **1–4** priority, **Enter** send, **O** open in Service Desk.
 - **Team score:** rate projects 1–5 (hover for meanings). Ties are settled in the meeting.
 - **Priorities:** all open work P1–P4 and any conflicts.

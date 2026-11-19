@@ -33,8 +33,8 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   check((await p.locator('section#pri-P1 tbody tr', { hasText: title }).count()) === 1, `raised "${title}" to P1`);
   await p.locator('section#pri-P1 button.linkish', { hasText: title }).first().click();
   await p.waitForSelector('dialog[open]');
-  check(/Priority P3 → P1: Exam finding due Friday/.test(await p.locator('dialog[open]').innerText()), 'reason saved as a comment');
-  check(/priority P3 → P1/.test(await p.locator('dialog[open]').innerText()), 'history shows before → after');
+  check(/P3 → P1 by Nick: Exam finding due Friday/.test(await p.locator('dialog[open]').innerText()), 'priority history on the item shows before → after with the reason');
+  check(/changed priority to P1: Exam finding due Friday/.test(await p.locator('dialog[open]').innerText()), 'item history (audit) records the change');
   if (process.env.SHOTS) { await p.keyboard.press('Escape'); await p.locator('.conflicts').scrollIntoViewIfNeeded(); await p.screenshot({ path: process.env.SHOTS + '/priorities-conflicts.png' }); }
   // Analysts see it read-only
   const w = await ctx.newPage(); await w.goto(file + '?demo&as=wes#/priorities'); await w.waitForSelector('.pri-summary');
