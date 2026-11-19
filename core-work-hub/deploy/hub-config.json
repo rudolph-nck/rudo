@@ -229,6 +229,7 @@
     "escalateToManagerAfterHours": 18,
     "p1EscalateToSupportAfterMinutes": 15,
     "p1EscalateToManagerAfterMinutes": 30,
-    "sdLastUpdatedCountsAsUpdate": true
+    "sdLastUpdatedCountsAsUpdate": true,
+    "enforceFrom": ""
   }
 }

@@ -83,6 +83,8 @@ export interface Person {
   bucketWip?: Partial<Record<Bucket, number>>;
   /** Name/username as it appears in Service Desk, to map technician -> analyst. */
   sdName?: string;
+  /** Other spellings of the person's name in source systems (e.g. their Wrike name "Catherine Garcia"). */
+  aliases?: string[];
   /** Work email / Teams sign-in, for "Message in Teams" links. */
   email?: string;
 }
@@ -136,6 +138,8 @@ export interface CommStandard {
   p1EscalateToManagerAfterMinutes: number;
   /** Without note times from Service Desk, treat its "Last Updated Time" as the last update. */
   sdLastUpdatedCountsAsUpdate: boolean;
+  /** Go-live date ("YYYY-MM-DD"): clocks start no earlier than this, so old tickets don't all escalate on day one. */
+  enforceFrom?: string;
 }
 
 export interface TeamCriterion {
@@ -280,7 +284,7 @@ export type HubEvent = EventBase &
     | { type: 'item.comment'; item: string; data: { text: string } }
     | { type: 'item.reply'; item: string; data: { via: string; kind?: 'first' | 'update' | 'follow-up' | 'internal'; nextUpdate?: string; note?: string } }
     | { type: 'time.log'; item?: string; data: { bucket: TimeBucket; hours: number; date: string; note?: string } }
-    | { type: 'config.person'; data: { username: string; wipLimit?: number; bucketWip?: Partial<Record<Bucket, number>>; sdName?: string } }
+    | { type: 'config.person'; data: { username: string; wipLimit?: number; bucketWip?: Partial<Record<Bucket, number>>; sdName?: string; aliases?: string[] } }
     | { type: 'config.bucketWip'; data: Partial<Record<Bucket, number>> }
     | { type: 'config.dispatch'; data: { shifts: DispatchShift[] } }
     | { type: 'config.rotation'; data: Rotation }
@@ -341,6 +345,10 @@ export interface WorkItem {
   /** Requester communication logged in the hub ("I posted the update"). */
   commLog?: { ts: string; user: string; kind: 'first' | 'update' | 'follow-up' | 'internal'; note?: string }[];
   due_by?: string;
+  /** Bucket the source suggests (Wrike "Work Type"); grading pre-selects it. */
+  suggested_bucket?: Bucket;
+  /** Everyone assigned in the source (Wrike can have several). */
+  source_owners?: string[];
   /** Forced priority: "drop everything" from leadership. Wins over grades, ranks and team scores. */
   expedite?: Expedite & { ts: string; by: string };
   /** Team score inputs (projects): latest ratings per person, and a score the team set. */

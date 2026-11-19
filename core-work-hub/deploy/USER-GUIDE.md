@@ -21,7 +21,7 @@
 If an update is missed, it goes to **you**, then to **whoever is on support** after a business day, then to **Nick**.
 
 ## Standup
-- **Intake (Triage):** grade new tickets: bucket, impact, urgency, effort (hover any number to see what it means). Shortcuts: **J/K** move, **1–4** priority, **Enter** send, **O** open in Service Desk.
+- **Intake (Triage):** grade new tickets and Wrike projects (projects use the project effort scale: days to months): bucket, impact, urgency, effort (hover any number to see what it means). Shortcuts: **J/K** move, **1–4** priority, **Enter** send, **O** open in Service Desk.
 - **Team score:** rate projects 1–5 (hover for meanings). Ties are settled in the meeting.
 - **Priorities:** all open work P1–P4 and any conflicts.
 - **Overview:** what's held up and everyone's load.

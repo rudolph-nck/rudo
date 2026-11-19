@@ -3,8 +3,9 @@ import { useHub } from '../store/hub';
 import { Avatar, download, Icon, toast } from '../components/ui';
 import { analysts, assignable, findPerson, personForSourceName, personWipLimit } from '../model/logic';
 import { isStatus } from '../model/replay';
-import { importTicketsCsv, mergeSnapshot, type CsvImportResult } from '../model/csv';
-import { BUCKETS, BUCKET_LABEL, type Bucket, type Source, type SystemOwnership } from '../model/types';
+import { importTicketRows, importTicketsCsv, mergeSnapshot, type CsvImportResult } from '../model/csv';
+import { readXlsx } from '../model/xlsx';
+import { BUCKETS, BUCKET_LABEL, type Bucket, type NewEvent, type Source, type SystemOwnership } from '../model/types';
 import { DemoStore } from '../store/storage';
 
 function DataImport() {
@@ -43,25 +44,48 @@ function DataImport() {
               </label>
             </div>
             <label className="field">
-              <span>CSV file</span>
+              <span>Export file (CSV, or Excel .xlsx as Wrike exports it)</span>
               <input
                 className="input"
                 type="file"
-                accept=".csv,text/csv"
+                accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 onChange={async (e) => {
                   const f = e.target.files?.[0];
                   if (!f) return;
-                  setRes(importTicketsCsv(await f.text(), source, { urlTemplate: tpl, isClosed: (st) => isStatus(state.config.closedStatuses, st) }));
+                  const opts = { urlTemplate: tpl, isClosed: (st: string) => isStatus(state.config.closedStatuses, st) };
+                  try {
+                    if (/\.xlsx$/i.test(f.name)) {
+                      const sheet = await readXlsx(await f.arrayBuffer());
+                      setRes(importTicketRows(sheet.rows, source, { ...opts, links: sheet.links }));
+                    } else setRes(importTicketsCsv(await f.text(), source, opts));
+                  } catch (err) {
+                    toast(`Couldn’t read that file: ${(err as Error).message}`);
+                  }
                 }}
               />
             </label>
             {res && (
               <div className="stack">
                 <div className={`banner ${res.tickets.length ? 'info' : 'error'}`}>
-                  {res.tickets.length} tickets ready ({res.tickets.filter((t) => !isStatus(state.config.closedStatuses, t.source_status)).length} open, the rest closed in the last 90 days)
-                  {res.skippedOldClosed ? `; ${res.skippedOldClosed} older closed tickets left out` : ''}. Columns matched: {Object.entries(res.columns).map(([k, v]) => `${v} → ${k}`).join(', ') || 'none'}.
+                  {res.tickets.length} {source === 'Wrike' ? 'Wrike items' : 'tickets'} ready ({res.tickets.filter((t) => !isStatus(state.config.closedStatuses, t.source_status)).length} open{source === 'Wrike' ? '' : ', the rest closed in the last 90 days'})
+                  {res.skippedOldClosed ? `; ${res.skippedOldClosed} ${source === 'Wrike' ? 'cancelled or completed' : 'older closed'} left out` : ''}
+                  {res.skippedHeadings ? `; ${res.skippedHeadings} group headings skipped` : ''}. Columns matched: {Object.entries(res.columns).map(([k, v]) => `${v} → ${k}`).join(', ') || 'none'}.
                 </div>
-                <TechnicianMap tickets={res.tickets} onSave={async (pairs) => { if (await commit(pairs.map(([username, sdName]) => ({ type: 'config.person', data: { username, sdName } })))) toast('Technician names saved.'); }} />
+                <TechnicianMap
+                  key={source + res.tickets.length}
+                  source={source}
+                  tickets={res.tickets}
+                  onSave={async (pairs) => {
+                    // Service Desk names go in sdName; other systems' spellings are kept as extra aliases.
+                    const ev: NewEvent[] = pairs.map(([username, n]): NewEvent => {
+                      const p = findPerson(state.config, username);
+                      return source === 'SD'
+                        ? { type: 'config.person', data: { username, sdName: n } }
+                        : { type: 'config.person', data: { username, aliases: [...new Set([...(p?.aliases ?? []), n])] } };
+                    });
+                    if (await commit(ev)) toast('Names saved.');
+                  }}
+                />
                 {res.warnings.length > 0 && <div className="banner warn"><div>{res.warnings.slice(0, 6).map((w) => <div key={w}>{w}</div>)}{res.warnings.length > 6 && <div>…and {res.warnings.length - 6} more</div>}</div></div>}
                 <div className="row">
                   <button
@@ -95,12 +119,14 @@ function DataImport() {
 }
 
 /** Service Desk technician -> hub person. Prefilled by name matching; Nick confirms or corrects. */
-function TechnicianMap({ tickets, onSave }: { tickets: { source_owner?: string; source_status: string }[]; onSave: (pairs: [string, string][]) => void }) {
+function TechnicianMap({ tickets, onSave, source }: { tickets: { source_owner?: string; source_status: string }[]; onSave: (pairs: [string, string][]) => void; source: string }) {
   const { state } = useHub();
   const cfg = state.config;
   const counts = new Map<string, number>();
-  tickets.forEach((t) => t.source_owner && !isStatus(cfg.closedStatuses, t.source_status) && counts.set(t.source_owner, (counts.get(t.source_owner) ?? 0) + 1));
-  tickets.forEach((t) => t.source_owner && !counts.has(t.source_owner) && counts.set(t.source_owner, 0));
+  // Wrike can list several assignees in one cell: count each person.
+  const split = (s?: string) => (s ?? '').split(/[,;]/).map((x) => x.trim()).filter(Boolean);
+  tickets.forEach((t) => !isStatus(cfg.closedStatuses, t.source_status) && split(t.source_owner).forEach((n) => counts.set(n, (counts.get(n) ?? 0) + 1)));
+  tickets.forEach((t) => split(t.source_owner).forEach((n) => !counts.has(n) && counts.set(n, 0)));
   const names = [...counts.keys()].sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0));
   const [map, setMap] = useState<Record<string, string>>(() => Object.fromEntries(names.map((n) => [n, personForSourceName(cfg, n)?.username ?? ''])));
   if (!names.length) return null;
@@ -108,12 +134,12 @@ function TechnicianMap({ tickets, onSave }: { tickets: { source_owner?: string; 
   return (
     <div className="panel" style={{ boxShadow: 'none' }}>
       <div className="panel-head">
-        <h3 className="grow">Service Desk technicians</h3>
-        <span className="small muted">Service Desk assigns the work. Match each technician to a hub person, or leave “Not on the hub”.</span>
+        <h3 className="grow">{source === 'SD' ? 'Service Desk technicians' : `${source} assignees`}</h3>
+        <span className="small muted">{source === 'SD' ? 'Service Desk' : source} assigns the work. Match each name to a hub person, or leave “Not on the hub”.</span>
       </div>
       <div className="table-wrap">
         <table className="table">
-          <thead><tr><th>Technician in Service Desk</th><th className="num">Open tickets</th><th>Hub person</th></tr></thead>
+          <thead><tr><th>Name in {source === 'SD' ? 'Service Desk' : source}</th><th className="num">Open items</th><th>Hub person</th></tr></thead>
           <tbody>
             {names.map((n) => (
               <tr key={n}>
@@ -137,10 +163,10 @@ function TechnicianMap({ tickets, onSave }: { tickets: { source_owner?: string; 
             const pairs = Object.entries(map).filter(([, u]) => u).map(([n, u]) => [u, n] as [string, string]);
             const dup = pairs.map(([u]) => u).find((u, i, a) => a.indexOf(u) !== i);
             if (dup) return toast(`${findPerson(cfg, dup)?.name} is matched to two technicians; pick one.`);
-            onSave(pairs.filter(([u, n]) => findPerson(cfg, u)?.sdName !== n));
+            onSave(pairs.filter(([u, n]) => findPerson(cfg, u)?.sdName !== n && !(findPerson(cfg, u)?.aliases ?? []).includes(n)));
           }}
         >
-          Save technician names
+          Save names
         </button>
       </div>
     </div>

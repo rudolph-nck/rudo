@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useHub } from '../store/hub';
+import { srcName } from './ui';
 import { useUi } from './actions';
 import { assignable, daysBetween, findPerson, fmtShortDate, isOverdue, systemName, todayISO } from '../model/logic';
 import { COLUMNS, COLUMN_LABEL, TIME_BUCKETS, type TimeBucket, type WorkItem } from '../model/types';
@@ -101,7 +102,7 @@ export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; init
           {item.ownerFromSource ? (
             <span>
               {item.owner ? name(item.owner) : item.source_owner}
-              <span className="small muted"> · assigned in Service Desk{item.owner ? '' : ' (not on the hub)'}</span>
+              <span className="small muted"> · assigned in {srcName(item)}{item.owner ? '' : ' (not on the hub)'}{(item.source_owners?.length ?? 0) > 1 ? ` · also ${item.source_owners!.slice(1).join(', ')}` : ''}</span>
             </span>
           ) : grader && !readOnly ? (
             <select className="input" style={{ maxWidth: 220 }} aria-label="Owner" value={item.owner ?? ''} onChange={(e) => commit([{ type: 'item.update', item: item.id, data: { owner: e.target.value || null } }])}>
@@ -117,7 +118,7 @@ export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; init
           )}
           {item.ownerFromSource && item.source_url && !readOnly && (
             <a className="btn sm" href={item.source_url} target="_blank" rel="noreferrer">
-              Reassign in Service Desk <Icon name="link" size={14} />
+              Reassign in {srcName(item)} <Icon name="link" size={14} />
             </a>
           )}
           {!item.owner && !item.ownerFromSource && !readOnly && !grader && (

@@ -81,23 +81,43 @@ export function findPerson(config: HubConfig, key?: string): Person | undefined 
 export function personForSourceName(config: HubConfig, raw?: string): Person | undefined {
   const name = raw?.trim();
   if (!name || /^(not assigned|-|unassigned)$/i.test(name)) return undefined;
-  const k = name.toLowerCase().replace(/^retained until [\d/]+ - /, '');
-  const bySd = config.people.find((p) => p.sdName && p.sdName.trim().toLowerCase() === k);
-  if (bySd) return bySd;
+  const k = name.toLowerCase().replace(/^retained until [\d/]+ - /, '').replace(/\s+/g, ' ');
+  const known = (p: Person) => [p.sdName, ...(p.aliases ?? [])].filter((x): x is string => !!x).map((x) => x.trim().toLowerCase().replace(/\s+/g, ' '));
+  // 1. Exact: Service Desk name or any alternate name (e.g. the person's Wrike name).
+  const exact = config.people.find((p) => known(p).includes(k));
+  if (exact) return exact;
   const direct = findPerson(config, name);
   if (direct) return direct;
-  const first = k.split(/\s+/)[0];
+  // 2. Same last name and same first three letters as a known full name ("Catherine Garcia" ~ "Cathy E. Garcia").
+  const parts = k.split(' ');
+  const [first, last] = [parts[0], parts[parts.length - 1]];
+  const fuzzy = config.people.filter((p) =>
+    p.role !== 'viewer' &&
+    known(p).some((kn) => {
+      const q = kn.split(' ');
+      return parts.length > 1 && q.length > 1 && q[q.length - 1] === last && q[0].slice(0, 3) === first.slice(0, 3);
+    }),
+  );
+  if (fuzzy.length === 1) return fuzzy[0];
+  // 3. Unique first-name match for people with no known full name yet ("Wesley Wilson" ~ "Wes").
   const hits = config.people.filter((p) => {
-    if (p.role === 'viewer' || p.sdName) return false;
+    if (p.role === 'viewer' || known(p).length) return false;
     const n = p.name.trim().toLowerCase();
     return first === n || (n.length >= 3 && first.startsWith(n)) || (first.length >= 3 && n.startsWith(first));
   });
   return hits.length === 1 ? hits[0] : undefined;
 }
 
+/** Several assignees ("Michael Cariglino, Wesley Wilson"): the hub owner is the first one on the team. */
+export function ownersFromSource(config: HubConfig, raw?: string): { owner?: string; matched: string[]; names: string[] } {
+  const names = (raw ?? '').split(/[,;]/).map((x) => x.trim()).filter(Boolean);
+  const matched = names.map((n) => personForSourceName(config, n)?.username).filter((u): u is string => !!u);
+  return { owner: matched[0], matched: [...new Set(matched)], names };
+}
+
 /** System from the ownership map whose name or aliases match an SD sub-category (or category). */
 export function systemForCategory(config: HubConfig, ...cats: (string | undefined)[]) {
-  for (const c of cats) {
+  for (const c of cats.flatMap((x) => (x ?? '').split(',').map((y) => y.trim()))) {
     const k = c?.trim().toLowerCase();
     if (!k) continue;
     const s = config.systems.find((x) => x.name.toLowerCase() === k || x.aliases?.some((a) => a.trim().toLowerCase() === k));

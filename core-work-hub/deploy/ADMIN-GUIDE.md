@@ -68,6 +68,8 @@ Nobody else needs access. The folder's normal backup covers the hub; `changes/` 
 | `ticketUrls.SD` | Link pattern to open a ticket. Open any ticket in Service Desk, copy its address, and replace the number with `{num}` (digits only, e.g. 79744) or `{id}` (full ID, e.g. INC-79744). |
 | `teamsChannelUrl` | In Teams: channel → **⋯** → **Get link to channel**. Used by “Post digest to Teams”. |
 | `commStandard.holidays` | Business holidays as `"YYYY-MM-DD"`. The communication-standard clock pauses on these. |
+| `commStandard.enforceFrom` | **Go-live date** (`"YYYY-MM-DD"`). Response and update clocks start no earlier than this, so tickets that went quiet before the hub existed don't all escalate on day one. Set it to the day the team starts using the hub. |
+| `people[].aliases` | Other spellings of the person's name in Wrike or other exports (e.g. `["Catherine Garcia"]`). The import screen adds these for you when you match names. |
 | `closedStatuses`, `statusColumns` | Already set for the Core report’s statuses. Change only if Service Desk statuses change. |
 
 The other `commStandard` values encode the IT Core Team Communication Standards (first response P1 2 business hours / 1 business day; updates P1 every 2 business hours / weekly; requester follow-ups 48 h; escalation to support after 1 business day, to Nick after 2). Change them here if the standard changes.
@@ -121,6 +123,10 @@ Start-ScheduledTask -TaskName 'Core Work Hub - Service Desk sync'
 Runs every 15 minutes, 7:00–18:00, Monday–Friday, as the current user. Log: `%LOCALAPPDATA%\CoreWorkHub\sync.log`. If the sync PC is off, the hub keeps working on the last snapshot; Nick can also import a CSV in **Settings → Ticket data**.
 
 ## 8. Wrike (optional)
+
+**Today (no API):** in Wrike, export the Projects view to Excel, then in the hub go to **Settings → Ticket data**, choose **Wrike export**, and pick the `.xlsx`. The hub reads each project’s Wrike ID from its link, skips group-heading rows and cancelled projects, and matches assignees (save any new name matches once). Re-import whenever the Wrike list changes; hub grades and ranks stay attached by Wrike ID.
+
+**API check:**
 
 ```powershell
 cmdkey /generic:CoreWorkHub-Wrike /user:token /pass:<permanent token>

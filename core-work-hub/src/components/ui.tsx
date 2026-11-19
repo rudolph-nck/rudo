@@ -234,3 +234,6 @@ export function download(name: string, text: string, type = 'text/csv') {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
+
+/** "Service Desk" / "Wrike" for labels. */
+export const srcName = (i: { source: string }) => (i.source === 'SD' ? 'Service Desk' : i.source);

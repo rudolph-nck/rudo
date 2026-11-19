@@ -8,6 +8,6 @@ const c = defaultConfig();
 // Fields the admin fills in (see ADMIN-GUIDE.md section 4).
 c.people = c.people.map((p) => ({ ...p, sdName: p.sdName ?? '', email: '' }));
 c.teamsChannelUrl = '';
-c.commStandard = { ...DEFAULT_STANDARD };
+c.commStandard = { ...DEFAULT_STANDARD, enforceFrom: '' };
 writeFileSync('deploy/hub-config.json', JSON.stringify(c, null, 2) + '\n');
 console.log('deploy/hub-config.json written');

@@ -146,7 +146,10 @@ export function commStatus(state: HubState, i: WorkItem, now = new Date()): Comm
   if (i.source !== 'SD' || i.stale || i.column === 'Done' || i.sourceClosed || isStatus(cfg.closedStatuses, i.source_status)) return undefined;
   const std = standardOf(cfg);
   const critical = isCritical(i);
-  const created = new Date(i.created);
+  // Before go-live nothing was being tracked: clocks start no earlier than enforceFrom.
+  const floor = std.enforceFrom ? new Date(std.enforceFrom + 'T00:00:00') : undefined;
+  const atLeastFloor = (d: Date) => (floor && d < floor ? floor : d);
+  const created = atLeastFloor(new Date(i.created));
 
   // What we know about requester-visible communication.
   const hubLog = (i.commLog ?? []).filter((c) => c.kind !== 'internal');
@@ -157,7 +160,7 @@ export function commStatus(state: HubState, i: WorkItem, now = new Date()): Comm
   if (lastHub) cands.push({ at: new Date(lastHub.ts), source: 'hub', by: lastHub.user });
   if (std.sdLastUpdatedCountsAsUpdate && i.sd_last_modified && !i.sd_last_note) cands.push({ at: new Date(i.sd_last_modified), source: 'sd-any-change' });
   const last = cands.sort((a, b) => b.at.getTime() - a.at.getTime())[0];
-  const firstDone = !!i.sd_responded || hubLog.length > 0 || (std.sdLastUpdatedCountsAsUpdate && !!i.sd_last_modified && new Date(i.sd_last_modified) > new Date(created.getTime() + 60000));
+  const firstDone = !!i.sd_responded || hubLog.length > 0 || (std.sdLastUpdatedCountsAsUpdate && !!i.sd_last_modified && new Date(i.sd_last_modified) > new Date(new Date(i.created).getTime() + 60000));
 
   let kind: CommKind;
   let due: Date;
@@ -169,11 +172,11 @@ export function commStatus(state: HubState, i: WorkItem, now = new Date()): Comm
     kind = 'follow-up';
     const since = i.columnSince ? new Date(i.columnSince) : last?.at ?? created;
     attempts = hubLog.filter((c) => c.kind === 'follow-up' && new Date(c.ts) >= since).length;
-    const base = last && last.at > since ? last.at : since;
+    const base = atLeastFloor(last && last.at > since ? last.at : since);
     due = new Date(base.getTime() + (critical ? std.p1FollowUpHours : std.followUpHours) * 3600000);
   } else {
     kind = 'update';
-    const base = last?.at ?? created;
+    const base = atLeastFloor(last?.at ?? created);
     due = critical ? addBusinessMinutes(std, base, std.p1UpdateHours * 60) : addBusinessDays(std, base, std.updateBusinessDays);
   }
   // A promised next-update date earlier than the standard wins (end of that business day).

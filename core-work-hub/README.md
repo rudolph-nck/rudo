@@ -187,6 +187,12 @@ The hub can't change Service Desk live from the page. A browser page opened from
 | Every change appears in the audit log | Done. The change files are the log. Browser test: 10 of 10 changes shown. |
 | No API token in the shared folder, code or page | The token is read only from Credential Manager on Nick's PC. The page never needs it. |
 
+### Wrike projects
+Export the Wrike Projects view to Excel and import the `.xlsx` in **Settings → Ticket data** (source: Wrike). The hub reads the Wrike ID from each name's link, skips group-heading rows and cancelled/completed projects, maps Assignee → owner (several assignees: the first team member owns it, the rest are shown), Platform → system, Work Type → suggested bucket, Due date → due date. Wrike spellings of names are saved as `aliases`. Projects land in Intake for grading; in Triage, a Projects grade uses the project effort scale.
+
+### Go-live date
+`commStandard.enforceFrom`: communication-standard clocks start no earlier than this date. Without it, tickets that went quiet before the hub existed all escalate on day one (on the Nov 18 export: 102 of 128).
+
 ### Knowing when Service Desk was last commented on
 - **API sync (Phase 1):** the script reads each open ticket's first-response time and its latest requester-visible note, so the hub sees comments made in Service Desk on its own (`-SkipNotes` turns this off if the API is rate-limited).
 - **CSV import (today):** if the report has a "Responded Time" or "Last Note/Conversation Time" column, the importer uses it. Otherwise it falls back to "Last Updated Time", which changes on any edit, not only comments (`sdLastUpdatedCountsAsUpdate`, on by default so day one isn't a wall of false alarms). Updates logged with **Log update** in the hub always count.

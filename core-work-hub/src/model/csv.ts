@@ -53,22 +53,22 @@ export function toCsv(rows: (string | number | undefined | null)[][]): string {
 
 const HEADERS = {
   source_id: /^(request\s*id|id|ticket\s*(id|number|#)?|request\s*#|display\s*id)$/i,
-  title: /^(subject|title|summary)$/i,
+  title: /^(subject|title|summary|name|task\s*name|project\s*name)$/i,
   requester: /^(requester|requester\s*name|requested\s*by)$/i,
   department: /^department$/i,
   source_status: /^(request\s*status|status)$/i,
   source_priority: /^priority$/i,
   sla: /^sla$/i,
-  source_owner: /^(technician|assigned\s*to|owner|assignee)$/i,
-  group: /^(group|support\s*group|queue)$/i,
-  category: /^category$/i,
-  subcategory: /^sub\s*category$/i,
-  created: /^(created\s*(time|date|on)?|date\s*created|opened)$/i,
+  source_owner: /^(technician|assigned\s*to|owner|assignee|assignees)$/i,
+  group: /^(group|support\s*group|queue|backlog\s*stage)$/i,
+  category: /^(category|work\s*type)$/i,
+  subcategory: /^(sub\s*category|platform)$/i,
+  created: /^(created\s*(time|date|on)?|date\s*created|opened|start\s*date)$/i,
   closed: /^(completed\s*(time|date)|closed\s*(time|date)|resolved\s*(time|date))$/i,
   updated: /^last\s*updated\s*(time|date)?$/i,
   responded: /^(responded|first\s*response)\s*(time|date|on)?$/i,
   last_note: /^last\s*(note|conversation|reply|public\s*note|technician\s*reply)\s*(time|date|added)?$/i,
-  due_by: /^due\s*by\s*(time|date)?$/i,
+  due_by: /^due\s*(by\s*)?(time|date)?$/i,
 };
 type HeaderKey = keyof typeof HEADERS;
 
@@ -102,6 +102,8 @@ export interface CsvImportResult {
   columns: Record<string, string>;
   /** Rows dropped because they closed before the cut-off. */
   skippedOldClosed: number;
+  /** Rows with no ID that look like group headings (Wrike exports), skipped quietly. */
+  skippedHeadings?: number;
 }
 
 export interface CsvImportOptions {
@@ -111,21 +113,33 @@ export interface CsvImportOptions {
   /** Keep closed rows only if they closed within this many days (default 90). */
   closedDays?: number;
   now?: Date;
+  /** Per-row link from the first column (Excel exports): Wrike IDs are read from these when there's no ID column. */
+  links?: Map<string, string>;
 }
+
+/** Wrike task/project ID from an open.htm?id=… link. */
+export const wrikeIdFrom = (url?: string) => url?.match(/[?&]id=(\d+)/)?.[1];
 
 /** Turns a Service Desk Plus (or Wrike) CSV export into snapshot rows. Unknown columns are ignored (no descriptions). */
 export function importTicketsCsv(text: string, source: Source, opts: CsvImportOptions | string = {}): CsvImportResult {
   const o: CsvImportOptions = typeof opts === 'string' ? { urlTemplate: opts } : opts;
-  const rows = parseCsv(text);
+  return importTicketRows(parseCsv(text), source, o);
+}
+
+/** Rows (from CSV or an Excel sheet) -> snapshot rows. Unknown columns are ignored (no descriptions). */
+export function importTicketRows(rows: string[][], source: Source, o: CsvImportOptions = {}): CsvImportResult {
   const warnings: string[] = [];
   const empty = { tickets: [], warnings, columns: {}, skippedOldClosed: 0 };
+  const linkAt = (ri: number) => o.links?.get(`${ri},0`);
   // Service Desk report exports put a few title lines ("IT Service Desk", "Total records : …") above the header.
+  // Wrike exports have no ID column: the ID comes from each row's link.
   const hi = rows.slice(0, 25).findIndex((r) => {
-    const cells = r.map((h) => h.trim());
-    return HEADERS.source_id.test(cells.find((c) => HEADERS.source_id.test(c)) ?? '') && cells.some((c) => HEADERS.title.test(c));
+    const cells = r.map((h) => (h ?? '').trim());
+    const hasTitle = cells.some((c) => HEADERS.title.test(c));
+    return hasTitle && (cells.some((c) => HEADERS.source_id.test(c)) || !!o.links?.size);
   });
   if (hi < 0) {
-    warnings.push(`Could not find a header row with the ID and Subject columns. First row: ${(rows[0] ?? []).join(', ')}`);
+    warnings.push(`Could not find a header row with the ID and Subject (or Name) columns. First row: ${(rows[0] ?? []).join(', ')}`);
     return empty;
   }
   const header = rows[hi].map((h) => h.trim());
@@ -148,10 +162,16 @@ export function importTicketsCsv(text: string, source: Source, opts: CsvImportOp
   const tickets: SourceTicket[] = [];
   const seen = new Set<string>();
   let skippedOldClosed = 0;
+  let skippedHeadings = 0;
   rows.slice(hi + 1).forEach((r, n) => {
     const line = hi + n + 2;
-    const id = get(r, 'source_id').replace(/^#/, '');
-    if (!id) return void warnings.push(`Row ${line}: no ID, skipped.`);
+    const link = linkAt(hi + 1 + n);
+    const id = (get(r, 'source_id') || (source === 'Wrike' ? wrikeIdFrom(link) : '') || '').replace(/^#/, '');
+    if (!id) {
+      // A row with only a name and no link is a group heading ("New - Not Started", "Planning"…).
+      if (o.links?.size && r.filter((c) => (c ?? '').trim()).length <= 3) return void skippedHeadings++;
+      return void warnings.push(`Row ${line}: no ID, skipped.`);
+    }
     if (seen.has(id)) return void warnings.push(`Row ${line}: duplicate ID ${id}, skipped.`);
     seen.add(id);
     const status = get(r, 'source_status') || 'Open';
@@ -161,12 +181,12 @@ export function importTicketsCsv(text: string, source: Source, opts: CsvImportOp
       return;
     }
     const created = parseDate(get(r, 'created'));
-    if (!created) warnings.push(`Row ${line}: no readable created date, using now.`);
+    if (!created && source !== 'Wrike') warnings.push(`Row ${line}: no readable created date, using now.`);
     const dept = get(r, 'department');
     tickets.push({
       source,
       source_id: id,
-      source_url: fillLink(o.urlTemplate, id),
+      source_url: link && /^https?:\/\//.test(link) ? link : fillLink(o.urlTemplate, id),
       title: maskNumbers(get(r, 'title')) || `(no subject) #${id}`,
       requester: get(r, 'requester') || dept || undefined,
       department: dept || undefined,
@@ -185,7 +205,7 @@ export function importTicketsCsv(text: string, source: Source, opts: CsvImportOp
       last_modified: parseDate(get(r, 'updated')),
     });
   });
-  return { tickets, warnings, columns, skippedOldClosed };
+  return { tickets, warnings, columns, skippedOldClosed, skippedHeadings };
 }
 
 /**
@@ -197,6 +217,8 @@ export function mergeSnapshot(prev: TicketsSnapshot | undefined, fresh: SourceTi
   const old = new Map((prev?.items ?? []).filter((t) => t.source === source).map((t) => [t.source_id, t]));
   const items = fresh.map((t) => {
     const o = old.get(t.source_id);
+    // Exports without a created date (Wrike) keep the date the hub first saw the item.
+    if (o && t.created > o.created && !t.closed && t.source === 'Wrike') t = { ...t, created: o.created };
     const changed = { ...(o?.changed ?? {}) };
     if (o && (o.source_owner ?? '') !== (t.source_owner ?? '')) changed.source_owner = now;
     if (o && (o.source_priority ?? '') !== (t.source_priority ?? '')) changed.source_priority = now;

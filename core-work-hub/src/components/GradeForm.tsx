@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
 import { useHub } from '../store/hub';
+import { srcName } from './ui';
 import { assignable, computeScore, suggestOwner, suggestPriority, findPerson } from '../model/logic';
 import { BUCKETS, BUCKET_LABEL, PRIORITIES, type Bucket, type Grade, type Priority, type WorkItem } from '../model/types';
 import { Avatar, BucketDot, Pick } from './ui';
 import { EFFORT_LEVELS, EFFORT_SHORT, IMPACT_LEVELS, ScalePick, URGENCY_LEVELS } from './Scale';
+import { criteriaOf, effortCriterion } from '../model/teamscore';
 
 export interface Draft {
   bucket?: Bucket;
@@ -18,7 +20,7 @@ export interface Draft {
 }
 
 export const draftFrom = (i: WorkItem): Draft => ({
-  bucket: i.bucket,
+  bucket: i.bucket ?? i.suggested_bucket,
   priority: i.priority,
   priorityTouched: !!i.graded,
   impact: i.impact,
@@ -41,6 +43,7 @@ export function effectiveGrade(d: Draft, suggestedOwner?: string): Grade | undef
 export function GradeForm({ item, draft, onChange, disabled }: { item: WorkItem; draft: Draft; onChange: (d: Draft) => void; disabled?: boolean }) {
   const { state } = useHub();
   const cfg = state.config;
+  const projectEffort = effortCriterion(criteriaOf(cfg));
   const score = computeScore(draft.impact, draft.urgency, draft.effort);
   const sugPri = suggestPriority(score);
   const priority = draft.priorityTouched ? draft.priority : sugPri ?? draft.priority;
@@ -66,7 +69,16 @@ export function GradeForm({ item, draft, onChange, disabled }: { item: WorkItem;
       </div>
       <div className="grade-row">
         <span className="label">Effort</span>
-        <ScalePick label="Effort" value={draft.effort} onChange={(v) => set({ effort: v })} disabled={disabled} levels={EFFORT_LEVELS} short={EFFORT_SHORT} />
+        {/* Tickets are sized in hours; projects use the project scale (days to months), same as Team score. */}
+        <ScalePick
+          label="Effort"
+          value={draft.effort}
+          onChange={(v) => set({ effort: v })}
+          disabled={disabled}
+          levels={draft.bucket === 'Project' ? projectEffort?.levels : EFFORT_LEVELS}
+          short={draft.bucket === 'Project' ? projectEffort?.short : EFFORT_SHORT}
+          points={draft.bucket === 'Project' ? projectEffort?.points : undefined}
+        />
       </div>
       <div className="scorebox" aria-live="polite">
         <div>
@@ -100,7 +112,7 @@ export function GradeForm({ item, draft, onChange, disabled }: { item: WorkItem;
           </select>
         </label>
         <label className="field">
-          <span>Owner{item.ownerFromSource ? ' (assigned in Service Desk)' : ''}</span>
+          <span>Owner{item.ownerFromSource ? ` (assigned in ${srcName(item)})` : ''}</span>
           <select className="input" value={owner ?? ''} disabled={disabled || item.ownerFromSource} onChange={(e) => set({ owner: e.target.value || undefined, ownerTouched: true })}>
             <option value="">{item.ownerFromSource && item.source_owner ? `${item.source_owner} (not on the hub)` : 'No owner'}</option>
             {assignable(cfg).map((p) => (
@@ -118,7 +130,7 @@ export function GradeForm({ item, draft, onChange, disabled }: { item: WorkItem;
           <div className="grow">
             <div style={{ fontWeight: 700 }}>
               {item.ownerFromSource ? (
-                <>Assigned in Service Desk to {item.owner ? ownerName(item.owner) : item.source_owner}</>
+                <>Assigned in {srcName(item)} to {item.owner ? ownerName(item.owner) : item.source_owner}</>
               ) : sug ? (
                 <>Next in rotation: {ownerName(sug.username)} <span className="muted">({sug.slot})</span></>
               ) : (
@@ -126,7 +138,7 @@ export function GradeForm({ item, draft, onChange, disabled }: { item: WorkItem;
               )}
             </div>
             <div className="small muted">
-              {item.ownerFromSource ? (sug ? `Rotation would have suggested ${ownerName(sug.username)}. Reassign in Service Desk if needed.` : '') : `${sug?.reason ?? ''}.`} Map: {ownerName(sys.primary) ?? '–'} → {ownerName(sys.secondary) ?? '–'}
+              {item.ownerFromSource ? (sug ? `Rotation would have suggested ${ownerName(sug.username)}. Reassign in ${srcName(item)} if needed.` : '') : `${sug?.reason ?? ''}.`} Map: {ownerName(sys.primary) ?? '–'} → {ownerName(sys.secondary) ?? '–'}
               {sys.third ? ` → ${ownerName(sys.third)}` : ''}
             </div>
           </div>

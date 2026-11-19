@@ -1,4 +1,4 @@
-import { computeScore, mapSourcePriority, roleOf, canGrade, personForSourceName, systemForCategory } from './logic';
+import { computeScore, mapSourcePriority, roleOf, canGrade, ownersFromSource, systemForCategory } from './logic';
 import { fillLink } from './csv';
 import { computeTeamScore, criteriaOf, isProject } from './teamscore';
 import type { AuditEntry, Bucket, Conflict, HubConfig, HubEvent, HubState, SourceTicket, TicketsSnapshot, TimeEntry, WorkItem } from './types';
@@ -50,7 +50,10 @@ export function isStatus(list: string[], status: string) {
 }
 
 function fromTicket(t: SourceTicket, config: HubConfig): WorkItem {
-  const owner = personForSourceName(config, t.source_owner)?.username;
+  const owner = ownersFromSource(config, t.source_owner).owner;
+  // Wrike "Work Type": Maintenance stays Maintenance; Project / Upgrade (and anything else from Wrike) is a project.
+  const wt = (t.category ?? '').toLowerCase();
+  const suggested_bucket = t.source === 'Wrike' ? (/maint/.test(wt) ? 'Maintenance' : /support|incident/.test(wt) ? 'Support' : 'Project') : undefined;
   return {
     id: itemIdFor(t.source, t.source_id),
     source: t.source,
@@ -65,6 +68,8 @@ function fromTicket(t: SourceTicket, config: HubConfig): WorkItem {
     // Seeded from the SD sub-category through the ownership map's aliases; grading can change it.
     system: systemForCategory(config, t.subcategory, t.category),
     subcategory: t.subcategory,
+    suggested_bucket,
+    source_owners: ownersFromSource(config, t.source_owner).names,
     due_by: t.due_by,
     sd_responded: t.responded,
     sd_last_note: t.last_note,
@@ -339,6 +344,7 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
         if (p) {
           if (e.data.wipLimit !== undefined) p.wipLimit = e.data.wipLimit;
           if (e.data.sdName !== undefined) p.sdName = e.data.sdName || undefined;
+          if (e.data.aliases !== undefined) p.aliases = e.data.aliases;
           if (e.data.bucketWip !== undefined) p.bucketWip = e.data.bucketWip;
         }
         break;
@@ -378,7 +384,7 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
     // Service Desk assigns the work: when SD has a technician, that person owns the card. The hub only
     // assigns tickets that are unassigned in SD (and reminds you to set the same person there).
     if (t.source_owner && !/^(not assigned|unassigned|-)$/i.test(t.source_owner.trim())) {
-      const srcOwner = personForSourceName(config, t.source_owner)?.username;
+      const srcOwner = ownersFromSource(config, t.source_owner).owner;
       if (h?.owner && srcOwner !== w.owner)
         conflicts.push({ ts: t.changed?.source_owner ?? snapshot?.generatedAt ?? h.owner.ts, item: id, field: 'owner', hubValue: w.owner, sourceValue: srcOwner ?? t.source_owner, hubUser: h.owner.user });
       if (srcOwner !== w.owner) w.owner = srcOwner;

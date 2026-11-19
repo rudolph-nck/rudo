@@ -5,7 +5,7 @@ import { analysts, checkWip, computeScore, coverageGaps, currentDispatch, nextDi
 import { importTicketsCsv, maskNumbers, mergeSnapshot, parseCsv } from '../src/model/csv';
 import type { HubEvent, TicketsSnapshot, WorkItem } from '../src/model/types';
 import { heldUp, overview, priorityConflicts, shiftStats } from '../src/model/analytics';
-import { addBusinessMinutes, businessMinutesBetween, commStatus, DEFAULT_STANDARD, noticesFor } from '../src/model/comms';
+import { addBusinessDays, addBusinessMinutes, businessMinutesBetween, commStatus, DEFAULT_STANDARD, noticesFor } from '../src/model/comms';
 import { criteriaOf, DEFAULT_CRITERIA, effortCriterion, effortLabel, effortPoints, nextFreeAbove, teamBoard, velocity } from '../src/model/teamscore';
 import { demoSeed } from '../src/demo';
 
@@ -701,14 +701,54 @@ describe('forced priority (expedite)', () => {
 
 describe('shipped config template', () => {
   it('loads cleanly: blank emails and SD names are ignored, standard and rotation present', async () => {
-    const { readFileSync } = await import('node:fs');
     const { normalizeConfig } = await import('../src/model/config');
-    const cfg = normalizeConfig(JSON.parse(readFileSync('deploy/hub-config.json', 'utf8')));
+    const raw = (await import('../deploy/hub-config.json')).default;
+    const cfg = normalizeConfig(raw as never);
     expect(cfg.people).toHaveLength(8);
     expect(cfg.rotation?.shift).toBe('2weeks');
     expect(cfg.commStandard?.updateBusinessDays).toBe(5);
     expect(personForSourceName(cfg, 'Wesley Wilson')?.username).toBe('wes'); // first-name match still works with sdName ''
     const s = replay(cfg, snap([{ source_owner: 'Cathy E. Garcia' }]), []);
     expect(s.items.get('SD:100')!.owner).toBe('cathy');
+  });
+});
+
+describe('Wrike Excel import', () => {
+  it('reads the export, takes IDs from links, skips headings and cancelled, matches names', async () => {
+    const { readFileSync } = await import('fs' as string);
+    const { readXlsx } = await import('../src/model/xlsx');
+    const { importTicketRows } = await import('../src/model/csv');
+    const buf = readFileSync('tests/fixtures/wrike-sample.xlsx');
+    const sheet = await readXlsx(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
+    expect(sheet.rows[0][0]).toBe('Name');
+    const r = importTicketRows(sheet.rows, 'Wrike', { links: sheet.links, now: new Date('2026-11-19T12:00:00') });
+    expect(r.tickets.map((t) => t.source_id)).toEqual(['1000000001', '1000000002', '1000000003', '1000000005']);
+    expect(r.skippedHeadings).toBe(2);
+    expect(r.skippedOldClosed).toBe(1);
+    expect(r.tickets[1]).toMatchObject({ source_url: 'https://www.wrike.com/open.htm?id=1000000002', subcategory: 'Synergy', category: 'Maintenance', due_by: new Date(2026, 10, 2).toISOString() });
+
+    const cfg = defaultConfig();
+    cfg.systems.push({ id: 'symitar', name: 'Symitar', primary: 'cathy' }, { id: 'synergy', name: 'Synergy', primary: 'wes' });
+    cfg.people.find((p) => p.username === 'cathy')!.sdName = 'Cathy E. Garcia';
+    cfg.people.find((p) => p.username === 'nick')!.sdName = 'Nick Rudolph';
+    const s = replay(cfg, { generatedAt: at(0), generatedBy: 't', mode: 'xlsx', items: r.tickets }, []);
+    const g = (id: string) => s.items.get('Wrike:' + id)!;
+    expect(g('1000000001')).toMatchObject({ owner: 'cathy', system: 'symitar', suggested_bucket: 'Project', column: 'Intake' }); // "Catherine Garcia" ~ "Cathy E. Garcia"
+    expect(g('1000000002')).toMatchObject({ owner: 'michael', source_owners: ['Michael Cariglino', 'Wesley Wilson'], suggested_bucket: 'Maintenance', system: 'synergy' });
+    expect(g('1000000003')).toMatchObject({ owner: undefined, system: 'symitar' }); // "Symitar, SharePoint"
+    expect(g('1000000005')).toMatchObject({ owner: undefined, ownerFromSource: true }); // assignee not on the hub
+    expect(personForSourceName(cfg, 'Nicholas Rudolph')?.username).toBe('nick');
+  });
+});
+
+describe('communication standard go-live date', () => {
+  it('clocks start no earlier than enforceFrom', () => {
+    const L = (d: number, h: number) => new Date(2026, 10, d, h);
+    const cfg = defaultConfig();
+    cfg.commStandard = { sdLastUpdatedCountsAsUpdate: true, enforceFrom: '2026-11-23' };
+    const s = replay(cfg, { generatedAt: at(0), generatedBy: 't', mode: 'csv', items: [{ source: 'SD', source_id: '5', title: 'old', source_status: 'Open', created: new Date(2026, 6, 1).toISOString(), last_modified: new Date(2026, 7, 1).toISOString() }] }, []);
+    const c = commStatus(s, s.items.get('SD:5')!, L(23, 12))!;
+    expect(c.level).toBe('ok');
+    expect(c.due).toEqual(addBusinessDays(DEFAULT_STANDARD, new Date(2026, 10, 23), 5));
   });
 });
