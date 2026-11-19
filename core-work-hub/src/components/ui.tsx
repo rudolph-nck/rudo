@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import type { Bucket, Priority, WorkItem } from '../model/types';
 import { findPerson, initials } from '../model/logic';
 import type { HubConfig } from '../model/types';
@@ -149,6 +149,35 @@ export function Pick<T extends string | number>({ label, value, options, onChang
         </button>
       ))}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------- tooltip
+
+/**
+ * Hover/focus tooltip. The trigger is focusable so keyboard users get the same text; Esc closes it.
+ * Use for explanations of non-interactive things (scores, chips, bars), never to wrap buttons.
+ */
+export function Tip({ content, children, className, place = 'top', label }: { content: ReactNode; children: ReactNode; className?: string; place?: 'top' | 'bottom'; label?: string }) {
+  const id = useId();
+  const [open, setOpen] = useState(false);
+  return (
+    <span
+      className={`tip-wrap ${className ?? ''}`}
+      tabIndex={0}
+      aria-describedby={id}
+      aria-label={label}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      onFocus={() => setOpen(true)}
+      onBlur={() => setOpen(false)}
+      onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
+    >
+      {children}
+      <span role="tooltip" id={id} className={`tip ${place} ${open ? 'open' : ''}`}>
+        {content}
+      </span>
+    </span>
   );
 }
 

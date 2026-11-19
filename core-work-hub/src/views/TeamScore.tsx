@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useHub } from '../store/hub';
 import { useUi } from '../components/actions';
-import { Avatar, Icon, Modal, PriorityChip, SourceBadge, toast } from '../components/ui';
+import { Avatar, Icon, Modal, PriorityChip, SourceBadge, Tip, toast } from '../components/ui';
 import { analysts, findPerson, rankedList } from '../model/logic';
 import { effortCriterion, effortLabel, effortPoints, nextFreeAbove, teamBoard, usedScores, velocity, type TeamRow } from '../model/teamscore';
 import { ScalePick } from '../components/Scale';
@@ -61,9 +61,9 @@ export function TeamScore() {
         <div className="small muted" style={{ fontWeight: 700 }}>Everyone rates each project 1–5 on:</div>
         <div className="row wrap" style={{ gap: 8 }}>
           {b.criteria.map((c) => (
-            <span key={c.key} className="crit" title={c.hint}>
+            <Tip key={c.key} className="crit" place="bottom" content={<CriterionTip c={c} total={b.criteria.reduce((n, x) => n + x.weight, 0)} />}>
               <strong>{c.label}</strong> <span className="muted">{c.weight}%{c.invert ? ' · less is better' : ''}</span>
-            </span>
+            </Tip>
           ))}
         </div>
         <div className="small muted">Score = weighted team average, 0–100. Ties go to the daily meeting; the decision is recorded.</div>
@@ -169,20 +169,68 @@ function TeamRowView({ r, criteria, teamSize, canRate, canDecide, rating, onRate
   const tiedPositions = r.tiedWith.map((t) => board.scored.find((s) => s.item.id === t.id)?.position ?? r.position ?? 0);
   return (
     <li className={`panel ts-row ${r.tiedWith.length ? 'tied' : ''}`}>
-      <div className="ts-pos" aria-label={r.position ? (r.tiedWith.length ? `Tied for position ${r.position}` : `Position ${r.position}`) : 'Not scored'}>
+      <Tip
+        className="ts-pos"
+        label={r.position ? (r.tiedWith.length ? `Tied for position ${r.position}` : `Position ${r.position}`) : 'Not scored'}
+        content={
+          <>
+            <strong>Department priority order</strong>
+            {r.position === undefined ? (
+              <p>Not ranked yet: it needs every criterion rated by at least one person.</p>
+            ) : r.tiedWith.length ? (
+              <p>Tied with {r.tiedWith.map((t) => `“${t.title}”`).join(', ')} at {r.ts.score}. Ties are decided in the daily meeting: whichever the team picks goes first.</p>
+            ) : (
+              <p>#{r.position} of {board.scored.length} scored projects. The highest team score goes first when the team has to choose.</p>
+            )}
+          </>
+        }
+      >
         {r.position ? (r.tiedWith.length ? `#${Math.min(r.position, ...tiedPositions)}–${Math.max(r.position, ...tiedPositions)}` : `#${r.position}`) : '—'}
-      </div>
-      <div className="ts-score" aria-label={r.ts.score !== undefined ? `Team score ${r.ts.score}` : 'No team score yet'}>
+      </Tip>
+      <Tip
+        className="ts-score"
+        label={r.ts.score !== undefined ? `Team score ${r.ts.score}` : 'No team score yet'}
+        content={
+          <>
+            <strong>Team score {r.ts.score ?? '—'}</strong>
+            <p>
+              The department-wide priority for this project, 0–100. It’s the weighted average of {r.ts.raters.length} {r.ts.raters.length === 1 ? 'person’s' : 'people’s'} ratings:{' '}
+              {criteria.map((c) => `${c.label} ${c.weight}%`).join(', ')}. Higher means it goes first. No two projects can share a score.
+            </p>
+            {r.ts.set ? (
+              <p>
+                <strong>Set by {name(r.ts.set.by)}</strong>{r.ts.set.reason ? `: ${r.ts.set.reason}` : ''}. The ratings alone would give {r.ts.base ?? '—'}. The set score wins until it’s cleared.
+              </p>
+            ) : r.ts.score === undefined ? (
+              <p>No score yet: someone needs to rate all {criteria.length} criteria.</p>
+            ) : null}
+          </>
+        }
+      >
         <strong>{r.ts.score ?? '—'}</strong>
         <span>{r.ts.set ? 'team decision' : r.ts.score !== undefined ? 'team score' : 'needs ratings'}</span>
-      </div>
+      </Tip>
       <div className="grow" style={{ minWidth: 0 }}>
         <div className="row wrap" style={{ gap: 6 }}>
           <PriorityChip p={i.priority} />
           <SourceBadge item={i} />
           <span className="chip src">{COLUMN_LABEL[i.column]}{i.rank ? ` #${i.rank}` : ''}</span>
-          {r.tiedWith.length > 0 && <span className="chip bad">Tied</span>}
-          {disagree.length > 0 && <span className="chip warn" title="Ratings differ by 2 or more">Discuss: {disagree.map((c) => c.label).join(', ')}</span>}
+          {r.tiedWith.length > 0 && (
+            <Tip className="chip bad" content={<p>Same score as {r.tiedWith.map((t) => `“${t.title}”`).join(', ')}. Pick which goes first in the tie banner above (or in the daily meeting).</p>}>Tied</Tip>
+          )}
+          {disagree.length > 0 && (
+            <Tip
+              className="chip warn"
+              content={
+                <>
+                  <strong>The team disagrees</strong>
+                  <p>Ratings are 2 or more points apart on {disagree.map((c) => `${c.label} (${spreadText(r, c)})`).join(', ')}. Talk it through so everyone rates from the same facts.</p>
+                </>
+              }
+            >
+              Discuss: {disagree.map((c) => c.label).join(', ')}
+            </Tip>
+          )}
           {canRate && !mine && <span className="chip p3">You haven’t rated</span>}
         </div>
         <button className="linkish strong" onClick={() => openItem(i.id)}>{i.title}</button>
@@ -190,11 +238,31 @@ function TeamRowView({ r, criteria, teamSize, canRate, canDecide, rating, onRate
           {criteria.map((c) => {
             const a = r.ts.avg[c.key];
             return (
-              <div key={c.key} className="ts-c" title={`${c.label}: team average ${a?.toFixed(1) ?? '—'}${r.ts.spread[c.key] !== undefined ? `, ratings span ${r.ts.spread[c.key]}` : ''}`}>
+              <Tip
+                key={c.key}
+                className="ts-c"
+                label={`${c.label}: team average ${a?.toFixed(1) ?? 'not rated'}`}
+                content={
+                  <>
+                    <strong>{c.label} · {c.weight}% of the score</strong>
+                    {c.hint && <p>{sentence(c.hint)}</p>}
+                    {a !== undefined ? (
+                      <>
+                        <p>
+                          Team average <strong>{a.toFixed(1)}</strong>, closest to {Math.round(a)}: {c.levels?.[Math.round(a) - 1] ?? ''}
+                        </p>
+                        <p className="muted">{spreadText(r, c)}{c.invert ? ' Less effort scores higher.' : ''}</p>
+                      </>
+                    ) : (
+                      <p>Nobody has rated this yet.</p>
+                    )}
+                  </>
+                }
+              >
                 <span className="small muted">{c.label}</span>
                 <span className="bar"><i style={{ width: a ? `${(a / 5) * 100}%` : 0 }} /></span>
                 <span className="small" style={{ fontVariantNumeric: 'tabular-nums' }}>{a ? a.toFixed(1) : '—'}</span>
-              </div>
+              </Tip>
             );
           })}
         </div>
@@ -203,7 +271,17 @@ function TeamRowView({ r, criteria, teamSize, canRate, canDecide, rating, onRate
           const a = ec ? r.ts.avg[ec.key] : undefined;
           return ec && a !== undefined ? (
             <div className="small" style={{ marginTop: 6 }}>
-              <strong>Est. effort:</strong> {effortLabel(ec, a)} · {effortPoints(ec, a)} pt{effortPoints(ec, a) === 1 ? '' : 's'}
+              <Tip
+                content={
+                  <>
+                    <strong>Estimated effort</strong>
+                    <p>From the team’s Effort ratings (average {a.toFixed(1)}): {effortLabel(ec, a)}. That’s {effortPoints(ec, a)} velocity point{effortPoints(ec, a) === 1 ? '' : 's'}.</p>
+                    <p className="muted">Points: 1 ≤2 days · 2 ~1 week · 3 1–3 weeks · 5 1–2 months · 8 2+ months. Hands-on work, not calendar time.</p>
+                  </>
+                }
+              >
+                <strong>Est. effort:</strong> {effortLabel(ec, a)} · {effortPoints(ec, a)} pt{effortPoints(ec, a) === 1 ? '' : 's'}
+              </Tip>
               {(r.ts.spread[ec.key] ?? 0) >= 2 && <span className="muted"> (the team’s estimates differ: discuss)</span>}
             </div>
           ) : null;
@@ -215,10 +293,20 @@ function TeamRowView({ r, criteria, teamSize, canRate, canDecide, rating, onRate
         )}
       </div>
       <div className="ts-side">
-        <div className="ts-raters" aria-label={`${r.ts.raters.length} of ${teamSize} rated`}>
+        <Tip
+          className="ts-raters"
+          label={`${r.ts.raters.length} of ${teamSize} rated`}
+          content={
+            <>
+              <strong>{r.ts.raters.length} of {teamSize} have rated</strong>
+              <p>{r.ts.raters.length ? `Rated: ${r.ts.raters.map((u) => name(u)).join(', ')}.` : 'No ratings yet.'}</p>
+              {r.ts.raters.length < teamSize && <p className="muted">The score firms up as more of the team rates it. Each person’s latest rating counts.</p>}
+            </>
+          }
+        >
           {r.ts.raters.slice(0, 6).map((u) => <Avatar key={u} user={u} config={cfg} />)}
           <span className="small muted">{r.ts.raters.length}/{teamSize} rated</span>
-        </div>
+        </Tip>
         <div className="row" style={{ gap: 6, justifyContent: 'flex-end' }}>
           {i.owner && <span className="small muted">Owner {name(i.owner)}</span>}
           {canRate && <button className="btn sm" aria-expanded={rating} aria-label={`${mine ? 'Update my rating' : 'Rate'}: ${i.title}`} onClick={onRate}>{mine ? 'Update my rating' : 'Rate'}</button>}
@@ -313,3 +401,27 @@ function SetScoreDialog({ row, onClose }: { row: TeamRow; onClose: () => void })
     </Modal>
   );
 }
+
+/** "Ratings range 2–5 across 3 people." */
+function spreadText(r: TeamRow, c: TeamCriterion) {
+  const vals = r.ts.raters.map((u) => r.item.team?.ratings[u]?.[c.key]).filter((v): v is number => typeof v === 'number');
+  if (!vals.length) return '';
+  const lo = Math.min(...vals), hi = Math.max(...vals);
+  return lo === hi ? `Everyone who rated said ${lo}.` : `Ratings range ${lo}–${hi} across ${vals.length} people.`;
+}
+
+function CriterionTip({ c, total }: { c: TeamCriterion; total: number }) {
+  return (
+    <>
+      <strong>{c.label} · {Math.round((c.weight / (total || 1)) * 100)}% of the score</strong>
+      {c.hint && <p>{sentence(c.hint)}</p>}
+      {c.levels && (
+        <ol className="tip-levels">
+          {c.levels.map((l, n) => <li key={n}><b>{n + 1}</b> {l}</li>)}
+        </ol>
+      )}
+    </>
+  );
+}
+
+const sentence = (t: string) => (/[.!?]$/.test(t.trim()) ? t : `${t}.`);

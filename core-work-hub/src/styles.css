@@ -467,8 +467,8 @@ table.cal td.sup { background: var(--accent-soft); }
 .ts-row.tied { border-color: var(--danger); }
 .ts-pos { font-size: 16px; white-space: nowrap; font-weight: 800; color: var(--accent-text); text-align: center; }
 .ts-score { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 6px; border-radius: 12px; background: var(--accent-soft); }
-.ts-score strong { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; color: var(--text); font-variant-numeric: tabular-nums; }
-.ts-score span { font-size: 11px; font-weight: 700; color: var(--text-2); }
+.ts-score > strong { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; color: var(--text); font-variant-numeric: tabular-nums; }
+.ts-score > span:not(.tip) { font-size: 11px; font-weight: 700; color: var(--text-2); }
 .ts-crit { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px 16px; margin-top: 8px; }
 .ts-c { display: grid; grid-template-columns: 118px 1fr 26px; gap: 6px; align-items: center; }
 .ts-side { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
@@ -500,3 +500,25 @@ table.cal td.sup { background: var(--accent-soft); }
 .vel-bars i { display: block; width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; }
 .grade-row:has(.scale) { align-items: flex-start; }
 .grade-row:has(.scale) > .label { padding-top: 12px; }
+
+/* ---------- tooltips */
+.tip-wrap { position: relative; display: inline-flex; align-items: center; gap: inherit; cursor: help; border-radius: 6px; }
+.tip-wrap:focus-visible { box-shadow: var(--focus); }
+.tip { position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); z-index: 50; width: max-content; max-width: 320px; padding: 10px 12px; border-radius: 10px; background: var(--text); color: var(--bg); font-size: 12.5px; font-weight: 500; line-height: 1.45; text-align: left; box-shadow: var(--shadow-lg); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; white-space: normal; letter-spacing: 0; text-transform: none; }
+.tip.bottom { bottom: auto; top: calc(100% + 8px); }
+.tip.open { visibility: visible; opacity: 1; }
+.tip::after { content: ''; position: absolute; left: 50%; top: 100%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: var(--text); }
+.tip.bottom::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--text); }
+.tip > strong { display: block; font-weight: 800; margin-bottom: 2px; }
+.tip strong { color: inherit; font-size: inherit; letter-spacing: 0; line-height: inherit; }
+.tip, .tip * { color: var(--bg); }
+.tip p { margin: 4px 0 0; }
+.tip .muted { color: inherit; opacity: 0.8; }
+.tip-levels { margin: 6px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; }
+.tip-levels b { display: inline-block; width: 14px; }
+.ts-c.tip-wrap, .ts-score.tip-wrap, .ts-raters.tip-wrap { display: grid; }
+.ts-c.tip-wrap { display: grid; grid-template-columns: 118px 1fr 26px; }
+.ts-score.tip-wrap { display: flex; flex-direction: column; }
+.ts-raters.tip-wrap { display: flex; }
+.ts-pos.tip-wrap { justify-content: center; }
+.chip.tip-wrap { display: inline-flex; }

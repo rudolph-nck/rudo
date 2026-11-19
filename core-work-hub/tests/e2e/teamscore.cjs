@@ -12,12 +12,20 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   await p.goto(file + '?demo&as=nick#/teamscore'); await p.reload(); await p.waitForSelector('.ts-list');
   if (process.env.SHOTS) await p.screenshot({ path: process.env.SHOTS + '/teamscore.png' });
   check((await p.locator('.banner.tie').count()) === 1, 'demo tie is flagged');
+  await p.locator('.ts-row').first().locator('.ts-score').hover();
+  check(/department-wide priority/.test(await p.locator('.tip.open').innerText()), 'hovering the score explains it');
+  await p.locator('.ts-row').first().locator('.ts-c').first().hover();
+  check(/Business value · 30% of the score[\s\S]*Team average/.test(await p.locator('.tip.open').innerText()), 'hovering a criterion explains it and the team average');
+  await p.mouse.move(5, 995);
+  await p.locator('.ts-row').first().locator('.ts-raters').focus();
+  check((await p.locator('.tip.open').count()) === 1, 'tooltips open on keyboard focus too');
+  await p.keyboard.press('Escape');
   check(!(await p.getByRole('button', { name: /Rank the Projects board/ }).isEnabled()), 'board ranking waits until ties are broken');
   // Break the tie: Wi-Fi first
   await p.locator('.banner.tie').getByRole('button', { name: /Branch Wi-Fi.*first/ }).click();
   await p.waitForTimeout(300);
   check((await p.locator('.banner.tie').count()) === 0, 'tie broken');
-  const scores = await p.locator('.ts-score strong').allInnerTexts();
+  const scores = await p.locator('.ts-score > strong').allInnerTexts();
   const nums = scores.filter((s) => s !== '—');
   check(new Set(nums).size === nums.length, `every scored project is unique: ${nums.join(', ')}`);
   // Rate the migration project as Nick (update my rating)
@@ -28,7 +36,7 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   await p.waitForTimeout(300);
   check(/team score/.test(await row.locator('.ts-score').innerText()), 'rating saved and score recomputed');
   // A set score that clashes is refused in the dialog
-  const taken = (await p.locator('.ts-row').filter({ has: p.getByRole('button', { name: 'Branch Wi-Fi refresh: survey 3 branches', exact: true }) }).locator('.ts-score strong').innerText()).trim();
+  const taken = (await p.locator('.ts-row').filter({ has: p.getByRole('button', { name: 'Branch Wi-Fi refresh: survey 3 branches', exact: true }) }).locator('.ts-score > strong').innerText()).trim();
   await p.getByRole('button', { name: /^Set score: Write runbook/ }).click();
   await p.getByLabel('Team score (one decimal)').fill(taken);
   await p.getByLabel(/Why \(required/).fill('test');
