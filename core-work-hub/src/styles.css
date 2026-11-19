@@ -185,7 +185,7 @@ textarea.input { min-height: 84px; resize: vertical; }
 .filters select { min-height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--surface); font-weight: 600; font-size: 13px; }
 .toggle { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--surface); font-weight: 600; font-size: 13px; cursor: pointer; }
 .toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
-.board { display: grid; grid-template-columns: repeat(7, minmax(168px, 1fr)); gap: 10px 10px; min-width: 1236px; align-items: stretch; }
+.board { display: grid; grid-template-columns: minmax(196px, 1.2fr) repeat(6, minmax(168px, 1fr)); gap: 10px 10px; min-width: 1236px; align-items: stretch; }
 .board > div:not(.lane-head):not(.col-head) { min-width: 0; }
 .board-scroll { overflow-x: auto; padding-bottom: 8px; margin: 0 -4px; padding-left: 4px; padding-right: 4px; }
 .col-head { display: flex; align-items: center; gap: 8px; padding: 4px 6px 8px; font-weight: 800; font-size: 13px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; }
@@ -563,3 +563,59 @@ fieldset.holds legend { font-size: 12px; font-weight: 700; color: var(--text-2);
 fieldset.holds ul { list-style: none; margin: 0; padding: 0; max-height: 240px; overflow: auto; }
 fieldset.holds input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); }
 section[aria-labelledby='sys-h'] select.input { min-width: 112px; }
+
+/* ---- Board: in swimlanes the shared Intake column takes the lanes' height and scrolls inside, instead of
+   stretching every lane to fit 100+ intake cards. */
+.intake-span { display: flex; height: 0; min-height: 100%; }
+.intake-span > .cell { overflow-y: auto; overscroll-behavior: contain; }
+/* One row of columns: each column scrolls on its own, so the board fits the screen. */
+.board.flat { align-items: start; }
+.board.flat > .cell { max-height: max(320px, calc(100vh - 360px)); overflow-y: auto; overscroll-behavior: contain; }
+/* Bucket badge on cards (Project / Maintenance / Support). Neutral chip + the bucket's colour dot. */
+.chip.bucket-badge { background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); gap: 5px; padding: 0 7px; }
+.chip.bucket-badge .dot { width: 8px; height: 8px; }
+
+/* ---- Sidebar footer: sync status, refresh and theme on one row. */
+.foot-row { gap: 4px; flex-wrap: nowrap; }
+.foot-row > .grow { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.theme-seg { padding: 2px; gap: 0; border-radius: 10px; }
+.theme-seg button { min-height: 30px; padding: 0 8px; border-radius: 8px; }
+.dispatch-card { cursor: pointer; }
+
+/* ---- Sidebar on shorter screens: tighten step by step so the whole menu fits without scrolling. */
+@media (max-height: 940px) {
+  .sidebar { padding: 14px 12px; gap: 12px; }
+  .nav button { min-height: 38px; }
+  .dispatch-card { padding: 10px 12px; }
+  .dispatch-card .who { margin: 4px 0 2px; }
+  .dc-next { display: none; }
+}
+@media (max-height: 820px) {
+  .nav button { min-height: 34px; }
+  .nav-sep { margin: 3px 4px; }
+  .dispatch-card .section-title, .dc-link { display: none; }
+  .dispatch-card .who { margin: 0; }
+  .dispatch-card .who::before { content: 'On support:'; font-weight: 600; font-size: 12px; color: var(--text-3); }
+  .sidebar-foot { gap: 4px; }
+}
+@media (max-height: 620px) {
+  .nav button { min-height: 28px !important; }
+  .nav { gap: 1px; }
+  .dispatch-card { padding: 6px 10px; }
+}
+@media (max-height: 700px) {
+  .sidebar { padding: 10px 10px; gap: 8px; }
+  .nav button { min-height: 30px; font-size: 13.5px; }
+  .nav .count { height: 20px; }
+  .dc-until { display: none; }
+  .brand { font-size: 15px; }
+}
+
+/* ---- Cards in narrow columns: labels wrap inside the card instead of running past its edge. */
+.card > * { min-width: 0; max-width: 100%; }
+.card .chip { white-space: normal; height: auto; min-height: 22px; padding-top: 2px; padding-bottom: 2px; line-height: 1.3; max-width: 100%; overflow-wrap: anywhere; }
+.card .chip svg { flex: none; }
+
+/* Swimlane drop zones grow to fill tall screens (the shared Intake column follows them). */
+/* lane-fill removed */
+.sidebar-foot .me-btn { min-width: 0; }

@@ -92,7 +92,8 @@ export function Board() {
   const { go } = useNav();
   const cfg = state.config;
   const [bucket, setBucket] = useState<Bucket | 'all'>(() => (localStorage.getItem('cwh.bucket') as Bucket) || 'all');
-  const [lanes, setLanes] = useState(() => localStorage.getItem('cwh.lanes') !== '0');
+  // One row of columns by default; each card carries a Project / Maintenance / Support badge. Swimlanes are optional.
+  const [lanes, setLanes] = useState(() => localStorage.getItem('cwh.lanes2') === '1');
   const [f, setF] = useState<Filters>(NO_FILTERS);
   const [active, setActive] = useState<WorkItem>();
   const [overCell, setOverCell] = useState<string>();
@@ -235,7 +236,7 @@ export function Board() {
               checked={lanes}
               onChange={(e) => {
                 setLanes(e.target.checked);
-                try { localStorage.setItem('cwh.lanes', e.target.checked ? '1' : '0'); } catch { /* ignore */ }
+                try { localStorage.setItem('cwh.lanes2', e.target.checked ? '1' : '0'); } catch { /* ignore */ }
               }}
             />
             Swimlanes
@@ -288,7 +289,7 @@ export function Board() {
           </div>
           {swim ? (
             <div className="board">
-              <div style={{ gridColumn: 1, gridRow: `1 / span ${BUCKETS.length * 2}`, display: 'flex' }}>
+              <div className="intake-span" style={{ gridColumn: 1, gridRow: `1 / span ${BUCKETS.length * 2}` }}>
                 <Cell lane="intake" col="Intake" items={cellItemsFor('intake', 'Intake')} readOnly={readOnly} highlight={overCell === cellId('intake', 'Intake') ? 'ok' : undefined} />
               </div>
               {BUCKETS.map((b, k) => (
@@ -298,7 +299,7 @@ export function Board() {
                     {BUCKET_LABEL[b]}
                   </div>
                   {COLUMNS.filter((c) => c !== 'Intake').map((c, n) => (
-                    <div key={c} style={{ gridColumn: n + 2, gridRow: k * 2 + 2, display: 'flex' }}>
+                    <div key={c} className="lane-slot" style={{ gridColumn: n + 2, gridRow: k * 2 + 2, display: 'flex' }}>
                       <Cell lane={b} col={c} items={cellItemsFor(b, c)} readOnly={readOnly} highlight={overCell === cellId(b, c) ? 'ok' : undefined} />
                     </div>
                   ))}
@@ -306,7 +307,7 @@ export function Board() {
               ))}
             </div>
           ) : (
-            <div className="board">
+            <div className="board flat">
               {cells.map(([lane, c]) => (
                 <Cell key={c} lane={lane} col={c} items={cellItemsFor(lane, c)} readOnly={readOnly} highlight={overCell === cellId(lane, c) ? 'ok' : undefined} />
               ))}

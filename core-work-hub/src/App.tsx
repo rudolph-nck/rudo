@@ -48,7 +48,7 @@ function ThemeToggle() {
     try { localStorage.setItem('cwh.theme', v); } catch { /* ignore */ }
   };
   return (
-    <div className="seg" role="radiogroup" aria-label="Color theme" style={{ alignSelf: 'flex-start' }}>
+    <div className="seg theme-seg" role="radiogroup" aria-label="Color theme">
       {([['auto', 'auto', 'System'], ['light', 'sun', 'Light'], ['dark', 'moon', 'Dark']] as const).map(([v, icon, label]) => (
         <button key={v} role="radio" aria-checked={t === v} onClick={() => set(v)} title={label} aria-label={label}>
           <Icon name={icon} size={16} />
@@ -113,7 +113,7 @@ function Sidebar() {
         <button aria-current={view === 'settings' ? 'page' : undefined} onClick={() => go('settings')}><Icon name="gear" />Settings</button>
       </nav>
 
-      <section className="dispatch-card" aria-label="Dispatcher">
+      <section className="dispatch-card" aria-label="Dispatcher" onClick={(e) => { if (!(e.target as HTMLElement).closest('button')) go('rotation'); }} title="Support rotation">
         <div className="section-title">On support</div>
         {disp ? (
           <>
@@ -122,28 +122,28 @@ function Sidebar() {
               {findPerson(cfg, disp.analyst)?.name ?? disp.analyst}
             </div>
             {offOn(cfg, disp.analyst) && <div className="chip bad" style={{ marginBottom: 4 }}>Off today: set a cover</div>}
-            <div className="small muted">Until {fmtShortDate(disp.to)}{disp.escalation ? ` · escalation ${findPerson(cfg, disp.escalation)?.name ?? disp.escalation}` : ''}</div>
+            <div className="small muted dc-until">Until {fmtShortDate(disp.to)}{disp.escalation ? ` · escalation ${findPerson(cfg, disp.escalation)?.name ?? disp.escalation}` : ''}</div>
           </>
         ) : (
           <div className="small muted" style={{ marginTop: 6 }}>No one scheduled. Set up the rotation.</div>
         )}
-        {next && <div className="small muted" style={{ marginTop: 6 }}>Next: {findPerson(cfg, next.analyst)?.name} from {fmtShortDate(next.from)}</div>}
-        <button className="btn sm ghost" style={{ marginTop: 6, paddingLeft: 0 }} onClick={() => go('rotation')}>Schedule →</button>
+        {next && <div className="small muted dc-next" style={{ marginTop: 6 }}>Next: {findPerson(cfg, next.analyst)?.name} from {fmtShortDate(next.from)}</div>}
+        <button className="btn sm ghost dc-link" style={{ marginTop: 6, paddingLeft: 0 }} onClick={() => go('rotation')}>Schedule →</button>
       </section>
 
       <div className="sidebar-foot">
         {store.kind === 'demo' && <span className="chip warn" style={{ alignSelf: 'flex-start' }}>Demo data</span>}
         {readOnly && <span className="chip src" style={{ alignSelf: 'flex-start' }}>Read-only</span>}
-        <div className="row small muted" aria-live="polite">
-          <span className="grow">{error ? <span className="danger-text">Sync problem</span> : syncing ? 'Syncing…' : ago !== undefined ? `Updated ${ago < 5 ? 'just now' : ago + 's ago'}` : ''}</span>
-          <button className="btn icon ghost" onClick={() => void refresh()} aria-label="Refresh now"><Icon name="refresh" size={16} /></button>
+        <div className="row small muted foot-row" aria-live="polite">
+          <span className="grow">{error ? <span className="danger-text">Sync problem</span> : syncing ? 'Syncing…' : ago !== undefined ? `Synced ${ago < 5 ? 'now' : ago + 's ago'}` : ''}</span>
+          <button className="btn icon ghost" onClick={() => void refresh()} aria-label="Refresh now" title="Refresh now"><Icon name="refresh" size={16} /></button>
         </div>
-        <ThemeToggle />
         <div className="row">
           <button className="me-btn" onClick={() => setProfileOpen(true)} title="Change your avatar: colour, emoji or photo" aria-label={`${meP?.name ?? me}: change my avatar`}>
             <Avatar user={me} config={cfg} />
             <span className="grow" style={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meP?.name ?? me}</span>
           </button>
+          <ThemeToggle />
           <ProfileDialog open={profileOpen} onClose={() => setProfileOpen(false)} />
           {store.kind !== 'launcher' && <button className="btn sm ghost" onClick={signOut} title="Change who you are on this PC">Not you?</button>}
         </div>

@@ -5,6 +5,8 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
 (async () => {
   const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 1440, height: 1000 } });
+  // These tests drag between swimlane cells ("To Do, Support"); the default board is one row with bucket badges.
+  await ctx.addInitScript(() => { try { if (!sessionStorage.getItem('t')) { localStorage.setItem('cwh.lanes2', '1'); sessionStorage.setItem('t', '1'); } } catch {} });
   const errs = [];
   const p = await ctx.newPage(); p.on('pageerror', (e) => errs.push(e.message));
   await p.goto(file + '?demo&as=nick');

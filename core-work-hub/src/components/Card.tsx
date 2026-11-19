@@ -7,6 +7,7 @@ import { addDays, fmtAge, fmtShortDate, isOverdue, offOn, systemName } from '../
 import { COLUMNS, COLUMN_LABEL, type WorkItem } from '../model/types';
 import { CommChip } from './Comm';
 import { computeTeamScore, criteriaOf, isProject } from '../model/teamscore';
+import { BUCKET_LABEL } from '../model/types';
 import { Avatar, BucketDot, Icon, PriorityChip, SourceBadge } from './ui';
 
 export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNode }) {
@@ -19,7 +20,14 @@ export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNod
     <>
       <div className="top">
         {item.rank !== undefined && <span className="rank" aria-label={`Rank ${item.rank}`}>#{item.rank}</span>}
-        <BucketDot b={item.bucket} />
+        {item.bucket ? (
+          <span className={`chip bucket-badge ${item.bucket}`} title={`${BUCKET_LABEL[item.bucket]} work`}>
+            <span className={`dot ${item.bucket}`} aria-hidden />
+            {item.bucket}
+          </span>
+        ) : (
+          <BucketDot b={item.bucket} />
+        )}
         {item.expedite && <span className="chip forced" title={`Forced priority: ${item.expedite.reason} (requested by ${item.expedite.requestedBy})`}>FORCED</span>}
         <PriorityChip p={item.priority} />
         <SourceBadge item={item} />

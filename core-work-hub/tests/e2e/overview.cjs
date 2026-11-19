@@ -24,6 +24,13 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   check(/Out for now/.test(await p.locator('.rota-order').innerText()), 'someone out of rotation is marked');
   const w = await b.newPage(); await w.goto(file + '?demo&as=wes'); await w.waitForSelector('h1');
   check((await w.locator('h1').first().innerText()) === 'Board', 'analysts land on the Board');
+  await w.waitForSelector('.card');
+  check((await w.locator('.lane-head').count()) === 0 && (await w.locator('.board.flat').count()) === 1, 'default board is one row of columns (no swimlane rows)');
+  check((await w.locator('.card .chip.bucket-badge').count()) > 0 && /^(Project|Maintenance|Support)$/.test((await w.locator('.card .chip.bucket-badge').first().innerText()).trim()), 'cards carry a Project / Maintenance / Support badge');
+  await w.getByRole('radio', { name: /Support/ }).first().click().catch(() => w.getByRole('button', { name: /Support/ }).first().click());
+  await w.waitForTimeout(300);
+  const badges = await w.locator('.card .chip.bucket-badge').allInnerTexts();
+  check(badges.length > 0 && badges.every((t) => t.trim() === 'Support'), 'the Support filter shows only Support cards');
   console.log('errors', errs);
   if (errs.length) process.exitCode = 1;
   await b.close();

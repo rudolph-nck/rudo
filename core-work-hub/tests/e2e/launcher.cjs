@@ -58,6 +58,8 @@ function start(user, port, extraEnv = {}) {
 
   const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 1440, height: 1000 } });
+  // These tests drag between swimlane cells ("To Do, Support"); the default board is one row with bucket badges.
+  await ctx.addInitScript(() => { try { if (!sessionStorage.getItem('t')) { localStorage.setItem('cwh.lanes2', '1'); sessionStorage.setItem('t', '1'); } } catch {} });
   const errs = [];
   const pn = await ctx.newPage(); pn.on('pageerror', (e) => errs.push(e.message));
   await pn.goto(nick.url); await pn.waitForSelector('.sidebar');
