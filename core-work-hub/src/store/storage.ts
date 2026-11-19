@@ -272,3 +272,39 @@ export async function loadHandle(): Promise<FileSystemDirectoryHandle | undefine
 }
 
 export const fsAccessSupported = () => typeof window !== 'undefined' && 'showDirectoryPicker' in window;
+
+// ------------------------------------------------------------------------------------ "who am I", kept twice
+
+/** Saves the person's pick in IndexedDB too, so it survives someone clearing site data for localStorage only. */
+export async function saveIdentity(username: string | null) {
+  try {
+    if (username) localStorage.setItem('cwh.me', username);
+    else localStorage.removeItem('cwh.me');
+  } catch { /* ignore */ }
+  try {
+    const db = await idb();
+    await new Promise<void>((res, rej) => {
+      const tx = db.transaction('kv', 'readwrite');
+      if (username) tx.objectStore('kv').put(username, 'me');
+      else tx.objectStore('kv').delete('me');
+      tx.oncomplete = () => res();
+      tx.onerror = () => rej(tx.error);
+    });
+  } catch { /* storage blocked: localStorage still has it */ }
+}
+export async function loadIdentity(): Promise<string | undefined> {
+  try {
+    const v = localStorage.getItem('cwh.me');
+    if (v) return v;
+  } catch { /* ignore */ }
+  try {
+    const db = await idb();
+    return await new Promise((res) => {
+      const r = db.transaction('kv').objectStore('kv').get('me');
+      r.onsuccess = () => res((r.result as string | undefined) ?? undefined);
+      r.onerror = () => res(undefined);
+    });
+  } catch {
+    return undefined;
+  }
+}

@@ -20,6 +20,7 @@ export function CardBody({ item, menu }: { item: WorkItem; menu?: React.ReactNod
       <div className="top">
         {item.rank !== undefined && <span className="rank" aria-label={`Rank ${item.rank}`}>#{item.rank}</span>}
         <BucketDot b={item.bucket} />
+        {item.expedite && <span className="chip forced" title={`Forced priority: ${item.expedite.reason} (requested by ${item.expedite.requestedBy})`}>FORCED</span>}
         <PriorityChip p={item.priority} />
         <SourceBadge item={item} />
         {isProject(item) && computeTeamScore(item, criteriaOf(state.config)).score !== undefined && (

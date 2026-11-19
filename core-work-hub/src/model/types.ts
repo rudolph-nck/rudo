@@ -83,6 +83,8 @@ export interface Person {
   bucketWip?: Partial<Record<Bucket, number>>;
   /** Name/username as it appears in Service Desk, to map technician -> analyst. */
   sdName?: string;
+  /** Work email / Teams sign-in, for "Message in Teams" links. */
+  email?: string;
 }
 
 export interface SystemOwnership {
@@ -174,6 +176,18 @@ export interface TimeOff {
   note?: string;
 }
 
+export interface Expedite {
+  /** Who asked for it, e.g. "Executive team", "CEO", "Matt". */
+  requestedBy: string;
+  /** Who approved holding other work, e.g. "Matt". */
+  approvedBy?: string;
+  reason: string;
+  /** Optional target date. */
+  due?: string;
+  /** Other items put on hold to make room (recorded for the audit trail). */
+  holds?: string[];
+}
+
 export type ShiftLength = 'week' | '2weeks' | 'month';
 
 export interface Rotation {
@@ -200,6 +214,8 @@ export interface HubConfig {
   timeOff: TimeOff[];
   /** The person on support may grade and rank during their shift (triage is the support job). Default true. */
   supportCanTriage?: boolean;
+  /** Link to the team's Teams channel (for pasting digests). */
+  teamsChannelUrl?: string;
   /** Team score criteria for projects. Defaults to value, risk, urgency, reach, effort. */
   teamCriteria?: TeamCriterion[];
   /** Communication standard (response and update targets, business hours, escalation). */
@@ -271,6 +287,7 @@ export type HubEvent = EventBase &
     | { type: 'config.timeoff'; data: TimeOff & { deleted?: boolean } }
     | { type: 'team.rate'; item: string; data: { ratings: Record<string, number> } }
     | { type: 'team.score'; item: string; data: { score: number | null; reason?: string } }
+    | { type: 'item.expedite'; item: string; data: Expedite | { clear: true; reason?: string } }
     | { type: 'config.system'; data: SystemOwnership & { deleted?: boolean } }
   );
 
@@ -324,6 +341,8 @@ export interface WorkItem {
   /** Requester communication logged in the hub ("I posted the update"). */
   commLog?: { ts: string; user: string; kind: 'first' | 'update' | 'follow-up' | 'internal'; note?: string }[];
   due_by?: string;
+  /** Forced priority: "drop everything" from leadership. Wins over grades, ranks and team scores. */
+  expedite?: Expedite & { ts: string; by: string };
   /** Team score inputs (projects): latest ratings per person, and a score the team set. */
   team?: { ratings: Record<string, Record<string, number>>; set?: { score: number; by: string; ts: string; reason?: string } };
   /** When the card entered its current column (for "stuck for N days"). */

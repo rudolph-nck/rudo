@@ -6,48 +6,64 @@
       "name": "Nick",
       "role": "manager",
       "works": true,
-      "wipLimit": 2
+      "wipLimit": 2,
+      "sdName": "",
+      "email": ""
     },
     {
       "username": "wes",
       "name": "Wes",
       "role": "analyst",
-      "wipLimit": 2
+      "wipLimit": 2,
+      "sdName": "",
+      "email": ""
     },
     {
       "username": "cathy",
       "name": "Cathy",
       "role": "analyst",
-      "wipLimit": 2
+      "wipLimit": 2,
+      "sdName": "",
+      "email": ""
     },
     {
       "username": "noelle",
       "name": "Noelle",
       "role": "analyst",
-      "wipLimit": 2
+      "wipLimit": 2,
+      "sdName": "",
+      "email": ""
     },
     {
       "username": "trey",
       "name": "Trey",
       "role": "analyst",
-      "wipLimit": 2
+      "wipLimit": 2,
+      "sdName": "",
+      "email": ""
     },
     {
       "username": "michael",
       "name": "Michael",
       "role": "analyst",
-      "wipLimit": 2
+      "wipLimit": 2,
+      "sdName": "",
+      "email": ""
     },
     {
       "username": "tabitha",
       "name": "Tabitha",
       "role": "analyst",
-      "wipLimit": 2
+      "wipLimit": 2,
+      "sdName": "",
+      "email": ""
     },
     {
       "username": "matt",
       "name": "Matt",
-      "role": "viewer"
+      "role": "viewer",
+      "sdName": "",
+      "email": ""
     }
   ],
   "systems": [
@@ -174,5 +190,45 @@
     "Done"
   ],
   "analystsCanGrade": false,
-  "defaultUpdateDays": 2
+  "defaultUpdateDays": 2,
+  "teamsChannelUrl": "",
+  "commStandard": {
+    "hours": {
+      "1": [
+        510,
+        1050
+      ],
+      "2": [
+        510,
+        1050
+      ],
+      "3": [
+        510,
+        1050
+      ],
+      "4": [
+        600,
+        1050
+      ],
+      "5": [
+        510,
+        1050
+      ]
+    },
+    "holidays": [],
+    "p1FirstResponseHours": 2,
+    "firstResponseBusinessDays": 1,
+    "p1UpdateHours": 2,
+    "updateBusinessDays": 5,
+    "followUpHours": 48,
+    "p1FollowUpHours": 2,
+    "followUpAttempts": 3,
+    "dueSoonHours": 4,
+    "p1DueSoonMinutes": 30,
+    "escalateToSupportAfterHours": 9,
+    "escalateToManagerAfterHours": 18,
+    "p1EscalateToSupportAfterMinutes": 15,
+    "p1EscalateToManagerAfterMinutes": 30,
+    "sdLastUpdatedCountsAsUpdate": true
+  }
 }

@@ -159,19 +159,22 @@ export interface TeamRow {
 export function teamBoard(state: HubState) {
   const criteria = criteriaOf(state.config);
   const rows: TeamRow[] = [...state.items.values()].filter(isProject).map((item) => ({ item, ts: computeTeamScore(item, criteria), tiedWith: [] }));
-  const scored = rows.filter((r) => r.ts.score !== undefined).sort((a, b) => b.ts.score! - a.ts.score! || a.item.created.localeCompare(b.item.created));
+  // A forced priority (leadership "drop everything") goes first regardless of score; scores stay unique.
+  const scored = rows
+    .filter((r) => r.ts.score !== undefined || r.item.expedite)
+    .sort((a, b) => Number(!!b.item.expedite) - Number(!!a.item.expedite) || (b.ts.score ?? -1) - (a.ts.score ?? -1) || a.item.created.localeCompare(b.item.created));
   scored.forEach((r, i) => {
     r.position = i + 1;
-    r.tiedWith = scored.filter((o) => o !== r && o.ts.score === r.ts.score).map((o) => o.item);
+    r.tiedWith = r.ts.score === undefined ? [] : scored.filter((o) => o !== r && o.ts.score === r.ts.score).map((o) => o.item);
   });
   const ties: TeamRow[][] = [];
   const seen = new Set<number>();
   for (const r of scored) {
-    if (!r.tiedWith.length || seen.has(r.ts.score!)) continue;
+    if (!r.tiedWith.length || r.ts.score === undefined || seen.has(r.ts.score)) continue;
     seen.add(r.ts.score!);
     ties.push(scored.filter((o) => o.ts.score === r.ts.score));
   }
-  const unscored = rows.filter((r) => r.ts.score === undefined).sort((a, b) => a.item.created.localeCompare(b.item.created));
+  const unscored = rows.filter((r) => r.ts.score === undefined && !r.item.expedite).sort((a, b) => a.item.created.localeCompare(b.item.created));
   return { criteria, rows: [...scored, ...unscored], scored, unscored, ties };
 }
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { HubProvider, useHub } from './store/hub';
-import { DemoStore, FolderStore, fsAccessSupported, loadHandle, saveHandle, type HubStore } from './store/storage';
+import { DemoStore, FolderStore, fsAccessSupported, loadHandle, loadIdentity, saveHandle, saveIdentity, type HubStore } from './store/storage';
 import { defaultConfig } from './model/config';
 import { currentDispatch, findPerson, nextDispatch, fmtShortDate, offOn, todayISO } from './model/logic';
 import type { HubConfig } from './model/types';
@@ -138,7 +138,7 @@ function Sidebar() {
         <div className="row">
           <Avatar user={me} config={cfg} />
           <span className="grow" style={{ fontWeight: 700 }}>{meP?.name ?? me}</span>
-          <button className="btn sm ghost" onClick={signOut}>Switch</button>
+          <button className="btn sm ghost" onClick={signOut} title="Change who you are on this PC">Not you?</button>
         </div>
       </div>
     </aside>
@@ -209,7 +209,12 @@ async function openFolder(handle: FileSystemDirectoryHandle): Promise<HubStore> 
 
 export function App() {
   const [gate, setGate] = useState<Gate>({ k: 'loading' });
-  const [me, setMe] = useState<string | undefined>(() => params.get('as') ?? localStorage.getItem('cwh.me') ?? undefined);
+  const [me, setMe] = useState<string | undefined>(() => params.get('as') ?? (() => { try { return localStorage.getItem('cwh.me') ?? undefined; } catch { return undefined; } })());
+  // The pick is saved twice (localStorage + IndexedDB) so it's a one-time choice on each PC.
+  useEffect(() => {
+    if (!me) void loadIdentity().then((u) => u && setMe((cur) => cur ?? u));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const withStore = async (store: HubStore) => {
     const config = await store.readConfig();
@@ -319,7 +324,7 @@ export function App() {
           <p className="muted" style={{ margin: 0 }}>Your changes are saved to your own file, <code>changes/&lt;your username&gt;.jsonl</code>, and signed with your name in the audit log.</p>
           <div className="people">
             {config.people.map((p) => (
-              <button key={p.username} onClick={() => { try { localStorage.setItem('cwh.me', p.username); } catch { /* ignore */ } setMe(p.username); }}>
+              <button key={p.username} onClick={() => { void saveIdentity(p.username); setMe(p.username); }}>
                 <Avatar user={p.username} config={config} />
                 <span className="grow">{p.name}<br /><span className="small muted" style={{ fontWeight: 500 }}>{p.role === 'manager' ? 'Manager' : p.role === 'viewer' ? 'Viewer' : 'Analyst'} · {p.username}</span></span>
               </button>
@@ -337,7 +342,8 @@ export function App() {
       config={config}
       me={person.username}
       onSignOut={() => {
-        try { localStorage.removeItem('cwh.me'); } catch { /* ignore */ }
+        if (!confirm(`You're signed in as ${person.name}. Change who you are on this PC? Only do this if this isn't your computer.`)) return;
+        void saveIdentity(null);
         setMe(undefined);
       }}
     >

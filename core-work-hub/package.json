@@ -1,6 +1,6 @@
 {
   "name": "core-work-hub",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "IT Core Work Hub: one Kanban board over Service Desk Plus and Wrike, run from a shared folder in Edge.",
   "type": "module",
@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "contrast": "node scripts/contrast.mjs",
-    "e2e": "node tests/e2e/multi-user.cjs && node tests/e2e/reprioritize.cjs && node tests/e2e/overview.cjs && node tests/e2e/timeoff.cjs && node tests/e2e/priorities.cjs && node tests/e2e/teamscore.cjs && node tests/e2e/comms.cjs"
+    "e2e": "node tests/e2e/multi-user.cjs && node tests/e2e/reprioritize.cjs && node tests/e2e/overview.cjs && node tests/e2e/timeoff.cjs && node tests/e2e/priorities.cjs && node tests/e2e/teamscore.cjs && node tests/e2e/comms.cjs && node tests/e2e/expedite.cjs",
+    "package": "npm run build && npx vite-node scripts/write-config.mts && node scripts/package.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

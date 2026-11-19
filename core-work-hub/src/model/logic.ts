@@ -359,6 +359,8 @@ export const doingFor = (state: HubState, username: string) =>
 export function checkWip(state: HubState, item: WorkItem, owner: string | undefined, toColumn: Column): WipCheck {
   const msgs: string[] = [];
   if (toColumn !== 'Doing' || (item.column === 'Doing' && item.owner === owner)) return { ok: true, messages: [] };
+  // Forced priorities skip WIP limits; the move is logged with the expedite reason.
+  if (item.expedite) return { ok: true, messages: [] };
   const cfg = state.config;
   const others = [...state.items.values()].filter((i) => i.column === 'Doing' && i.id !== item.id && !i.stale);
   if (owner) {

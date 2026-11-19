@@ -215,6 +215,9 @@ function TeamRowView({ r, criteria, teamSize, canRate, canDecide, rating, onRate
           <PriorityChip p={i.priority} />
           <SourceBadge item={i} />
           <span className="chip src">{COLUMN_LABEL[i.column]}{i.rank ? ` #${i.rank}` : ''}</span>
+          {i.expedite && (
+            <Tip className="chip forced" content={<><strong>Forced priority</strong><p>Requested by {i.expedite.requestedBy}: “{i.expedite.reason}”. It goes first regardless of score until Nick ends it; scores stay unique.</p></>}>FORCED</Tip>
+          )}
           {r.tiedWith.length > 0 && (
             <Tip className="chip bad" content={<p>Same score as {r.tiedWith.map((t) => `“${t.title}”`).join(', ')}. Pick which goes first in the tie banner above (or in the daily meeting).</p>}>Tied</Tip>
           )}

@@ -3,6 +3,7 @@ import { useHub } from '../store/hub';
 import { useUi } from '../components/actions';
 import { Avatar, Icon, PriorityChip, SourceBadge } from '../components/ui';
 import { LogUpdateDialog, sourceText } from '../components/Comm';
+import { copyAndOpenChannel, digestText, nudgeText, TeamsButton } from '../components/Teams';
 import { fmtBusiness, noticesFor, standardOf, type CommNotice } from '../model/comms';
 import { findPerson } from '../model/logic';
 import type { WorkItem } from '../model/types';
@@ -47,6 +48,11 @@ export function Notifications() {
         </div>
         {typeof Notification !== 'undefined' && (
           <div className="topbar-actions">
+            {notices.length > 0 && (
+              <button className="btn" onClick={() => copyAndOpenChannel(state.config, digestText(state.config, 'Core Work Hub: communication standard', notices))} title="Copies a summary and opens the team’s Teams channel">
+                <Icon name="chat" size={16} /> Post digest to Teams
+              </button>
+            )}
             <button
               className="btn"
               aria-pressed={alerts && perm === 'granted'}
@@ -107,6 +113,7 @@ export function Notifications() {
                       </div>
                     </div>
                     {i.owner && n.role !== 'owner' && <Avatar user={i.owner} config={state.config} />}
+                    {n.role !== 'owner' && i.owner && <TeamsButton config={state.config} to={[i.owner]} label={`Nudge ${name(i.owner)}`} message={nudgeText(state.config, i, n)} />}
                     {!readOnly && <button className="btn sm primary" onClick={() => setLogging(i)}>{n.role === 'owner' || !i.owner ? 'Log update' : 'Follow up'}</button>}
                   </li>
                 );

@@ -16,6 +16,9 @@ export function demoSeed(): { config: HubConfig; snapshot: TicketsSnapshot; even
     { id: 'off-3', username: 'wes', from: addDays(monday, 18), to: addDays(monday, 22), kind: 'holiday', cover: 'cathy' },
   ];
   config.bucketWip = { Project: 4 };
+  // Demo-only Teams addresses so the "Message in Teams" buttons show. Real ones go in hub-config.json.
+  config.people.forEach((p) => (p.email = `${p.username}@example.com`));
+  config.teamsChannelUrl = 'https://teams.microsoft.com/l/channel/example';
 
   const now = Date.now();
   const ago = (days: number, h = 0) => new Date(now - days * 86400000 - h * 3600000).toISOString();

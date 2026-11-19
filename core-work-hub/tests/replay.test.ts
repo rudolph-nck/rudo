@@ -656,3 +656,59 @@ describe('communication escalation edge cases', () => {
     expect(noticesFor(s, 'nick', L(18, 12))[0].role).toBe('manager');
   });
 });
+
+describe('forced priority (expedite)', () => {
+  const g = (file: string, min: number, item: string, priority: string, owner?: string) =>
+    ev(file, min, { type: 'item.grade', item, data: { bucket: 'Support', priority, impact: 3, urgency: 3, effort: 1, owner } });
+  it('goes P1 and to the top of its list, stays P1 when re-graded, and can be cleared', () => {
+    const evs = [
+      g('nick', 1, 'SD:100', 'P1'), move('nick', 2, 'SD:100', 'To Do'),
+      g('nick', 3, 'SD:101', 'P4'), move('nick', 4, 'SD:101', 'To Do'),
+      ev('nick', 5, { type: 'item.expedite', item: 'SD:101', data: { requestedBy: 'Executive team', reason: 'Board ask' } }),
+      g('nick', 6, 'SD:101', 'P3'),
+    ];
+    let s = replay(defaultConfig(), snap([{}, {}]), evs);
+    expect(rankedList(s, 'Support').map((i) => [i.id, i.rank, i.priority])).toEqual([['SD:101', 1, 'P1'], ['SD:100', 2, 'P1']]);
+    s = replay(defaultConfig(), snap([{}, {}]), [...evs, ev('nick', 7, { type: 'item.expedite', item: 'SD:101', data: { clear: true } })]);
+    expect(s.items.get('SD:101')!.expedite).toBeUndefined();
+  });
+  it('only Nick can force; a forced item may enter Doing past WIP, even when the owner moves it', () => {
+    const cfg = defaultConfig();
+    cfg.people.find((p) => p.username === 'wes')!.wipLimit = 1;
+    const s = replay(cfg, snap([{}, {}]), [
+      g('nick', 1, 'SD:100', 'P2', 'wes'), move('wes', 2, 'SD:100', 'Doing'),
+      g('nick', 3, 'SD:101', 'P3', 'wes'), move('nick', 4, 'SD:101', 'To Do'),
+      ev('wes', 5, { type: 'item.expedite', item: 'SD:100', data: { requestedBy: 'Me', reason: 'nope' } }),
+      ev('nick', 6, { type: 'item.expedite', item: 'SD:101', data: { requestedBy: 'Executive team', approvedBy: 'Matt', reason: 'Exam finding', holds: ['SD:100'] } }),
+      move('nick', 7, 'SD:100', 'On Hold', { reason: 'Held for forced priority' }),
+      move('wes', 8, 'SD:101', 'Doing', { override: 'Forced priority: Exam finding' }),
+    ]);
+    expect(s.audit.filter((a) => a.rejected).map((a) => a.rejected)).toEqual(['Only Nick can force a priority']);
+    expect(s.items.get('SD:101')).toMatchObject({ column: 'Doing', priority: 'P1', expedite: { approvedBy: 'Matt', holds: ['SD:100'] } });
+    expect(s.items.get('SD:100')!.column).toBe('On Hold');
+    expect(checkWip(s, s.items.get('SD:101')!, 'wes', 'Doing').ok).toBe(true);
+  });
+  it('a forced project goes first on the Team score page without changing anyone’s score', () => {
+    const proj = (id: string, min: number) => [
+      ev('nick', min, { type: 'item.create', item: id, data: { source: 'Hub', title: id } }),
+      ev('nick', min + 1, { type: 'item.grade', item: id, data: { bucket: 'Project', priority: 'P3', impact: 3, urgency: 3, effort: 3 } }),
+    ];
+    const r = (item: string, n: number) => ev('wes', 20, { type: 'team.rate', item, data: { ratings: { value: n, risk: n, urgency: n, reach: n, effort: 6 - n } } });
+    const s = replay(defaultConfig(), snap([]), [...proj('A', 1), ...proj('B', 5), r('A', 5), r('B', 2), ev('nick', 30, { type: 'item.expedite', item: 'B', data: { requestedBy: 'CEO', reason: 'x' } })]);
+    expect(teamBoard(s).scored.map((x) => [x.item.id, x.position, x.ts.score])).toEqual([['B', 1, 25], ['A', 2, 100]]);
+  });
+});
+
+describe('shipped config template', () => {
+  it('loads cleanly: blank emails and SD names are ignored, standard and rotation present', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { normalizeConfig } = await import('../src/model/config');
+    const cfg = normalizeConfig(JSON.parse(readFileSync('deploy/hub-config.json', 'utf8')));
+    expect(cfg.people).toHaveLength(8);
+    expect(cfg.rotation?.shift).toBe('2weeks');
+    expect(cfg.commStandard?.updateBusinessDays).toBe(5);
+    expect(personForSourceName(cfg, 'Wesley Wilson')?.username).toBe('wes'); // first-name match still works with sdName ''
+    const s = replay(cfg, snap([{ source_owner: 'Cathy E. Garcia' }]), []);
+    expect(s.items.get('SD:100')!.owner).toBe('cathy');
+  });
+});

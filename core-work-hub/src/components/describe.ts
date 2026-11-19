@@ -59,6 +59,10 @@ export function describeEvent(e: HubEvent, cfg: HubConfig): string {
       return `rated it for the team score (${Object.entries(e.data.ratings).map(([k, v]) => `${k} ${v}`).join(', ')})`;
     case 'team.score':
       return e.data.score === null ? 'cleared the team’s set score' : `set the team score to ${e.data.score}${e.data.reason ? ` — “${e.data.reason}”` : ''}`;
+    case 'item.expedite':
+      return 'clear' in e.data
+        ? `cleared the forced priority${e.data.reason ? ` — “${e.data.reason}”` : ''}`
+        : `forced this to the top: requested by ${e.data.requestedBy}${e.data.approvedBy ? `, approved by ${e.data.approvedBy}` : ''} — “${e.data.reason}”${e.data.holds?.length ? ` (${e.data.holds.length} item${e.data.holds.length === 1 ? '' : 's'} put on hold)` : ''}`;
     case 'config.system':
       return `${e.data.deleted ? 'removed' : 'updated'} system “${e.data.name}” on the ownership map`;
   }

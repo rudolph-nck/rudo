@@ -100,6 +100,8 @@ export function rejectReason(config: HubConfig, file: string, e: HubEvent, item?
       return undefined;
     case 'team.score':
       return grader ? undefined : 'Only Nick (or the person on support) records the team’s decision';
+    case 'item.expedite':
+      return 'Only Nick can force a priority';
     case 'item.ack':
       return item?.owner === file ? undefined : 'Only the owner can acknowledge';
     case 'item.grade':
@@ -107,7 +109,7 @@ export function rejectReason(config: HubConfig, file: string, e: HubEvent, item?
     case 'rank.normalize':
       return grader ? undefined : 'Only the manager grades and ranks';
     case 'item.move':
-      if (e.data.override && !grader) return 'Only the manager can override a WIP limit';
+      if (e.data.override && !grader && !item?.expedite) return 'Only the manager can override a WIP limit';
       if (grader) return undefined;
       if (item?.column === 'Intake' && !item.graded && !item.parent_id) return 'Ungraded items stay in Intake';
       return own ? undefined : 'Analysts move their own cards';
@@ -310,6 +312,16 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
         w.team = { ...(w.team ?? { ratings: {} }), ratings: { ...(w.team?.ratings ?? {}), [file]: { ...(w.team?.ratings[file] ?? {}), ...clean } } };
         break;
       }
+      case 'item.expedite': {
+        const w = it!;
+        if ('clear' in e.data) w.expedite = undefined;
+        else {
+          w.expedite = { ...e.data, ts: e.ts, by: file };
+          w.priority = 'P1';
+          markHubSet(w.id, 'priority', e.ts, file);
+        }
+        break;
+      }
       case 'team.score': {
         const w = it!;
         if (e.data.score === null) {
@@ -405,11 +417,14 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
     }
   }
 
-  // ---- Unique integer ranks per bucket.
+  // ---- Forced priorities stay P1 even if re-graded.
+  for (const i of items.values()) if (i.expedite && i.column !== 'Done') i.priority = 'P1';
+
+  // ---- Unique integer ranks per bucket; forced priorities go to the top.
   for (const b of BUCKETS)
     for (const c of RANKED_COLUMNS) {
       const list = [...items.values()].filter((i) => i.column === c && i.bucket === b);
-      list.sort((a, b2) => (a.rankKey ?? 0) - (b2.rankKey ?? 0) || a.id.localeCompare(b2.id));
+      list.sort((a, b2) => Number(!!b2.expedite) - Number(!!a.expedite) || (a.rankKey ?? 0) - (b2.rankKey ?? 0) || a.id.localeCompare(b2.id));
       list.forEach((i, n) => (i.rank = n + 1));
     }
   for (const i of items.values()) {

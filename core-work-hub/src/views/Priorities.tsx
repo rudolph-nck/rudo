@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useHub } from '../store/hub';
 import { useUi } from '../components/actions';
-import { Avatar, BucketDot, Modal, PriorityChip, SourceBadge, toast } from '../components/ui';
+import { Avatar, BucketDot, Icon, Modal, PriorityChip, SourceBadge, toast } from '../components/ui';
+import { ExpediteDialog } from '../components/Expedite';
 import { heldUp, priorityConflicts, type PriorityConflict } from '../model/analytics';
 import { analysts, daysBetween, findPerson, fmtShortDate, isOverdue, offOn, rankedList } from '../model/logic';
 import { BUCKETS, BUCKET_LABEL, COLUMN_LABEL, PRIORITIES, type Bucket, type Column, type NewEvent, type Priority, type WorkItem } from '../model/types';
@@ -10,7 +11,9 @@ const COL_ORDER: Column[] = ['Doing', 'Waiting', 'On Hold', 'Ready', 'To Do', 'I
 const PRI_NOTE: Record<Priority, string> = { P1: 'Drop everything', P2: 'Next up', P3: 'Planned', P4: 'When there’s room' };
 
 export function Priorities() {
-  const { state, grader, readOnly, commit } = useHub();
+  const { state, grader, readOnly, commit, role } = useHub();
+  const [forcing, setForcing] = useState<WorkItem | null>(null);
+  const forced = [...state.items.values()].filter((i) => i.expedite && i.column !== 'Done' && !i.stale);
   const { openItem } = useUi();
   const cfg = state.config;
   const name = (u?: string) => findPerson(cfg, u)?.name ?? u ?? '';
@@ -39,7 +42,7 @@ export function Priorities() {
     p,
     list: items
       .filter((i) => i.priority === p)
-      .sort((a, b) => COL_ORDER.indexOf(a.column) - COL_ORDER.indexOf(b.column) || (b.score ?? 0) - (a.score ?? 0) || a.created.localeCompare(b.created)),
+      .sort((a, b) => Number(!!b.expedite) - Number(!!a.expedite) || COL_ORDER.indexOf(a.column) - COL_ORDER.indexOf(b.column) || (b.score ?? 0) - (a.score ?? 0) || a.created.localeCompare(b.created)),
   }));
 
   /** Fix for "lower priority in Doing while a higher one waits": park the lower one, start the higher one. */
@@ -80,6 +83,30 @@ export function Priorities() {
           </a>
         ))}
       </div>
+
+      {forced.length > 0 && (
+        <section className="panel forced-panel" aria-labelledby="forced-h">
+          <div className="viz-head">
+            <div className="grow">
+              <h2 id="forced-h">Forced priorities ({forced.length})</h2>
+              <div className="small muted">Leadership “drop everything” work. It sits above every grade, rank and team score until Nick ends it.</div>
+            </div>
+          </div>
+          <ul className="conflicts">
+            {forced.map((i) => (
+              <li key={i.id}>
+                <span className="chip forced">FORCED</span>
+                <div className="grow" style={{ minWidth: 0 }}>
+                  <button className="linkish strong" onClick={() => openItem(i.id)}>{i.title}</button>
+                  <div className="small muted">
+                    Requested by {i.expedite!.requestedBy}{i.expedite!.approvedBy ? ` · holds approved by ${i.expedite!.approvedBy}` : ''} · “{i.expedite!.reason}”{i.expedite!.due ? ` · needed by ${fmtShortDate(i.expedite!.due)}` : ''} · {COLUMN_LABEL[i.column]}{i.owner ? ` · ${findPerson(cfg, i.owner)?.name}` : ''}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {conflicts.length > 0 && (
         <section className="panel" aria-labelledby="conf-h">
@@ -176,11 +203,20 @@ export function Priorities() {
                           <td className="num">{daysBetween(i.created)}d</td>
                           <td className={isOverdue(i) ? 'danger-text' : ''}>{i.next_update_due ? `${isOverdue(i) ? 'Overdue · ' : ''}${fmtShortDate(i.next_update_due)}` : '—'}</td>
                           <td>
-                            {canEdit ? (
-                              <div className="pick pri-pick" role="radiogroup" aria-label={`Priority for ${i.title}`}>
-                                {PRIORITIES.map((x) => (
-                                  <button key={x} role="radio" aria-checked={i.priority === x} onClick={() => i.priority !== x && setChange({ item: i, to: x })}>{x}</button>
-                                ))}
+                            {i.expedite ? (
+                              <span className="chip forced">FORCED P1</span>
+                            ) : canEdit ? (
+                              <div className="row" style={{ gap: 6 }}>
+                                <div className="pick pri-pick" role="radiogroup" aria-label={`Priority for ${i.title}`}>
+                                  {PRIORITIES.map((x) => (
+                                    <button key={x} role="radio" aria-checked={i.priority === x} onClick={() => i.priority !== x && setChange({ item: i, to: x })}>{x}</button>
+                                  ))}
+                                </div>
+                                {role === 'manager' && (
+                                  <button className="btn sm ghost" aria-label={`Force ${i.title} to the top`} title="Force to the top (leadership request)" onClick={() => setForcing(i)}>
+                                    <Icon name="flag" size={14} />
+                                  </button>
+                                )}
                               </div>
                             ) : (
                               <PriorityChip p={i.priority} />
@@ -197,6 +233,7 @@ export function Priorities() {
         ),
       )}
 
+      {forcing && <ExpediteDialog item={forcing} onClose={() => setForcing(null)} />}
       {change && <PriorityDialog item={change.item} to={change.to} onClose={() => setChange(null)} />}
     </div>
   );

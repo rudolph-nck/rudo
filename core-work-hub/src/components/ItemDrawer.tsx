@@ -7,9 +7,12 @@ import { Avatar, BucketDot, Icon, Modal, PriorityChip, SourceBadge, toast } from
 import { GradeForm, draftFrom, effectiveGrade, type Draft } from './GradeForm';
 import { describeEvent } from './describe';
 import { CommSection } from './Comm';
+import { ExpediteBanner, ExpediteDialog } from './Expedite';
+import { TeamsButton } from './Teams';
 
 export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; initialTab?: 'grade'; onClose: () => void }) {
-  const { state, me, grader, readOnly, commit } = useHub();
+  const { state, me, grader, readOnly, commit, role } = useHub();
+  const [forcing, setForcing] = useState(false);
   const { requestMove, openNew, openItem, pickUp } = useUi();
   const cfg = state.config;
   const [draft, setDraft] = useState<Draft>(() => draftFrom(item));
@@ -52,6 +55,7 @@ export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; init
         </span>
       }
     >
+      <ExpediteBanner item={item} />
       {conflicts.map((c) => (
         <div key={c.ts + c.field} className="banner warn">
           Sync conflict on {c.field}: Service Desk changed it to “{String(c.sourceValue ?? '—')}” after {name(c.hubUser)} set “{String(c.hubValue ?? '—')}”. The source value is kept.
@@ -170,6 +174,16 @@ export function ItemDrawer({ item, initialTab, onClose }: { item: WorkItem; init
         )}
       </dl>
       {item.description && <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{item.description}</p>}
+
+      <div className="row wrap">
+        {role === 'manager' && !readOnly && !item.expedite && item.column !== 'Done' && (
+          <button className="btn sm" onClick={() => setForcing(true)}><Icon name="flag" size={14} /> Force priority</button>
+        )}
+        {item.owner && item.owner !== me && (
+          <TeamsButton config={cfg} to={[item.owner]} label={`Message ${findPerson(cfg, item.owner)?.name ?? 'owner'} in Teams`} message={`About ${item.source === 'SD' ? `ticket #${item.source_id}` : 'work item'} "${item.title}": `} />
+        )}
+      </div>
+      {forcing && <ExpediteDialog item={item} onClose={() => setForcing(false)} />}
 
       <CommSection item={item} />
 

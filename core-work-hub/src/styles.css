@@ -535,3 +535,11 @@ table.cal td.sup { background: var(--accent-soft); }
 .notices { list-style: none; margin: 0; padding: 4px 14px 14px; display: flex; flex-direction: column; gap: 6px; }
 .notice { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; flex-wrap: wrap; }
 .notice.manager, .notice.support { border-color: var(--danger); }
+
+/* ---------- forced priority */
+.chip.forced { background: var(--danger); color: var(--bg); letter-spacing: 0.04em; }
+.forced-panel { border-color: var(--danger); }
+fieldset.holds { border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin: 0; }
+fieldset.holds legend { font-size: 12px; font-weight: 700; color: var(--text-2); padding: 0 4px; }
+fieldset.holds ul { list-style: none; margin: 0; padding: 0; max-height: 240px; overflow: auto; }
+fieldset.holds input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); }
