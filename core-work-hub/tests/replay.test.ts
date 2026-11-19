@@ -370,17 +370,17 @@ describe('team', () => {
 });
 
 describe('support rotation', () => {
-  it('runs the order monthly from Trey (until Nov 30), skipping anyone out, with Nick as escalation', () => {
+  it('runs the order every 2 weeks from Trey (until Nov 30), skipping anyone out, with Nick as escalation', () => {
     const cfg = defaultConfig();
     const s = rotationShifts(cfg, 6);
     expect(s.map((x) => [x.analyst, x.from, x.to])).toEqual([
-      ['trey', '2026-11-01', '2026-11-30'],
-      ['tabitha', '2026-12-01', '2026-12-31'],
-      ['michael', '2027-01-01', '2027-01-31'],
-      ['wes', '2027-02-01', '2027-02-28'],
-      ['noelle', '2027-03-01', '2027-03-31'],
-      ['trey', '2027-04-01', '2027-04-30'],
-      ['tabitha', '2027-05-01', '2027-05-31'],
+      ['trey', '2026-11-17', '2026-11-30'],
+      ['tabitha', '2026-12-01', '2026-12-14'],
+      ['michael', '2026-12-15', '2026-12-28'],
+      ['wes', '2026-12-29', '2027-01-11'],
+      ['noelle', '2027-01-12', '2027-01-25'],
+      ['trey', '2027-01-26', '2027-02-08'],
+      ['tabitha', '2027-02-09', '2027-02-22'],
     ]);
     expect(s.every((x) => x.escalation === 'nick')).toBe(true);
     expect(s[0].backup).toBe('tabitha');
@@ -389,7 +389,7 @@ describe('support rotation', () => {
   });
   it('someone returning on a date rejoins in their place in the order', () => {
     const cfg = defaultConfig();
-    cfg.rotation!.out = [{ username: 'cathy', until: '2027-02-28' }];
+    cfg.rotation!.out = [{ username: 'cathy', until: '2027-01-20' }];
     const names = rotationShifts(cfg, 7).map((x) => x.analyst);
     expect(names).toEqual(['trey', 'tabitha', 'michael', 'wes', 'noelle', 'cathy', 'trey', 'tabitha']);
   });
@@ -433,18 +433,18 @@ describe('rotation overrides, time off and support tracking', () => {
   it('a cover cuts into the shift; the rest stays with the rotation person', () => {
     const cfg = defaultConfig();
     cfg.dispatch = [{ analyst: 'wes', from: '2026-12-10', to: '2026-12-12', note: 'Swap' }];
-    const dec = schedule(cfg, 3).filter((s) => s.from >= '2026-12-01' && s.to <= '2026-12-31');
+    const dec = schedule(cfg, 3).filter((s) => s.from >= '2026-12-01' && s.to <= '2026-12-14');
     expect(dec.map((s) => [s.analyst, s.from, s.to, s.coverFor ?? null])).toEqual([
       ['tabitha', '2026-12-01', '2026-12-09', null],
       ['wes', '2026-12-10', '2026-12-12', 'tabitha'],
-      ['tabitha', '2026-12-13', '2026-12-31', null],
+      ['tabitha', '2026-12-13', '2026-12-14', null],
     ]);
   });
   it('flags a support shift where the person has time off', () => {
     const cfg = defaultConfig();
-    cfg.timeOff = [{ id: 't1', username: 'tabitha', from: '2026-12-22', to: '2026-12-26', kind: 'holiday' }];
+    cfg.timeOff = [{ id: 't1', username: 'tabitha', from: '2026-12-12', to: '2026-12-16', kind: 'holiday' }];
     const gaps = coverageGaps(cfg, 3, '2026-11-19');
-    expect(gaps.map((g) => [g.shift.analyst, g.from, g.to])).toEqual([['tabitha', '2026-12-22', '2026-12-26']]);
+    expect(gaps.map((g) => [g.shift.analyst, g.from, g.to])).toEqual([['tabitha', '2026-12-12', '2026-12-14']]);
   });
   it('time off events: set, edit, delete (manager only)', () => {
     const t = { id: 'a', username: 'wes', from: '2026-12-01', to: '2026-12-03', kind: 'pto' };

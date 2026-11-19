@@ -34,7 +34,7 @@ export function defaultConfig(): HubConfig {
     // Level 1 support rotation. Nick is the escalation point. Cathy is out of the rotation until further notice.
     rotation: {
       order: ['trey', 'tabitha', 'michael', 'wes', 'noelle', 'cathy'],
-      shift: 'month',
+      shift: '2weeks',
       current: { analyst: 'trey', until: '2026-11-30' },
       escalation: 'nick',
       out: [{ username: 'cathy' }],
