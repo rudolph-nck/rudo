@@ -3,3 +3,4 @@ dist
 *.png
 build
 __pycache__/
+release/CoreWorkHub-training-videos.zip

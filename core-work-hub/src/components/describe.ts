@@ -49,6 +49,8 @@ export function describeEvent(e: HubEvent, cfg: HubConfig): string {
       return `logged ${e.data.hours}h to ${e.data.bucket.replace('_', ' ')} on ${e.data.date}`;
     case 'item.reprioritize':
       return `changed priority to ${e.data.priority}: ${e.data.reason}${e.data.toldRequester ? ' (requester told)' : ''}${e.data.managerAware ? ' (discussed with Matt)' : ''}`;
+    case 'training.done':
+      return `finished the “${e.data.lesson}” training lesson`;
     case 'item.standup':
       return `stand-up check-in: ${STANDUP_LABEL[e.data.status]}${e.data.note ? ` (${e.data.note})` : ''}`;
     case 'item.commit':

@@ -39,6 +39,7 @@ STATE_FILE = os.path.join(STATE_DIR, "launcher.json")
 WHOLE_FILES = {"hub-config.json", "tickets.json"}
 SAFE_NAME = re.compile(r"^[a-z0-9._-]+$")
 # Export files dropped in <hub>\import\ for auto-import (read-only for the page).
+TRAINING_NAME = re.compile(r"^[a-z0-9-]{1,40}\.(mp4|webm)$")
 IMPORT_NAME = re.compile(r"^[\w .()&+-]{1,120}\.(csv|xlsx)$", re.IGNORECASE)
 
 
@@ -172,6 +173,23 @@ def make_handler(hub, port):
             pass
 
         # ---------------------------------------------------------------- helpers
+        def send_range(self, data, ctype):
+            # Video players ask for byte ranges (seeking); answer them.
+            rng = self.headers.get("Range")
+            m = re.match(r"bytes=(\d*)-(\d*)$", rng or "")
+            if not m or (not m.group(1) and not m.group(2)):
+                return self.send(200, data, ctype, {"Accept-Ranges": "bytes"})
+            size = len(data)
+            if m.group(1):
+                start = int(m.group(1))
+                end = min(int(m.group(2)) if m.group(2) else size - 1, size - 1)
+            else:
+                start = max(0, size - int(m.group(2)))
+                end = size - 1
+            if start >= size or start > end:
+                return self.send(416, b"", ctype, {"Content-Range": f"bytes */{size}"})
+            return self.send(206, data[start:end + 1], ctype, {"Accept-Ranges": "bytes", "Content-Range": f"bytes {start}-{end}/{size}"})
+
         def send(self, code, body=b"", ctype="application/json; charset=utf-8", extra=None):
             if isinstance(body, str):
                 body = body.encode("utf-8")
@@ -216,6 +234,17 @@ def make_handler(hub, port):
                     return self.send(500, f"Cannot read index.html in {hub.folder}: {e}", "text/plain; charset=utf-8")
             if url.path == "/favicon.ico":
                 return self.send(204)
+            if url.path.startswith("/training/"):
+                # Lesson videos shipped next to the hub: <hub>\training\<lesson>.mp4 (read-only, no key needed).
+                name = urllib.parse.unquote(url.path[len("/training/"):])
+                if not TRAINING_NAME.match(name):
+                    return self.send(404, "")
+                try:
+                    with open(os.path.join(hub.path("training"), name), "rb") as f:
+                        data = f.read()
+                except OSError:
+                    return self.send(404, "")
+                return self.send_range(data, "video/mp4" if name.endswith(".mp4") else "video/webm")
             if not url.path.startswith("/api/"):
                 return self.send(404, "{}")
             if not self.authorized():

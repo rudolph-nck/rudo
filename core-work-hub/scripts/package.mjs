@@ -12,6 +12,8 @@ mkdirSync(join(stage, 'CoreWorkHub', 'changes'), { recursive: true });
 mkdirSync(join(stage, 'Setup', 'sync'), { recursive: true });
 mkdirSync(join(stage, 'CoreWorkHub', 'app'), { recursive: true });
 mkdirSync(join(stage, 'CoreWorkHub', 'import'), { recursive: true });
+mkdirSync(join(stage, 'CoreWorkHub', 'training'), { recursive: true });
+writeFileSync(join(stage, 'CoreWorkHub', 'training', 'README.txt'), 'Lesson videos for the Training page go here (<lesson>.mp4). They come in CoreWorkHub-training-videos.zip; rebuild them with: node scripts/record-training.cjs\r\n');
 writeFileSync(join(stage, 'CoreWorkHub', 'import', 'README.txt'), 'Drop the hourly Service Desk export here as "Core - All.csv" (Setup\\sync\\Register-ExportCopyTask.ps1 does it for you). Any open hub imports it automatically when it changes.\r\n');
 
 cpSync('dist/index.html', join(stage, 'CoreWorkHub', 'index.html'));
@@ -29,3 +31,14 @@ const zip = join('release', `${name}.zip`);
 rmSync(zip, { force: true });
 execSync(`cd build/package && zip -qr ../../${zip} ${name}`);
 console.log(`${zip} written`);
+
+// Lesson videos: a separate zip (not committed). Unzip into the hub folder; files land in training\.
+if (existsSync('build/training')) {
+  const vz = join('release', 'CoreWorkHub-training-videos.zip');
+  rmSync(vz, { force: true });
+  rmSync('build/videos', { recursive: true, force: true });
+  mkdirSync('build/videos', { recursive: true });
+  cpSync('build/training', 'build/videos/training', { recursive: true });
+  execSync(`cd build/videos && zip -qr ../../${vz} training`);
+  console.log(`${vz} written`);
+}

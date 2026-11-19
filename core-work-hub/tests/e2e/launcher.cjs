@@ -56,6 +56,13 @@ function start(user, port, extraEnv = {}) {
   check((await api(P, '/api/changes/read?user=..%2Fhub-config', { headers: { 'X-Hub-Key': key(nick.url) } })).status === 400, 'no path tricks in change-file names');
   check((await api(P, '/api/changes/append', { method: 'POST', headers: { 'X-Hub-Key': key(nick.url) }, body: 'not json\n' })).status === 500, 'rejects lines that are not JSON');
 
+  // Lesson videos from <hub>\training (byte ranges for seeking); nothing else
+  fs.mkdirSync(path.join(hub, 'training'), { recursive: true });
+  fs.writeFileSync(path.join(hub, 'training', 'basics.mp4'), Buffer.alloc(1000, 7));
+  const v = await api(P, '/training/basics.mp4', { headers: { Range: 'bytes=100-199' } });
+  check(v.status === 206 && (await v.arrayBuffer()).byteLength === 100 && v.headers.get('content-range') === 'bytes 100-199/1000', 'lesson videos are served with byte ranges');
+  check((await api(P, '/training/..%2Fhub-config.json')).status === 404 && (await api(P, '/training/x.exe')).status === 404, 'only lesson videos can be fetched from training');
+
   const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 1440, height: 1000 } });
   // These tests drag between swimlane cells ("To Do, Support"); the default board is one row with bucket badges.

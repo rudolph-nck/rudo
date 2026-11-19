@@ -1,5 +1,7 @@
 # Core Work Hub — Quick Guide for IT Core
 
+**New here?** Open **Training** in the sidebar: short lessons with a video, step-by-step how-tos, and **Show me**, a guided tour on the real screen.
+
 **Open it:** double-click the **Core Work Hub** icon on your desktop. Edge opens the hub, already signed in as you. (No icon yet? Open the shared hub folder and double-click **Install desktop icon.bat** once.)
 
 **Service Desk is still where tickets live.** Assign, set waiting statuses, comment and close tickets there; the hub follows within 15 minutes. The hub is where we decide **what to work on, in what order, and by whom**.

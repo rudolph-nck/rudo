@@ -230,11 +230,17 @@ If any check fails, the license limits the API: Wrike items are entered by hand 
 2. Each team member runs **Install desktop icon.bat** once, then uses the icon. They are signed in from Windows.
 3. Matt does the same; he sees everything read-only.
 
-## 11. Updating the app
+## 11. Training
+
+The **Training** page has a lesson per part of the hub (what it's for, how-to steps, a guided tour on the real screen). Lesson videos are separate files: unzip **CoreWorkHub-training-videos.zip** into the hub folder so the `.mp4` files sit in `training\`. Without them, lessons still work (the tour replaces the video). Nick sees each person's progress on the Training page.
+
+When the app changes, re-record the videos from the source: `npm run build` then `node scripts/record-training.cjs` (needs ffmpeg), and copy `build\training\*.mp4` over the old ones. Lesson text and tour steps live in `src/training/lessons.ts`.
+
+## 12. Updating the app
 
 Replace `index.html` (and the `app\` folder, if the release notes say it changed) in the shared folder. Desktop icons don't need reinstalling. `hub-config.json`, `tickets.json` and `changes/` stay as they are; everyone’s board picks up the new version on their next reload.
 
-## 12. Data, privacy and security
+## 13. Data, privacy and security
 
 - **Stored:** ticket metadata only (ID, subject, status, technician, dates, SLA, department, sub-category). No descriptions or notes. Card/account-number patterns in subjects are masked.
 - **Token:** only in Credential Manager on the sync PC; read-only technician.
@@ -243,7 +249,7 @@ Replace `index.html` (and the `app\` folder, if the release notes say it changed
 - **Avatars:** people can pick a colour, emoji or photo for themselves (never for someone else). A photo is cropped and shrunk to 128 px (about 10 KB) and stored in that person's change file. “Use my Windows picture” reads only the account picture Windows keeps for the signed-in user (`C:\Users\Public\AccountPictures\<SID>` or `%APPDATA%\Microsoft\Windows\AccountPictures`); it is not uploaded anywhere else.
 - **Backups:** covered by the share’s backup. Size grows slowly (a few MB a year).
 
-## 13. Troubleshooting
+## 14. Troubleshooting
 
 | Symptom | Fix |
 |---|---|

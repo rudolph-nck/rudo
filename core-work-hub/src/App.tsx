@@ -2,6 +2,9 @@ import { BrandMark } from './components/logo';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { splash } from './components/Splash';
 import { Standup } from './views/Standup';
+import { Training } from './views/Training';
+import { TourHost, startTour } from './training/Tour';
+import { LESSONS, lessonsFor } from './training/lessons';
 import { standup } from './model/priority';
 import { ProfileDialog, toAvatarPhoto } from './components/Profile';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -74,6 +77,7 @@ function Sidebar() {
   const disp = currentDispatch(cfg);
   const next = nextDispatch(cfg);
   const mustDiscuss = useMemo(() => standup(state, now).mustDiscuss, [state, now]);
+  const trainingLeft = lessonsFor(findPerson(cfg, me)?.role, false).filter((l) => !state.training?.[me]?.[l.id]).length;
   const meP = findPerson(cfg, me);
   const [profileOpen, setProfileOpen] = useState(false);
   const [, tick] = useState(0);
@@ -114,6 +118,7 @@ function Sidebar() {
           </button>
         ))}
         <div className="nav-sep" />
+        <button aria-current={view === 'training' ? 'page' : undefined} onClick={() => go('training')}><Icon name="learn" />Training{trainingLeft ? <span className="count" aria-label={`${trainingLeft} lessons to go`}>{trainingLeft}</span> : null}</button>
         <button aria-current={view === 'audit' ? 'page' : undefined} onClick={() => go('audit')}><Icon name="log" />Audit log</button>
         <button aria-current={view === 'settings' ? 'page' : undefined} onClick={() => go('settings')}><Icon name="gear" />Settings</button>
       </nav>
@@ -157,6 +162,28 @@ function Sidebar() {
   );
 }
 
+/** First visit with no lessons done: offer the 2-minute tour once (per PC). */
+function TrainingPrompt() {
+  const { state, me, commit, readOnly, lastSync } = useHub();
+  const [hide, setHide] = useState(() => { try { return !!localStorage.getItem('cwh.trainPrompt.' + me); } catch { return true; } });
+  const { go } = useNav();
+  if (hide || !lastSync || readOnly || Object.keys(state.training?.[me] ?? {}).length || navigator.webdriver) return null;
+  const close = () => { try { localStorage.setItem('cwh.trainPrompt.' + me, '1'); } catch { /* ignore */ } setHide(true); };
+  const first = LESSONS[0];
+  return (
+    <div className="train-prompt" role="dialog" aria-label="Training">
+      <Icon name="learn" />
+      <div className="grow">
+        <strong>New to the hub?</strong>
+        <div className="small muted">Take the 2-minute tour, or find every lesson under Training.</div>
+      </div>
+      <button className="btn sm ghost" onClick={() => { close(); go('training'); }}>Lessons</button>
+      <button className="btn sm primary" onClick={() => { close(); startTour(first, () => void commit([{ type: 'training.done', data: { lesson: first.id } }])); }}>Start tour</button>
+      <button className="btn icon ghost" onClick={close} aria-label="Not now"><Icon name="x" size={16} /></button>
+    </div>
+  );
+}
+
 function Shell() {
   const { error, role, state, me, lastSync, store, readOnly, commit } = useHub();
   const meP = findPerson(state.config, me);
@@ -194,7 +221,7 @@ function Shell() {
     location.hash = `/${v}${p ? '/' + encodeURIComponent(p) : ''}`;
   }, []);
   useEffect(() => {
-    document.title = `${{ overview: 'Overview', rotation: 'Rotation', timeoff: 'Time off', priorities: 'Priorities', teamscore: 'Team score', notifications: 'Notifications', standup: 'Stand-up', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
+    document.title = `${{ overview: 'Overview', rotation: 'Rotation', timeoff: 'Time off', priorities: 'Priorities', teamscore: 'Team score', notifications: 'Notifications', standup: 'Stand-up', training: 'Training', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
     (document.querySelector('main') as HTMLElement | null)?.focus({ preventScroll: true });
   }, [route.view]);
   return (
@@ -214,6 +241,7 @@ function Shell() {
               {route.view === 'timeoff' && <TimeOff />}
               {route.view === 'priorities' && <Priorities />}
               {route.view === 'standup' && <Standup />}
+              {route.view === 'training' && <Training />}
               {route.view === 'teamscore' && <TeamScore />}
               {route.view === 'notifications' && <Notifications />}
               {route.view === 'audit' && <Audit />}
@@ -223,6 +251,8 @@ function Shell() {
           </main>
         </div>
         <Toaster />
+        <TourHost />
+        <TrainingPrompt />
       </UiProvider>
     </NavCtx.Provider>
   );

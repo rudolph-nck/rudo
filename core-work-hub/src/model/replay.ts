@@ -95,7 +95,7 @@ function fromTicket(t: SourceTicket, config: HubConfig): WorkItem {
 export function rejectReason(config: HubConfig, file: string, e: HubEvent, item?: WorkItem): string | undefined {
   const role = roleOf(config, file);
   if (!role) return `"${file}" is not in hub-config.json`;
-  if (e.type === 'profile.set') return undefined; // everyone styles their own avatar (always applied to the file's owner)
+  if (e.type === 'profile.set' || e.type === 'training.done') return undefined; // about the file's owner only
   if (role === 'viewer') return 'Viewers are read-only';
   if (role === 'manager') return undefined;
   const grader = canGrade(config, file, e.ts.slice(0, 10));
@@ -152,6 +152,7 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
   const audit: AuditEntry[] = [];
   const conflicts: Conflict[] = [];
   const time: TimeEntry[] = [];
+  const training: Record<string, Record<string, string>> = {};
   /** When/by whom the hub last set owner / priority, for sync conflict detection. */
   const hubSet = new Map<string, { owner?: { ts: string; user: string }; priority?: { ts: string; user: string } }>();
   const tickets = new Map<string, SourceTicket>();
@@ -391,6 +392,9 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
         markHubSet(w.id, 'priority', e.ts, file);
         break;
       }
+      case 'training.done':
+        training[file] = { ...(training[file] ?? {}), [e.data.lesson]: e.ts };
+        break;
       case 'item.standup': {
         const w = it!;
         w.standupLog = [...(w.standupLog ?? []), { ts: e.ts, user: file, status: e.data.status, note: e.data.note }].slice(-20);
@@ -527,5 +531,5 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
     i.score = computeScore(i.impact, i.urgency, i.effort);
   }
 
-  return { config, items, audit, conflicts, time, snapshot };
+  return { config, items, audit, conflicts, time, snapshot, training };
 }

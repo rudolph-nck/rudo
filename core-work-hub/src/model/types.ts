@@ -355,6 +355,7 @@ export type HubEvent = EventBase &
     | { type: 'team.score'; item: string; data: { score: number | null; reason?: string } }
     | { type: 'item.expedite'; item: string; data: Expedite | { clear: true; reason?: string } }
     | { type: 'item.reprioritize'; item: string; data: { priority: Priority; reason: string; toldRequester?: boolean; managerAware?: boolean } }
+    | { type: 'training.done'; data: { lesson: string } }
     | { type: 'item.standup'; item: string; data: { status: StandupStatus; note?: string } }
     | { type: 'item.commit'; item: string; data: { date: string | null; note?: string } }
     | { type: 'config.priorityStandard'; data: Partial<PriorityStandard> }
@@ -466,4 +467,6 @@ export interface HubState {
   conflicts: Conflict[];
   time: TimeEntry[];
   snapshot?: TicketsSnapshot;
+  /** Training lessons each person has finished: username -> lesson id -> when. */
+  training?: Record<string, Record<string, string>>;
 }
