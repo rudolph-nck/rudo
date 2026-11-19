@@ -209,6 +209,34 @@ export function Tip({ content, children, className, place = 'top', label }: { co
 // ---------------------------------------------------------------- toast
 let pushToast: ((s: string) => void) | undefined;
 export const toast = (s: string) => pushToast?.(s);
+
+/**
+ * Links that can't point at the exact ticket (e.g. Service Desk Cloud from a CSV import, where the long internal
+ * ID isn't in the export) carry "#cwhcopy=<ticket number>": opening one copies the number for the search box
+ * and opens the page without the marker.
+ */
+const COPY_MARK = /#cwhcopy=([^&#]*)$/;
+export function openLink(href: string) {
+  const m = href.match(COPY_MARK);
+  if (!m) return void window.open(href, '_blank', 'noopener');
+  const id = decodeURIComponent(m[1]);
+  void navigator.clipboard?.writeText(id).catch(() => undefined);
+  toast(`${id} copied. Paste it into Service Desk search (Ctrl+V).`);
+  window.open(href.replace(COPY_MARK, ''), '_blank', 'noopener');
+}
+/** One listener for every <a> in the app, so all ticket links behave the same way. */
+export function useCopyLinks() {
+  useEffect(() => {
+    const on = (e: MouseEvent) => {
+      const a = (e.target as Element | null)?.closest?.('a[href*="#cwhcopy="]') as HTMLAnchorElement | null;
+      if (!a || e.defaultPrevented || e.button !== 0) return;
+      e.preventDefault();
+      openLink(a.href);
+    };
+    document.addEventListener('click', on, true);
+    return () => document.removeEventListener('click', on, true);
+  }, []);
+}
 export function Toaster() {
   const [msg, setMsg] = useState<string>();
   useEffect(() => {

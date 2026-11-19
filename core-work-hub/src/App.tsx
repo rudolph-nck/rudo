@@ -9,7 +9,7 @@ import type { HubConfig } from './model/types';
 import { demoSeed } from './demo';
 import { NavCtx, parseHash, useNav, type View } from './nav';
 import { UiProvider } from './components/actions';
-import { Avatar, Icon, Toaster } from './components/ui';
+import { Avatar, Icon, Toaster, useCopyLinks } from './components/ui';
 import { Board } from './views/Board';
 import { Triage } from './views/Triage';
 import { Team } from './views/Team';
@@ -154,6 +154,7 @@ function Sidebar() {
 function Shell() {
   const { error, role } = useHub();
   useDesktopAlerts();
+  useCopyLinks();
   const [route, setRoute] = useState(() => (location.hash.length > 2 ? parseHash(location.hash) : { view: (role === 'analyst' ? 'board' : 'overview') as View, param: undefined }));
   useEffect(() => {
     const on = () => setRoute(parseHash(location.hash));

@@ -12,6 +12,7 @@ const hub = fs.mkdtempSync(path.join(os.tmpdir(), 'cwh-hub-'));
 fs.copyFileSync(path.join(root, 'dist/index.html'), path.join(hub, 'index.html'));
 const cfg = JSON.parse(fs.readFileSync(path.join(root, 'deploy/hub-config.json'), 'utf8'));
 cfg.autoImport = { settleSeconds: 0 }; // tests: import as soon as the file appears
+cfg.ticketUrls = { ...cfg.ticketUrls, SD: 'https://sd.example.test/app/itdesk/ui/requests#cwhcopy={id}' };
 fs.writeFileSync(path.join(hub, 'hub-config.json'), JSON.stringify(cfg));
 const now = new Date().toISOString();
 fs.writeFileSync(path.join(hub, 'tickets.json'), JSON.stringify({ generatedAt: now, generatedBy: 'test', mode: 'csv', items: [
@@ -103,6 +104,17 @@ function start(user, port, extraEnv = {}) {
   check(tj.items.some((t) => t.source_id === '90003'), 'an overwritten export is imported again (by whoever has the hub open)');
   await pw.goto(wes.url.split('#')[0] + '#/settings'); await pw.waitForTimeout(800);
   check(/imported .*\(2 tickets, 2 open\)/.test(await pw.getByTestId('autoimport-status').innerText()), 'Settings shows when the export was imported');
+  // Cloud links from a CSV can't point at the exact ticket: the link copies the number and opens Service Desk.
+  await ctx.route('https://sd.example.test/**', (r) => r.fulfill({ contentType: 'text/html', body: 'Service Desk' }));
+  await pw.goto(wes.url.split('#')[0] + '#/triage'); await pw.waitForTimeout(800);
+  const [popup] = await Promise.all([
+    pw.waitForEvent('popup'),
+    pw.locator('a[href*="cwhcopy"]').first().click(),
+  ]);
+  await popup.waitForLoadState();
+  check(popup.url() === 'https://sd.example.test/app/itdesk/ui/requests', 'ticket link opens Service Desk without the marker');
+  await popup.close();
+  check(/copied\. Paste it into Service Desk search/.test(await pw.locator('.toast').innerText()), 'and says the ticket number was copied');
   const st = await api(P, '/api/import?name=..%5Chub-config.json', { headers: { 'X-Hub-Key': key(nick.url) } });
   check(st.status === 400, 'import\\ can’t be used to read other files');
 

@@ -5,7 +5,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { useHub } from '../store/hub';
 import { useUi, rankEvents } from '../components/actions';
 import { GradeForm, draftFrom, effectiveGrade, type Draft } from '../components/GradeForm';
-import { Avatar, BucketDot, Icon, PriorityChip, SourceBadge, toast } from '../components/ui';
+import { Avatar, BucketDot, Icon, PriorityChip, SourceBadge, openLink, toast } from '../components/ui';
 import { analysts, computeScore, doingFor, fmtAge, fmtShortDate, isOverdue, personWipLimit, rankedList, suggestOwner, suggestPriority, suggestedRankIndex } from '../model/logic';
 import { BUCKETS, BUCKET_LABEL, PRIORITIES, type Bucket, type Priority, type WorkItem } from '../model/types';
 
@@ -112,13 +112,13 @@ export function Triage() {
   const reply = async () => {
     if (!sel) return;
     const isEmail = sel.requester && /@/.test(sel.requester);
-    if (sel.source_url) window.open(sel.source_url, '_blank', 'noopener');
+    if (sel.source_url) openLink(sel.source_url);
     else if (isEmail) window.location.href = `mailto:${sel.requester}?subject=${encodeURIComponent(sel.title)}`;
     else return toast('No link or email for the requester on this item.');
     await commit([{ type: 'item.reply', item: sel.id, data: { via: sel.source_url ? (sel.source === 'SD' ? 'Service Desk' : sel.source) : 'email' } }]);
   };
   const openSource = () => {
-    if (sel?.source_url) window.open(sel.source_url, '_blank', 'noopener');
+    if (sel?.source_url) openLink(sel.source_url);
     else toast('No link for this item.');
   };
   const close = async () => {
