@@ -34,15 +34,17 @@ export const LESSONS: Lesson[] = [
     why: 'The hub is where IT Core decides what to work on, in what order and by whom. Service Desk is still where tickets live.',
     howTo: [
       { task: 'Open the hub', steps: ['Double-click the Core Work Hub icon on your desktop.', 'It opens in Edge, already signed in as you.'] },
-      { task: 'Change your avatar', steps: ['Click your name at the bottom of the sidebar.', 'Pick a colour, an emoji, or a photo (your Windows picture or an upload), then Save.'] },
-      { task: 'Switch light / dark mode', steps: ['Use the three buttons next to your name: System, Light, Dark.'] },
+      { task: 'Find your way', steps: ['The side menu has the main areas. Areas with several pages (Overview, Board, Team) show them as tabs along the top.', 'Press the panel button next to the logo to collapse the menu to icons, and again to expand it.'] },
+      { task: 'Change your avatar', steps: ['Click your picture in the top right.', 'Choose Change my picture: a colour, an emoji, or a photo (your Windows picture or an upload), then Save.'] },
+      { task: 'Switch light / dark mode', steps: ['Click your picture in the top right and pick System, Light or Dark.'] },
     ],
     tour: [
-      { target: '.sidebar .nav', title: 'The menu', body: 'Every part of the hub is here. Red and blue counts tell you where something is waiting for you.' },
-      { target: 'text:Notifications', title: 'Notifications', body: 'Tickets where a requester is owed a response or update. Red means it is already late.' },
+      { target: '.sidebar .nav', title: 'The menu', body: 'The main areas of the hub. Counts tell you where something is waiting for you.' },
+      { target: '.nav-toggle', title: 'Collapse the menu', body: 'Shrink the menu to icons for more room. The hub remembers your choice.' },
+      { target: '.topbar .bell', title: 'Notifications', body: 'Tickets where a requester is owed a response or update. A red count means something is already late.' },
       { target: '.dispatch-card', title: 'Who is on support', body: 'The person on support this shift, their last day, and the escalation point. Click it for the rotation.' },
-      { target: '.foot-row', title: 'Always up to date', body: 'The hub syncs every 20 seconds. Press refresh to sync now.' },
-      { target: '.me-btn', title: 'You', body: 'Click your name to set your avatar. Next to it: light or dark mode.' },
+      { target: '[aria-label="Refresh now"]', title: 'Always up to date', body: 'The hub syncs every 20 seconds. Press refresh to sync now.' },
+      { target: '.profile-wrap .me-btn', title: 'You', body: 'Your picture, light or dark mode, and training are all in this menu.' },
     ],
   },
   {
@@ -58,6 +60,7 @@ export const LESSONS: Lesson[] = [
       { task: 'Filter', steps: ['Use All / Projects / Maintenance / Support, or the analyst, priority, system and source filters.'] },
     ],
     tour: [
+      { view: 'board', target: '.section-tabs', title: 'The Board area', body: 'Three tabs: the Board itself, Intake (tickets waiting to be graded) and Priorities.' },
       { view: 'board', target: '.page-head h1', title: 'The Board', body: 'Graded work from To Do to Done. Ungraded tickets wait in Intake instead.' },
       { view: 'board', target: '.intake-pill', title: 'Intake count', body: 'How many tickets are waiting to be graded. Click to open Intake.' },
       { view: 'board', target: '[aria-label="Bucket"]', title: 'Buckets', body: 'Show all work, or just Projects, Maintenance or Support.' },
@@ -70,17 +73,21 @@ export const LESSONS: Lesson[] = [
   {
     id: 'mywork',
     title: 'My work',
-    minutes: 2,
+    minutes: 3,
     audience: 'everyone',
-    why: 'Everything you own in one place: acknowledge new assignments and log your time.',
+    why: 'Your own dashboard: what needs focus first, your line-up in order, and when things are due. The team starts here.',
     howTo: [
-      { task: 'Acknowledge an assignment', steps: ['Open My work.', 'Press Acknowledge on anything new, so Nick and support know you have it.'] },
-      { task: 'Log time', steps: ['In Log time for today, pick the bucket (projects, maintenance, tickets, support, documentation) and the hours.', 'The Team page compares your week with your level’s time split.'] },
+      { task: 'Start your day', steps: ['Open My work (it is the first page you see).', 'Clear the Needs focus items first: late updates, past-target work, anything due today or waiting on you.', 'Then work your line-up from the top.'] },
+      { task: 'Acknowledge an assignment', steps: ['Press Acknowledge on anything new, so Nick and support know you have it.'] },
+      { task: 'See your work another way', steps: ['Switch between Line-up, By status, By due date and Table. The hub remembers your pick.', 'Click a tile (Needs focus, Due this week, To acknowledge) to show just those items.'] },
+      { task: 'Log time', steps: ['Under Time this week, enter the hours, pick the bucket and press Log.', 'The bars compare your week with your level’s time split.'] },
     ],
     tour: [
-      { view: 'mine', target: '.page-head h1', title: 'My work', body: 'Everything you own, grouped by column.' },
-      { view: 'mine', target: 'text:Acknowledge', title: 'Acknowledge', body: 'New assignments show here until you acknowledge them.' },
-      { view: 'mine', target: '#lt', title: 'Log time', body: 'Log hours against the capacity buckets. It feeds the Team page.' },
+      { view: 'mine', target: '.page-head h1', title: 'My work', body: 'Your day at a glance: support week, time off and anything over your limit show under your name.' },
+      { view: 'mine', target: '.mw-tiles', title: 'The tiles', body: 'Needs focus, open work, due this week, to acknowledge and closed this week. Click a tile to filter the list.' },
+      { view: 'mine', target: '.mw-list', title: 'Your line-up', body: 'The most pressing first. Each row says why it needs you, when it is due and how far along its target it is.' },
+      { view: 'mine', target: '.mw-modes', title: 'Other views', body: 'See the same work by status, by due date, or as a table.' },
+      { view: 'mine', target: '.mw-rail', title: 'Your week', body: 'Time logged against your split, what is coming up, and what you closed recently.' },
     ],
   },
   {
@@ -94,6 +101,7 @@ export const LESSONS: Lesson[] = [
       { task: 'Know what happens if it is missed', steps: ['It goes to you first, then to whoever is on support after a business day, then to Nick.'] },
     ],
     tour: [
+      { view: 'notifications', target: '.topbar .bell', title: 'The bell', body: 'Opens your notifications from any page. The count turns red when something is late.' },
       { view: 'notifications', target: '.page-head h1', title: 'Notifications', body: 'Tickets owed a first response, an update, or a requester follow-up.' },
       { view: 'notifications', target: '.notice', title: 'A notice', body: 'What is due, when, and who should act. Red means late or escalated.' },
       { view: 'notifications', target: 'text:Log update', title: 'Log update', body: 'Record the update and copy wording you can paste into Service Desk.' },
@@ -106,7 +114,7 @@ export const LESSONS: Lesson[] = [
     audience: 'support',
     why: 'Every new ticket and project gets a bucket, impact, urgency and effort, which become its priority, score and place in line.',
     howTo: [
-      { task: 'Grade a ticket', steps: ['Open Intake and select a ticket.', 'Pick the bucket, then impact, urgency and effort (hover any number to see what it means).', 'Check the suggested priority and owner, then Send to To Do.'] },
+      { task: 'Grade a ticket', steps: ['Open Board → Intake and select a ticket.', 'Pick the bucket, then impact, urgency and effort (hover any number to see what it means).', 'Check the suggested priority and owner, then Send to To Do.'] },
       { task: 'Go faster', steps: ['J / K move between tickets, 1–4 set priority, Enter sends, O opens it in Service Desk.'] },
     ],
     tour: [
@@ -122,7 +130,7 @@ export const LESSONS: Lesson[] = [
     audience: 'support',
     why: 'One agenda so nothing big or small slips: P1s, what is due today, what is past target, and what is coming up.',
     howTo: [
-      { task: 'Run stand-up', steps: ['Open Stand-up and go down the list from the top.', 'Mark each item On track, At risk or Blocked; add a Note if useful.', 'Watch the counter: everything must-discuss should be discussed.'] },
+      { task: 'Run stand-up', steps: ['Open Stand-up (Overview → Stand-up for Nick, Team → Stand-up for everyone else) and go down the list from the top.', 'Mark each item On track, At risk or Blocked; add a Note if useful.', 'Watch the counter: everything must-discuss should be discussed.'] },
       { task: 'Agree a new date', steps: ['Press Date and pick the day. It comes off “past target” until then.'] },
       { task: 'Change a priority', steps: ['Press Priority. Lowering it needs a reason; tick “Requester told” and copy the message for them.'] },
       { task: 'Post to Teams', steps: ['Press Copy for Teams and paste into the channel.'] },
@@ -158,7 +166,7 @@ export const LESSONS: Lesson[] = [
     audience: 'everyone',
     why: 'The team rates projects together so every project gets a unique score and a clear order.',
     howTo: [
-      { task: 'Rate a project', steps: ['Open Team score and pick a project.', 'Rate each criterion 1–5 (hover for what each number means). Ties are settled in the meeting.'] },
+      { task: 'Rate a project', steps: ['Open Team → Team score and pick a project.', 'Rate each criterion 1–5 (hover for what each number means). Ties are settled in the meeting.'] },
     ],
     tour: [{ view: 'teamscore', target: '.page-head h1', title: 'Team score', body: 'Rate projects 1–5 per criterion. Scores set the project order.' }],
   },

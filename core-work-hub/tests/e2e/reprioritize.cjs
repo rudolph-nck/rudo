@@ -57,13 +57,13 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   check(await rc.locator('.avatar').first().getAttribute('aria-label') === 'No owner', 'owner cleared');
 
   const w = await ctx.newPage(); w.on('pageerror', e => errs.push(e.message));
-  await w.goto(file + '?demo&as=cathy'); await w.waitForSelector('.card');
+  await w.goto(file + '?demo&as=cathy#/board'); await w.waitForSelector('.card');
   const wc = w.locator('article.card').filter({ has: w.getByRole('button', { name: 'Migrate department file shares to SharePoint', exact: true }) });
   await wc.getByRole('button', { name: /Pick up/ }).click();
   await w.waitForTimeout(400);
   const dc = w.locator('.cell[aria-label="Doing, Project"] article.card').filter({ has: w.getByRole('button', { name: 'Migrate department file shares to SharePoint', exact: true }) });
   check(await dc.count() === 1 && await dc.locator('.avatar').first().getAttribute('aria-label') === 'Cathy', 'Cathy picked it up: Doing, owner Cathy');
-  await w.goto(file + '?demo&as=cathy#/audit'); await w.waitForSelector('table');
+  await w.goto(file + '?demo&as=nick#/audit'); await w.waitForSelector('table');
   const txt = await w.locator('section.panel table').last().innerText();
   check(/released the owner — reason: “Wes is on the core upgrade/.test(txt), 'audit shows release with reason');
   await p.emulateMedia({ colorScheme: 'dark' });

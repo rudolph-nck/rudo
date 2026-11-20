@@ -15,7 +15,7 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   const nickCount = await nick.locator('.notice').count();
   check(nickCount >= 2, `Nick sees escalations (${nickCount})`);
   check(!(await nick.locator('.notice').allInnerTexts()).some((t) => /You’re on support/.test(t)), 'Nick is never labelled as support');
-  check(await nick.locator('.nav .count.alert').count() === 1, 'sidebar badge turns red when something is late');
+  check(await nick.locator('.topbar .bell .count.alert').count() === 1, 'the bell badge turns red when something is late');
   const trey = await open('trey', 'notifications');
   const before = await trey.locator('.notice').count();
   const firstTitle = (await trey.locator('.notice').first().innerText()).split('\n').find((l) => /SD #\d+/.test(l)) ?? '';

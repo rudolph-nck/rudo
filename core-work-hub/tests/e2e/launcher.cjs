@@ -71,7 +71,8 @@ function start(user, port, extraEnv = {}) {
   const pn = await ctx.newPage(); pn.on('pageerror', (e) => errs.push(e.message));
   await pn.goto(nick.url); await pn.waitForSelector('.sidebar');
   check(!/key=/.test(pn.url()), 'session key is taken out of the address bar');
-  check(/Nick/.test(await pn.locator('.sidebar-foot').innerText()) && (await pn.getByText('Not you?').count()) === 0, 'signed in as the Windows user (Nick), no name to pick');
+  await pn.locator('.profile-wrap .me-btn').click();
+  check(/Nick/.test(await pn.locator('.topbar .me-btn').innerText()) && (await pn.getByText('Not you?').count()) === 0, 'signed in as the Windows user (Nick), no name to pick');
   await pn.goto(nick.url.split('#')[0] + '#/triage'); await pn.reload(); await pn.waitForSelector('.q-item.sel');
   const sel = pn.locator('.q-item.sel');
   await sel.getByRole('radio', { name: 'Support' }).click();
@@ -87,7 +88,7 @@ function start(user, port, extraEnv = {}) {
   await pw.goto(wes.url); await pw.waitForSelector('.sidebar');
   await pw.goto(wes.url.split('#')[0] + '#/board'); await pw.reload(); await pw.waitForSelector('.card');
   check((await pw.locator('.cell[aria-label="To Do, Support"] .card', { hasText: 'Launcher test ticket' }).count()) === 1, 'Wes (other PC, own launcher) sees Nick’s change');
-  check(/Wes/.test(await pw.locator('.sidebar-foot').innerText()), 'Wes is signed in as Wes');
+  check(/Wes/.test(await pw.locator('.topbar .me-btn').innerText()), 'Wes is signed in as Wes');
   // Wes's browser can't write as Nick: the launcher always uses its own user
   const r = await api(P + 1, '/api/changes/append', { method: 'POST', headers: { 'X-Hub-Key': key(wes.url) }, body: JSON.stringify({ id: 'x', ts: now, user: 'nick', type: 'item.comment', item: 'SD:INC-1', data: { text: 'hi' } }) + '\n' });
   check(r.ok && (await r.json()).file === 'changes/wes.jsonl', 'each launcher writes only its own person’s file');
@@ -115,7 +116,10 @@ function start(user, port, extraEnv = {}) {
   tj = JSON.parse(fs.readFileSync(path.join(hub, 'tickets.json'), 'utf8'));
   check(tj.items.some((t) => t.source_id === '90003'), 'an overwritten export is imported again (by whoever has the hub open)');
   await pw.goto(wes.url.split('#')[0] + '#/settings'); await pw.waitForTimeout(800);
-  check(/imported .*\(2 tickets, 2 open\)/.test(await pw.getByTestId('autoimport-status').innerText()), 'Settings shows when the export was imported');
+  check(!(await pw.getByTestId('autoimport-status').count()) && /#\/mine$/.test(pw.url()), 'analysts are sent to My work instead of Settings');
+  await pn.goto(nick.url.split('#')[0] + '#/settings'); await pn.waitForTimeout(1200);
+  check(/imported .*\(2 tickets, 2 open\)/.test(await pn.getByTestId('autoimport-status').innerText()), 'Settings shows when the export was imported');
+  await pn.goto(nick.url.split('#')[0] + '#/board'); await pn.waitForTimeout(600);
   // Cloud links from a CSV can't point at the exact ticket: the link copies the number and opens Service Desk.
   await ctx.route('https://sd.example.test/**', (r) => r.fulfill({ contentType: 'text/html', body: 'Service Desk' }));
   await pw.goto(wes.url.split('#')[0] + '#/triage'); await pw.waitForTimeout(800);
@@ -132,14 +136,14 @@ function start(user, port, extraEnv = {}) {
 
   // Avatars: Nick uses his Windows picture; Wes picks a colour and an emoji. Each sees the other's.
   await pn.bringToFront();
-  await pn.getByRole('button', { name: /change my avatar/ }).click();
+  await pn.locator('.profile-wrap .me-btn').click(); await pn.getByRole('menuitem', { name: 'Change my picture' }).click();
   await pn.getByRole('button', { name: 'Use my Windows picture' }).click();
   await pn.locator('dialog[open] .profile-preview img.avatar.xl').waitFor();
   await pn.getByRole('button', { name: 'Save' }).click();
   await pn.waitForTimeout(300);
   check(/"type":"profile.set"/.test(fs.readFileSync(path.join(hub, 'changes/nick.jsonl'), 'utf8')), 'Nick’s avatar is saved to his own change file');
   await pw.bringToFront();
-  await pw.getByRole('button', { name: /change my avatar/ }).click();
+  await pw.locator('.profile-wrap .me-btn').click(); await pw.getByRole('menuitem', { name: 'Change my picture' }).click();
   await pw.getByRole('radio', { name: 'Red' }).click();
   await pw.getByRole('radio', { name: 'Emoji' }).click();
   await pw.getByRole('button', { name: 'Emoji 🦊' }).click();
@@ -149,7 +153,7 @@ function start(user, port, extraEnv = {}) {
   await pw.waitForTimeout(600);
   await pw.goto(wes.url.split('#')[0] + '#/team'); await pw.waitForTimeout(800);
   check(await pw.locator('img.avatar[alt="Nick"]').count() > 0, 'Wes sees Nick’s photo (Team page)');
-  const wesSelf = pw.locator('.sidebar-foot .avatar');
+  const wesSelf = pw.locator('.topbar .me-btn .avatar');
   check((await wesSelf.innerText()) === '🦊' && (await wesSelf.evaluate((e) => getComputedStyle(e).backgroundColor)) === 'rgb(180, 35, 24)', 'Wes’s own avatar shows the fox on red');
   await pn.bringToFront();
   await pn.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
@@ -157,7 +161,7 @@ function start(user, port, extraEnv = {}) {
   check(await pn.locator('.avatar.emoji', { hasText: '🦊' }).count() > 0, 'Nick sees Wes’s fox avatar on the Team page');
   // Windows has no picture: a clear message instead
   fs.rmSync(path.join(picDir, '{ABC}-Image192.png'));
-  await pn.getByRole('button', { name: /change my avatar/ }).click();
+  await pn.locator('.profile-wrap .me-btn').click(); await pn.getByRole('menuitem', { name: 'Change my picture' }).click();
   await pn.getByRole('button', { name: 'Use my Windows picture' }).click();
   await pn.waitForTimeout(500);
   check(await pn.getByRole('alert').filter({ hasText: 'Upload one instead' }).count() === 1, 'no Windows picture → “upload one instead”');

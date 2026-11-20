@@ -38,7 +38,8 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   await q.reload(); await q.locator('.people button', { hasText: 'Analyst · wes' }).click(); await q.waitForSelector('.sidebar');
   await q.evaluate(() => localStorage.removeItem('cwh.me'));
   await q.reload(); await q.waitForSelector('.sidebar');
-  check((await q.locator('.sidebar .row', { hasText: 'Not you?' }).innerText()).includes('Wes'), 'name pick is remembered after reload, even with localStorage cleared');
+  await q.locator('.profile-wrap .me-btn').click();
+  check((await q.locator('.profile-menu').innerText()).includes('Wes') && (await q.locator('.profile-menu').innerText()).includes('Not you?'), 'name pick is remembered after reload, even with localStorage cleared');
   console.log('errors', errs);
   if (errs.length) process.exitCode = 1;
   await b.close();

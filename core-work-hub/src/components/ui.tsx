@@ -38,6 +38,13 @@ const paths: Record<string, ReactNode> = {
   triage: <><path d="M4 6h16M7 12h10M10 18h4" /></>,
   panda: <><path d="M6 8.5L4.5 4.5 8.5 6" /><path d="M18 8.5l1.5-4-4 1.5" /><circle cx="12" cy="13" r="7.5" /><path d="M5.5 12.5c2-1.6 4.2-1.6 6.5 0 2.3-1.6 4.5-1.6 6.5 0-1 2-3 2.3-6.5 1.2-3.5 1.1-5.5.8-6.5-1.2z" fill="currentColor" stroke="none" /><circle cx="12" cy="16.5" r="1" fill="currentColor" /></>,
   learn: <><path d="M2 9l10-5 10 5-10 5z" /><path d="M6 11v5c0 1.5 3 3 6 3s6-1.5 6-3v-5" /><path d="M22 9v6" /></>,
+  sidebar: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16" /></>,
+  search: <><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></>,
+  target: <><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.2" fill="currentColor" /></>,
+  list: <><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1" /></>,
+  timeline: <><path d="M3 12h18" /><circle cx="7" cy="12" r="2" /><circle cx="14" cy="12" r="2" /><path d="M7 6v4M14 14v4M19 8v8" /></>,
+  table: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18M3 15h18M9 4v16" /></>,
+  logout: <><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4" /><path d="M10 16l-4-4 4-4M6 12h10" /></>,
   standup: <><path d="M10 6h11M10 12h11M10 18h11" /><path d="M3 6l1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17" /></>,
 };
 export function Icon({ name, size = 18, label }: { name: keyof typeof paths | string; size?: number; label?: string }) {

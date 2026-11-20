@@ -8,7 +8,7 @@ import { TourHost, startTour } from './training/Tour';
 import { LESSONS, lessonsFor } from './training/lessons';
 import { standup } from './model/priority';
 import { ProfileDialog, toAvatarPhoto } from './components/Profile';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HubProvider, useHub } from './store/hub';
 import { DemoStore, FolderStore, fsAccessSupported, LauncherStore, launcherKey, launcherMode, loadHandle, loadIdentity, saveHandle, saveIdentity, type HubStore } from './store/storage';
 import { defaultConfig } from './model/config';
@@ -30,7 +30,11 @@ import { Notifications, useDesktopAlerts, useNow } from './views/Notifications';
 import { noticesFor } from './model/comms';
 import { Audit } from './views/Audit';
 import { Settings } from './views/Settings';
-import { MyWork, NeedsList } from './views/Lists';
+import { NeedsList } from './views/Lists';
+import { MyWork } from './views/MyWork';
+import { canOpen, homeFor, isAdmin, sectionOf, sectionsFor, type Section } from './sections';
+import { myWork } from './model/mywork';
+import { LEVEL_LABEL } from './model/types';
 
 // ------------------------------------------------------------------ theme
 type Theme = 'auto' | 'light' | 'dark';
@@ -66,101 +70,182 @@ function ThemeToggle() {
 }
 
 // ------------------------------------------------------------------ shell
-function Sidebar() {
-  const { state, me, lastSync, syncing, refresh, signOut, store, readOnly, error } = useHub();
+const getCollapsed = () => {
+  try {
+    const v = localStorage.getItem('cwh.navCollapsed');
+    if (v !== null) return v === '1';
+  } catch { /* ignore */ }
+  return window.innerWidth < 1200;
+};
+
+function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+  const { state, me, role, store, readOnly } = useHub();
   const { view, go } = useNav();
   const cfg = state.config;
+  const now = useNow();
   const intake = [...state.items.values()].filter((i) => i.column === 'Intake' && !i.stale).length;
   const outToday = (cfg.timeOff ?? []).filter((t) => t.from <= todayISO() && todayISO() <= t.to).length;
-  const now = useNow();
-  const myNotices = noticesFor(state, me, now);
-  const escalated = myNotices.some((n) => n.status.lateMinutes > 0);
   const disp = currentDispatch(cfg);
   const next = nextDispatch(cfg);
-  const mustDiscuss = useMemo(() => standup(state, now).mustDiscuss, [state, now]);
+  const mustDiscuss = useMemo(() => (isAdmin(role) ? standup(state, now).mustDiscuss : 0), [state, now, role]);
+  const myFocus = useMemo(() => myWork(state, me, now).focus.length, [state, me, now]);
   const trainingLeft = lessonsFor(findPerson(cfg, me)?.role, false).filter((l) => !state.training?.[me]?.[l.id]).length;
-  const meP = findPerson(cfg, me);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [, tick] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => tick((x) => x + 1), 5000);
-    return () => clearInterval(t);
-  }, []);
-  const ago = lastSync ? Math.round((Date.now() - lastSync.getTime()) / 1000) : undefined;
-  const items: [View, string, string, number?][] = [
-    ['notifications', 'bell', 'Notifications', myNotices.length],
-    ['standup', 'standup', 'Stand-up', mustDiscuss],
-    ['overview', 'chart', 'Overview'],
-    ['board', 'board', 'Board'],
-    ['priorities', 'flag', 'Priorities'],
-    ['teamscore', 'star', 'Team score'],
-    ['pandahq', 'panda', 'Panda HQ'],
-    ['mine', 'me', 'My work'],
-    ['triage', 'inbox', 'Intake', intake],
-    ['team', 'team', 'Team'],
-    ['rotation', 'clock', 'Rotation'],
-    ['timeoff', 'calendar', 'Time off', outToday],
-  ];
+  const sections = sectionsFor(role);
+  const current = sectionOf(role, view);
+  const counts: Record<string, [number, string] | undefined> = {
+    overview: mustDiscuss ? [mustDiscuss, `${mustDiscuss} to discuss at stand-up`] : undefined,
+    mine: myFocus ? [myFocus, `${myFocus} need focus`] : undefined,
+    board: intake ? [intake, `${intake} in intake`] : undefined,
+    team: outToday ? [outToday, `${outToday} out today`] : undefined,
+    training: trainingLeft ? [trainingLeft, `${trainingLeft} lessons to go`] : undefined,
+  };
+  const button = (sec: Section) => {
+    const c = counts[sec.id];
+    return (
+      <button
+        key={sec.id}
+        data-section={sec.id}
+        aria-current={current?.id === sec.id ? 'page' : undefined}
+        onClick={() => go(sec.tabs[0].view)}
+        title={collapsed ? sec.label + (c ? ` (${c[1]})` : '') : undefined}
+        aria-label={collapsed ? sec.label : undefined}
+      >
+        <Icon name={sec.icon} />
+        <span className="lbl">{sec.label}</span>
+        {c ? <span className="count" aria-label={c[1]}>{c[0]}</span> : null}
+      </button>
+    );
+  };
+  const main = sections.filter((x) => !x.admin);
+  const admin = sections.filter((x) => x.admin);
   return (
     <aside className="sidebar" aria-label="Main">
       <div className="brand">
         <BrandMark />
-        Core Work Hub
+        <span className="lbl grow">Core Work Hub</span>
+        <button className="btn icon ghost nav-toggle" onClick={onToggle} aria-expanded={!collapsed} aria-label={collapsed ? 'Expand menu' : 'Collapse menu'} title={collapsed ? 'Expand menu' : 'Collapse menu'}>
+          <Icon name="sidebar" size={18} />
+        </button>
       </div>
       <nav className="nav" aria-label="Views">
-        {items.map(([v, icon, label, count]) => (
-          <button key={v} aria-current={view === v ? 'page' : undefined} onClick={() => go(v)}>
-            <Icon name={icon} />
-            {label}
-            {count ? (
-              <span className={`count ${v === 'notifications' && escalated ? 'alert' : ''}`} aria-label={v === 'timeoff' ? `${count} out today` : v === 'notifications' ? `${count} notifications` : `${count} waiting`}>
-                {count}
-              </span>
-            ) : null}
-          </button>
-        ))}
-        <div className="nav-sep" />
-        <button aria-current={view === 'training' ? 'page' : undefined} onClick={() => go('training')}><Icon name="learn" />Training{trainingLeft ? <span className="count" aria-label={`${trainingLeft} lessons to go`}>{trainingLeft}</span> : null}</button>
-        <button aria-current={view === 'audit' ? 'page' : undefined} onClick={() => go('audit')}><Icon name="log" />Audit log</button>
-        <button aria-current={view === 'settings' ? 'page' : undefined} onClick={() => go('settings')}><Icon name="gear" />Settings</button>
+        {main.map(button)}
+        {admin.length > 0 && (
+          <>
+            <div className="nav-sep" />
+            <div className="nav-group lbl">Admin</div>
+            {admin.map(button)}
+          </>
+        )}
       </nav>
 
-      <section className="dispatch-card" aria-label="Dispatcher" onClick={(e) => { if (!(e.target as HTMLElement).closest('button')) go('rotation'); }} title="Support rotation">
+      <section className="dispatch-card" aria-label="Dispatcher" onClick={(e) => { if (!(e.target as HTMLElement).closest('button')) go('rotation'); }} title={collapsed && disp ? `On support: ${findPerson(cfg, disp.analyst)?.name ?? disp.analyst}` : 'Support rotation'}>
         <div className="section-title">On support</div>
         {disp ? (
           <>
             <div className="who">
               <Avatar user={disp.analyst} config={cfg} />
-              {findPerson(cfg, disp.analyst)?.name ?? disp.analyst}
+              <span className="lbl">{findPerson(cfg, disp.analyst)?.name ?? disp.analyst}</span>
             </div>
-            {offOn(cfg, disp.analyst) && <div className="chip bad" style={{ marginBottom: 4 }}>Off today: set a cover</div>}
+            {offOn(cfg, disp.analyst) && <div className="chip bad dc-off" style={{ marginBottom: 4 }}>Off today: set a cover</div>}
             <div className="small muted dc-until">Until {fmtShortDate(disp.to)}{disp.escalation ? ` · escalation ${findPerson(cfg, disp.escalation)?.name ?? disp.escalation}` : ''}</div>
           </>
         ) : (
-          <div className="small muted" style={{ marginTop: 6 }}>No one scheduled. Set up the rotation.</div>
+          <div className="small muted dc-until" style={{ marginTop: 6 }}>No one scheduled. Set up the rotation.</div>
         )}
         {next && <div className="small muted dc-next" style={{ marginTop: 6 }}>Next: {findPerson(cfg, next.analyst)?.name} from {fmtShortDate(next.from)}</div>}
         <button className="btn sm ghost dc-link" style={{ marginTop: 6, paddingLeft: 0 }} onClick={() => go('rotation')}>Schedule →</button>
       </section>
 
       <div className="sidebar-foot">
-        {store.kind === 'demo' && <span className="chip warn" style={{ alignSelf: 'flex-start' }}>Demo data</span>}
+        {store.kind === 'demo' && <span className="chip warn" style={{ alignSelf: 'flex-start' }}>Demo<span className="lbl">&nbsp;data</span></span>}
         {readOnly && <span className="chip src" style={{ alignSelf: 'flex-start' }}>Read-only</span>}
-        <div className="row small muted foot-row" aria-live="polite">
-          <span className="grow">{error ? <span className="danger-text">Sync problem</span> : syncing ? 'Syncing…' : ago !== undefined ? `Synced ${ago < 5 ? 'now' : ago + 's ago'}` : ''}</span>
-          <button className="btn icon ghost" onClick={() => void refresh()} aria-label="Refresh now" title="Refresh now"><Icon name="refresh" size={16} /></button>
-        </div>
-        <div className="row">
-          <button className="me-btn" onClick={() => setProfileOpen(true)} title="Change your avatar: colour, emoji or photo" aria-label={`${meP?.name ?? me}: change my avatar`}>
-            <Avatar user={me} config={cfg} />
-            <span className="grow" style={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meP?.name ?? me}</span>
-          </button>
-          <ThemeToggle />
-          <ProfileDialog open={profileOpen} onClose={() => setProfileOpen(false)} />
-          {store.kind !== 'launcher' && <button className="btn sm ghost" onClick={signOut} title="Change who you are on this PC">Not you?</button>}
-        </div>
       </div>
     </aside>
+  );
+}
+
+function ProfileMenu() {
+  const { state, me, role, store, signOut } = useHub();
+  const { go } = useNav();
+  const cfg = state.config;
+  const meP = findPerson(cfg, me);
+  const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const off = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', off);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('mousedown', off); document.removeEventListener('keydown', esc); };
+  }, [open]);
+  const roleLabel = role === 'manager' ? 'Manager' : role === 'viewer' ? 'Viewer' : meP?.level ? LEVEL_LABEL[meP.level] : 'Analyst';
+  return (
+    <div className="profile-wrap" ref={ref}>
+      <button className="me-btn" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label={`${meP?.name ?? me}: profile menu`} title={meP?.name ?? me}>
+        <Avatar user={me} config={cfg} />
+        <span className="me-name">{meP?.name ?? me}</span>
+      </button>
+      {open && (
+        <div className="profile-menu" role="menu">
+          <div className="pm-head">
+            <Avatar user={me} config={cfg} size="lg" />
+            <div>
+              <strong>{meP?.name ?? me}</strong>
+              <div className="small muted">{roleLabel} · {me}</div>
+            </div>
+          </div>
+          <div className="pm-theme">
+            <span className="small muted">Theme</span>
+            <ThemeToggle />
+          </div>
+          <button role="menuitem" className="pm-item" onClick={() => { setOpen(false); setProfileOpen(true); }}><Icon name="me" size={16} />Change my picture</button>
+          <button role="menuitem" className="pm-item" onClick={() => { setOpen(false); go('training'); }}><Icon name="learn" size={16} />Training and help</button>
+          {store.kind !== 'launcher' && <button role="menuitem" className="pm-item" onClick={() => { setOpen(false); signOut(); }}><Icon name="logout" size={16} />Not you?</button>}
+        </div>
+      )}
+      <ProfileDialog open={profileOpen} onClose={() => setProfileOpen(false)} />
+    </div>
+  );
+}
+
+function TopBar() {
+  const { state, me, role, lastSync, syncing, refresh, error } = useHub();
+  const { view, go } = useNav();
+  const now = useNow();
+  const notices = noticesFor(state, me, now);
+  const escalated = notices.some((n) => n.status.lateMinutes > 0);
+  const section = sectionOf(role, view);
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => tick((x) => x + 1), 5000);
+    return () => clearInterval(t);
+  }, []);
+  const ago = lastSync ? Math.round((Date.now() - lastSync.getTime()) / 1000) : undefined;
+  return (
+    <header className="topbar">
+      {section && section.tabs.length > 1 ? (
+        <nav className="section-tabs" aria-label={`${section.label} pages`}>
+          {section.tabs.map((t) => (
+            <button key={t.view} aria-current={view === t.view || (view === 'list' && t.view === 'board') ? 'page' : undefined} onClick={() => go(t.view)}>
+              {t.label}
+            </button>
+          ))}
+        </nav>
+      ) : (
+        <div className="topbar-title">{view === 'notifications' ? 'Notifications' : section?.label}</div>
+      )}
+      <div className="topbar-right">
+        <span className="small muted sync-text" aria-live="polite">{error ? <span className="danger-text">Sync problem</span> : syncing ? 'Syncing…' : ago !== undefined ? `Synced ${ago < 5 ? 'now' : ago + 's ago'}` : ''}</span>
+        <button className="btn icon ghost" onClick={() => void refresh()} aria-label="Refresh now" title="Refresh now"><Icon name="refresh" size={18} /></button>
+        <button className={`btn icon ghost bell ${view === 'notifications' ? 'on' : ''}`} onClick={() => go('notifications')} aria-label={`Notifications${notices.length ? `, ${notices.length}` : ''}`} title="Notifications">
+          <Icon name="bell" size={20} />
+          {notices.length > 0 && <span className={`count ${escalated ? 'alert' : ''}`} aria-hidden="true">{notices.length > 99 ? '99+' : notices.length}</span>}
+        </button>
+        <ProfileMenu />
+      </div>
+    </header>
   );
 }
 
@@ -213,7 +298,13 @@ function Shell() {
   }, [lastSync, readOnly, store, meP, me, commit]);
   useDesktopAlerts();
   useCopyLinks();
-  const [route, setRoute] = useState(() => (location.hash.length > 2 ? parseHash(location.hash) : { view: (role === 'analyst' ? 'board' : 'overview') as View, param: undefined }));
+  const [route, setRoute] = useState(() => (location.hash.length > 2 ? parseHash(location.hash) : { view: homeFor(role), param: undefined }));
+  const [collapsed, setCollapsed] = useState(getCollapsed);
+  const toggle = () => setCollapsed((c) => { try { localStorage.setItem('cwh.navCollapsed', c ? '0' : '1'); } catch { /* ignore */ } return !c; });
+  const allowed = canOpen(role, route.view);
+  useEffect(() => {
+    if (!allowed) location.replace('#/' + homeFor(role));
+  }, [allowed, role]);
   useEffect(() => {
     const on = () => setRoute(parseHash(location.hash));
     window.addEventListener('hashchange', on);
@@ -229,11 +320,12 @@ function Shell() {
   return (
     <NavCtx.Provider value={{ ...route, go }}>
       <UiProvider>
-        <div className="app">
-          <Sidebar />
+        <div className={`app ${collapsed ? 'collapsed' : ''}`}>
+          <Sidebar collapsed={collapsed} onToggle={toggle} />
           <main className="main" tabIndex={-1} style={{ outline: 'none' }}>
+            <TopBar />
             {error && <div className="banner error" role="alert" style={{ margin: '16px 28px 0' }}>{error}</div>}
-            <ErrorBoundary key={route.view}>
+            {allowed && <ErrorBoundary key={route.view}>
               {route.view === 'board' && <Board />}
               {route.view === 'mine' && <MyWork />}
               {route.view === 'triage' && <Triage />}
@@ -250,7 +342,7 @@ function Shell() {
               {route.view === 'audit' && <Audit />}
               {route.view === 'settings' && <Settings />}
               {route.view === 'list' && <NeedsList />}
-            </ErrorBoundary>
+            </ErrorBoundary>}
           </main>
         </div>
         <Toaster />
