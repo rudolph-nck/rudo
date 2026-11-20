@@ -38,7 +38,8 @@ param(
   # OnPrem: header "authtechnician: <key>". Cloud (Zoho SDP On-Demand): "Authorization: Zoho-oauthtoken <token>".
   [ValidateSet('OnPrem', 'Cloud')] [string] $Edition = 'OnPrem',
   [string] $CredentialName = 'CoreWorkHub-SDP',
-  [int] $ClosedDays = 90,
+  # Closed history to keep: covers this year and last, for rankings and yearly goals on Panda HQ.
+  [int] $ClosedDays = 400,
   # Link pattern for a ticket. {id} = request number (e.g. INC-157761), {num} = its digits (157761),
   # {rid} = Service Desk's long internal ID (e.g. 160433000056590076), which Cloud ticket pages use.
   [string] $TicketUrl = '',

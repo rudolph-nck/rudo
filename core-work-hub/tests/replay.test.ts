@@ -331,9 +331,15 @@ describe('Service Desk "Core - All" report format', () => {
     c.systems.push({ id: 'symitar', name: 'Symitar', aliases: ['Symitar Quest', 'SymXchange'], primary: 'wes', secondary: 'cathy' });
     return c;
   };
-  const r = importTicketsCsv(csv, 'SD', { urlTemplate: 'https://sd/WorkOrder.do?woID={num}', now: new Date('2026-11-18T12:00:00') });
+  const r = importTicketsCsv(csv, 'SD', { urlTemplate: 'https://sd/WorkOrder.do?woID={num}', now: new Date('2026-11-18T12:00:00'), closedDays: 90 });
 
-  it('finds the header under the title lines, drops "Not Assigned" and old closed rows', () => {
+  it('Service Desk keeps its whole closed history by default (rankings and yearly goals)', () => {
+    const all = importTicketsCsv(csv, 'SD', { now: new Date('2026-11-18T12:00:00') });
+    expect(all.skippedOldClosed).toBe(0);
+    expect(all.tickets.length).toBe(r.tickets.length + 1);
+  });
+
+  it('finds the header under the title lines, drops "Not Assigned" and old closed rows (with a cut-off)', () => {
     expect(r.tickets.map((t) => t.source_id)).toEqual(['INC-90001', 'INC-90002', 'REQ-90003', 'INC-90005']);
     expect(r.skippedOldClosed).toBe(1);
     const t2 = r.tickets[1];

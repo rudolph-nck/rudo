@@ -36,6 +36,7 @@ const paths: Record<string, ReactNode> = {
   star: <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" />,
   flag: <><path d="M5 21V4" /><path d="M5 4h11l-2 4 2 4H5" /></>,
   triage: <><path d="M4 6h16M7 12h10M10 18h4" /></>,
+  panda: <><path d="M6 8.5L4.5 4.5 8.5 6" /><path d="M18 8.5l1.5-4-4 1.5" /><circle cx="12" cy="13" r="7.5" /><path d="M5.5 12.5c2-1.6 4.2-1.6 6.5 0 2.3-1.6 4.5-1.6 6.5 0-1 2-3 2.3-6.5 1.2-3.5 1.1-5.5.8-6.5-1.2z" fill="currentColor" stroke="none" /><circle cx="12" cy="16.5" r="1" fill="currentColor" /></>,
   learn: <><path d="M2 9l10-5 10 5-10 5z" /><path d="M6 11v5c0 1.5 3 3 6 3s6-1.5 6-3v-5" /><path d="M22 9v6" /></>,
   standup: <><path d="M10 6h11M10 12h11M10 18h11" /><path d="M3 6l1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17" /></>,
 };

@@ -55,6 +55,8 @@ export function describeEvent(e: HubEvent, cfg: HubConfig): string {
       return `stand-up check-in: ${STANDUP_LABEL[e.data.status]}${e.data.note ? ` (${e.data.note})` : ''}`;
     case 'item.commit':
       return e.data.date ? `committed to ${e.data.date}${e.data.note ? `: ${e.data.note}` : ''}` : 'cleared the commitment date';
+    case 'config.fun':
+      return 'changed the Panda HQ goals and prizes';
     case 'config.capacity':
       return `set the ${e.data.level === 'support' ? 'support-week' : e.data.level} time split (${Object.values(e.data.hours).join('/')} h)`;
     case 'config.priorityStandard':

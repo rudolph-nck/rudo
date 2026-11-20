@@ -744,3 +744,72 @@ details.su-more[open] > summary h2::before { content: '▾ '; }
 
 /* ---- First-visit training prompt */
 .train-prompt { position: fixed; right: 20px; bottom: 20px; z-index: 900; display: flex; align-items: center; gap: 12px; max-width: 520px; padding: 12px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border-strong); box-shadow: var(--shadow-lg); }
+
+/* ---- Panda HQ */
+.panda-hero { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr); gap: 18px; padding: 16px; }
+.panda-stage { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+.dumpster-scene { width: 100%; max-height: 360px; display: block; }
+.panda-count { font-size: 14px; }
+.panda-count .big { font-size: 30px; font-weight: 800; }
+.panda-goals { display: flex; flex-direction: column; gap: 8px; }
+.goal-row { display: flex; flex-direction: column; gap: 5px; text-align: left; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; cursor: pointer; }
+.goal-row:hover, .goal-row.sel { border-color: var(--accent); }
+.goal-row.sel { background: var(--accent-soft); }
+.goal-bar { display: block; height: 10px; border-radius: 5px; background: var(--surface-3); overflow: hidden; }
+.goal-bar > span { display: block; height: 100%; border-radius: 5px; background: #2f7d4f; transition: width 0.8s ease; }
+.goal-bar.done > span { background: linear-gradient(90deg, #f39c12, #e8491d); }
+.lb { list-style: none; margin: 0; padding: 0 12px 8px; }
+.lb li { display: flex; align-items: center; gap: 12px; padding: 9px 6px; border-top: 1px solid var(--border); }
+.lb li:first-child { border-top: 0; }
+.lb-rank { width: 28px; text-align: center; font-weight: 800; font-size: 18px; color: var(--text-2); }
+.lb-bar { display: block; height: 6px; margin-top: 5px; border-radius: 3px; background: var(--surface-3); overflow: hidden; max-width: 420px; }
+.lb-bar > span { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.lb li.top .lb-bar > span { background: linear-gradient(90deg, #f39c12, #e8491d); }
+.lb-badges { display: inline-flex; gap: 2px; font-size: 15px; cursor: help; }
+.lb-stats { white-space: nowrap; color: var(--text-2); }
+.lb-how { margin: 4px 16px 14px; }
+.awards, .wins { list-style: none; margin: 0; padding: 0 12px 12px; }
+.awards li, .wins li { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-top: 1px solid var(--border); }
+.awards li:first-child, .wins li:first-child { border-top: 0; }
+.aw-label { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.awards.past li { padding: 5px 4px; font-size: 13px; }
+@media (max-width: 1000px) { .panda-hero { grid-template-columns: 1fr; } }
+
+/* scene animation */
+.dumpster-scene .panda.idle .head { animation: panda-bob 2.6s ease-in-out infinite; transform-origin: 135px 150px; }
+.dumpster-scene .panda.tossing .arm { animation: panda-toss 0.55s ease-in-out infinite alternate; transform-origin: 168px 200px; }
+.dumpster-scene .panda.toasting .head { animation: panda-bob 1.4s ease-in-out infinite; transform-origin: 135px 150px; }
+.dumpster-scene .flame { transform-box: fill-box; transform-origin: 50% 100%; animation: flicker 0.6s ease-in-out infinite alternate; }
+.dumpster-scene .f2 { animation-duration: 0.5s; animation-delay: 0.1s; }
+.dumpster-scene .f3 { animation-duration: 0.7s; animation-delay: 0.2s; }
+.dumpster-scene .f4 { animation-duration: 0.55s; animation-delay: 0.05s; }
+.dumpster-scene .f5 { animation-duration: 0.45s; }
+.dumpster-scene .f6 { animation-duration: 0.65s; animation-delay: 0.15s; }
+.dumpster-scene .smoke { transform-box: fill-box; transform-origin: center; animation: smoke 2.8s ease-out infinite; }
+.dumpster-scene .s2 { animation-delay: 0.9s; }
+.dumpster-scene .s3 { animation-delay: 1.8s; }
+.dumpster-scene .glow { animation: glow 1.2s ease-in-out infinite alternate; }
+.dumpster-scene .drop { opacity: 0; animation: drop 0.9s cubic-bezier(0.4, 0, 0.7, 1) forwards; }
+@keyframes panda-bob { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-4deg) translateY(-2px); } }
+@keyframes panda-toss { from { transform: rotate(0deg); } to { transform: rotate(-14deg); } }
+@keyframes flicker { from { transform: scaleY(0.88) scaleX(1.04); opacity: 0.85; } to { transform: scaleY(1.12) scaleX(0.95); opacity: 1; } }
+@keyframes smoke { 0% { transform: translateY(0) scale(0.6); opacity: 0; } 20% { opacity: 0.45; } 100% { transform: translateY(-60px) scale(1.6); opacity: 0; } }
+@keyframes glow { from { opacity: 0.6; } to { opacity: 1; } }
+@keyframes drop { 0% { transform: translateY(-20px); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translateY(205px); opacity: 0; } }
+
+/* the fire show */
+.fire-show { position: fixed; inset: 0; z-index: 990; display: grid; place-items: center; background: rgba(10, 14, 24, 0.72); animation: fade-in 0.3s ease; }
+.fire-card { position: relative; width: min(680px, 92vw); padding: 18px 22px 22px; border-radius: 20px; background: var(--surface); box-shadow: var(--shadow-lg); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; animation: pop-in 0.5s cubic-bezier(0.2, 0.9, 0.2, 1.3); }
+.fire-title { font-size: 40px; font-weight: 900; letter-spacing: 0.02em; background: linear-gradient(90deg, #e8491d, #f39c12, #ffd166); -webkit-background-clip: text; background-clip: text; color: transparent; animation: shake 0.5s ease-in-out 3; }
+.fire-what { margin: 0; font-size: 16px; font-weight: 700; }
+.fire-prize { margin: 0; font-size: 15px; }
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.confetti i { position: absolute; top: -20px; width: 9px; height: 14px; border-radius: 2px; animation: confetti 2.8s linear infinite; }
+@keyframes confetti { 0% { transform: translateY(-20px) rotate(0deg); } 100% { transform: translateY(110vh) rotate(540deg); } }
+@keyframes pop-in { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes shake { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .dumpster-scene *, .fire-card, .fire-title, .confetti i { animation: none !important; }
+  .confetti { display: none; }
+}

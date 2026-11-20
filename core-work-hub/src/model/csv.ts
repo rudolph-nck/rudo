@@ -67,6 +67,7 @@ const HEADERS = {
   closed: /^(completed\s*(time|date)|closed\s*(time|date)|resolved\s*(time|date))$/i,
   updated: /^last\s*updated\s*(time|date)?$/i,
   responded: /^(responded|first\s*response)\s*(time|date|on)?$/i,
+  assigned: /^assigned\s*(time|date|on)?$/i,
   last_note: /^last\s*(note|conversation|reply|public\s*note|technician\s*reply)\s*(time|date|added)?$/i,
   due_by: /^due\s*(by\s*)?(time|date)?$/i,
 };
@@ -156,8 +157,9 @@ export function importTicketRows(rows: string[][], source: Source, o: CsvImportO
     const v = col[k] !== undefined ? (r[col[k]!] ?? '').trim() : '';
     return EMPTY.test(v) ? '' : v;
   };
-  const closedDays = o.closedDays ?? 90;
-  const cutoff = new Date((o.now ?? new Date()).getTime() - closedDays * 864e5).toISOString();
+  // Service Desk keeps its whole closed history (rankings, yearly and all-time goals); Wrike drops old completed work.
+  const closedDays = o.closedDays ?? (source === 'SD' ? Infinity : 90);
+  const cutoff = Number.isFinite(closedDays) ? new Date((o.now ?? new Date()).getTime() - closedDays * 864e5).toISOString() : '';
   const isClosed = o.isClosed ?? ((s: string) => /^(closed|cancel+ed|rejected|completed)/i.test(s));
   const tickets: SourceTicket[] = [];
   const seen = new Set<string>();
@@ -201,6 +203,7 @@ export function importTicketRows(rows: string[][], source: Source, o: CsvImportO
       closed: closedAt,
       due_by: parseDate(get(r, 'due_by')),
       responded: parseDate(get(r, 'responded')),
+      assigned: parseDate(get(r, 'assigned')),
       last_note: parseDate(get(r, 'last_note')),
       last_modified: parseDate(get(r, 'updated')),
     });

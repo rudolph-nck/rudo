@@ -3,6 +3,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { splash } from './components/Splash';
 import { Standup } from './views/Standup';
 import { Training } from './views/Training';
+import { PandaHQ } from './views/PandaHQ';
 import { TourHost, startTour } from './training/Tour';
 import { LESSONS, lessonsFor } from './training/lessons';
 import { standup } from './model/priority';
@@ -93,6 +94,7 @@ function Sidebar() {
     ['board', 'board', 'Board'],
     ['priorities', 'flag', 'Priorities'],
     ['teamscore', 'star', 'Team score'],
+    ['pandahq', 'panda', 'Panda HQ'],
     ['mine', 'me', 'My work'],
     ['triage', 'inbox', 'Intake', intake],
     ['team', 'team', 'Team'],
@@ -221,7 +223,7 @@ function Shell() {
     location.hash = `/${v}${p ? '/' + encodeURIComponent(p) : ''}`;
   }, []);
   useEffect(() => {
-    document.title = `${{ overview: 'Overview', rotation: 'Rotation', timeoff: 'Time off', priorities: 'Priorities', teamscore: 'Team score', notifications: 'Notifications', standup: 'Stand-up', training: 'Training', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
+    document.title = `${{ overview: 'Overview', rotation: 'Rotation', timeoff: 'Time off', priorities: 'Priorities', teamscore: 'Team score', notifications: 'Notifications', standup: 'Stand-up', training: 'Training', pandahq: 'Panda HQ', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
     (document.querySelector('main') as HTMLElement | null)?.focus({ preventScroll: true });
   }, [route.view]);
   return (
@@ -242,6 +244,7 @@ function Shell() {
               {route.view === 'priorities' && <Priorities />}
               {route.view === 'standup' && <Standup />}
               {route.view === 'training' && <Training />}
+              {route.view === 'pandahq' && <PandaHQ />}
               {route.view === 'teamscore' && <TeamScore />}
               {route.view === 'notifications' && <Notifications />}
               {route.view === 'audit' && <Audit />}

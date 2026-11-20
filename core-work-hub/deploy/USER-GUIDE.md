@@ -44,4 +44,5 @@ If an update is missed, it goes to **you**, then to **whoever is on support** af
 - **Forced priority** (red **FORCED** tag): leadership asked for it; it goes first.
 - **Time off:** see who's out and who's covering on **Time off**.
 - **Your avatar:** click your name at the bottom of the sidebar to pick a colour, an emoji, or a photo (your Windows picture or an upload). The whole team sees it.
+- **Panda HQ:** every ticket Core closes goes in the trash panda's dumpster; hit the weekly, monthly or yearly goal and it catches fire (with a prize). Points: P1 8, P2 5, P3 3, P4 2, +2 on time, +3 backlog. Monthly awards: Top Points, Backlog Buster, On-time Ace, Most Improved, Rookie of the Month.
 - Hover almost anything for an explanation. Everything you do is in the **Audit log**.

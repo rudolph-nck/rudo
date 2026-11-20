@@ -54,6 +54,8 @@ export interface SourceTicket {
   due_by?: string;
   /** Service Desk first-response time ("Responded Time"). */
   responded?: string;
+  /** When Service Desk first assigned a technician ("Assigned Time"). */
+  assigned?: string;
   /** Last requester-visible note/reply in Service Desk (API sync, or a report column). */
   last_note?: string;
   /** Service Desk "Last Updated Time": any change, not only comments. */
@@ -275,6 +277,8 @@ export interface HubConfig {
   teamCriteria?: TeamCriterion[];
   /** Communication standard (response and update targets, business hours, escalation). */
   commStandard?: Partial<CommStandard>;
+  /** Panda HQ: team goals, prizes, whether individual rankings show. */
+  fun?: Partial<import('./fun').FunConfig>;
   /** Priority standard (P1-P4 response, update and resolution targets; aging and bump rules). */
   priorityStandard?: Partial<PriorityStandard>;
   /** Team-wide Doing limit per bucket (sum over everyone). */
@@ -356,6 +360,7 @@ export type HubEvent = EventBase &
     | { type: 'item.expedite'; item: string; data: Expedite | { clear: true; reason?: string } }
     | { type: 'item.reprioritize'; item: string; data: { priority: Priority; reason: string; toldRequester?: boolean; managerAware?: boolean } }
     | { type: 'training.done'; data: { lesson: string } }
+    | { type: 'config.fun'; data: Partial<import('./fun').FunConfig> }
     | { type: 'item.standup'; item: string; data: { status: StandupStatus; note?: string } }
     | { type: 'item.commit'; item: string; data: { date: string | null; note?: string } }
     | { type: 'config.priorityStandard'; data: Partial<PriorityStandard> }
@@ -407,6 +412,8 @@ export interface WorkItem {
   /** Service Desk SLA due date. */
   /** Communication-standard inputs from Service Desk. */
   sd_responded?: string;
+  /** When Service Desk assigned a technician: time-to-assign analytics. */
+  sd_assigned?: string;
   sd_last_note?: string;
   sd_last_modified?: string;
   /** Requester communication logged in the hub ("I posted the update"). */

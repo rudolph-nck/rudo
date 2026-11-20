@@ -84,7 +84,7 @@ function DataImport() {
             {res && (
               <div className="stack">
                 <div className={`banner ${res.tickets.length ? 'info' : 'error'}`}>
-                  {res.tickets.length} {source === 'Wrike' ? 'Wrike items' : 'tickets'} ready ({res.tickets.filter((t) => !isStatus(state.config.closedStatuses, t.source_status)).length} open{source === 'Wrike' ? '' : ', the rest closed in the last 90 days'})
+                  {res.tickets.length} {source === 'Wrike' ? 'Wrike items' : 'tickets'} ready ({res.tickets.filter((t) => !isStatus(state.config.closedStatuses, t.source_status)).length} open{source === 'Wrike' ? '' : ', the rest closed (kept for rankings and goals)'})
                   {res.skippedOldClosed ? `; ${res.skippedOldClosed} ${source === 'Wrike' ? 'cancelled or completed' : 'older closed'} left out` : ''}
                   {res.skippedHeadings ? `; ${res.skippedHeadings} group headings skipped` : ''}. Columns matched: {Object.entries(res.columns).map(([k, v]) => `${v} → ${k}`).join(', ') || 'none'}.
                 </div>

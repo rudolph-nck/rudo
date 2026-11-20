@@ -4,6 +4,7 @@ import { useUi } from '../components/actions';
 import { Avatar, BucketDot, download, Icon, PriorityChip, SourceBadge } from '../components/ui';
 import { BUCKET_SERIES, ChartCard, GroupedColumns, Meter, RankedBars, StackedColumns, StackedRows, type Series } from '../components/charts';
 import { overview, shiftStats, STALE_DAYS } from '../model/analytics';
+import { assignStats, closedHistory, funOf, leaderboard, PERIOD_LABEL, type Period } from '../model/fun';
 import { commSummary } from '../model/comms';
 import { addDays, analysts, currentDispatch, findPerson, fmtShortDate, nextDispatch, offOn, todayISO } from '../model/logic';
 import { itemsCsv, toCsv } from '../model/csv';
@@ -46,6 +47,13 @@ export function Overview() {
   const [weeks, setWeeks] = useState<(typeof RANGES)[number]>(12);
   const o = useMemo(() => overview(state, { bucket: bucket || undefined, owner: owner || undefined }, weeks), [state, bucket, owner, weeks]);
   const k = o.kpis;
+  const { role } = useHub();
+  const [rankPeriod, setRankPeriod] = useState<Period>('month');
+  const assign = useMemo(() => assignStats(state), [state]);
+  const ranking = useMemo(() => leaderboard(state, rankPeriod), [state, rankPeriod]);
+  const history = useMemo(() => closedHistory(state, 6), [state]);
+  const showRanks = funOf(cfg).leaderboard || role === 'manager' || role === 'viewer';
+  const hrs = (h?: number) => (h === undefined ? '—' : h < 1 ? `${Math.round(h * 60)}m` : `${Math.round(h)}h`);
   const disp = currentDispatch(cfg);
   const next = nextDispatch(cfg);
   const name = (u?: string) => findPerson(cfg, u)?.name ?? u ?? '—';
@@ -309,6 +317,75 @@ export function Overview() {
           <RankedBars label="Open items by system" rows={o.bySystem} />
         </ChartCard>
       </div>
+
+      <div className="viz-grid">
+        <ChartCard
+          title="Time to assign"
+          sub={<>Median business hours from opened to assigned in Service Desk, by week opened. This month <strong>{hrs(assign.thisMonthMedian)}</strong> (last month {hrs(assign.lastMonthMedian)}); <strong>{assign.within1h}%</strong> assigned within an hour (last 90 days).</>}
+          table={{ head: ['Week of', 'Median hours', 'Tickets'], rows: assign.weekly.map((w) => [w.week, w.median ?? '', w.n]) }}
+        >
+          <GroupedColumns label="Median business hours to assign, by week" series={[{ key: 'median', label: 'Median hours to assign', color: 'var(--accent)' }]} data={assign.weekly.map((w) => ({ label: w.week, tip: `${w.n} tickets`, values: { median: w.median ?? 0 } }))} />
+        </ChartCard>
+        <section className="panel viz-card" aria-labelledby="unassigned-h">
+          <div className="viz-head">
+            <div className="grow">
+              <h2 id="unassigned-h">Waiting for an owner</h2>
+              <div className="small muted">Open Service Desk tickets nobody is assigned to, longest first. {assign.waiting.length} now{assign.waiting.length > 6 ? ' (top 6 shown)' : ''}.</div>
+            </div>
+          </div>
+          <ul className="held">
+            {assign.waiting.slice(0, 6).map((w) => (
+              <li key={w.item.id}>
+                <span className={`days ${w.hours >= 9 ? 'bad' : w.hours >= 4 ? 'warn' : ''}`}><strong>{hrs(w.hours)}</strong></span>
+                <div className="grow" style={{ minWidth: 0 }}>
+                  <button className="t" onClick={() => openItem(w.item.id)}>{w.item.title}</button>
+                  <div className="row small muted" style={{ gap: 6, flexWrap: 'wrap' }}>
+                    <PriorityChip p={w.item.priority} />
+                    <SourceBadge item={w.item} />
+                    {w.item.department && <span className="why">{w.item.department}</span>}
+                  </div>
+                </div>
+              </li>
+            ))}
+            {assign.waiting.length === 0 && <li className="muted">Every open ticket has an owner.</li>}
+          </ul>
+        </section>
+      </div>
+
+      {showRanks && (
+        <section className="panel" aria-labelledby="ranks-h">
+          <div className="panel-head">
+            <h2 id="ranks-h" className="grow">Closed tickets by person</h2>
+            <div className="seg" role="radiogroup" aria-label="Ranking period">
+              {(['week', 'month', 'quarter', 'year', 'all'] as Period[]).map((p) => (
+                <button key={p} role="radio" aria-checked={rankPeriod === p} onClick={() => setRankPeriod(p)}>{PERIOD_LABEL[p].replace('This ', '')}</button>
+              ))}
+            </div>
+          </div>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr><th>#</th><th>Person</th><th className="num">Closed</th><th className="num">Points</th><th className="num">On time</th><th className="num">P1s</th><th className="num">Backlog</th>{history.cols.map((c) => <th key={c} className="num small">{c}</th>)}</tr>
+              </thead>
+              <tbody>
+                {ranking.map((r, n) => (
+                  <tr key={r.user}>
+                    <td>{n + 1}</td>
+                    <td><div className="row"><Avatar user={r.user} config={cfg} />{name(r.user)}</div></td>
+                    <td className="num"><strong>{r.closes}</strong></td>
+                    <td className="num">{r.points}</td>
+                    <td className="num">{r.closes ? `${r.onTimePct}%` : ''}</td>
+                    <td className="num">{r.p1 || ''}</td>
+                    <td className="num">{r.backlog || ''}</td>
+                    {(history.rows.find((h) => h.user === r.user)?.counts ?? []).map((c, i) => <td key={i} className="num muted">{c || ''}</td>)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="small muted" style={{ margin: '8px 16px 14px' }}>Credit goes to the owner when the ticket closed. Points: P1 8, P2 5, P3 3, P4 2; +2 closed within target; +3 backlog. Former team members' closes count toward team goals only.</p>
+        </section>
+      )}
     </div>
   );
 }

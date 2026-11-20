@@ -163,6 +163,23 @@ export const LESSONS: Lesson[] = [
     tour: [{ view: 'teamscore', target: '.page-head h1', title: 'Team score', body: 'Rate projects 1–5 per criterion. Scores set the project order.' }],
   },
   {
+    id: 'pandahq',
+    title: 'Panda HQ: goals and leaderboard',
+    minutes: 2,
+    audience: 'everyone',
+    why: 'Every ticket the team closes goes in the dumpster. Hit the weekly, monthly or yearly goal and it goes up in flames, with a prize.',
+    howTo: [
+      { task: 'Earn points', steps: ['Close tickets: P1 8, P2 5, P3 3, P4 2 points.', '+2 when it closes within its target, +3 for a backlog ticket. Hard, on-time and old work beats volume.'] },
+      { task: 'Win something', steps: ['Team goals: everyone wins when the dumpster catches fire.', 'Monthly awards: Top Points, Backlog Buster, On-time Ace, Most Improved and Rookie of the Month.'] },
+    ],
+    tour: [
+      { view: 'pandahq', target: '.dumpster-scene', title: 'The dumpster', body: 'Fills with every ticket Core closes. At the goal it catches fire.' },
+      { view: 'pandahq', target: '.panda-goals', title: 'Team goals', body: 'Week, month, year and all time, with the prize for each.' },
+      { view: 'pandahq', target: '#lb-h', title: 'Leaderboard', body: 'Points and badges. Hover a badge to see how it was earned.' },
+      { view: 'pandahq', target: '#aw-h', title: 'Monthly awards', body: 'Five categories, so different people can win, juniors included.' },
+    ],
+  },
+  {
     id: 'rotation',
     title: 'Rotation and time off',
     minutes: 2,

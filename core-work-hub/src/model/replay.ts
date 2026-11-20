@@ -76,6 +76,7 @@ function fromTicket(t: SourceTicket, config: HubConfig): WorkItem {
     source_owners: ownersFromSource(config, t.source_owner).names,
     due_by: t.due_by,
     sd_responded: t.responded,
+    sd_assigned: t.assigned,
     sd_last_note: t.last_note,
     sd_last_modified: t.last_modified,
     owner,
@@ -403,6 +404,11 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
       case 'item.commit': {
         const w = it!;
         w.commitment = e.data.date ? { date: e.data.date, by: file, ts: e.ts, note: e.data.note } : undefined;
+        break;
+      }
+      case 'config.fun': {
+        const cur = config.fun ?? {};
+        config.fun = { ...cur, ...e.data, goals: { ...(cur.goals ?? {}), ...(e.data.goals ?? {}) } as never, prizes: { ...(cur.prizes ?? {}), ...(e.data.prizes ?? {}) } as never };
         break;
       }
       case 'config.capacity':
