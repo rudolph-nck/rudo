@@ -775,10 +775,23 @@ details.su-more[open] > summary h2::before { content: '▾ '; }
 .awards.past li { padding: 5px 4px; font-size: 13px; }
 @media (max-width: 1000px) { .panda-hero { grid-template-columns: 1fr; } }
 
-/* scene animation */
-.dumpster-scene .panda.idle .head { animation: panda-bob 2.6s ease-in-out infinite; transform-origin: 135px 150px; }
-.dumpster-scene .panda.tossing .arm { animation: panda-toss 0.55s ease-in-out infinite alternate; transform-origin: 168px 200px; }
-.dumpster-scene .panda.toasting .head { animation: panda-bob 1.4s ease-in-out infinite; transform-origin: 135px 150px; }
+/* scene animation: the trash panda's poses */
+.dumpster-scene .pose { animation: pose-in 0.45s ease both; }
+.dumpster-scene .peek-pop { animation: peek-pop 7s ease-in-out both; }
+.dumpster-scene .pose-peek .pupils { animation: dart 3.2s ease-in-out infinite; }
+.dumpster-scene .tail-wag { animation: wag 1.1s ease-in-out infinite alternate; }
+.dumpster-scene .munch { animation: munch 0.5s ease-in-out infinite alternate; }
+.dumpster-scene .chew { animation: munch 0.25s ease-in-out infinite alternate; }
+.dumpster-scene .kick-l { animation: kick 0.32s ease-in-out infinite alternate; }
+.dumpster-scene .kick-r { animation: kick 0.32s ease-in-out infinite alternate-reverse; }
+.dumpster-scene .fly { opacity: 0; transform-box: fill-box; animation: fly-out 2.2s ease-out infinite; }
+.dumpster-scene .fly1 { --fx: -90px; --fy: -70px; }
+.dumpster-scene .fly2 { --fx: 80px; --fy: -90px; animation-delay: 0.7s; }
+.dumpster-scene .fly3 { --fx: -40px; --fy: -110px; animation-delay: 1.4s; }
+.dumpster-scene .toss-arm { animation: toss-arm 2.4s ease-in-out infinite; }
+.dumpster-scene .toss-bag { animation: toss-bag 2.4s ease-in infinite; }
+.dumpster-scene .bob { animation: bob 2.4s ease-in-out infinite; }
+.dumpster-scene .toast { transform-box: fill-box; transform-origin: center; animation: toast 0.8s ease-in-out infinite alternate; }
 .dumpster-scene .flame { transform-box: fill-box; transform-origin: 50% 100%; animation: flicker 0.6s ease-in-out infinite alternate; }
 .dumpster-scene .f2 { animation-duration: 0.5s; animation-delay: 0.1s; }
 .dumpster-scene .f3 { animation-duration: 0.7s; animation-delay: 0.2s; }
@@ -790,12 +803,21 @@ details.su-more[open] > summary h2::before { content: '▾ '; }
 .dumpster-scene .s3 { animation-delay: 1.8s; }
 .dumpster-scene .glow { animation: glow 1.2s ease-in-out infinite alternate; }
 .dumpster-scene .drop { opacity: 0; animation: drop 0.9s cubic-bezier(0.4, 0, 0.7, 1) forwards; }
-@keyframes panda-bob { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-4deg) translateY(-2px); } }
-@keyframes panda-toss { from { transform: rotate(0deg); } to { transform: rotate(-14deg); } }
 @keyframes flicker { from { transform: scaleY(0.88) scaleX(1.04); opacity: 0.85; } to { transform: scaleY(1.12) scaleX(0.95); opacity: 1; } }
 @keyframes smoke { 0% { transform: translateY(0) scale(0.6); opacity: 0; } 20% { opacity: 0.45; } 100% { transform: translateY(-60px) scale(1.6); opacity: 0; } }
 @keyframes glow { from { opacity: 0.6; } to { opacity: 1; } }
 @keyframes drop { 0% { transform: translateY(-20px); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translateY(205px); opacity: 0; } }
+@keyframes pose-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes peek-pop { 0% { transform: translateY(70px); } 12% { transform: translateY(-6px); } 16%, 70% { transform: translateY(0); } 78% { transform: translateY(40px); } 86%, 100% { transform: translateY(0); } }
+@keyframes dart { 0%, 20% { transform: translateX(-3px); } 35%, 55% { transform: translateX(3.5px); } 70%, 100% { transform: translateX(-1px); } }
+@keyframes wag { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+@keyframes munch { from { transform: translateY(0); } to { transform: translateY(2px); } }
+@keyframes kick { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
+@keyframes fly-out { 0% { opacity: 0; transform: translate(0, 0) rotate(0); } 10% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--fx), var(--fy)) rotate(260deg); } }
+@keyframes toss-arm { 0% { transform: rotate(-4deg); } 38% { transform: rotate(-12deg); } 50% { transform: rotate(50deg); } 70%, 100% { transform: rotate(-4deg); } }
+@keyframes toss-bag { 0%, 44% { transform: translate(-6px, 4px); opacity: 1; } 56% { transform: translate(44px, -56px); } 72% { transform: translate(112px, -48px); } 92% { transform: translate(158px, 32px); opacity: 1; } 100% { transform: translate(160px, 46px); opacity: 0; } }
+@keyframes bob { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-3deg) translateY(-2px); } }
+@keyframes toast { from { transform: scale(1); } to { transform: scale(1.08); } }
 
 /* the fire show */
 .fire-show { position: fixed; inset: 0; z-index: 990; display: grid; place-items: center; background: rgba(10, 14, 24, 0.72); animation: fade-in 0.3s ease; }

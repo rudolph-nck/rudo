@@ -1,5 +1,9 @@
 // The trash panda and the dumpster: fills as tickets close; on fire when a goal is hit. Original art, inline SVG.
 import { useEffect, useState } from 'react';
+import { Bag, Body, Head, Paw, Pizza, Tail } from './Raccoon';
+
+type Pose = 'peek' | 'sit' | 'dive' | 'toss' | 'fire';
+const IDLE: Pose[] = ['peek', 'sit', 'dive', 'toss'];
 
 const TRASH = [
   // [x, y, kind, color] inside the dumpster (x 250-470, y 150-255 from the bottom up)
@@ -38,6 +42,13 @@ export function DumpsterScene({ pct, fire, drops = 0, label }: { pct: number; fi
   const fill = Math.max(0, Math.min(1, pct));
   const shown = Math.round(fill * TRASH.length);
   const [tossing, setTossing] = useState(drops > 0);
+  const [idle, setIdle] = useState(0);
+  useEffect(() => {
+    if (fire) return;
+    const t = setInterval(() => setIdle((x) => (x + 1) % IDLE.length), 7000);
+    return () => clearInterval(t);
+  }, [fire]);
+  const pose: Pose = fire ? 'fire' : tossing ? 'toss' : IDLE[idle];
   useEffect(() => {
     if (!drops) return;
     setTossing(true);
@@ -45,7 +56,7 @@ export function DumpsterScene({ pct, fire, drops = 0, label }: { pct: number; fi
     return () => clearTimeout(t);
   }, [drops]);
   return (
-    <svg className={`dumpster-scene ${fire ? 'on-fire' : ''}`} viewBox="0 0 520 300" role="img" aria-label={label}>
+    <svg className={`dumpster-scene ${fire ? 'on-fire' : ''}`} viewBox="0 -60 520 360" role="img" aria-label={label}>
       <defs>
         <clipPath id="bin-inside">
           <path d="M250 142 L470 142 L458 258 L262 258 Z" />
@@ -103,59 +114,93 @@ export function DumpsterScene({ pct, fire, drops = 0, label }: { pct: number; fi
           </g>
         ))}
 
-      {/* The trash panda */}
-      <g className={`panda ${fire ? 'toasting' : tossing ? 'tossing' : 'idle'}`}>
-        {/* tail */}
-        <g transform="rotate(-25 92 236)">
-          <ellipse cx="62" cy="236" rx="38" ry="15" fill="#8b909b" />
-          <ellipse cx="44" cy="236" rx="7" ry="14" fill="#33363d" />
-          <ellipse cx="62" cy="236" rx="7" ry="15" fill="#33363d" />
-          <ellipse cx="80" cy="236" rx="7" ry="15" fill="#33363d" />
-          <ellipse cx="27" cy="236" rx="6" ry="11" fill="#33363d" />
+      {/* The trash panda (poses rotate; tossing on new closes; shades and a marshmallow when on fire) */}
+      <PandaPose pose={pose} />
+    </svg>
+  );
+}
+
+const S = 0.84; // raccoon scale in the scene
+
+function PandaPose({ pose }: { pose: Pose }) {
+  if (pose === 'peek')
+    return (
+      <g key="peek" className="pose pose-peek">
+        <clipPath id="above-rim"><rect x="0" y="-60" width="520" height="206" /></clipPath>
+        <g clipPath="url(#above-rim)">
+          <g className="tail-wag" style={{ transformOrigin: '448px 150px' }}><g transform="translate(448 150)"><Tail c={[24, -36]} e={[8, -82]} rings={5} w={15} /></g></g>
+          <g className="peek-pop"><g transform={`translate(352 104) scale(${S})`}><Head look={0} /></g></g>
         </g>
-        {/* body */}
-        <ellipse cx="135" cy="222" rx="50" ry="48" fill="#8b909b" />
-        <ellipse cx="138" cy="232" rx="30" ry="32" fill="#d3d6dc" />
-        {/* feet */}
-        <ellipse cx="112" cy="268" rx="16" ry="8" fill="#33363d" />
-        <ellipse cx="160" cy="268" rx="16" ry="8" fill="#33363d" />
-        {/* arm reaching to the dumpster (or holding the marshmallow stick) */}
-        <g className="arm">
-          <path d="M168 200 Q200 178 228 162" stroke="#7e838e" strokeWidth="16" strokeLinecap="round" fill="none" />
-          <circle cx="230" cy="161" r="9" fill="#33363d" />
+        <g transform="translate(318 142)"><Paw r={-10} /></g>
+        <g transform="translate(388 142)"><Paw r={10} /></g>
+      </g>
+    );
+  if (pose === 'sit')
+    return (
+      <g key="sit" className="pose pose-sit">
+        <g transform="translate(292 112)">
+          <g transform="translate(-22 18)"><Tail c={[-14, 40]} e={[-6, 86]} rings={5} w={15} /></g>
+          <g transform={`scale(${S})`}>
+            <Body />
+            <path d="M-16 40 L-20 74" stroke="#9a9fa9" strokeWidth="13" strokeLinecap="round" />
+            <path d="M14 40 L18 76" stroke="#9a9fa9" strokeWidth="13" strokeLinecap="round" />
+            <g transform="translate(-21 80)"><Paw r={180} /></g>
+            <g transform="translate(19 82)"><Paw r={180} /></g>
+            <g className="munch"><g transform="translate(0 -80)"><Head look={2} chew /></g></g>
+            <path d="M30 -18 Q56 -36 50 -56" stroke="#9a9fa9" strokeWidth="13" strokeLinecap="round" fill="none" />
+            <g className="munch"><g transform="translate(26 -70) rotate(-20)"><Pizza /></g></g>
+            <g transform="translate(50 -60)"><Paw r={-30} /></g>
+            <path d="M-28 -18 Q-40 0 -30 16" stroke="#9a9fa9" strokeWidth="13" strokeLinecap="round" fill="none" />
+            <g transform="translate(-30 18)"><Paw r={160} /></g>
+          </g>
+        </g>
+      </g>
+    );
+  if (pose === 'dive')
+    return (
+      <g key="dive" className="pose pose-dive">
+        <clipPath id="above-rim2"><rect x="0" y="-60" width="520" height="204" /></clipPath>
+        <g clipPath="url(#above-rim2)">
+          <g transform="translate(360 150)">
+            <g className="tail-wag" style={{ transformOrigin: '0px -30px' }}><g transform="translate(0 -30)"><Tail c={[18, -40]} e={[-6, -84]} rings={5} w={15} /></g></g>
+            <ellipse cx="0" cy="-16" rx="36" ry="28" fill="#9a9fa9" stroke="#17191d" strokeWidth="2.6" />
+            <g className="kick-l" style={{ transformOrigin: '-18px -30px' }}><path d="M-18 -30 L-30 -66" stroke="#9a9fa9" strokeWidth="14" strokeLinecap="round" /><g transform="translate(-31 -72)"><Paw r={-20} /></g></g>
+            <g className="kick-r" style={{ transformOrigin: '18px -30px' }}><path d="M18 -30 L30 -66" stroke="#9a9fa9" strokeWidth="14" strokeLinecap="round" /><g transform="translate(31 -72)"><Paw r={20} /></g></g>
+          </g>
+        </g>
+        <g className="fly fly1"><rect x="330" y="120" width="16" height="11" rx="2" fill="#c98a3c" stroke="#17191d" strokeWidth="1.5" /></g>
+        <g className="fly fly2"><rect x="380" y="118" width="9" height="15" rx="2" fill="#c0392b" stroke="#17191d" strokeWidth="1.5" /></g>
+        <g className="fly fly3"><circle cx="356" cy="122" r="7" fill="#e8d9b0" stroke="#17191d" strokeWidth="1.5" /></g>
+      </g>
+    );
+  const fire = pose === 'fire';
+  return (
+    <g key={pose} className={`pose pose-${pose}`}>
+      <g transform="translate(142 196)">
+        <g transform="translate(-30 30)"><Tail c={[-44, 0]} e={[-60, -60]} rings={6} w={17} /></g>
+        <g transform={`scale(${S + 0.06})`}>
+          <Body />
+          <ellipse cx="-18" cy="48" rx="15" ry="8" fill="#2a2c32" stroke="#17191d" strokeWidth="2" />
+          <ellipse cx="18" cy="48" rx="15" ry="8" fill="#2a2c32" stroke="#17191d" strokeWidth="2" />
+          <path d="M-30 -18 Q-44 4 -34 22" stroke="#9a9fa9" strokeWidth="14" strokeLinecap="round" fill="none" />
+          <g transform="translate(-33 24)"><Paw r={170} /></g>
+          <g className="bob"><g transform="translate(0 -80)"><Head look={fire ? 0 : 4} shades={fire} /></g></g>
           {fire ? (
             <g>
-              <path d="M232 160 L300 120" stroke="#8d5a2b" strokeWidth="4" strokeLinecap="round" />
-              <ellipse cx="304" cy="117" rx="9" ry="7" fill="#fff4e0" stroke="#d9a94e" strokeWidth="2" />
+              <path d="M30 -16 Q60 -20 84 -34" stroke="#9a9fa9" strokeWidth="14" strokeLinecap="round" fill="none" />
+              <g transform="translate(88 -36)"><Paw r={60} /></g>
+              <path d="M92 -38 L190 -96" stroke="#8d5a2b" strokeWidth="4" strokeLinecap="round" />
+              <g className="toast"><ellipse cx="195" cy="-99" rx="10" ry="8" fill="#fff4e0" stroke="#d9a94e" strokeWidth="2.4" /></g>
             </g>
           ) : (
-            <g className="held-bag">
-              <ellipse cx="238" cy="146" rx="16" ry="13" fill="#3b3f48" />
-              <path d="M234 134 l4 -7 l4 7 z" fill="#3b3f48" />
+            <g className="toss-arm" style={{ transformOrigin: '34px -24px' }}>
+              <path d="M34 -24 Q70 -46 64 -92" stroke="#9a9fa9" strokeWidth="14" strokeLinecap="round" fill="none" strokeLinejoin="round" />
+              <g transform="translate(64 -98)"><Paw r={10} /></g>
             </g>
           )}
         </g>
-        {/* head */}
-        <g className="head">
-          <ellipse cx="104" cy="112" rx="13" ry="16" fill="#8b909b" transform="rotate(-20 104 112)" />
-          <ellipse cx="104" cy="114" rx="6" ry="9" fill="#33363d" transform="rotate(-20 104 114)" />
-          <ellipse cx="166" cy="112" rx="13" ry="16" fill="#8b909b" transform="rotate(20 166 112)" />
-          <ellipse cx="166" cy="114" rx="6" ry="9" fill="#33363d" transform="rotate(20 166 114)" />
-          <ellipse cx="135" cy="146" rx="44" ry="38" fill="#9aa0aa" />
-          {/* white brows and cheeks */}
-          <path d="M100 136 Q112 124 128 132" stroke="#f1f2f4" strokeWidth="6" strokeLinecap="round" fill="none" />
-          <path d="M142 132 Q158 124 170 136" stroke="#f1f2f4" strokeWidth="6" strokeLinecap="round" fill="none" />
-          <ellipse cx="135" cy="163" rx="25" ry="16" fill="#f1f2f4" />
-          {/* bandit mask */}
-          <path d="M96 150 Q104 136 122 142 Q135 148 148 142 Q166 136 174 150 Q168 162 152 158 Q135 154 118 158 Q102 162 96 150 Z" fill="#2b2e35" />
-          <circle className="eye" cx="116" cy="149" r="5.5" fill="#fff" />
-          <circle className="eye" cx="154" cy="149" r="5.5" fill="#fff" />
-          <circle cx="117" cy="150" r="2.8" fill="#111" />
-          <circle cx="155" cy="150" r="2.8" fill="#111" />
-          <ellipse cx="135" cy="162" rx="7" ry="5" fill="#2b2e35" />
-          <path d={fire ? 'M126 170 Q135 180 144 170' : 'M128 171 Q135 176 142 171'} stroke="#2b2e35" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-        </g>
       </g>
-    </svg>
+      {!fire && <g className="toss-bag"><g transform="translate(200 98)"><Bag /></g></g>}
+    </g>
   );
 }
