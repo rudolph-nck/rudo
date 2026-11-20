@@ -150,7 +150,7 @@ const niceMax = (v: number) => {
 
 // ---------------------------------------------------------------- grouped columns (e.g. opened vs closed per week)
 
-export function GroupedColumns({ data, series, height = 220, label }: { data: { label: string; tip: string; values: Record<string, number> }[]; series: Series[]; height?: number; label: string }) {
+export function GroupedColumns({ data, series, height = 220, label, onBar, selected }: { data: { label: string; tip: string; values: Record<string, number> }[]; series: Series[]; height?: number; label: string; onBar?: (index: number) => void; selected?: number }) {
   const { box, show, hide, el } = useTip();
   const W = 640, padL = 32, padB = 26, padT = 8;
   const max = niceMax(Math.max(1, ...data.flatMap((d) => series.map((s) => d.values[s.key] ?? 0))));
@@ -185,8 +185,11 @@ export function GroupedColumns({ data, series, height = 220, label }: { data: { 
                 y={padT}
                 width={band}
                 height={H}
-                fill="transparent"
+                fill={selected === i ? 'var(--accent-soft)' : 'transparent'}
                 tabIndex={0}
+                style={onBar ? { cursor: 'pointer' } : undefined}
+                onClick={onBar ? () => onBar(i) : undefined}
+                onKeyDown={onBar ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onBar(i); } } : undefined}
                 aria-label={`${d.tip}: ${series.map((s) => `${s.label} ${d.values[s.key] ?? 0}`).join(', ')}`}
                 onMouseMove={(e) => show(e, <TipRows title={d.tip} rows={series.map((s) => ({ label: s.label, value: d.values[s.key] ?? 0, color: s.color }))} />)}
                 onFocus={(e) => show(e, <TipRows title={d.tip} rows={series.map((s) => ({ label: s.label, value: d.values[s.key] ?? 0, color: s.color }))} />)}
@@ -337,5 +340,144 @@ export function Meter({ value, max, label }: { value: number; max: number; label
     <span className={`meter ${state}`} role="meter" aria-valuemin={0} aria-valuemax={max} aria-valuenow={value} aria-label={label}>
       <i style={{ width: `${pct}%` }} />
     </span>
+  );
+}
+
+// ---------------------------------------------------------------- lines (time series, optional dashed forecast + band)
+
+export interface LineSeries extends Series {
+  values: (number | null)[];
+  dashed?: boolean;
+}
+
+/** One y-axis. Actuals as solid 2px lines, a forecast dashed with an 80% band; crosshair tooltip per point. */
+export function LineChart({ labels, tips, series, band, nowIndex, height = 240, width = 640, label, unit = '' }: { labels: string[]; tips: string[]; series: LineSeries[]; band?: { low: number; high: number }[] | (null | { low: number; high: number })[]; nowIndex?: number; height?: number; width?: number; label: string; unit?: string }) {
+  const { box, show, hide, el } = useTip();
+  const [hover, setHover] = useState<number | null>(null);
+  const W = width, padL = 34, padR = 8, padB = 26, padT = 10;
+  const n = labels.length;
+  const all = [...series.flatMap((s) => s.values.filter((v): v is number => v !== null)), ...(band ?? []).flatMap((b) => (b ? [b.high] : []))];
+  const max = niceMax(Math.max(1, ...all));
+  const H = height - padB - padT;
+  const x = (i: number) => padL + (n <= 1 ? 0 : (i / (n - 1)) * (W - padL - padR));
+  const y = (v: number) => padT + H - (v / max) * H;
+  const path = (vals: (number | null)[]) => {
+    let d = '';
+    let pen = false;
+    vals.forEach((v, i) => {
+      if (v === null) { pen = false; return; }
+      d += `${pen ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`;
+      pen = true;
+    });
+    return d;
+  };
+  const bandPath = () => {
+    if (!band) return '';
+    const idx = band.map((b, i) => (b ? i : -1)).filter((i) => i >= 0);
+    if (!idx.length) return '';
+    const top = idx.map((i) => `${x(i)},${y(band[i]!.high)}`).join('L');
+    const bot = [...idx].reverse().map((i) => `${x(i)},${y(band[i]!.low)}`).join('L');
+    return `M${top}L${bot}Z`;
+  };
+  const every = Math.ceil(n / 8);
+  const ticks = [0, max / 2, max];
+  const tipFor = (i: number) => (
+    <TipRows
+      title={tips[i]}
+      rows={[
+        ...series.filter((s) => s.values[i] !== null && s.values[i] !== undefined).map((s) => ({ label: s.label, value: `${Math.round((s.values[i] as number) * 10) / 10}${unit}`, color: s.color })),
+        ...(band?.[i] ? [{ label: 'Likely range (80%)', value: `${Math.round(band[i]!.low)}–${Math.round(band[i]!.high)}${unit}` }] : []),
+      ]}
+    />
+  );
+  const step = n > 1 ? (W - padL - padR) / (n - 1) : W;
+  return (
+    <div className="viz-wrap" ref={box} onMouseLeave={() => { hide(); setHover(null); }}>
+      <svg viewBox={`0 0 ${W} ${height}`} width="100%" role="img" aria-label={label}>
+        {ticks.map((t) => (
+          <g key={t}>
+            <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} className="viz-grid" />
+            <text x={padL - 6} y={y(t) + 4} textAnchor="end" className="viz-axis">{Math.round(t)}</text>
+          </g>
+        ))}
+        {nowIndex !== undefined && nowIndex >= 0 && nowIndex < n && (
+          <g>
+            <line x1={x(nowIndex)} x2={x(nowIndex)} y1={padT} y2={padT + H} className="viz-now" />
+            <text x={x(nowIndex) + 4} y={padT + 10} className="viz-axis">Now</text>
+          </g>
+        )}
+        {band && <path d={bandPath()} className="viz-band" />}
+        {series.map((s) => (
+          <path key={s.key} d={path(s.values)} fill="none" stroke={s.color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" strokeDasharray={s.dashed ? '5 4' : undefined} />
+        ))}
+        {hover !== null && (
+          <g>
+            <line x1={x(hover)} x2={x(hover)} y1={padT} y2={padT + H} className="viz-cross" />
+            {series.map((s) => (s.values[hover] !== null && s.values[hover] !== undefined ? <circle key={s.key} cx={x(hover)} cy={y(s.values[hover] as number)} r={4.5} fill={s.color} className="viz-dot" /> : null))}
+          </g>
+        )}
+        {labels.map((l, i) => (
+          <g key={i}>
+            {i % every === 0 && <text x={x(i)} y={height - 8} textAnchor="middle" className="viz-axis">{l}</text>}
+            <rect
+              x={x(i) - step / 2}
+              y={padT}
+              width={step}
+              height={H}
+              fill="transparent"
+              tabIndex={0}
+              aria-label={`${tips[i]}: ${series.filter((s) => s.values[i] !== null).map((s) => `${s.label} ${Math.round((s.values[i] as number) * 10) / 10}`).join(', ')}`}
+              onMouseMove={(e) => { setHover(i); show(e, tipFor(i)); }}
+              onFocus={(e) => { setHover(i); show(e, tipFor(i)); }}
+              onBlur={() => { hide(); setHover(null); }}
+            />
+          </g>
+        ))}
+        <line x1={padL} x2={W - padR} y1={padT + H} y2={padT + H} className="viz-baseline" />
+      </svg>
+      {el}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- heatmap (rows x columns, one hue light -> dark)
+
+export function Heatmap({ rows, cols, values, label, fmt = (v) => String(v), cellTip }: { rows: string[]; cols: string[]; values: number[][]; label: string; fmt?: (v: number) => string; cellTip?: (r: number, c: number) => string }) {
+  const { box, show, hide, el } = useTip();
+  const max = Math.max(1e-9, ...values.flat());
+  const steps = 5;
+  const level = (v: number) => (v <= 0 ? 0 : Math.min(steps, Math.ceil((v / max) * steps)));
+  return (
+    <div className="viz-wrap heat" ref={box} onMouseLeave={hide}>
+      <div className="heat-grid" role="table" aria-label={label} style={{ gridTemplateColumns: `44px repeat(${cols.length}, minmax(14px, 1fr))` }}>
+        <span role="columnheader" />
+        {cols.map((c, j) => <span key={j} role="columnheader" className="heat-col">{j % 2 === 0 ? c : ''}</span>)}
+        {rows.map((r, i) => (
+          <div key={r} role="row" className="heat-row" style={{ display: 'contents' }}>
+            <span role="rowheader" className="heat-rowh">{r}</span>
+            {cols.map((c, j) => {
+              const v = values[i][j];
+              const tip = cellTip ? cellTip(i, j) : `${r} ${c}`;
+              return (
+                <span
+                  key={j}
+                  role="cell"
+                  tabIndex={0}
+                  className={`heat-cell l${level(v)}`}
+                  aria-label={`${tip}: ${fmt(v)}`}
+                  onMouseMove={(e) => show(e, <TipRows title={tip} rows={[{ label: 'Average', value: fmt(v) }]} />)}
+                  onFocus={(e) => show(e, <TipRows title={tip} rows={[{ label: 'Average', value: fmt(v) }]} />)}
+                  onBlur={hide}
+                />
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      <div className="heat-legend small muted" aria-hidden>
+        Fewer <span className="heat-cell l1" /><span className="heat-cell l2" /><span className="heat-cell l3" /><span className="heat-cell l4" /><span className="heat-cell l5" /> More
+      </div>
+      {el}
+    </div>
   );
 }

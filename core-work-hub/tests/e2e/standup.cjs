@@ -13,7 +13,7 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   await p.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('cwh.demo.')).forEach((k) => localStorage.removeItem(k)));
   await p.goto(file + '?demo&as=nick#/standup'); await p.reload(); await p.waitForSelector('h1');
   check((await p.locator('h1').first().innerText()) === 'Stand-up', 'Stand-up page opens');
-  check((await p.locator('.section-tabs button[aria-current="page"]').innerText()) === 'Stand-up' && (await p.locator('.section-tabs button').allInnerTexts()).join('|') === 'Dashboard|Stand-up|Panda HQ', 'Stand-up is a tab under Overview, next to the Dashboard and Panda HQ');
+  check((await p.locator('.section-tabs button[aria-current="page"]').innerText()) === 'Stand-up' && (await p.locator('.section-tabs button').allInnerTexts()).join('|') === 'Dashboard|Trends|Ask|Off-path|All tickets|Stand-up|Panda HQ', 'Stand-up is a tab under Overview, with the Dashboard, Trends, Ask, Off-path, All tickets and Panda HQ');
   const navCount = Number(await p.locator('.nav button[data-section="overview"] .count').innerText());
   check(navCount > 0, `sidebar shows how many items must be discussed (${navCount})`);
   const past = p.locator('section', { has: p.locator('h2#su-past') });

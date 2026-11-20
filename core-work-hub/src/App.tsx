@@ -34,6 +34,9 @@ import { Settings } from './views/Settings';
 import { NeedsList } from './views/Lists';
 import { Projects } from './views/Projects';
 import { Tickets } from './views/Tickets';
+import { Trends } from './views/Trends';
+import { Explore } from './views/Explore';
+import { OffPath } from './views/OffPath';
 import { MyWork } from './views/MyWork';
 import { canOpen, homeFor, isAdmin, sectionOf, sectionsFor, type Section } from './sections';
 import { myWork } from './model/mywork';
@@ -51,7 +54,7 @@ const getCollapsed = () => {
   return window.innerWidth < 1200;
 };
 
-function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+function Sidebar({ collapsed, onToggle, sectionId }: { collapsed: boolean; onToggle: () => void; sectionId?: string }) {
   const { state, me, role, store, readOnly } = useHub();
   const { view, go } = useNav();
   const cfg = state.config;
@@ -63,7 +66,7 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
   const mustDiscuss = useMemo(() => (isAdmin(role) ? standup(state, now).mustDiscuss : 0), [state, now, role]);
   const myFocus = useMemo(() => myWork(state, me, now).focus.length, [state, me, now]);
   const sections = sectionsFor(role);
-  const current = sectionOf(role, view);
+  const current = sectionOf(role, view, sectionId);
   const counts: Record<string, [number, string] | undefined> = {
     overview: mustDiscuss ? [mustDiscuss, `${mustDiscuss} to discuss at stand-up`] : undefined,
     mine: myFocus ? [myFocus, `${myFocus} need focus`] : undefined,
@@ -235,13 +238,13 @@ function PreviewBar() {
   );
 }
 
-function TopBar() {
+function TopBar({ sectionId }: { sectionId?: string }) {
   const { state, me, role, lastSync, syncing, refresh, error } = useHub();
   const { view, go } = useNav();
   const now = useNow();
   const notices = noticesFor(state, me, now);
   const escalated = notices.some((n) => n.status.lateMinutes > 0);
-  const section = sectionOf(role, view);
+  const section = sectionOf(role, view, sectionId);
   const [, tick] = useState(0);
   useEffect(() => {
     const t = setInterval(() => tick((x) => x + 1), 5000);
@@ -328,6 +331,11 @@ function Shell() {
   const [collapsed, setCollapsed] = useState(getCollapsed);
   const toggle = () => setCollapsed((c) => { try { localStorage.setItem('cwh.navCollapsed', c ? '0' : '1'); } catch { /* ignore */ } return !c; });
   const allowed = canOpen(role, route.view);
+  // Remember which section you're in, so a page shared by two sections (All tickets) doesn't jump the menu.
+  const [sectionId, setSectionId] = useState<string | undefined>(() => sectionOf(role, route.view)?.id);
+  useEffect(() => {
+    setSectionId((prev) => sectionOf(role, route.view, prev)?.id);
+  }, [role, route.view]);
   useEffect(() => {
     if (!allowed) location.replace('#/' + homeFor(role));
   }, [allowed, role]);
@@ -340,16 +348,16 @@ function Shell() {
     location.hash = `/${v}${p ? '/' + encodeURIComponent(p) : ''}`;
   }, []);
   useEffect(() => {
-    document.title = `${{ overview: 'Overview', rotation: 'Rotation', timeoff: 'Time off', priorities: 'Priorities', teamscore: 'Team score', notifications: 'Notifications', standup: 'Stand-up', training: 'Training', pandahq: 'Panda HQ', projects: 'Projects', tickets: 'All tickets', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
+    document.title = `${{ overview: 'Overview', rotation: 'Rotation', timeoff: 'Time off', priorities: 'Priorities', teamscore: 'Team score', notifications: 'Notifications', standup: 'Stand-up', training: 'Training', pandahq: 'Panda HQ', projects: 'Projects', tickets: 'All tickets', trends: 'Trends', explore: 'Ask', offpath: 'Off-path work', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
     (document.querySelector('main') as HTMLElement | null)?.focus({ preventScroll: true });
   }, [route.view]);
   return (
     <NavCtx.Provider value={{ ...route, go }}>
       <UiProvider>
         <div className={`app ${collapsed ? 'collapsed' : ''}`}>
-          <Sidebar collapsed={collapsed} onToggle={toggle} />
+          <Sidebar collapsed={collapsed} onToggle={toggle} sectionId={sectionId} />
           <main className="main" tabIndex={-1} style={{ outline: 'none' }}>
-            <TopBar />
+            <TopBar sectionId={sectionId} />
             {error && <div className="banner error" role="alert" style={{ margin: '16px 28px 0' }}>{error}</div>}
             {allowed && <ErrorBoundary key={route.view}>
               {route.view === 'board' && <Board />}
@@ -370,6 +378,9 @@ function Shell() {
               {route.view === 'list' && <NeedsList />}
               {route.view === 'projects' && <Projects />}
               {route.view === 'tickets' && <Tickets />}
+              {route.view === 'trends' && <Trends />}
+              {route.view === 'explore' && <Explore />}
+              {route.view === 'offpath' && <OffPath />}
             </ErrorBoundary>}
           </main>
         </div>

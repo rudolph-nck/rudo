@@ -41,6 +41,10 @@ export function sectionsFor(role?: Role): Section[] {
         label: 'Overview',
         tabs: [
           { view: 'overview', label: 'Dashboard' },
+          { view: 'trends', label: 'Trends' },
+          { view: 'explore', label: 'Ask' },
+          { view: 'offpath', label: 'Off-path' },
+          { view: 'tickets', label: 'All tickets' },
           { view: 'standup', label: 'Stand-up' },
           { view: 'pandahq', label: 'Panda HQ' },
         ],
@@ -89,7 +93,10 @@ export function canOpen(role: Role | undefined, view: View): boolean {
   return ALWAYS.includes(view) || sectionsFor(role).some((s) => s.tabs.some((t) => t.view === view));
 }
 
-export function sectionOf(role: Role | undefined, view: View): Section | undefined {
-  if (view === 'list') return sectionsFor(role).find((s) => s.id === 'board');
-  return sectionsFor(role).find((s) => s.tabs.some((t) => t.view === view));
+/** The section a page belongs to. A page in two sections (All tickets) stays in the one you came from (`prefer`). */
+export function sectionOf(role: Role | undefined, view: View, prefer?: string): Section | undefined {
+  const all = sectionsFor(role);
+  if (view === 'list') return all.find((s) => s.id === 'board');
+  const kept = prefer ? all.find((s) => s.id === prefer && s.tabs.some((t) => t.view === view)) : undefined;
+  return kept ?? all.find((s) => s.tabs.some((t) => t.view === view));
 }
