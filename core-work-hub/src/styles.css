@@ -819,6 +819,29 @@ details.su-more[open] > summary h2::before { content: '▾ '; }
 @keyframes bob { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-3deg) translateY(-2px); } }
 @keyframes toast { from { transform: scale(1); } to { transform: scale(1.08); } }
 
+/* Scraps: the design's motion (blink, ear twitch, tail sway, tiptoe) plus look-back, sack bounce and the heist throw */
+.dumpster-scene .sc-blink { transform-box: view-box; animation: sc-blink 3.8s infinite; }
+.dumpster-scene .sc-ear { transform-box: view-box; animation: sc-ear 3.6s ease-in-out infinite; }
+.dumpster-scene .sc-tail { transform-box: view-box; animation: sc-sway 2.2s ease-in-out infinite alternate; }
+.dumpster-scene .sc-tiptoe { animation: sc-tiptoe 1.6s ease-in-out infinite; }
+.dumpster-scene .pose-sneak .sc-head { transform-box: view-box; animation: sc-look 7s ease-in-out infinite; }
+.dumpster-scene .pose-sneak .sc-pupils, .dumpster-scene .pose-peek .sc-pupils { animation: sc-dart 3.2s ease-in-out infinite; }
+.dumpster-scene .sc-sack { transform-box: view-box; transform-origin: 256px 120px; animation: sc-bounce 0.8s ease-in-out infinite; }
+.dumpster-scene .sc-throw { transform-box: view-box; animation: sc-throw 2.4s ease-in-out infinite; }
+.dumpster-scene .toss-sack { animation: sc-fling 2.4s ease-in infinite; }
+.dumpster-scene .sc-munch { animation: munch 0.5s ease-in-out infinite alternate; }
+.dumpster-scene .sc-chew { animation: munch 0.25s ease-in-out infinite alternate; }
+.dumpster-scene .sc-toast { transform-box: fill-box; transform-origin: center; animation: toast 0.8s ease-in-out infinite alternate; }
+@keyframes sc-blink { 0%, 92%, 100% { transform: scaleY(1); } 94% { transform: scaleY(0.08); } }
+@keyframes sc-ear { 0%, 70%, 78%, 100% { transform: rotate(0deg); } 74% { transform: rotate(12deg); } }
+@keyframes sc-sway { from { transform: rotate(6deg); } to { transform: rotate(-8deg); } }
+@keyframes sc-tiptoe { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-3px, -5px); } 50% { transform: translate(-6px, 0); } 75% { transform: translate(-3px, -5px); } }
+@keyframes sc-look { 0%, 55%, 85%, 100% { transform: rotate(0deg); } 62%, 78% { transform: rotate(-9deg) translateX(-6px); } }
+@keyframes sc-dart { 0%, 20% { transform: translateX(0); } 35%, 55% { transform: translateX(12px); } 70%, 100% { transform: translateX(4px); } }
+@keyframes sc-bounce { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-8px) rotate(-3deg); } }
+@keyframes sc-throw { 0% { transform: rotate(0deg); } 38% { transform: rotate(-22deg); } 52% { transform: rotate(70deg); } 72%, 100% { transform: rotate(0deg); } }
+@keyframes sc-fling { 0%, 44% { transform: translate(0, 0); opacity: 1; } 58% { transform: translate(60px, -60px); } 74% { transform: translate(130px, -40px); } 92% { transform: translate(176px, 30px); opacity: 1; } 100% { transform: translate(180px, 44px); opacity: 0; } }
+
 /* the fire show */
 .fire-show { position: fixed; inset: 0; z-index: 990; display: grid; place-items: center; background: rgba(10, 14, 24, 0.72); animation: fade-in 0.3s ease; }
 .fire-card { position: relative; width: min(680px, 92vw); padding: 18px 22px 22px; border-radius: 20px; background: var(--surface); box-shadow: var(--shadow-lg); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; animation: pop-in 0.5s cubic-bezier(0.2, 0.9, 0.2, 1.3); }

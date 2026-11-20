@@ -1,9 +1,9 @@
 // The trash panda and the dumpster: fills as tickets close; on fire when a goal is hit. Original art, inline SVG.
 import { useEffect, useState } from 'react';
-import { Bag, Body, Head, Paw, Pizza, Tail } from './Raccoon';
+import { FUR, Sack, ScrapsFigure, ScrapsHead, ScrapsTail } from './Scraps';
 
-type Pose = 'peek' | 'sit' | 'dive' | 'toss' | 'fire';
-const IDLE: Pose[] = ['peek', 'sit', 'dive', 'toss'];
+type Pose = 'sneak' | 'peek' | 'sit' | 'dive' | 'toss' | 'fire';
+const IDLE: Pose[] = ['sneak', 'peek', 'toss', 'sit', 'dive'];
 
 const TRASH = [
   // [x, y, kind, color] inside the dumpster (x 250-470, y 150-255 from the bottom up)
@@ -120,7 +120,8 @@ export function DumpsterScene({ pct, fire, drops = 0, label }: { pct: number; fi
   );
 }
 
-const S = 0.84; // raccoon scale in the scene
+const S = 0.6; // Scraps' scale in the scene (design is 400 units tall)
+const INK = '#2A2C33';
 
 function PandaPose({ pose }: { pose: Pose }) {
   if (pose === 'peek')
@@ -128,32 +129,19 @@ function PandaPose({ pose }: { pose: Pose }) {
       <g key="peek" className="pose pose-peek">
         <clipPath id="above-rim"><rect x="0" y="-60" width="520" height="206" /></clipPath>
         <g clipPath="url(#above-rim)">
-          <g className="tail-wag" style={{ transformOrigin: '448px 150px' }}><g transform="translate(448 150)"><Tail c={[24, -36]} e={[8, -82]} rings={5} w={15} /></g></g>
-          <g className="peek-pop"><g transform={`translate(352 104) scale(${S})`}><Head look={0} /></g></g>
+          <g className="tail-wag" style={{ transformOrigin: '448px 150px' }}>
+            <g transform={`translate(448 152) scale(${S})`}><ScrapsTail d="M0 0 Q36 -60 12 -126" tip={[12, -126]} /></g>
+          </g>
+          <g className="peek-pop"><g transform={`translate(${352 - S * 200} ${104 - S * 150}) scale(${S})`}><ScrapsHead look={0} /></g></g>
         </g>
-        <g transform="translate(318 142)"><Paw r={-10} /></g>
-        <g transform="translate(388 142)"><Paw r={10} /></g>
+        <ellipse cx="318" cy="143" rx="10" ry="8" fill={INK} />
+        <ellipse cx="388" cy="143" rx="10" ry="8" fill={INK} />
       </g>
     );
   if (pose === 'sit')
     return (
       <g key="sit" className="pose pose-sit">
-        <g transform="translate(292 112)">
-          <g transform="translate(-22 18)"><Tail c={[-14, 40]} e={[-6, 86]} rings={5} w={15} /></g>
-          <g transform={`scale(${S})`}>
-            <Body />
-            <path d="M-16 40 L-20 74" stroke="#9a9fa9" strokeWidth="13" strokeLinecap="round" />
-            <path d="M14 40 L18 76" stroke="#9a9fa9" strokeWidth="13" strokeLinecap="round" />
-            <g transform="translate(-21 80)"><Paw r={180} /></g>
-            <g transform="translate(19 82)"><Paw r={180} /></g>
-            <g className="munch"><g transform="translate(0 -80)"><Head look={2} chew /></g></g>
-            <path d="M30 -18 Q56 -36 50 -56" stroke="#9a9fa9" strokeWidth="13" strokeLinecap="round" fill="none" />
-            <g className="munch"><g transform="translate(26 -70) rotate(-20)"><Pizza /></g></g>
-            <g transform="translate(50 -60)"><Paw r={-30} /></g>
-            <path d="M-28 -18 Q-40 0 -30 16" stroke="#9a9fa9" strokeWidth="13" strokeLinecap="round" fill="none" />
-            <g transform="translate(-30 18)"><Paw r={160} /></g>
-          </g>
-        </g>
+        <g transform={`translate(${300 - S * 200} ${146 - S * 334}) scale(${S})`}><ScrapsFigure variant="sit" look={-4} /></g>
       </g>
     );
   if (pose === 'dive')
@@ -161,46 +149,41 @@ function PandaPose({ pose }: { pose: Pose }) {
       <g key="dive" className="pose pose-dive">
         <clipPath id="above-rim2"><rect x="0" y="-60" width="520" height="204" /></clipPath>
         <g clipPath="url(#above-rim2)">
-          <g transform="translate(360 150)">
-            <g className="tail-wag" style={{ transformOrigin: '0px -30px' }}><g transform="translate(0 -30)"><Tail c={[18, -40]} e={[-6, -84]} rings={5} w={15} /></g></g>
-            <ellipse cx="0" cy="-16" rx="36" ry="28" fill="#9a9fa9" stroke="#17191d" strokeWidth="2.6" />
-            <g className="kick-l" style={{ transformOrigin: '-18px -30px' }}><path d="M-18 -30 L-30 -66" stroke="#9a9fa9" strokeWidth="14" strokeLinecap="round" /><g transform="translate(-31 -72)"><Paw r={-20} /></g></g>
-            <g className="kick-r" style={{ transformOrigin: '18px -30px' }}><path d="M18 -30 L30 -66" stroke="#9a9fa9" strokeWidth="14" strokeLinecap="round" /><g transform="translate(31 -72)"><Paw r={20} /></g></g>
+          <g transform={`translate(360 150) scale(${S})`}>
+            <g className="tail-wag" style={{ transformOrigin: '0px -60px' }}><ScrapsTail d="M0 -60 Q44 -130 14 -205" tip={[14, -205]} /></g>
+            <ellipse cx="0" cy="-26" rx="60" ry="52" fill={FUR} />
+            <g className="kick-l" style={{ transformOrigin: '-24px -60px' }}>
+              <path d="M-24 -60 L-40 -128" stroke={FUR} strokeWidth="28" strokeLinecap="round" />
+              <ellipse cx="-42" cy="-136" rx="22" ry="12" fill={INK} transform="rotate(-70 -42 -136)" />
+            </g>
+            <g className="kick-r" style={{ transformOrigin: '24px -60px' }}>
+              <path d="M24 -60 L40 -128" stroke={FUR} strokeWidth="28" strokeLinecap="round" />
+              <ellipse cx="42" cy="-136" rx="22" ry="12" fill={INK} transform="rotate(70 42 -136)" />
+            </g>
           </g>
         </g>
-        <g className="fly fly1"><rect x="330" y="120" width="16" height="11" rx="2" fill="#c98a3c" stroke="#17191d" strokeWidth="1.5" /></g>
-        <g className="fly fly2"><rect x="380" y="118" width="9" height="15" rx="2" fill="#c0392b" stroke="#17191d" strokeWidth="1.5" /></g>
-        <g className="fly fly3"><circle cx="356" cy="122" r="7" fill="#e8d9b0" stroke="#17191d" strokeWidth="1.5" /></g>
+        <g className="fly fly1"><rect x="330" y="120" width="16" height="11" rx="2" fill="#c98a3c" /></g>
+        <g className="fly fly2"><rect x="380" y="118" width="9" height="15" rx="2" fill="#c0392b" /></g>
+        <g className="fly fly3"><circle cx="356" cy="122" r="7" fill="#e8d9b0" /></g>
       </g>
     );
-  const fire = pose === 'fire';
+  if (pose === 'fire')
+    return (
+      <g key="fire" className="pose pose-fire">
+        <g transform={`translate(${130 - S * 200} ${268 - S * 372}) scale(${S})`}><ScrapsFigure variant="fire" grin /></g>
+      </g>
+    );
+  // sneak (the design pose) and toss face the dumpster: mirrored
+  const X = 150 + S * 200;
+  const Y = 268 - S * 372;
   return (
     <g key={pose} className={`pose pose-${pose}`}>
-      <g transform="translate(142 196)">
-        <g transform="translate(-30 30)"><Tail c={[-44, 0]} e={[-60, -60]} rings={6} w={17} /></g>
-        <g transform={`scale(${S + 0.06})`}>
-          <Body />
-          <ellipse cx="-18" cy="48" rx="15" ry="8" fill="#2a2c32" stroke="#17191d" strokeWidth="2" />
-          <ellipse cx="18" cy="48" rx="15" ry="8" fill="#2a2c32" stroke="#17191d" strokeWidth="2" />
-          <path d="M-30 -18 Q-44 4 -34 22" stroke="#9a9fa9" strokeWidth="14" strokeLinecap="round" fill="none" />
-          <g transform="translate(-33 24)"><Paw r={170} /></g>
-          <g className="bob"><g transform="translate(0 -80)"><Head look={fire ? 0 : 4} shades={fire} /></g></g>
-          {fire ? (
-            <g>
-              <path d="M30 -16 Q60 -20 84 -34" stroke="#9a9fa9" strokeWidth="14" strokeLinecap="round" fill="none" />
-              <g transform="translate(88 -36)"><Paw r={60} /></g>
-              <path d="M92 -38 L190 -96" stroke="#8d5a2b" strokeWidth="4" strokeLinecap="round" />
-              <g className="toast"><ellipse cx="195" cy="-99" rx="10" ry="8" fill="#fff4e0" stroke="#d9a94e" strokeWidth="2.4" /></g>
-            </g>
-          ) : (
-            <g className="toss-arm" style={{ transformOrigin: '34px -24px' }}>
-              <path d="M34 -24 Q70 -46 64 -92" stroke="#9a9fa9" strokeWidth="14" strokeLinecap="round" fill="none" strokeLinejoin="round" />
-              <g transform="translate(64 -98)"><Paw r={10} /></g>
-            </g>
-          )}
-        </g>
+      <g transform={`translate(${X} ${Y}) scale(${-S} ${S})`}>
+        <g className={pose === 'sneak' ? 'sc-tiptoe' : ''}><ScrapsFigure variant={pose === 'sneak' ? 'sneak' : 'toss'} look={pose === 'sneak' ? -10 : -6} /></g>
       </g>
-      {!fire && <g className="toss-bag"><g transform="translate(200 98)"><Bag /></g></g>}
+      {pose === 'toss' && (
+        <g className="toss-sack"><g transform={`translate(${X} ${Y}) scale(${-S} ${S})`}><Sack /></g></g>
+      )}
     </g>
   );
 }
