@@ -4,3 +4,4 @@ dist
 build
 __pycache__/
 release/CoreWorkHub-training-videos.zip
+test-results/
