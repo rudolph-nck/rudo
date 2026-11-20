@@ -1,6 +1,6 @@
 // Panda HQ: team goals (the dumpster), a points leaderboard that rewards hard, on-time and backlog work over raw
 // volume, badges and monthly awards; plus the time-to-assign and closed-ticket ranking analytics for Overview.
-import { businessMinutesBetween, standardOf, workdayMinutes } from './comms';
+import { addBusinessDays, businessMinutesBetween, endOfBusinessDay, standardOf, workdayMinutes } from './comms';
 import { analysts, findPerson } from './logic';
 import { priorityStandardOf } from './priority';
 import type { HubConfig, HubState, Priority, WorkItem } from './types';
@@ -82,6 +82,35 @@ export function closes(state: HubState): Close[] {
     out.push({ item: i, at, user, priority: pri, onTime, backlog, points: POINTS[pri] + (onTime ? ON_TIME_BONUS : 0) + (backlog ? BACKLOG_BONUS : 0) });
   }
   return out.sort((a, b) => b.at.getTime() - a.at.getTime());
+}
+
+/** What an open item would be worth if closed: the same rules as `closes`, so the preview always matches the score. */
+export interface PointsPreview {
+  priority: Priority;
+  ungraded: boolean;
+  base: number;
+  /** Close by this time for the on-time bonus (counted from when the ticket was opened). */
+  onTimeBy: Date;
+  /** The on-time bonus is still possible. */
+  onTimeStill: boolean;
+  backlog: boolean;
+  /** Points if closed now (the most it can still earn). */
+  worth: number;
+}
+export function pointsPreview(state: HubState, i: WorkItem, now = new Date()): PointsPreview {
+  const cfg = state.config;
+  const std = standardOf(cfg);
+  const ps = priorityStandardOf(cfg);
+  const pri: Priority = i.priority ?? 'P4';
+  const created = new Date(i.created);
+  const onTimeBy = pri === 'P1' && ps[pri].resolveDays <= 1 ? endOfBusinessDay(std, created) : addBusinessDays(std, created, ps[pri].resolveDays);
+  const start = ps.startFrom ? new Date(ps.startFrom + 'T00:00:00') : undefined;
+  const took = Math.max(0, businessMinutesBetween(std, created, now)) / workdayMinutes(std);
+  const backlog = start ? created < start : took > 60;
+  const onTimeStill = now <= onTimeBy;
+  const base = POINTS[pri];
+  const extra = backlog ? BACKLOG_BONUS : 0;
+  return { priority: pri, ungraded: !i.priority, base, onTimeBy, onTimeStill, backlog, worth: base + extra + (onTimeStill ? ON_TIME_BONUS : 0) };
 }
 
 const inRange = (c: Close, from: Date, to?: Date) => c.at >= from && (!to || c.at < to);

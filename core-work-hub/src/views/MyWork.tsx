@@ -2,7 +2,8 @@
 import { useMemo, useState } from 'react';
 import { useHub } from '../store/hub';
 import { useUi } from '../components/actions';
-import { Icon, PriorityChip, SourceBadge, toast } from '../components/ui';
+import { Icon, Modal, PriorityChip, SourceBadge, toast } from '../components/ui';
+import { PointsChip, PointsGuide } from '../components/Points';
 import { LogUpdateDialog } from '../components/Comm';
 import { addDays, capacityFor, findPerson, fmtShortDate, schedule, todayISO } from '../model/logic';
 import { BUCKET_LABEL, COLUMN_LABEL, LEVEL_LABEL, TIME_BUCKETS, type Bucket, type Column, type TimeBucket, type WorkItem } from '../model/types';
@@ -67,6 +68,7 @@ export function MyWork() {
   const [bucket, setBucket] = useState<Bucket | 'all'>('all');
   const [q, setQ] = useState('');
   const [logging, setLogging] = useState<WorkItem | null>(null);
+  const [howOpen, setHowOpen] = useState(false);
   const today = todayISO(now);
 
   const shown = w.open.filter((x) => {
@@ -122,6 +124,7 @@ export function MyWork() {
       <div className="mw-side">
         <span className={`small ${x.due && x.due < now ? 'danger-text' : 'muted'}`}>{dueText(x, now)}</span>
         <AgeBar x={x} />
+        <PointsChip item={x.item} />
       </div>
       <div className="mw-act">{actions(x)}</div>
     </li>
@@ -176,6 +179,7 @@ export function MyWork() {
           <span className="t">Closed this week</span>
           <span className="n">{standing?.closes ?? 0}</span>
           <span className="d">{standing ? `${standing.points} pts · ${Math.round(standing.onTimePct * 100)}% on time` : 'Every close goes in the dumpster'}</span>
+          <button className="linkish small mw-how" onClick={() => setHowOpen(true)}>How points work</button>
         </div>
       </div>
 
@@ -329,6 +333,7 @@ export function MyWork() {
         </aside>
       </div>
       {logging && <LogUpdateDialog item={logging} onClose={() => setLogging(null)} />}
+      <Modal open={howOpen} onClose={() => setHowOpen(false)} title="How points work"><PointsGuide /></Modal>
     </div>
   );
 }

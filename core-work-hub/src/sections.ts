@@ -29,7 +29,6 @@ const BOARD: Section = {
   ],
 };
 const MINE: Section = { id: 'mine', icon: 'me', label: 'My work', tabs: [{ view: 'mine', label: 'My work' }] };
-const TRAINING: Section = { id: 'training', icon: 'learn', label: 'Training', tabs: [{ view: 'training', label: 'Training' }] };
 
 export function sectionsFor(role?: Role): Section[] {
   if (isAdmin(role))
@@ -57,7 +56,6 @@ export function sectionsFor(role?: Role): Section[] {
           { view: 'timeoff', label: 'Time off' },
         ],
       },
-      { ...TRAINING, admin: true },
       { id: 'audit', icon: 'log', label: 'Audit log', tabs: [{ view: 'audit', label: 'Audit log' }], admin: true },
       { id: 'settings', icon: 'gear', label: 'Settings', tabs: [{ view: 'settings', label: 'Settings' }], admin: true },
     ];
@@ -77,12 +75,11 @@ export function sectionsFor(role?: Role): Section[] {
         { view: 'timeoff', label: 'Time off' },
       ],
     },
-    TRAINING,
   ];
 }
 
-/** Pages reached from the top bar or from links, not from the menu. */
-const ALWAYS: View[] = ['notifications', 'list'];
+/** Pages reached from the top bar, the profile menu (Help and training) or links, not from the side menu. */
+const ALWAYS: View[] = ['notifications', 'list', 'training'];
 
 export const homeFor = (role?: Role): View => (isAdmin(role) ? 'overview' : 'mine');
 

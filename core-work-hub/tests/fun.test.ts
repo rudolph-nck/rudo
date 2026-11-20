@@ -91,3 +91,20 @@ describe('time to assign', () => {
     expect(periodStart('year', local(11, 20)).getMonth()).toBe(0);
   });
 });
+
+describe('points preview', () => {
+  it('matches what the close actually scores', async () => {
+    const { pointsPreview } = await import('../src/model/fun');
+    const cfg = cfgWith();
+    const created = local(11, 16, 9);
+    const open = replay(cfg, snapOf([t({ source_id: 'PV1', source_priority: 'High', source_status: 'Open', source_owner: 'Wes W', created: created.toISOString() })]), []);
+    const item = [...open.items.values()].find((i) => i.source_id === 'PV1')!;
+    const early = pointsPreview(open, item, local(11, 17, 10));
+    expect([early.priority, early.base, early.onTimeStill, early.worth]).toEqual(['P2', 5, true, 7]);
+    const late = pointsPreview(open, item, local(11, 25, 10));
+    expect([late.onTimeStill, late.worth]).toEqual([false, 5]);
+    // Close it on day 2: the leaderboard gives the same 7 the preview promised
+    const shut = replay(cfg, snapOf([t({ source_id: 'PV1', source_priority: 'High', source_status: 'Closed', source_owner: 'Wes W', created: created.toISOString(), closed: local(11, 17, 10).toISOString() })]), []);
+    expect(closes(shut).find((c) => c.item.source_id === 'PV1')!.points).toBe(early.worth);
+  });
+});

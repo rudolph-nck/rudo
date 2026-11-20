@@ -54,12 +54,12 @@ describe('Navigation by role', () => {
     expect(homeFor('manager')).toBe('overview');
     expect(sectionOf('manager', 'standup')?.id).toBe('overview');
     expect(sectionOf('manager', 'pandahq')?.id).toBe('overview');
-    expect(sectionsFor('manager').filter((x) => x.admin).map((x) => x.id)).toEqual(['training', 'audit', 'settings']);
+    expect(sectionsFor('manager').filter((x) => x.admin).map((x) => x.id)).toEqual(['audit', 'settings']);
     expect(canOpen('manager', 'settings')).toBe(true);
   });
   it('the team starts on My work with a short menu and no admin pages', () => {
     expect(homeFor('analyst')).toBe('mine');
-    expect(sectionsFor('analyst').map((x) => x.label)).toEqual(['My work', 'Board', 'Team', 'Training']);
+    expect(sectionsFor('analyst').map((x) => x.label)).toEqual(['My work', 'Board', 'Team']);
     expect(sectionOf('analyst', 'standup')?.id).toBe('team');
     for (const v of ['settings', 'audit', 'overview'] as const) expect(canOpen('analyst', v)).toBe(false);
     for (const v of ['mine', 'board', 'triage', 'priorities', 'standup', 'pandahq', 'teamscore', 'rotation', 'timeoff', 'notifications', 'training'] as const) expect(canOpen('analyst', v)).toBe(true);

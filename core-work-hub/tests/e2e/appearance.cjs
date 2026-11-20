@@ -49,7 +49,7 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   await n.getByRole('menuitemradio', { name: /Wes/ }).click();
   await n.waitForSelector('.preview-bar');
   check(/#\/mine$/.test(n.url()) && /Wes/.test(await n.locator('h1').first().innerText()), 'View as Wes opens Wes’s first page (My work)');
-  check((await n.locator('.nav button').allInnerTexts()).map((t) => t.replace(/\d+/g, '').trim()).join('|') === 'My work|Board|Team|Training', 'with Wes’s menu');
+  check((await n.locator('.nav button').allInnerTexts()).map((t) => t.replace(/\d+/g, '').trim()).join('|') === 'My work|Board|Team', 'with Wes’s menu');
   check((await n.evaluate(() => document.documentElement.dataset.palette)) === 'custom', 'and Wes’s colours');
   const before = await n.evaluate(() => Object.entries(localStorage).filter(([k]) => k.startsWith('cwh.demo.')).map(([, v]) => v).join('').length);
   await n.locator('.mw-row .btn', { hasText: /Acknowledge|Start|Log update/ }).first().click();

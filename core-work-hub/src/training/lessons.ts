@@ -38,6 +38,7 @@ export const LESSONS: Lesson[] = [
       { task: 'Change your avatar', steps: ['Click your picture in the top right.', 'Choose Change my picture: a colour, an emoji, or a photo (your Windows picture or an upload), then Save.'] },
       { task: 'Switch light / dark mode', steps: ['Click your picture in the top right and pick System, Light or Dark.'] },
       { task: 'Pick a colour theme', steps: ['Click your picture in the top right and pick a colour, or choose Appearance and custom themes… for the neutral themes (Slate, Graphite, Sand) or your own accent colour.', 'Your theme is saved to you, so it follows you to any PC.'] },
+      { task: 'Find training again', steps: ['Click your picture in the top right → Help and training. The number shows lessons you haven’t finished.'] },
     ],
     tour: [
       { target: '.sidebar .nav', title: 'The menu', body: 'The main areas of the hub. Counts tell you where something is waiting for you.' },
@@ -178,7 +179,7 @@ export const LESSONS: Lesson[] = [
     audience: 'everyone',
     why: 'Every ticket the team closes goes in the dumpster. Hit the weekly, monthly or yearly goal and it goes up in flames, with a prize.',
     howTo: [
-      { task: 'Earn points', steps: ['Close tickets: P1 8, P2 5, P3 3, P4 2 points.', '+2 when it closes within its target, +3 for a backlog ticket. Hard, on-time and old work beats volume.'] },
+      { task: 'Earn points', steps: ['Close tickets: P1 8, P2 5, P3 3, P4 2 points.', '+2 when it closes within its target, +3 for a backlog ticket. Hard, on-time and old work beats volume.', 'See the chart under How points work in Panda HQ, or hover the points on any item in My work to see exactly what it is worth and the deadline for the on-time bonus.'] },
       { task: 'Win something', steps: ['Team goals: everyone wins when the dumpster catches fire.', 'Monthly awards: Top Points, Backlog Buster, On-time Ace, Most Improved and Rookie of the Month.'] },
     ],
     tour: [

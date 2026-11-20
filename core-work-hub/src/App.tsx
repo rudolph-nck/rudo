@@ -60,7 +60,6 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
   const next = nextDispatch(cfg);
   const mustDiscuss = useMemo(() => (isAdmin(role) ? standup(state, now).mustDiscuss : 0), [state, now, role]);
   const myFocus = useMemo(() => myWork(state, me, now).focus.length, [state, me, now]);
-  const trainingLeft = lessonsFor(findPerson(cfg, me)?.role, false).filter((l) => !state.training?.[me]?.[l.id]).length;
   const sections = sectionsFor(role);
   const current = sectionOf(role, view);
   const counts: Record<string, [number, string] | undefined> = {
@@ -68,7 +67,6 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
     mine: myFocus ? [myFocus, `${myFocus} need focus`] : undefined,
     board: intake ? [intake, `${intake} in intake`] : undefined,
     team: outToday ? [outToday, `${outToday} out today`] : undefined,
-    training: trainingLeft ? [trainingLeft, `${trainingLeft} lessons to go`] : undefined,
   };
   const button = (sec: Section) => {
     const c = counts[sec.id];
@@ -145,6 +143,7 @@ function ProfileMenu() {
   const [page, setPage] = useState<'main' | 'viewas'>('main');
   const [profileOpen, setProfileOpen] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
+  const lessonsLeft = viewAs ? 0 : lessonsFor(real?.role, false).filter((l) => !state.training?.[realMe]?.[l.id]).length;
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) { setPage('main'); return; }
@@ -167,6 +166,7 @@ function ProfileMenu() {
       <button className={`me-btn ${viewAs ? 'previewing' : ''}`} onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label={`${shown?.name ?? me}: profile menu`} title={viewAs ? `Viewing as ${shown?.name}` : shown?.name ?? me}>
         <Avatar user={me} config={cfg} />
         <span className="me-name">{shown?.name ?? me}</span>
+        {lessonsLeft > 0 && !open && <span className="me-dot" title={`${lessonsLeft} training lessons to go`} aria-hidden />}
       </button>
       {open && page === 'main' && (
         <div className="profile-menu" role="menu">
@@ -193,7 +193,7 @@ function ProfileMenu() {
           {(realRole === 'manager' || realRole === 'viewer') && (
             <button role="menuitem" className="pm-item" onClick={() => setPage('viewas')}><Icon name="eye" size={16} />View as…<span className="grow" /><span className="muted">›</span></button>
           )}
-          <button role="menuitem" className="pm-item" onClick={() => { setOpen(false); go('training'); }}><Icon name="learn" size={16} />Training and help</button>
+          <button role="menuitem" className="pm-item" onClick={() => { setOpen(false); go('training'); }}><Icon name="help" size={16} />Help and training{lessonsLeft ? <span className="pm-count" aria-label={`${lessonsLeft} lessons to go`}>{lessonsLeft}</span> : null}</button>
           {store.kind !== 'launcher' && !viewAs && <button role="menuitem" className="pm-item" onClick={() => { setOpen(false); signOut(); }}><Icon name="logout" size={16} />Not you?</button>}
         </div>
       )}
@@ -257,7 +257,7 @@ function TopBar() {
           ))}
         </nav>
       ) : (
-        <div className="topbar-title">{view === 'notifications' ? 'Notifications' : section?.label}</div>
+        <div className="topbar-title">{view === 'notifications' ? 'Notifications' : view === 'training' ? 'Help and training' : section?.label}</div>
       )}
       <div className="topbar-right">
         <span className="small muted sync-text" aria-live="polite">{error ? <span className="danger-text">Sync problem</span> : syncing ? 'Syncing…' : ago !== undefined ? `Synced ${ago < 5 ? 'now' : ago + 's ago'}` : ''}</span>
@@ -285,7 +285,7 @@ function TrainingPrompt() {
       <Icon name="learn" />
       <div className="grow">
         <strong>New to the hub?</strong>
-        <div className="small muted">Take the 2-minute tour, or find every lesson under Training.</div>
+        <div className="small muted">Take the 2-minute tour, or find every lesson under Help and training (click your picture, top right).</div>
       </div>
       <button className="btn sm ghost" onClick={() => { close(); go('training'); }}>Lessons</button>
       <button className="btn sm primary" onClick={() => { close(); startTour(first, () => void commit([{ type: 'training.done', data: { lesson: first.id } }])); }}>Start tour</button>

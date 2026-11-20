@@ -34,7 +34,7 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   const w = await b.newPage(); await w.goto(file + '?demo&as=wes'); await w.waitForSelector('h1');
   check(/#\/mine$/.test(w.url()) || (await w.locator('.my-work').count()) === 1, 'analysts land on My work');
   check(/Good (morning|afternoon|evening), Wes/.test(await w.locator('h1').first().innerText()), 'My work greets them by name');
-  check((await w.locator('.nav button').allInnerTexts()).map((t) => t.replace(/\d+/g, '').trim()).join('|') === 'My work|Board|Team|Training', 'the team menu is short: My work, Board, Team, Training');
+  check((await w.locator('.nav button').allInnerTexts()).map((t) => t.replace(/\d+/g, '').trim()).join('|') === 'My work|Board|Team', 'the team menu is short: My work, Board, Team');
   check((await w.locator('.mw-tile').count()) === 5 && (await w.locator('.mw-row').count()) > 0, 'My work shows the summary tiles and the line-up');
   await w.getByRole('radio', { name: 'By status' }).click();
   check((await w.locator('.mw-bcol').count()) === 5, 'My work switches to a by-status view');

@@ -1,10 +1,11 @@
 // Panda HQ: team goals (the trash panda's dumpster), the leaderboard, badges and monthly awards.
 import { useEffect, useMemo, useState } from 'react';
 import { useHub } from '../store/hub';
+import { PointsGuide } from '../components/Points';
 import { Avatar, Icon, Modal, PriorityChip, toast } from '../components/ui';
 import { DumpsterScene } from '../components/Dumpster';
 import { findPerson } from '../model/logic';
-import { BADGES, BACKLOG_BONUS, closes, funOf, goals, leaderboard, monthlyAwards, ON_TIME_BONUS, PERIOD_LABEL, POINTS, type FunConfig, type GoalProgress, type Period } from '../model/fun';
+import { BADGES, closes, funOf, goals, leaderboard, monthlyAwards, PERIOD_LABEL, type FunConfig, type GoalProgress, type Period } from '../model/fun';
 
 const GOAL_LABEL: Record<GoalProgress['period'], string> = { week: 'This week', month: 'This month', year: 'This year', all: 'All time' };
 const MEDAL = ['🥇', '🥈', '🥉'];
@@ -181,12 +182,16 @@ export function PandaHQ() {
               </li>
             ))}
           </ol>
-          <details className="small muted lb-how">
-            <summary>How points work</summary>
-            Each closed ticket: P1 {POINTS.P1}, P2 {POINTS.P2}, P3 {POINTS.P3}, P4 {POINTS.P4} points; +{ON_TIME_BONUS} if closed within its target; +{BACKLOG_BONUS} for a backlog ticket. Hard, on-time and old work beats volume. Badges: {Object.values(BADGES).map((x) => `${x.icon} ${x.label} (${x.how.toLowerCase()})`).join(' · ')}.
-          </details>
         </section>
       )}
+
+      <section className="panel" aria-labelledby="pts-h">
+        <div className="panel-head">
+          <h2 id="pts-h" className="grow">How points work</h2>
+          <span className="small muted">Hover the points on any item in My work to see its own breakdown</span>
+        </div>
+        <div style={{ padding: 16 }}><PointsGuide /></div>
+      </section>
 
       <div className="viz-grid">
         <section className="panel" aria-labelledby="aw-h">

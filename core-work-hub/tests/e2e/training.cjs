@@ -13,8 +13,11 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   const lessons = await p.locator('.learn-item').count();
   check(lessons >= 8, `analysts see their lessons (${lessons})`);
   check(!(await p.locator('.learn-item', { hasText: 'Settings (Nick)' }).count()), 'manager-only lessons are hidden from analysts');
-  const left = Number(await p.locator('.nav button', { hasText: 'Training' }).locator('.count').innerText());
-  check(left === lessons, 'sidebar shows how many lessons are left');
+  check(!(await p.locator('.nav button', { hasText: 'Training' }).count()), 'Training is not in the side menu');
+  await p.locator('.profile-wrap .me-btn').click();
+  const left = Number(await p.getByRole('menuitem', { name: /Help and training/ }).locator('.pm-count').innerText());
+  check(left === lessons, 'Help and training in the profile menu shows how many lessons are left');
+  await p.keyboard.press('Escape');
   check(/No video installed/.test(await p.locator('.learn-detail').innerText()), 'without the video files, the lesson says so and offers the tour');
   check((await p.locator('.learn-how ol li').count()) >= 3, 'how-to steps are listed');
 

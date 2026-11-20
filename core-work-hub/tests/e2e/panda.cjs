@@ -50,6 +50,21 @@ const check = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) process.e
   await p.locator('section', { has: p.locator('#ranks-h') }).getByRole('radio', { name: 'All time' }).click();
   check((await p.locator('section', { has: p.locator('#ranks-h') }).locator('tbody tr').count()) >= 6, 'rankings switch period');
   check(/Time to assign/.test(await p.locator('main').innerText()), 'Overview shows time to assign');
+  {
+    const q = await ctx.newPage(); q.on('pageerror', (e) => errs.push(e.message));
+    await q.goto(file + '?demo&as=trey#/pandahq'); await q.waitForSelector('#pts-h');
+    check((await q.locator('.pts-chart .pts-row:not(.head)').count()) === 4 && /\+2 closed on time/.test(await q.locator('.pts-legend').innerText()), 'Panda HQ shows the points chart: P1–P4 with the on-time and backlog bonuses');
+    await q.goto(file + '?demo&as=trey#/mine'); await q.waitForSelector('.mw-row');
+    check((await q.locator('.mw-row .pts-chip').count()) === (await q.locator('.mw-row').count()), 'every item in My work shows what it is worth');
+    await q.locator('.mw-row .pts-chip').first().hover();
+    check(/Worth \d+ points if closed now/.test(await q.locator('[role=tooltip]').innerText()), 'hovering the points shows how they add up');
+    await q.getByRole('button', { name: 'How points work' }).click();
+    check(await q.locator('dialog .pts-guide').count() === 1, 'How points work opens the chart from My work');
+    await q.keyboard.press('Escape');
+    await q.goto(file + '?demo&as=trey#/board'); await q.waitForSelector('.card');
+    check(await q.locator('.card .pts-chip').count() === 0, 'no points on the Board cards');
+    await q.close();
+  }
   console.log('errors', errs);
   if (errs.length) process.exitCode = 1;
   await b.close();
