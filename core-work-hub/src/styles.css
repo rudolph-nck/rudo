@@ -1078,3 +1078,18 @@ button.mw-tile:hover { border-color: var(--border-strong); }
 .q-facts .btn { margin-left: auto; min-height: 32px; }
 .q-status { font-size: 11px; height: 20px; }
 @media (max-width: 1100px) { .pj-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ---- All tickets */
+.tk-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.tk-bar .seg .muted { font-weight: 600; font-variant-numeric: tabular-nums; }
+.tk-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.tk-filters .input { width: auto; min-width: 140px; max-width: 240px; min-height: 38px; padding-top: 6px; padding-bottom: 6px; }
+.tk-count { margin-left: auto; font-variant-numeric: tabular-nums; }
+.th-sort { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; cursor: pointer; white-space: nowrap; }
+.th-sort .arrow { font-size: 10px; color: var(--text-3); }
+th[aria-sort='ascending'] .th-sort .arrow, th[aria-sort='descending'] .th-sort .arrow { color: var(--accent-text); }
+.tk-table td { vertical-align: top; }
+.tk-table .nowrap { white-space: nowrap; }
+.tk-table tr.closed .tk-title { color: var(--text-2); font-weight: 600; }
+.tk-title { text-align: left; }
+.tk-more { display: flex; align-items: center; gap: 10px; justify-content: center; padding: 14px; border-top: 1px solid var(--border); }
