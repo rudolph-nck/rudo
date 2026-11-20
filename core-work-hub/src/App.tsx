@@ -32,6 +32,7 @@ import { noticesFor } from './model/comms';
 import { Audit } from './views/Audit';
 import { Settings } from './views/Settings';
 import { NeedsList } from './views/Lists';
+import { Projects } from './views/Projects';
 import { MyWork } from './views/MyWork';
 import { canOpen, homeFor, isAdmin, sectionOf, sectionsFor, type Section } from './sections';
 import { myWork } from './model/mywork';
@@ -338,7 +339,7 @@ function Shell() {
     location.hash = `/${v}${p ? '/' + encodeURIComponent(p) : ''}`;
   }, []);
   useEffect(() => {
-    document.title = `${{ overview: 'Overview', rotation: 'Rotation', timeoff: 'Time off', priorities: 'Priorities', teamscore: 'Team score', notifications: 'Notifications', standup: 'Stand-up', training: 'Training', pandahq: 'Panda HQ', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
+    document.title = `${{ overview: 'Overview', rotation: 'Rotation', timeoff: 'Time off', priorities: 'Priorities', teamscore: 'Team score', notifications: 'Notifications', standup: 'Stand-up', training: 'Training', pandahq: 'Panda HQ', projects: 'Projects', board: 'Board', mine: 'My work', triage: 'Triage', team: 'Team', metrics: 'Metrics', audit: 'Audit log', settings: 'Settings', list: 'Needs you' }[route.view]} · Core Work Hub`;
     (document.querySelector('main') as HTMLElement | null)?.focus({ preventScroll: true });
   }, [route.view]);
   return (
@@ -366,6 +367,7 @@ function Shell() {
               {route.view === 'audit' && <Audit />}
               {route.view === 'settings' && <Settings />}
               {route.view === 'list' && <NeedsList />}
+              {route.view === 'projects' && <Projects />}
             </ErrorBoundary>}
           </main>
         </div>

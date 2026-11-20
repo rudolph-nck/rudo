@@ -65,3 +65,16 @@ describe('Navigation by role', () => {
     for (const v of ['mine', 'board', 'triage', 'priorities', 'standup', 'pandahq', 'teamscore', 'rotation', 'timeoff', 'notifications', 'training'] as const) expect(canOpen('analyst', v)).toBe(true);
   });
 });
+
+describe('Service Desk statuses', () => {
+  it('"Resolution Provided" means closed, even in an older hub-config.json that does not list it', async () => {
+    const { normalizeConfig } = await import('../src/model/config');
+    const older = normalizeConfig({ ...cfgWith(), closedStatuses: ['Closed*', 'Canceled'] });
+    expect(older.closedStatuses).toContain('Resolution Provided');
+    expect(defaultConfig().closedStatuses).toContain('Resolution Provided');
+    const s = replay(older, snapOf([t({ source_id: 'RP1', title: 'resolved one', source_status: 'Resolution Provided', closed: local(11, 19).toISOString() })]), []);
+    const it = [...s.items.values()].find((i) => i.source_id === 'RP1')!;
+    expect(it.column).toBe('Done');
+    expect(myWork(s, 'wes', local(11, 20, 10)).open.some((x) => x.item.source_id === 'RP1')).toBe(false);
+  });
+});

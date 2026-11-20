@@ -24,6 +24,7 @@ const BOARD: Section = {
   label: 'Board',
   tabs: [
     { view: 'board', label: 'Board' },
+    { view: 'projects', label: 'Projects' },
     { view: 'triage', label: 'Intake' },
     { view: 'priorities', label: 'Priorities' },
   ],

@@ -6,7 +6,7 @@ import { useHub } from '../store/hub';
 import { useUi, rankEvents } from '../components/actions';
 import { GradeForm, draftFrom, effectiveGrade, type Draft } from '../components/GradeForm';
 import { Avatar, BucketDot, Icon, PriorityChip, SourceBadge, openLink, toast } from '../components/ui';
-import { analysts, computeScore, doingFor, fmtAge, fmtShortDate, isOverdue, personWipLimit, rankedList, suggestOwner, suggestPriority, suggestedRankIndex } from '../model/logic';
+import { analysts, computeScore, doingFor, findPerson, fmtAge, fmtShortDate, isOverdue, personWipLimit, rankedList, suggestOwner, suggestPriority, suggestedRankIndex } from '../model/logic';
 import { BUCKETS, BUCKET_LABEL, PRIORITIES, type Bucket, type Priority, type WorkItem } from '../model/types';
 
 export function CapacityStrip() {
@@ -64,6 +64,7 @@ function RankRow({ item, disabled }: { item: WorkItem; disabled: boolean }) {
 
 export function Triage() {
   const { state, grader, readOnly, commit } = useHub();
+  const { openItem } = useUi();
   const queue = useMemo(
     () => [...state.items.values()].filter((i) => i.column === 'Intake' && !i.stale).sort((a, b) => a.created.localeCompare(b.created)),
     [state.items],
@@ -205,6 +206,7 @@ export function Triage() {
                       <span style={{ fontWeight: 700, display: 'block' }}>{it.title}</span>
                       <span className="row small muted" style={{ gap: 6 }}>
                         <SourceBadge item={it} />
+                        {it.source_status && <span className="chip src q-status" title="Status in the source system">{it.source_status}</span>}
                         {it.requester && <span>{it.requester}</span>}
                         <span>· {fmtAge(it.created)}</span>
                       </span>
@@ -213,6 +215,14 @@ export function Triage() {
                   </button>
                   {isSel && draft && (
                     <div className="q-body stack">
+                      <div className="q-facts small">
+                        <span><span className="muted">Status</span> <strong>{it.source_status || '—'}</strong></span>
+                        {(it.source_owner || it.owner) && <span><span className="muted">{it.ownerFromSource || !it.owner ? 'Technician' : 'Owner'}</span> <strong>{findPerson(state.config, it.owner)?.name ?? it.source_owner}</strong></span>}
+                        <span><span className="muted">Opened</span> <strong>{new Date(it.created).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</strong> ({fmtAge(it.created)})</span>
+                        {it.due_by && <span><span className="muted">Due by</span> <strong>{fmtShortDate(it.due_by.slice(0, 10))}</strong></span>}
+                        {it.department && <span><span className="muted">Department</span> <strong>{it.department}</strong></span>}
+                        <button className="btn sm" onClick={() => openItem(it.id)}><Icon name="more" size={16} /> Open details</button>
+                      </div>
                       {it.description && <p className="small" style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{it.description}</p>}
                       <GradeForm item={it} draft={draft} onChange={setDraft} disabled={!canAct} />
                       <div className="row wrap">

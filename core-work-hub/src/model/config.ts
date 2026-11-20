@@ -5,6 +5,9 @@ import type { HubConfig } from './types';
  * Usernames are placeholders: replace them with Windows usernames before go-live.
  * Systems are SAMPLE rows: replace them with the real ownership map.
  */
+/** Service Desk statuses that always mean closed, even if a hub-config.json doesn't list them. */
+export const ALWAYS_CLOSED = ['Resolution Provided'];
+
 export function defaultConfig(): HubConfig {
   return {
     teamName: 'IT Core',
@@ -43,7 +46,8 @@ export function defaultConfig(): HubConfig {
     defaultWipLimit: 2,
     capacityModel: { projects: 14, maintenance: 8, owner_tickets: 10, dispatch: 4, documentation: 4 },
     // "Closed*" covers "Closed - Requester Unresponsive", "Closed - Moved to Project", "Closed - Requires 3rd Party".
-    closedStatuses: ['Closed*', 'Canceled', 'Cancelled', 'Rejected', 'Completed'],
+    // "Resolution Provided" is closed in Service Desk Cloud.
+    closedStatuses: ['Closed*', 'Canceled', 'Cancelled', 'Rejected', 'Completed', ...ALWAYS_CLOSED],
     resolvedStatuses: ['Resolved'],
     ticketUrls: {
       // {id} = "INC-79744", {num} = "79744". Open a ticket in Service Desk and copy its address to confirm the pattern.
@@ -72,7 +76,8 @@ export function normalizeConfig(raw: Partial<HubConfig>): HubConfig {
     rotation: raw.rotation ?? d.rotation,
     bucketWip: raw.bucketWip ?? {},
     capacityModel: { ...d.capacityModel, ...(raw.capacityModel ?? {}) },
-    closedStatuses: raw.closedStatuses ?? d.closedStatuses,
+    // Statuses that always mean closed are added to an older config's own list.
+    closedStatuses: raw.closedStatuses ? [...raw.closedStatuses, ...ALWAYS_CLOSED.filter((x) => !raw.closedStatuses!.some((y) => y.toLowerCase() === x.toLowerCase()))] : d.closedStatuses,
     resolvedStatuses: raw.resolvedStatuses ?? d.resolvedStatuses,
     ticketUrls: { ...d.ticketUrls, ...(raw.ticketUrls ?? {}) },
     statusColumns: raw.statusColumns ?? d.statusColumns,
