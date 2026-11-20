@@ -4,6 +4,7 @@ import { replay, type SourcedEvent } from '../model/replay';
 import type { HubConfig, HubEvent, HubState, NewEvent, Role, TicketsSnapshot } from '../model/types';
 import { canGrade, findPerson } from '../model/logic';
 import type { HubStore } from './storage';
+import { toast } from '../components/ui';
 
 export const POLL_MS = 20_000;
 
@@ -26,6 +27,11 @@ interface HubCtx {
   /** Auto-import of import\<export>.csv: last seen/imported, or an error. */
   importStatus?: ImportStatus;
   signOut: () => void;
+  /** Who is really signed in (differs from `me` while a manager previews someone's view). */
+  realMe: string;
+  /** Previewing the hub as this person: their menu, pages and work. Nothing is saved. */
+  viewAs?: string;
+  setViewAs: (username?: string) => void;
 }
 
 const Ctx = createContext<HubCtx | null>(null);
@@ -105,12 +111,27 @@ export function HubProvider({ store, config, me, onSignOut, children }: { store:
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  const role = findPerson(config, me)?.role;
+  const realRole = findPerson(config, me)?.role;
+  const canPreview = realRole === 'manager' || realRole === 'viewer';
+  const [viewAs, setViewAsState] = useState<string | undefined>(() => {
+    try { return sessionStorage.getItem('cwh.viewAs.' + me) ?? undefined; } catch { return undefined; }
+  });
+  const previewing = canPreview && viewAs && viewAs !== me && findPerson(config, viewAs) ? viewAs : undefined;
+  const setViewAs = useCallback((u?: string) => {
+    try { if (u && u !== me) sessionStorage.setItem('cwh.viewAs.' + me, u); else sessionStorage.removeItem('cwh.viewAs.' + me); } catch { /* ignore */ }
+    setViewAsState(u && u !== me ? u : undefined);
+  }, [me]);
+  const who = previewing ?? me;
+  const role = findPerson(config, who)?.role;
   const readOnly = role === 'viewer' || !store.writable;
 
   const commit = useCallback(
     async (news: NewEvent[]) => {
       if (readOnly || !news.length) return false;
+      if (previewing) {
+        toast(`Preview: nothing was saved. You're viewing as ${findPerson(config, previewing)?.name ?? previewing}.`);
+        return false;
+      }
       const base = Date.now();
       const full: HubEvent[] = news.map((n, i) => {
         const e = { ...n, id: uid(), ts: new Date(base + i).toISOString(), user: me } as HubEvent;
@@ -136,7 +157,7 @@ export function HubProvider({ store, config, me, onSignOut, children }: { store:
         return false;
       }
     },
-    [me, readOnly, store],
+    [me, readOnly, store, previewing, config],
   );
 
   const writeSnapshot = useCallback(
@@ -150,9 +171,9 @@ export function HubProvider({ store, config, me, onSignOut, children }: { store:
   const value: HubCtx = {
     store,
     state,
-    me,
+    me: who,
     role,
-    grader: canGrade(state.config, me),
+    grader: canGrade(state.config, who),
     readOnly,
     lastSync,
     syncing,
@@ -163,6 +184,9 @@ export function HubProvider({ store, config, me, onSignOut, children }: { store:
     writeSnapshot,
     importStatus,
     signOut: onSignOut,
+    realMe: me,
+    viewAs: previewing,
+    setViewAs,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

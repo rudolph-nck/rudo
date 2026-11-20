@@ -4,6 +4,7 @@ import { computeTeamScore, criteriaOf, isProject } from './teamscore';
 import type { AuditEntry, AvatarStyle, Bucket, Conflict, HubConfig, HubEvent, HubState, SourceTicket, TicketsSnapshot, TimeEntry, WorkItem } from './types';
 import { BUCKETS, RANKED_COLUMNS, isRanked } from './types';
 import { validColor, validEmoji, validPhoto } from './avatar';
+import { cleanAppearance } from './appearance';
 
 export interface SourcedEvent {
   event: HubEvent;
@@ -434,6 +435,11 @@ export function replay(baseConfig: HubConfig, snapshot: TicketsSnapshot | undefi
           if (d.photo === null) delete a.photo;
           else if (validPhoto(d.photo)) a.photo = d.photo;
           p.avatar = a;
+          if (d.appearance === null) delete p.appearance;
+          else if (d.appearance !== undefined) {
+            const ap = cleanAppearance(d.appearance);
+            if (ap) p.appearance = ap;
+          }
         }
         break;
       }

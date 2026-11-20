@@ -133,9 +133,10 @@ export function Notifications() {
  * (if the person turned alerts on). Remembers what it already announced so each step alerts once.
  */
 export function useDesktopAlerts() {
-  const { state, me } = useHub();
+  const { state, me, viewAs } = useHub();
   const now = useNow(60_000);
   useEffect(() => {
+    if (viewAs) return; // previewing someone else's view: their alerts aren't yours
     let on = false;
     try { on = localStorage.getItem('cwh.alerts') === '1'; } catch { /* ignore */ }
     if (!on || typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
@@ -152,5 +153,5 @@ export function useDesktopAlerts() {
       seen = [...seen, ...fresh.map((n) => `${n.item.id}|${n.status.kind}|${n.status.level}`)].slice(-500);
       try { localStorage.setItem(key, JSON.stringify(seen)); } catch { /* ignore */ }
     }
-  }, [state, me, now]);
+  }, [state, me, now, viewAs]);
 }

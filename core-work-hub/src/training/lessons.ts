@@ -37,6 +37,7 @@ export const LESSONS: Lesson[] = [
       { task: 'Find your way', steps: ['The side menu has the main areas. Areas with several pages (Overview, Board, Team) show them as tabs along the top.', 'Press the panel button next to the logo to collapse the menu to icons, and again to expand it.'] },
       { task: 'Change your avatar', steps: ['Click your picture in the top right.', 'Choose Change my picture: a colour, an emoji, or a photo (your Windows picture or an upload), then Save.'] },
       { task: 'Switch light / dark mode', steps: ['Click your picture in the top right and pick System, Light or Dark.'] },
+      { task: 'Pick a colour theme', steps: ['Click your picture in the top right and pick a colour, or choose Appearance and custom themes… for the neutral themes (Slate, Graphite, Sand) or your own accent colour.', 'Your theme is saved to you, so it follows you to any PC.'] },
     ],
     tour: [
       { target: '.sidebar .nav', title: 'The menu', body: 'The main areas of the hub. Counts tell you where something is waiting for you.' },
@@ -226,6 +227,7 @@ export const LESSONS: Lesson[] = [
     howTo: [
       { task: 'Change a target', steps: ['Settings → Priority standard: response, updates and target to resolve per priority, the start date and the backlog goal.'] },
       { task: 'Set limits and levels', steps: ['Settings → WIP limits: level and Doing limits per person, plus team bucket limits.', 'Weekly time split by level: hours per bucket for senior, mid, junior and support week.'] },
+      { task: 'See the hub as someone else', steps: ['Click your picture → View as… and pick a person.', 'You get their menu, first page, work and colours. Try anything: nothing is saved while you preview.', 'Press Exit preview at the bottom to come back.'] },
       { task: 'Update the ownership map', steps: ['Settings → Ownership map: primary, secondary and third owners and criticality per system.'] },
     ],
     tour: [

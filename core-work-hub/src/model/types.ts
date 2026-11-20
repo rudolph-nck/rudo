@@ -94,6 +94,8 @@ export interface Person {
   initials?: string;
   /** Set by the person themselves (profile.set): colour, emoji instead of initials, or a small photo. */
   avatar?: AvatarStyle;
+  /** Set by the person themselves (profile.set): light/dark and colour theme. */
+  appearance?: import('./appearance').Appearance;
   /** Doing limit for this analyst. */
   wipLimit?: number;
   /** Experience level: picks the weekly time split the Team page compares against. */
@@ -348,7 +350,7 @@ export type HubEvent = EventBase &
     | { type: 'item.comment'; item: string; data: { text: string } }
     | { type: 'item.reply'; item: string; data: { via: string; kind?: 'first' | 'update' | 'follow-up' | 'internal'; nextUpdate?: string; note?: string } }
     | { type: 'time.log'; item?: string; data: { bucket: TimeBucket; hours: number; date: string; note?: string } }
-    | { type: 'profile.set'; data: { color?: string | null; emoji?: string | null; photo?: string | null } }
+    | { type: 'profile.set'; data: { color?: string | null; emoji?: string | null; photo?: string | null; appearance?: import('./appearance').Appearance | null } }
     | { type: 'config.capacity'; data: { level: Level | 'support'; hours: Record<TimeBucket, number> } }
     | { type: 'config.person'; data: { username: string; level?: Level | null; wipLimit?: number; bucketWip?: Partial<Record<Bucket, number>>; sdName?: string; aliases?: string[] } }
     | { type: 'config.bucketWip'; data: Partial<Record<Bucket, number>> }

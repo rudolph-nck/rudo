@@ -8,6 +8,7 @@ import { TourHost, startTour } from './training/Tour';
 import { LESSONS, lessonsFor } from './training/lessons';
 import { standup } from './model/priority';
 import { ProfileDialog, toAvatarPhoto } from './components/Profile';
+import { AppearanceDialog, bootAppearance, ModeToggle, QuickThemes, useAppearanceSync } from './components/Appearance';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HubProvider, useHub } from './store/hub';
 import { DemoStore, FolderStore, fsAccessSupported, LauncherStore, launcherKey, launcherMode, loadHandle, loadIdentity, saveHandle, saveIdentity, type HubStore } from './store/storage';
@@ -36,38 +37,8 @@ import { canOpen, homeFor, isAdmin, sectionOf, sectionsFor, type Section } from 
 import { myWork } from './model/mywork';
 import { LEVEL_LABEL } from './model/types';
 
-// ------------------------------------------------------------------ theme
-type Theme = 'auto' | 'light' | 'dark';
-const getTheme = (): Theme => {
-  try {
-    return (localStorage.getItem('cwh.theme') as Theme) || 'auto';
-  } catch {
-    return 'auto';
-  }
-};
-function applyTheme(t: Theme) {
-  if (t === 'auto') document.documentElement.removeAttribute('data-theme');
-  else document.documentElement.setAttribute('data-theme', t);
-}
-applyTheme(getTheme());
-
-function ThemeToggle() {
-  const [t, setT] = useState<Theme>(getTheme);
-  const set = (v: Theme) => {
-    setT(v);
-    applyTheme(v);
-    try { localStorage.setItem('cwh.theme', v); } catch { /* ignore */ }
-  };
-  return (
-    <div className="seg theme-seg" role="radiogroup" aria-label="Color theme">
-      {([['auto', 'auto', 'System'], ['light', 'sun', 'Light'], ['dark', 'moon', 'Dark']] as const).map(([v, icon, label]) => (
-        <button key={v} role="radio" aria-checked={t === v} onClick={() => set(v)} title={label} aria-label={label}>
-          <Icon name={icon} size={16} />
-        </button>
-      ))}
-    </div>
-  );
-}
+// ------------------------------------------------------------------ theme (per person: see components/Appearance)
+bootAppearance();
 
 // ------------------------------------------------------------------ shell
 const getCollapsed = () => {
@@ -165,47 +136,99 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
 }
 
 function ProfileMenu() {
-  const { state, me, role, store, signOut } = useHub();
+  const { state, me, realMe, viewAs, setViewAs, store, signOut } = useHub();
   const { go } = useNav();
   const cfg = state.config;
-  const meP = findPerson(cfg, me);
+  const real = findPerson(cfg, realMe);
+  const shown = findPerson(cfg, me);
   const [open, setOpen] = useState(false);
+  const [page, setPage] = useState<'main' | 'viewas'>('main');
   const [profileOpen, setProfileOpen] = useState(false);
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!open) return;
+    if (!open) { setPage('main'); return; }
     const off = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
     const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
     document.addEventListener('mousedown', off);
     document.addEventListener('keydown', esc);
     return () => { document.removeEventListener('mousedown', off); document.removeEventListener('keydown', esc); };
   }, [open]);
-  const roleLabel = role === 'manager' ? 'Manager' : role === 'viewer' ? 'Viewer' : meP?.level ? LEVEL_LABEL[meP.level] : 'Analyst';
+  const realRole = real?.role;
+  const roleLabel = (p?: typeof real) => (p?.role === 'manager' ? 'Manager' : p?.role === 'viewer' ? 'Viewer' : p?.level ? LEVEL_LABEL[p.level] : 'Analyst');
+  const preview = (u?: string) => {
+    setOpen(false);
+    setViewAs(u);
+    const r = findPerson(cfg, u ?? realMe)?.role;
+    location.hash = '/' + homeFor(r);
+  };
   return (
     <div className="profile-wrap" ref={ref}>
-      <button className="me-btn" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label={`${meP?.name ?? me}: profile menu`} title={meP?.name ?? me}>
+      <button className={`me-btn ${viewAs ? 'previewing' : ''}`} onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label={`${shown?.name ?? me}: profile menu`} title={viewAs ? `Viewing as ${shown?.name}` : shown?.name ?? me}>
         <Avatar user={me} config={cfg} />
-        <span className="me-name">{meP?.name ?? me}</span>
+        <span className="me-name">{shown?.name ?? me}</span>
       </button>
-      {open && (
+      {open && page === 'main' && (
         <div className="profile-menu" role="menu">
           <div className="pm-head">
-            <Avatar user={me} config={cfg} size="lg" />
+            <Avatar user={realMe} config={cfg} size="lg" />
             <div>
-              <strong>{meP?.name ?? me}</strong>
-              <div className="small muted">{roleLabel} · {me}</div>
+              <strong>{real?.name ?? realMe}</strong>
+              <div className="small muted">{roleLabel(real)} · {realMe}</div>
             </div>
           </div>
+          {viewAs && (
+            <button role="menuitem" className="pm-item pm-preview" onClick={() => preview(undefined)}><Icon name="x" size={16} />Stop viewing as {shown?.name}</button>
+          )}
           <div className="pm-theme">
-            <span className="small muted">Theme</span>
-            <ThemeToggle />
+            <span className="small muted">Mode</span>
+            <ModeToggle />
           </div>
-          <button role="menuitem" className="pm-item" onClick={() => { setOpen(false); setProfileOpen(true); }}><Icon name="me" size={16} />Change my picture</button>
+          <div className="pm-theme col">
+            <span className="small muted">Colour theme</span>
+            <QuickThemes />
+          </div>
+          <button role="menuitem" className="pm-item" onClick={() => { setOpen(false); setAppearanceOpen(true); }}><Icon name="palette" size={16} />Appearance and custom themes…</button>
+          <button role="menuitem" className="pm-item" disabled={!!viewAs} onClick={() => { setOpen(false); setProfileOpen(true); }}><Icon name="me" size={16} />Change my picture</button>
+          {(realRole === 'manager' || realRole === 'viewer') && (
+            <button role="menuitem" className="pm-item" onClick={() => setPage('viewas')}><Icon name="eye" size={16} />View as…<span className="grow" /><span className="muted">›</span></button>
+          )}
           <button role="menuitem" className="pm-item" onClick={() => { setOpen(false); go('training'); }}><Icon name="learn" size={16} />Training and help</button>
-          {store.kind !== 'launcher' && <button role="menuitem" className="pm-item" onClick={() => { setOpen(false); signOut(); }}><Icon name="logout" size={16} />Not you?</button>}
+          {store.kind !== 'launcher' && !viewAs && <button role="menuitem" className="pm-item" onClick={() => { setOpen(false); signOut(); }}><Icon name="logout" size={16} />Not you?</button>}
+        </div>
+      )}
+      {open && page === 'viewas' && (
+        <div className="profile-menu" role="menu" aria-label="View as">
+          <button className="pm-item" onClick={() => setPage('main')}><span className="muted">‹</span>View as…</button>
+          <div className="small muted" style={{ padding: '0 8px 6px' }}>See the hub exactly as they do: their menu, first page and work. Nothing you do is saved.</div>
+          {cfg.people.filter((p) => p.username !== realMe).map((p) => (
+            <button key={p.username} role="menuitemradio" aria-checked={viewAs === p.username} className="pm-item" onClick={() => preview(p.username)}>
+              <Avatar user={p.username} config={cfg} />
+              <span className="grow">{p.name}</span>
+              <span className="small muted">{roleLabel(p)}</span>
+            </button>
+          ))}
         </div>
       )}
       <ProfileDialog open={profileOpen} onClose={() => setProfileOpen(false)} />
+      <AppearanceDialog open={appearanceOpen} onClose={() => setAppearanceOpen(false)} />
+    </div>
+  );
+}
+
+function PreviewBar() {
+  const { state, me, role, viewAs, setViewAs, realMe } = useHub();
+  if (!viewAs) return null;
+  const p = findPerson(state.config, me);
+  const exit = () => {
+    setViewAs(undefined);
+    location.hash = '/' + homeFor(findPerson(state.config, realMe)?.role);
+  };
+  return (
+    <div className="preview-bar" role="status">
+      <Icon name="eye" size={18} />
+      <span>Viewing as <strong>{p?.name ?? me}</strong> · {role === 'manager' ? 'Manager' : role === 'viewer' ? 'Viewer' : 'Team'} view. Try anything: nothing is saved.</span>
+      <button className="btn sm" onClick={exit}>Exit preview</button>
     </div>
   );
 }
@@ -251,10 +274,10 @@ function TopBar() {
 
 /** First visit with no lessons done: offer the 2-minute tour once (per PC). */
 function TrainingPrompt() {
-  const { state, me, commit, readOnly, lastSync } = useHub();
+  const { state, me, commit, readOnly, lastSync, viewAs } = useHub();
   const [hide, setHide] = useState(() => { try { return !!localStorage.getItem('cwh.trainPrompt.' + me); } catch { return true; } });
   const { go } = useNav();
-  if (hide || !lastSync || readOnly || Object.keys(state.training?.[me] ?? {}).length || navigator.webdriver) return null;
+  if (viewAs || hide || !lastSync || readOnly || Object.keys(state.training?.[me] ?? {}).length || navigator.webdriver) return null;
   const close = () => { try { localStorage.setItem('cwh.trainPrompt.' + me, '1'); } catch { /* ignore */ } setHide(true); };
   const first = LESSONS[0];
   return (
@@ -272,7 +295,8 @@ function TrainingPrompt() {
 }
 
 function Shell() {
-  const { error, role, state, me, lastSync, store, readOnly, commit } = useHub();
+  const { error, role, state, me, lastSync, store, readOnly, commit, viewAs } = useHub();
+  useAppearanceSync();
   const meP = findPerson(state.config, me);
   useEffect(() => {
     if (meP) splash.user(meP.name, initials(meP, me), avatarColor(me, state.config), meP.avatar);
@@ -280,7 +304,7 @@ function Shell() {
   }, [meP, me, state.config, lastSync]);
   // First time on the desktop icon with no avatar chosen: use the Windows account picture (they can change it).
   useEffect(() => {
-    if (!lastSync || readOnly || !store.windowsPicture || !meP || meP.avatar !== undefined) return;
+    if (viewAs || !lastSync || readOnly || !store.windowsPicture || !meP || meP.avatar !== undefined) return;
     const key = 'cwh.winpicTried.' + me;
     try { if (localStorage.getItem(key)) return; } catch { return; }
     let cancelled = false;
@@ -295,7 +319,7 @@ function Shell() {
       } catch { /* try again next time */ }
     })();
     return () => { cancelled = true; };
-  }, [lastSync, readOnly, store, meP, me, commit]);
+  }, [viewAs, lastSync, readOnly, store, meP, me, commit]);
   useDesktopAlerts();
   useCopyLinks();
   const [route, setRoute] = useState(() => (location.hash.length > 2 ? parseHash(location.hash) : { view: homeFor(role), param: undefined }));
@@ -345,6 +369,7 @@ function Shell() {
             </ErrorBoundary>}
           </main>
         </div>
+        <PreviewBar />
         <Toaster />
         <TourHost />
         <TrainingPrompt />
